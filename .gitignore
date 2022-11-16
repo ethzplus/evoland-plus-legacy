@@ -7,8 +7,8 @@
 /Data
 /Model/guidebook_dinamica_5
 /Model/Useful_submodels
-/Model/Model_backup
-/Model/Model_testing
+/Model/Dinamica_models/Model_backup
+/Model/Dinamica_models/Model_testing
 /Results
 /PopulationModel_ValPar
 /Scenario_trans_rates
