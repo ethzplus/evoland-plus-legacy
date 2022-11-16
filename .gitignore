@@ -1,0 +1,14 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+#specific folders to ignore
+/Data
+/Model/guidebook_dinamica_5
+/Model/Useful_submodels
+/Model/Model_backup
+/Model/Model_testing
+/Results
+/PopulationModel_ValPar
+/Scenario_trans_rates

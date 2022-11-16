@@ -1,0 +1,92 @@
+---
+title: Short Paper
+author:
+  - name: Benjamin Black
+    email: bblack@ethz.ch
+    affiliation: ETH Zürich
+    correspondingauthor: true
+    footnote: 1
+  - name: Adrienne  Grêt-Regamey
+    email: gret@ethz.ch
+    affiliation: ETH Zürich
+    footnote: 2
+address:
+  - code: ETH Zürich
+    address: Planning of Landscape and Urban Systems (PLUS) Institut für Raum- und Landschaftsentwicklung (IRL), HIL H 52.1, Stefano-Franscini-Platz 5, Zurich 8093
+footnote:
+  - code: 1
+    text: "This is the first author footnote."
+
+abstract: |
+  This is the abstract.
+
+  It consists of two paragraphs.
+keywords:
+  - keyword1
+  - keyword2
+journal: "An awesome journal"
+date: "`r Sys.Date()`"
+classoption: preprint, 3p, authoryear
+bibliography: mybibfile.bib
+linenumbers: false
+numbersections: true
+# Use a CSL with `citation_package = "default"`
+# csl: https://www.zotero.org/styles/elsevier-harvard
+output:
+  bookdown::pdf_book:
+    base_format: rticles::elsevier_article
+    keep_tex: true
+    citation_package: natbib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<!-- header 1 -->
+# Introduction
+
+
+<!-- header 2 -->
+# Methods
+
+
+## Approach
+<!-- paragraph 1 -->
+To perform scenario-based simulation of  future LULCC in Switzerland between 2020 and 2060 we utilized a constrained cellular automata (CCA) modelling approach using the environment modelling software Dinamica EGO <!--citation -->. CCA models of LULCC (LULCC-CCAs) treat landscapes as a pixelated grid of cells of individual LULC states with cells changing state over time typically based on two processes. Firstly, the spatial distribution of potential LULCC is determined through calculation of cellular probabilities of change, often referred to as transition potential (TP), to alternate LULC states. The means by which this is achieved, differs between popular LULCC-CAs although it is commonly based on the quantification of correlative relationships with explanatory variables such as biophysical and socio-economic and neighbourhood (focal LULC) predictors <!--citation -->. Secondly, the amount of cellular LULC changes that occur in a given time step is prescribed by values of transition rates extrapolated from historic LULC data, with an allocation algorithm selecting the required number of cells to change based upon their transition probabilities <!--citation -->.
+
+<!-- paragraph 2 -->
+The internal model process of LULCC-CCAs offer several opportunities to operationalize aspects of scenarios for the purpose of simulations. There is the possibility to alter cellular TP values according to proscribed criteria, such as spatially designated land management policies, for example reducing the potential for transition to urban LULC states inside environmental protection areas. Alternatively there is also possible
+      Both of these
+
+## Land use land cover transition modelling
+
+## Scenario development
+
+## Scenario quantification
+
+## validation
+
+
+# Results
+
+# Discussion
+
+# References
+
+
+
+
+
+
+# Figures and tables
+
+Figure \ref{fig2} is generated using an R chunk.
+
+```{r fig2, fig.width = 5, fig.height = 5, fig.align='center', out.width="50%", fig.cap = "\\label{fig2}A meaningless scatterplot.", echo = FALSE}
+plot(runif(25), runif(25))
+```
+
+
+# References {-}
+

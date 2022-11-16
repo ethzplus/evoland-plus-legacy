@@ -1,0 +1,158 @@
+\documentclass[preprint, 3p, authoryear]{elsarticle} %review=doublespace preprint=single 5p=2 column
+%%% Begin My package additions %%%%%%%%%%%%%%%%%%%
+
+\usepackage[hyphens]{url}
+
+  \journal{An awesome journal} % Sets Journal name
+
+\usepackage{lineno} % add
+
+\usepackage{graphicx}
+%%%%%%%%%%%%%%%% end my additions to header
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \usepackage{fontspec}
+  \ifxetex
+    \usepackage{xltxtra,xunicode}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage[]{natbib}
+\bibliographystyle{plainnat}
+
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={},
+            pdftitle={Short Paper},
+            colorlinks=false,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+
+\setcounter{secnumdepth}{5}
+% Pandoc toggle for numbering sections (defaults to be off)
+
+
+% tightlist command for lists without linebreak
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% From pandoc table feature
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+
+
+
+
+
+\begin{document}
+
+
+\begin{frontmatter}
+
+  \title{Short Paper}
+    \author[ETH Zürich]{Benjamin Black%
+  \corref{cor1}%
+  \fnref{1}}
+   \ead{bblack@ethz.ch}
+    \author[ETH Zürich]{Adrienne Grêt-Regamey%
+  %
+  \fnref{2}}
+   \ead{gret@ethz.ch}
+      \affiliation[ETH Zürich]{Planning of Landscape and Urban Systems (PLUS) Institut für Raum- und Landschaftsentwicklung (IRL), HIL H 52.1, Stefano-Franscini-Platz 5, Zurich 8093}
+    \cortext[cor1]{Corresponding author}
+    \fntext[1]{This is the first author footnote.}
+
+  \begin{abstract}
+  This is the abstract.
+
+  It consists of two paragraphs.
+  \end{abstract}
+    \begin{keyword}
+    keyword1 \sep
+    keyword2
+  \end{keyword}
+
+ \end{frontmatter}
+
+\hypertarget{introduction}{%
+\section{Introduction}\label{introduction}}
+
+\hypertarget{methods}{%
+\section{Methods}\label{methods}}
+
+\hypertarget{approach}{%
+\subsection{Approach}\label{approach}}
+
+To perform scenario-based simulation of future LULCC in Switzerland between 2020 and 2060 we utilized a constrained cellular automata (CCA) modelling approach using the environment modelling software Dinamica EGO . CCA models of LULCC (LULCC-CCAs) treat landscapes as a pixelated grid of cells of individual LULC states with cells changing state over time typically based on two processes. Firstly, the spatial distribution of potential LULCC is determined through calculation of cellular probabilities of change, often referred to as transition potential (TP), to alternate LULC states. The means by which this is achieved, differs between popular LULCC-CAs although it is commonly based on the quantification of correlative relationships with explanatory variables such as biophysical and socio-economic and neighbourhood (focal LULC) predictors . Secondly, the amount of cellular LULC changes that occur in a given time step is prescribed by values of transition rates extrapolated from historic LULC data, with an allocation algorithm selecting the required number of cells to change based upon their transition probabilities .
+
+The internal model process of LULCC-CCAs offer several opportunities to operationalize aspects of scenarios for the purpose of simulations. There is the possibility to alter cellular TP values according to proscribed criteria, such as spatially designated land management policies, for example reducing the potential for transition to urban LULC states inside environmental protection areas. Alternatively there is also possible
+Both of these
+
+\hypertarget{land-use-land-cover-transition-modelling}{%
+\subsection{Land use land cover transition modelling}\label{land-use-land-cover-transition-modelling}}
+
+\hypertarget{scenario-development}{%
+\subsection{Scenario development}\label{scenario-development}}
+
+\hypertarget{scenario-quantification}{%
+\subsection{Scenario quantification}\label{scenario-quantification}}
+
+\hypertarget{validation}{%
+\subsection{validation}\label{validation}}
+
+\hypertarget{results}{%
+\section{Results}\label{results}}
+
+\hypertarget{discussion}{%
+\section{Discussion}\label{discussion}}
+
+\hypertarget{references}{%
+\section{References}\label{references}}
+
+\hypertarget{figures-and-tables}{%
+\section{Figures and tables}\label{figures-and-tables}}
+
+Figure \ref{fig2} is generated using an R chunk.
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.5\linewidth]{LULCC_CH_ms_temp_files/figure-latex/fig2-1}
+
+}
+
+\caption{\label{fig2}A meaningless scatterplot.}\label{fig:fig2}
+\end{figure}
+
+\renewcommand\refname{References}
+\bibliography{mybibfile.bib}
+
+
+\end{document}
