@@ -48,6 +48,25 @@ Step_length <- 5
 ### C- Preparing Transition tables for each calibration period
 ### =========================================================================
 
+#create a table of raw areal coverage of each LULC class in each time point
+LULC_areas <- lapply(LULC_rasters, function(x) freq(x))
+
+#Reduce to single table
+Merged_areas <- Reduce(function(x, y) merge(x, y, by="value"), LULC_areas)
+names(Merged_areas)[2:5] <- names(LULC_areas)
+
+#update values to LULC class names
+RAT <- LULC_rasters[["1985"]]@data@attributes[[1]]
+Merged_areas$value <- sapply(Merged_areas$value, function(x) RAT[RAT$Pixel_value == x,"lulc_name"])
+
+#create workbook to save in
+xlsx::write.xlsx(Merged_areas, "Data/Transition_tables/raw_trans_tables/Summary_table.xlsx", sheet = "Areal_coverage", append = TRUE)
+
+
+### =========================================================================
+### C- Preparing Transition tables for each calibration period
+### =========================================================================
+
 #Dinamica produces tables of net transition rates (i.e. percentage of land that will change from one state to another)
 #These net rates of change are then used to calculate gross rates of change during the CA allocation process
 #by first calculating areal change based on the current simulated landscape and then dividing to number of cells that must transition
@@ -86,7 +105,9 @@ lulcc.periodictransmatrices <- function(Raster_combo, Raster_stack, period_name,
 trans_rates_for_period <- crosstab(Raster_stack[[grep(Raster_combo[1], names(Raster_stack))]],
                       Raster_stack[[grep(Raster_combo[2], names(Raster_stack))]])
 
-browser()
+#save the raw rates tables into an xlsx for the scenario based extrapolation
+xlsx::write.xlsx(trans_rates_for_period, file="Data/Transition_tables/raw_trans_tables/Summary_table.xlsx", sheet= period_name, row.names=FALSE, append = TRUE)
+
 #converting the transition matrix values into percentage changes
 sum01 <- apply(trans_rates_for_period, MARGIN=1, FUN=sum)
 percchange <- sweep(trans_rates_for_period, MARGIN=1, STATS=sum01, FUN="/")
@@ -167,6 +188,7 @@ Trans_tables_bound <- rbindlist(Viable_transitions_by_period, idcol = "Period")
 Trans_tables_bound$Trans_ID <- NULL
 Trans_table_time <- pivot_wider(data = Trans_tables_bound, names_from = "Period", values_from = "Rate")
 
+
 #remove added columns and save as individual csv. files as exemplar trans tables
 #to be loaded into dinamica
 mapply(function(trans_table, table_name){
@@ -183,3 +205,4 @@ mapply(function(trans_table, table_name){
 
 #save
 write.csv(Trans_table_time, "Data/Transition_tables/trans_rates_table_calibration_periods.csv")
+

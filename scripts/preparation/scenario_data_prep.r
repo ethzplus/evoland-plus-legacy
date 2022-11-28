@@ -1,3 +1,11 @@
+#############################################################################
+## Scenario_data_prep: Prepare predictor data lookup tables for simulation
+## time steps
+##
+## Date: 18-11-2021
+## Author: Ben Black
+#############################################################################
+
 # Set working directory
 wpath<-"E:/LULCC_CH"
 setwd(wpath)
@@ -15,6 +23,58 @@ if(length(new.packs)) install.packages(new.packs)
 invisible(lapply(packs, require, character.only = TRUE))
 
 ### =========================================================================
+### A- Prepare data of future economic scenarios
+### =========================================================================
+
+#use Zenodo API service to get URLs for file downloads
+ES_data_URLs <- fromJSON(rawToChar(GET("https://zenodo.org/api/records/4774914")[["content"]]))[["files"]][["links"]][["download"]]
+
+#remove files for sensitivity analysis
+ES_data_URLs <- ES_data_URLs[-c(5,6)]
+
+#create dir
+ES_dir <- "Data/Preds/Raw/Socio_economic/Employment/Employment_scenarios"
+dir.create(ES_dir, recursive = TRUE)
+
+#loop over URLS, downloading and unzipping
+for(i in ES_data_URLs){
+
+  file <- basename(i)
+
+  #if file is zipped then create temp dir and extract
+  if(grepl(".zip", i)== TRUE){
+    tmpdir <- tempdir()
+    download.file(i, paste0(tmpdir, "/", file))
+    unzip(paste0(tmpdir, "/", file), exdir = ES_dir) #unzip folder, saving to new dir
+    unlink(tmpdir) #remove temp dir
+  }else{ #non-zipped just download
+    download.file(i, paste0(ES_dir, "/", file), mode = "wb")
+    }
+}
+
+#Load in the metadata files which details the spatial aggregations
+#use read.xlsx2 to not ommit blank columns
+Meta_data <- xlsx::read.xlsx2("Data/Preds/Raw/Socio_economic/Employment/Employment_scenarios/Metadata.xlsx",
+                        sheetName = "Region")
+
+#remove empty row
+Meta_data <- Meta_data[-c(1),]
+
+#replace whitespaces with NA
+Meta_data <- Meta_data %>% mutate_all(na_if,"")
+
+n <- colSums(is.na(Meta_data)) == nrow(Meta_data) #identify empty columns
+cs <- cumsum(n) + 1 #create division vector assign unique number to each group of columns
+cs <- cs[!n] #remove empty cols from division vector
+
+#split df according to grouped columns
+Lookup_tables <- lapply(unique(cs), function(x){
+Dat <- Meta_data[, names(cs[cs== x])]
+Dat <- Dat[complete.cases(Dat),]
+})
+
+
+### =========================================================================
 ### B- Gather details of static variables
 ### =========================================================================
 
@@ -26,7 +86,7 @@ Static_preds <- Predictor_table[Predictor_table$Static_or_dynamic == "static",]
 Static_preds$Scenario <- "All"
 
 ### =========================================================================
-### B- Gather details of Dynamic variables
+### C- Gather details of Dynamic variables
 ### =========================================================================
 
 ##TEMPORARILY PERFORMING THIS PROCESS FOR bau USING AGGREGATED CLIMATIC DATA
@@ -101,7 +161,7 @@ Dynamic_preds$Covariate_ID <- sapply(Dynamic_preds$File_name, function(x){
 Dynamic_preds$Temporal_coverage <- sapply(Dynamic_preds$File_name, function(x) str_split(x, "/")[[1]][[8]])
 
 ### =========================================================================
-### B- Add static/dynamic variable data to sheets  for future time points
+### D- Add static/dynamic variable data to sheets  for future time points
 ### =========================================================================
 
 #vector time steps for future predictions
@@ -138,7 +198,7 @@ writeData(pred_workbook, sheet = paste(i), x = Combined_vars_for_time_steps[[pas
 openxlsx::saveWorkbook(pred_workbook, "E:/LULCC_CH/Data/Preds/Predictor_table.xlsx", overwrite = TRUE)
 
 ### =========================================================================
-### B- create predictor variable stack for each scenario/time point
+### E- create predictor variable stack for each scenario/time point
 ### =========================================================================
 
 #To do: implement a check in the loop to make sure there are no duplicate
@@ -169,5 +229,8 @@ sapply(Time_steps, function(sim_year){
     saveRDS(pred_stack, file = paste0("Data/Preds/Prepared/Stacks/Simulation/SA_preds/SA_pred_stacks/SA_pred_", scenario, "_", sim_year, ".rds"))
     }) #close loop over scenarios
 }) #close loop over time steps
+
+
+
 
 
