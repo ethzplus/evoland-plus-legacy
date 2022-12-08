@@ -4,7 +4,7 @@
 #' @author Ben Black
 #' @export
 
-lulcc.splitforcovselection <- function(trans_dataset, covariate_table){
+lulcc.splitforcovselection <- function(trans_dataset, predictor_table){
 #Identify the last col of the dataset as the 'transition result; and rename appropriately.
 setnames(trans_dataset, ncol(trans_dataset), "trans_result")
 
@@ -12,13 +12,13 @@ setnames(trans_dataset, ncol(trans_dataset), "trans_result")
 trans_result <- trans_dataset[, trans_result]
 
 #Identify the covariate data
-cov_data <- trans_dataset[, .SD, .SDcols = covariate_table$Covariate_ID]
+cov_data <- trans_dataset[, .SD, .SDcols = predictor_table$Covariate_ID]
 
 #remove cols which only have 1 unique value
 cov_data <- Filter(function(x)(length(unique(x))>2), cov_data)
 
 #group the non-cov dat
-non_cov_data <- trans_dataset[, .SD, .SDcols = -covariate_table$Covariate_ID]
+non_cov_data <- trans_dataset[, .SD, .SDcols = -predictor_table$Covariate_ID]
 
 #get the number of unique values in the trans_result col
 num_trans <- as.numeric(length(unique(trans_result)))

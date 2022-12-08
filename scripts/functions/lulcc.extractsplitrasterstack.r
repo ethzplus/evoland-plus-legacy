@@ -9,8 +9,6 @@
 
   lulcc.extractsplitrasterstack <- function(Rasterstack_for_splitting, Filename_data_period, Folder_path, Split_by){
 
-
-
   df_conversion <- raster::as.data.frame(Rasterstack_for_splitting) #Convert Rasterstack to dataframe, because the LULC and Region layers have attribute tables the function creates two columns for each: Pixel value and class name
   xy_coordinates <- coordinates(Rasterstack_for_splitting) #Get XY coordinates of cells
   df_with_xy <- na.omit(cbind(df_conversion, xy_coordinates)) #cbind XY coordinates to dataframe and remove NAs

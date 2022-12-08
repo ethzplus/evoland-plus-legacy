@@ -53,8 +53,8 @@ NOAS04_2018 = AS_table[,c("E", "N", "AS18_72")])
 #instantiate small function for raster creation
 create.reproject.save.raster <- function(table_for_period, raster_name){
  coordinates(table_for_period) <- ~E+N
- gridded(table_for_period) <- T
- Raster_for_period <- raster(table_for_period, values=T)
+ gridded(table_for_period) <- TRUE
+ Raster_for_period <- raster(table_for_period, values= TRUE)
  projection(Raster_for_period) <- prj_95 # define current projection
  cropped_raster_for_period <- terra::crop(Raster_for_period, Ref_grid)
  reprojected_raster_for_period <- projectRaster(cropped_raster_for_period, Ref_grid, method = 'ngb') # project them to new coordinate reference system

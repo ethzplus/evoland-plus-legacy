@@ -20,7 +20,6 @@ if(length(new.packs)) install.packages(new.packs)
 invisible(lapply(packs, require, character.only = TRUE))
 
 
-
 ### =========================================================================
 ### A- Retrieving datasets using Geoadmin.ch API service
 ### =========================================================================
@@ -35,7 +34,7 @@ Collections <- GET("http://data.geo.admin.ch/api/stac/v0.9/collections")
 #Convert JSON output to interpretable data frame
 Collection_details <-  fromJSON(rawToChar(Collections$content))[["collections"]][,2:4]
 
-#Browse dataset titles/decriptions and subset to those that you want
+#Browse dataset titles/descriptions and subset to those that you want
 #e.g. use name based subsetting of datasets:
 Desired_titles <- c("2000-Watt Sites")
 Dataset_ids_for_dl <- Collection_details[Collection_details$title  %in% Desired_titles, "id"]
@@ -54,13 +53,13 @@ Feature_data_types <- lapply(Dataset_ids_for_dl, function(Dataset_ID){
 Feature_ID <- str_split(Dataset_ID, "\\.")[[1]][[3]]
 
 #Make API call on collection and feature ID returning assets
-Assets <- fromJSON(rawToChar(GET(paste0("http://data.geo.admin.ch/api/stac/v0.9/collections/", Dataset_ID, "/items/", Feature_ID))[["content"]]))[["assets"]]
-
+Content <- fromJSON(rawToChar(GET(paste0("http://data.geo.admin.ch/api/stac/v0.9/collections/", Dataset_ID, "/items"))[["content"]]))
+Assets <- Content[["features"]][["assets"]]
 Data_types <- unlist(lapply(Assets, function(feature){
 Data_type <- feature[grepl("type", names(feature))]
 }))
 
-#reformat and subset to unqiue
+#reformat and subset to unique
 Data_types <- sapply(Data_types, function(x) str_remove(str_remove(x, "application/"), "x."))
 unname(Data_types)
 return(Data_types)
@@ -81,7 +80,8 @@ Dataset_ID <- names(Feature_data_types)[[i]]
 Feature_ID <- str_split(Dataset_ID, "\\.")[[1]][[3]]
 
 #Make API call on collection and feature ID returning assets
-Assets <- fromJSON(rawToChar(GET(paste0("http://data.geo.admin.ch/api/stac/v0.9/collections/", Dataset_ID, "/items/", Feature_ID))[["content"]]))[["assets"]]
+Content <- fromJSON(rawToChar(GET(paste0("http://data.geo.admin.ch/api/stac/v0.9/collections/", Dataset_ID, "/items"))[["content"]]))
+Assets <- Content[["features"]][["assets"]]
 
 #extract 'href' objects (html paths to download geodata) from Assets
 DL_paths <- lapply(Assets, function(x){
@@ -89,7 +89,7 @@ DL_paths <- lapply(Assets, function(x){
   x[["href"]]}
   })
 DL_paths <- DL_paths[!sapply(DL_paths,is.null)] #remove NULL items
-
+browser()
 #create directory for saving the data into
 Save_path <- paste0(Save_dir, "/", Feature_ID)
 dir.create(Save_path)
@@ -106,6 +106,42 @@ download.file(x, paste0(Save_path, "/", File_name))
 
 }#close loop over datasets
 
+### =========================================================================
+### A- Example running a query on the FSO Stat-tab API service
+### =========================================================================
 
+#vector JSON query
+body_list <- '{
+  "query": [
+    {
+      "code": "Wirtschaftssektor",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "1",
+          "2",
+          "3"
+        ]
+      }
+    },
+    {
+      "code": "Beobachtungseinheit",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "4"
+        ]
+      }
+    }
+  ],
+  "response": {
+    "format": "json-stat"
+  }
+}'
 
+#Post query to API
+Statent_return <- rawToChar(POST("https://www.pxweb.bfs.admin.ch/api/v1/de/px-x-0602010000_102/px-x-0602010000_102.px", body = body_list, encode = "json")[["content"]])
+
+#convert Json-stat object to dataframe
+Statent_data <- rjstat::fromJSONstat(Statent_return, naming = "label", use_factors = FALSE, silent = FALSE)[[1]]
 

@@ -64,6 +64,16 @@ model_specs <- read_excel("Tools/model_specs.xlsx")
 #attach data period names to env.
 output_env$Data_periods <- unique(model_specs$Data_period_name)
 
+#attach string to env. indicating whether regionalized datasets should be produced
+if(any(grep(model_specs$model_scale,
+        pattern = "regionalized",
+        ignore.case = TRUE)) == TRUE){
+output_env$Regionalization <- TRUE
+} else{
+output_env$Regionalization <- FALSE
+}
+
+
 #create table for controlling simulations
 Simulation_control_table <- data.frame(matrix(ncol = 9, nrow = 0))
 colnames(Simulation_control_table) <- c("Simulation_num.",
@@ -123,15 +133,12 @@ source("Scripts/preparation/Region_prep.R", local = output_env)
 ### B- Prepare predictor data
 ### =========================================================================
 
+#Start from a basic table of predictor names and details
+#that cannot be created programmatically and expand this
+#when data layers are created
+
 #Prepare suitability and accessibility predictors
-#source("Scripts/preparation/SA_var_prep.R", local = output_env)
-
-#Prepare climatic variables
-
-
-
-#Prepare neighbourhood predictors
-source("Scripts/preparation/Nhood_data_prep.R", local = output_env)
+#source("Scripts/preparation/SA_var_prep_v3.R", local = output_env)
 
 ### =========================================================================
 ### C- Identify LULC transitions and create transition datasets

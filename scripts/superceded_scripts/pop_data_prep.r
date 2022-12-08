@@ -14,7 +14,7 @@ setwd(wpath)
 
 # Install packages if they are not already installed
 packs<-c("data.table","stringi","stringr","plyr","readxl","rlist", "tidyverse",
-         "rstatix", "Dinamica", "raster", "openxlsx")
+         "rstatix", "Dinamica", "raster", "openxlsx", "pxR")
 
 new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
 
@@ -24,154 +24,160 @@ if(length(new.packs)) install.packages(new.packs)
 invisible(lapply(packs, require, character.only = TRUE))
 
 #Load in the grid to use for rasterization
-Ref_rast <- raster("Data/Ref_grid.gri")
+Ref_grid <- raster("Data/Ref_grid.gri")
 
 ### =========================================================================
 ### B- prepare municipality population data incorporating mutations
 ### =========================================================================
 
-#read in PX data from html and convert to DF
-px_data <- as.data.frame(read.px("https://dam-api.bfs.admin.ch/hub/api/dam/assets/23164063/master"))
-
-#subset to desired rows based on conditions:
-#Total population on 1st of January;
-#Total populations (Swiss and foreigners)
-#Total population (Men and Women)
-raw_mun_popdata <- px_data[px_data$Demografische.Komponente == "Bestand am 31. Dezember" &
-                     px_data$Staatsangeh?rigkeit..Kategorie. == "Staatsangeh?rigkeit (Kategorie) - Total" &
-                     px_data$Geschlecht == "Geschlecht - Total", ]
-
-#Identify municipalities records by matching on the numeric contained in their name
-raw_mun_popdata <- raw_mun_popdata[grepl(".*?([0-9]+).*", raw_mun_popdata$Kanton.......Bezirk........Gemeinde.........), c(4:6)]
-names(raw_mun_popdata) <- c("Name_Municipality", "Year", "Population")
-raw_mun_popdata <- raw_mun_popdata %>% pivot_wider(names_from = "Year",
-                                                values_from = "Population")
-#Remove the periods in the name column
-raw_mun_popdata$Name_Municipality <- gsub("[......]","",as.character(raw_mun_popdata$Name_Municipality))
-
-#Seperate BFS number from name
-raw_mun_popdata$BFS_NUM <- as.numeric(gsub(".*?([0-9]+).*", "\\1", raw_mun_popdata$Name_Municipality))
-
-#Remove BFS number from name
-raw_mun_popdata$Name_Municipality <- gsub("[[:digit:]]", "", raw_mun_popdata$Name_Municipality)
-
-# subset to only municipalities existing in 2021
-raw_mun_popdata <- raw_mun_popdata[raw_mun_popdata$`2021`> 0,]
-
-# import municipality shape file
-Muni_shp <- shapefile("PopulationModel_ValPar/Data/01_Raw_Data/swissboundaries/swissboundaries3d_2021-07_2056_5728.shp/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.shp")
-
-#filter out non-swiss municipalities
-Muni_shp <- Muni_shp[Muni_shp@data$ICC == "CH" & Muni_shp@data$OBJEKTART == "Gemeindegebiet", ]
-
-# import data of municipality mutations
-#TO DO: what were the conditions we applie don the BFS website to get this data?
-
-muni_mutations <- data.frame()
-
-download.file(url = "https://www.agvchapp.bfs.admin.ch/de/mutated-communes/results?EntriesFrom=01.01.1981&EntriesTo=01.05.2022&NameChange=True#:~:text=Suche%20anpassen-,Export,-(Excel%20XLSX)", destfile = muni_mutations, mode="wb")
-
-
-zip <- ("https://www.agvchapp.bfs.admin.ch/de/mutated-communes/results?EntriesFrom=01.01.1981&EntriesTo=01.05.2022&NameChange=True#:~:text=Suche%20anpassen-,Export,-(Excel%20XLSX)")
-
-muni_mutations <- unzip(zip)
-
-muni_mutations <- unzip("https://www.agvchapp.bfs.admin.ch/de/mutated-communes/results?EntriesFrom=01.01.1981&EntriesTo=01.05.2022&NameChange=True#:~:text=Suche%20anpassen-,Export,-(Excel%20XLSX)")
-
-
-muni_mutations <- read_excel("PopulationModel_Valpar/Data/01_Raw_Data/MutationGemeinde/Mutierte_Gemeinden_namechange.xlsx",
-                      range = "A2:J55")
-
-## rename columns
-colnames(muni_mutations) <- c("Mutation_Number", "Pre_canton_ID",
-                                    "Pre_District_num", "Pre_BFS_num",
-                                    "Pre_muni_name", "Post_canton_ID",
-                                    "Post_district_num", "Post_BFS_num",
-                                    "Post_muni_name", "Change_date")
-
-#identify which municipalities have mutations associated with them
-mutation_index <- match(raw_mun_popdata$BFS_NUM, muni_mutations$Pre_BFS_num) # which have changed
-
-#change municpality BFS number in population table according tothe mutation
-#for each row in the pop df if there is an NA in the mutation index do not replace the BFS number
-#If there is not an NA then replace with the new BFS number of the mutation table.
-
-for (i in 1:nrow(raw_mun_popdata)){
-  if (!is.na(mutation_index[i])){
-    raw_mun_popdata$BFS_NUM[[i]] <- muni_mutations[[mutation_index[[i]], "Post_BFS_num"]]}
-}
-
-#If after introducing the mutations we have multiple rows with the same BFS numbers
-#then we need to combine their populations values as these indicate municipalities merging
-
-if(length(unique(raw_mun_popdata$BFS_NUM)) != nrow(raw_mun_popdata)){
-#get the indices of columns that represent the years
-Time_points <- na.omit(as.numeric(gsub(".*?([0-9]+).*", "\\1", colnames(raw_mun_popdata))))
-
-#create a empty df for results
-Muni_pop_final <- as.data.frame(matrix(ncol= length(Time_points),
-                         nrow = length(unique(raw_mun_popdata$BFS_NUM))))
-colnames(Muni_pop_final) <- Time_points
-
-#Add column for BFS number
-Muni_pop_final$BFS_NUM <- sort(unique(raw_mun_popdata$BFS_NUM))
-
-#loop over date cols and rows summing values where BFS number is non-unique
-for (j in Time_points){
-  for (i in 1:length(unique(raw_mun_popdata$BFS_NUM))){
-    Muni_pop_final[i, paste(j)] <- sum(raw_mun_popdata[raw_mun_popdata$BFS_NUM == Muni_pop_final[i, "BFS_NUM"], paste(j)])
-  }
-}
-#replace old data with revised data
-raw_mun_popdata <- Muni_pop_final
-} #close if statement
-
-#Add canton number
-raw_mun_popdata$KANTONSNUM <- sapply(raw_mun_popdata$BFS_NUM, function(x){
-unique(Muni_shp@data[Muni_shp@data$BFS_NUMMER == x, "KANTONSNUM"])
-})
-
-### =========================================================================
-### C- create historic municipality population rasters
-### =========================================================================
-
-#vector the years population data required from the LULC data point
-pop_years <- gsub(".*?([0-9]+).*", "\\1", list.files("E:/LULCC_CH/Data/Historic_LULC", full.names = FALSE, pattern = ".gri"))
-
-#seperate pop data for LULc years
-pop_in_LULC_years <- raw_mun_popdata[,c("BFS_NUM", pop_years)]
-
-#link with spatial municipality data, rasterize and save
-for(i in pop_years){
-
-#loop over the BFS numbers of the polygons and match to population values
-Muni_shp@data[paste0("Pop_", i)] <- as.numeric(sapply(Muni_shp@data$BFS_NUMMER, function(Muni_num){
-  pop_value <- as.numeric(pop_in_LULC_years[pop_in_LULC_years$BFS_NUM == Muni_num, paste(i)])
-  }, simplify = TRUE))
-
-#rasterize
-pop_rast <- rasterize(Muni_shp, Ref_rast, field = paste0("Pop_", i))
-
-#file_path
-save_path <- paste0("Data/Preds/Raw/Socio_economic/Population/Prepared/", "Pop_", i, ".tif")
-
-#save
-raster::writeRaster(pop_rast, save_path)
-
-}# close loop over LULC years
-
-# TO DO: add rasters to predictor table
+# #read in PX data from html and convert to DF
+# px_data <- as.data.frame(read.px("https://dam-api.bfs.admin.ch/hub/api/dam/assets/23164063/master"))
+#
+# #subset to desired rows based on conditions:
+# #Total population on 1st of January;
+# #Total populations (Swiss and foreigners)
+# #Total population (Men and Women)
+# raw_mun_popdata <- px_data[px_data$Demografische.Komponente == "Bestand am 31. Dezember" &
+#                      px_data$Staatsangeh?rigkeit..Kategorie. == "Staatsangeh?rigkeit (Kategorie) - Total" &
+#                      px_data$Geschlecht == "Geschlecht - Total", ]
+#
+# #Identify municipalities records by matching on the numeric contained in their name
+# raw_mun_popdata <- raw_mun_popdata[grepl(".*?([0-9]+).*", raw_mun_popdata$Kanton.......Bezirk........Gemeinde.........), c(4:6)]
+# names(raw_mun_popdata) <- c("Name_Municipality", "Year", "Population")
+# raw_mun_popdata <- raw_mun_popdata %>% pivot_wider(names_from = "Year",
+#                                                 values_from = "Population")
+# #Remove the periods in the name column
+# raw_mun_popdata$Name_Municipality <- gsub("[......]","",as.character(raw_mun_popdata$Name_Municipality))
+#
+# #Seperate BFS number from name
+# raw_mun_popdata$BFS_NUM <- as.numeric(gsub(".*?([0-9]+).*", "\\1", raw_mun_popdata$Name_Municipality))
+#
+# #Remove BFS number from name
+# raw_mun_popdata$Name_Municipality <- gsub("[[:digit:]]", "", raw_mun_popdata$Name_Municipality)
+#
+# # subset to only municipalities existing in 2021
+# raw_mun_popdata <- raw_mun_popdata[raw_mun_popdata$`2021`> 0,]
+#
+# # import municipality shape file
+# Muni_shp <- shapefile("PopulationModel_ValPar/Data/01_Raw_Data/swissboundaries/swissboundaries3d_2021-07_2056_5728.shp/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.shp")
+#
+# #filter out non-swiss municipalities
+# Muni_shp <- Muni_shp[Muni_shp@data$ICC == "CH" & Muni_shp@data$OBJEKTART == "Gemeindegebiet", ]
+#
+# # import data of municipality mutations
+# #TO DO: what were the conditions we applie don the BFS website to get this data?
+#
+# muni_mutations <- data.frame()
+#
+# download.file(url = "https://www.agvchapp.bfs.admin.ch/de/mutated-communes/results?EntriesFrom=01.01.1981&EntriesTo=01.05.2022&NameChange=True#:~:text=Suche%20anpassen-,Export,-(Excel%20XLSX)", "test_dl.xlsx", mode="wb")
+#
+#
+# zip <- ("https://www.agvchapp.bfs.admin.ch/de/mutated-communes/results?EntriesFrom=01.01.1981&EntriesTo=01.05.2022&NameChange=True#:~:text=Suche%20anpassen-,Export,-(Excel%20XLSX)")
+#
+# muni_mutations <- unzip(zip)
+#
+# muni_mutations <- unzip("https://www.agvchapp.bfs.admin.ch/de/mutated-communes/results?EntriesFrom=01.01.1981&EntriesTo=01.05.2022&NameChange=True#:~:text=Suche%20anpassen-,Export,-(Excel%20XLSX)")
+#
+#
+# muni_mutations <- readxl::read_excel("PopulationModel_Valpar/Data/01_Raw_Data/MutationGemeinde/Mutierte_Gemeinden_namechange.xlsx",
+#                       range = "A2:J55")
+#
+# ## rename columns
+# colnames(muni_mutations) <- c("Mutation_Number", "Pre_canton_ID",
+#                                     "Pre_District_num", "Pre_BFS_num",
+#                                     "Pre_muni_name", "Post_canton_ID",
+#                                     "Post_district_num", "Post_BFS_num",
+#                                     "Post_muni_name", "Change_date")
+#
+# #identify which municipalities have mutations associated with them
+# mutation_index <- match(raw_mun_popdata$BFS_NUM, muni_mutations$Pre_BFS_num) # which have changed
+#
+# #change municpality BFS number in population table according to the mutation
+# #for each row in the pop df if there is an NA in the mutation index do not replace the BFS number
+# #If there is not an NA then replace with the new BFS number of the mutation table.
+#
+# for (i in 1:nrow(raw_mun_popdata)){
+#   if (!is.na(mutation_index[i])){
+#     raw_mun_popdata$BFS_NUM[[i]] <- muni_mutations[[mutation_index[[i]], "Post_BFS_num"]]}
+# }
+#
+# #If after introducing the mutations we have multiple rows with the same BFS numbers
+# #then we need to combine their populations values as these indicate municipalities merging
+#
+# if(length(unique(raw_mun_popdata$BFS_NUM)) != nrow(raw_mun_popdata)){
+# #get the indices of columns that represent the years
+# Time_points <- na.omit(as.numeric(gsub(".*?([0-9]+).*", "\\1", colnames(raw_mun_popdata))))
+#
+# #create a empty df for results
+# Muni_pop_final <- as.data.frame(matrix(ncol= length(Time_points),
+#                          nrow = length(unique(raw_mun_popdata$BFS_NUM))))
+# colnames(Muni_pop_final) <- Time_points
+#
+# #Add column for BFS number
+# Muni_pop_final$BFS_NUM <- sort(unique(raw_mun_popdata$BFS_NUM))
+#
+# #loop over date cols and rows summing values where BFS number is non-unique
+# for (j in Time_points){
+#   for (i in 1:length(unique(raw_mun_popdata$BFS_NUM))){
+#     Muni_pop_final[i, paste(j)] <- sum(raw_mun_popdata[raw_mun_popdata$BFS_NUM == Muni_pop_final[i, "BFS_NUM"], paste(j)])
+#   }
+# }
+# #replace old data with revised data
+# raw_mun_popdata <- Muni_pop_final
+# } #close if statement
+#
+# #Add canton number
+# raw_mun_popdata$KANTONSNUM <- sapply(raw_mun_popdata$BFS_NUM, function(x){
+# unique(Muni_shp@data[Muni_shp@data$BFS_NUMMER == x, "KANTONSNUM"])
+# })
+#
+# ### =========================================================================
+# ### C- create historic municipality population rasters
+# ### =========================================================================
+#
+# #vector the years population data required from the LULC data point
+# pop_years <- gsub(".*?([0-9]+).*", "\\1", list.files("E:/LULCC_CH/Data/Historic_LULC", full.names = FALSE, pattern = ".gri"))
+#
+# #seperate pop data for LULc years
+# pop_in_LULC_years <- raw_mun_popdata[,c("BFS_NUM", pop_years)]
+#
+# #link with spatial municipality data, rasterize and save
+# for(i in pop_years){
+#
+# #loop over the BFS numbers of the polygons and match to population values
+# Muni_shp@data[paste0("Pop_", i)] <- as.numeric(sapply(Muni_shp@data$BFS_NUMMER, function(Muni_num){
+#   pop_value <- as.numeric(pop_in_LULC_years[pop_in_LULC_years$BFS_NUM == Muni_num, paste(i)])
+#   }, simplify = TRUE))
+#
+# #rasterize
+# pop_rast <- rasterize(Muni_shp, Ref_grid, field = paste0("Pop_", i))
+#
+# #file_path
+# save_path <- paste0("Data/Preds/Raw/Socio_economic/Population/Prepared/", "Pop_", i, ".tif")
+#
+# #save
+# raster::writeRaster(pop_rast, save_path)
+#
+# }# close loop over LULC years
+#
+# # TO DO: add rasters to predictor table
 
 ### =========================================================================
 ### D- Prepare historic cantonal population data
 ### =========================================================================
 
+#reload historic muni pop data produced in historic predictor prep
+raw_mun_popdata <- readRDS("Data/Preds/Raw/Socio_economic/Population/raw_muni_pop_historic.rds")
+
 #load kanton shapefile
-Canton_shp <- shapefile("PopulationModel_ValPar/Data/01_Raw_Data/swissboundaries/swissboundaries3d_2021-07_2056_5728.shp/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.shp")
+Canton_shp <- shapefile("Data/Preds/Raw/CH_geoms/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.shp")
+
+#read in population data from html and convert to DF
+px_data <- data.frame(read.px("https://dam-api.bfs.admin.ch/hub/api/dam/assets/23164063/master"))
 
 # subset px_data to historic cantonal population data
 raw_can_popdata <- px_data[px_data$Demografische.Komponente == "Bestand am 31. Dezember" &
-                     px_data$Staatsangeh?rigkeit..Kategorie. == "Staatsangeh?rigkeit (Kategorie) - Total" &
+                     px_data$Staatsangehörigkeit..Kategorie. == "Staatsangehörigkeit (Kategorie) - Total" &
                      px_data$Geschlecht == "Geschlecht - Total", c(4:6)]
 names(raw_can_popdata) <- c("Name_Canton", "Year", "Population")
 raw_can_popdata$Name_Canton <- as.character(raw_can_popdata$Name_Canton)
@@ -181,7 +187,6 @@ raw_can_popdata <- raw_can_popdata[grep(".*?([0-9]+).*", raw_can_popdata$Name_Ca
 
 #all cantons
 raw_can_popdata <- raw_can_popdata[grep(">>", raw_can_popdata$Name_Canton, invert = TRUE),]
-
 raw_can_popdata <- raw_can_popdata[grep(paste0(unique(Canton_shp@data[["NAME"]]), collapse = "|"), raw_can_popdata$Name_Canton),]
 
 #pivot to wide
@@ -253,8 +258,7 @@ return(pop_sum)
 ### F- Calculate % urban area per municipality
 ### =========================================================================
 
-#Load one of the historic LULC maps to use as a dummy layer
-#Variable name
+#Load the most recent LULC map
 current_LULC <- raster("Data/Historic_LULC/LULC_2018_agg.gri")
 
 #subset to just urban cell
@@ -272,7 +276,7 @@ Canton_urban_areas <- Canton_urban_areas %>%
   summarise(across(c(layer), sum))
 
 #load the municipality shape file
-Muni_shp <- shapefile("PopulationModel_Valpar/Data/01_Raw_Data/swissboundaries/swissboundaries3d_2021-07_2056_5728.shp/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.shp")
+Muni_shp <- shapefile("Data/Preds/Raw/CH_geoms/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.shp")
 
 #filter out non-swiss municipalities
 Muni_shp <- Muni_shp[Muni_shp@data$ICC == "CH" & Muni_shp@data$OBJEKTART == "Gemeindegebiet", ]

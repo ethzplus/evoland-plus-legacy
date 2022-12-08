@@ -14,7 +14,9 @@ wpath <- "E:/LULCC_CH"
 setwd(wpath)
 
 # Install packages if they are not already installed
-packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse", "testthat", "sjmisc", "tictoc", "parallel", "terra", "pbapply", "rgdal", "rgeos", "sf", "tiff")
+packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse", "testthat",
+         "sjmisc", "tictoc", "parallel", "terra", "pbapply", "rgdal", "rgeos",
+         "sf", "tiff", "bfsMaps", "rjstat")
 
 new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
 
@@ -23,8 +25,18 @@ if(length(new.packs)) install.packages(new.packs)
 # Load required packages
 invisible(lapply(packs, require, character.only = TRUE))
 
+# Source custom functions
+invisible(sapply(list.files("Scripts/Functions",pattern = ".R", full.names = TRUE, recursive=TRUE), source))
+
 #Load in the grid to use use for re-projecting the CRS and extent of covariate data
 Ref_grid <- raster("Data/Ref_grid.gri")
+
+Geoms_path <- "Data/Preds/Raw/CH_geoms"
+dir.create(Geoms_path)
+
+#download folder of basic map geometries for Switzerland
+DownloadBfSMaps(url = "https://dam-api.bfs.admin.ch/hub/api/dam/assets/21245514/master",
+path = Geoms_path)
 
 #create directories
 dir.create("Data/Preds/Prepared/Stacks", recursive = TRUE)
@@ -45,25 +57,252 @@ sheets <- excel_sheets("Data/Preds/Predictor_table.xlsx")
 # #save the updated tables
 # openxlsx::write.xlsx(Pred_tables_update, file = "Data/Preds/Predictor_table.xlsx", overwrite = TRUE)
 
+### =========================================================================
+### A- Changes to municipalities
+### =========================================================================
+
+#Over time there has been many changes to the desinations of municipalities
+#in Switzerland e.g aggregations, disaggregations, name changes etc.
+#We need to harmonize data from different time periods to the same
+#schematic of municipalities in order to spatialize it accurately
+
+#load table of municipaliy mutations for current study data i.e. upto 2022
+muni_mutations <- readxl::read_excel("PopulationModel_Valpar/Data/01_Raw_Data/MutationGemeinde/Mutierte_Gemeinden_namechange.xlsx",
+                      range = "A2:J55")
+
+## rename columns
+colnames(muni_mutations) <- c("Mutation_Number", "Pre_canton_ID",
+                                    "Pre_District_num", "Pre_BFS_num",
+                                    "Pre_muni_name", "Post_canton_ID",
+                                    "Post_district_num", "Post_BFS_num",
+                                    "Post_muni_name", "Change_date")
+
+# import municipality shape file
+Muni_shp <- shapefile("PopulationModel_ValPar/Data/01_Raw_Data/swissboundaries/swissboundaries3d_2021-07_2056_5728.shp/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.shp")
+
+#filter out non-swiss municipalities
+Muni_shp <- Muni_shp[Muni_shp@data$ICC == "CH" & Muni_shp@data$OBJEKTART == "Gemeindegebiet", ]
 
 ### =========================================================================
-### B- Load in covariate layers that need to be re-projected and aggregated###
+### X- Load in covariate layers that need to be re-projected and aggregated###
 ### =========================================================================
-
-
-
-
 
 #create a list of raw data rasters then loop over them and change extent, res and crs
 #before saving to the correct location in: Preds/Prepared/Layers/'pred name'/'layer'
 test <- list.files("E:/LULCC_CH/Data/Preds/Raw", recursive = TRUE, full.names = TRUE)
 
+### =========================================================================
+### X- Socio_economic: Employment
+### =========================================================================
+
+#In order to have a common variable between the historic data and the future
+#economic scenarios, the variables we will derive will be:
+#1. Average annual change in number of full time equivalent employees in the primary sector
+#2. Average annual change in number of full time equivalent employees in the secondary and tertiary sectors combined
+
+#As the future scenarios of employment are expressed at the scale
+#of labour market regions rather than municipalities then the historic data
+#needs to be aggregated to this scale
+
+#The historic employment data from the Federal statistical office
+#comes from two sources:
+#1. The business census (conducted from 1995-2008 for the timepoints: 1995, 2001, 2005, 2008)
+#2. The business structure statistics (STATENT, conducted annual from 2011)
+
+#The primary, secondary and tertiary sectors are themselves aggregations
+#of all of the individual economic industries each of which as an official
+#classification under the NOGA schematic. This schematic did change in 2008 with
+#definitions/codes used for some industries being changed.
+#It is difficult to match the old/new NOGA schemes exactly
+#however changes are minor in the scope of the number of industries them exactly
+
+##OLD APPROACH USING DATA SOURCES ALREADY AGGREGATED TO THE MUNICIPALITY LEVEL
+#THIS INTRODUCES PROBLEMS DUE TO MUNICIPALITIES CHANGING OVER TIME
+
+#Start with the Business census data
+#Gerecke et al. 2019 provide this data and a method to extrapolate it
+# to match the years of the first 3 Areal statistik datapoints (1985, 1997,2009)
+#this is easier than using the raw data from original source
+
+#Download data from Gerecke et al.
+lulcc.downloadunzip(url = "https://www.envidat.ch/dataset/c259ac71-37ea-477e-94b0-c463cc195304/resource/3f13ea3a-3dd2-48a3-98a1-284b565b2c2d/download/data.zip",
+                    save_dir = "Data/Preds/Raw/Socio_economic/Employment/Municipality_employment" )
+
+#load table of municipal employment figures for different sectors
+muni_employment <- read.csv(list.files(wpath, recursive = TRUE, pattern = "workers_sectortest"))
+
+#identify which municipalities have mutations associated with them
+mutation_index <- match(muni_employment$gmde, muni_mutations$Pre_muni_name) # which have changed
+
+#change municpality BFS number in population table according to the mutation
+#for each row in the pop df if there is an NA in the mutation index do not replace the BFS number
+#If there is not an NA then replace with the new BFS number of the mutation table.
+for (i in 1:nrow(muni_employment)){
+  if (!is.na(mutation_index[i])){
+    muni_employment$BFS[[i]] <- muni_mutations[[mutation_index[[i]], "Post_BFS_num"]]}else{
+      muni_employment$BFS[[i]] <- muni_employment$nr[[i]]
+    }
+}
+
+#If after introducing the mutations we have multiple rows with the same BFS numbers
+#then we need to combine their populations values as these indicate municipalities merging
+## to have one number for sec1 and sec23 per municipality, create new matrix where those with the same municipality are added together
+sec <- matrix(ncol=9,nrow = length(unique(muni_employment$BFS)))
+colnames(sec) <- c("BFS","sec1.95","sec23.95","sec1.01","sec23.01","sec1.05","sec23.05","sec1.08","sec23.08")
+
+sec[,1] <- sort(unique(muni_employment$BFS))
+for (j in 1:4){
+  for (i in 1:length(unique(muni_employment$BFS))){
+    sec[i,(2*j)] <- sum(muni_employment[muni_employment$BFS==sec[i,1],(4+(j-1)*3)])
+    sec[i,(2*j+1)] <- sum(muni_employment[muni_employment$BFS==sec[i,1],(5+(j-1)*3)]) + sum(muni_employment[muni_employment$BFS==sec[i,1],(6+(j-1)*3)])
+  }
+}
+
+#Statent data from 2011-2020
+#vector JSON query
+body_list <- '{
+  "query": [
+    {
+      "code": "Wirtschaftssektor",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "1",
+          "2",
+          "3"
+        ]
+      }
+    },
+    {
+      "code": "Beobachtungseinheit",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "4"
+        ]
+      }
+    }
+  ],
+  "response": {
+    "format": "json-stat"
+  }
+}'
+
+#Post query to API
+Statent_return <- rawToChar(POST("https://www.pxweb.bfs.admin.ch/api/v1/de/px-x-0602010000_102/px-x-0602010000_102.px", body = body_list, encode = "json")[["content"]])
+
+#concert Json-stat object to dataframe
+Statent_data <- rjstat::fromJSONstat(Statent_return, naming = "label", use_factors = FALSE, silent = FALSE)[[1]]
+
+#remove the rows for Swiss totals
+Statent_data <- Statent_data[-c(grep("Schweiz", Statent_data$Gemeinde)),]
+
+#remove the column containing the variable name
+Statent_data$Beobachtungseinheit <- NULL
+
+#seperate municipality number and name
+Statent_data$BFS <- as.numeric(gsub(".*?([0-9]+).*", "\\1", Statent_data$Gemeinde))
+Statent_data$Gemeinde <- trimws(gsub("[[:digit:]]", "", Statent_data$Gemeinde))
+
+#replace col names
+colnames(Statent_data) <- c("Year", "Municipality", "Sector", "value", "BFS")
+
+#pivot to wide
+Statent_wide <- Statent_data %>% pivot_wider(names_from = "Year",
+                                             names_prefix = "Y",
+                                                values_from = "value")
+
+#recode sector names
+names_key <- c("sec1", "sec2", "sec3")
+names(names_key) <- unique(Statent_wide$Sector)
+Statent_wide <- Statent_wide %>%
+  mutate(Sector = recode(Sector, !!!names_key))
+
+#identify which municipalities have mutations associated with them
+mutation_index <- match(Statent_wide$BFS, muni_mutations$Pre_BFS_num) # which have changed
+
+#change municpality BFS number in population table according to the mutation
+#for each row in the pop df if there is an NA in the mutation index do not replace the BFS number
+#If there is not an NA then replace with the new BFS number of the mutation table.
+for (i in 1:nrow(Statent_wide)){
+  if (!is.na(mutation_index[i])){
+    Statent_wide$BFS[[i]] <- muni_mutations[[mutation_index[[i]], "Post_BFS_num"]]}
+}
+
+#seperate the sector 1/ sector 2/3 data
+Statent_sec1 <- Statent_wide[Statent_wide$Sector== "sec1",]
+Statent_sec23 <- Statent_wide[Statent_wide$Sector != "sec1",]
+
+#loop over BFS numbers and add together the values in each column
+Statent_sec23_combined <- matrix(ncol=11, nrow= length(unique(Statent_sec23$BFS))) #create empty matrix
+colnames(Statent_sec23_combined) <- c("BFS", grep("Y", colnames(Statent_sec23), value = TRUE))
+for(i in 1:length(unique(Statent_sec23$BFS))){
+BFS <- unique(Statent_sec23$BFS)[i] #identify current BFS number
+Statent_sec23_combined[i, c("BFS")] <- BFS
+#loop over year columns
+Statent_sec23_combined[i, 2:ncol(Statent_sec23_combined)] <- apply(Statent_sec23[Statent_sec23$BFS == BFS, 4:13], 2, function(x) sum(x, na.rm = TRUE))
+}
+
+setdiff(Statent_sec23_combined[,"BFS"], unique(Muni_shp@data[["BFS_NUMMER"]]))
+setdiff(sector23[,"BFS"], Muni_shp@data[["BFS_NUMMER"]])
+#combine with the business census data
+
+#Model change per municipality based on absolute numbers to extrapolate values
+#for the AS statistik years for sector 1 and sector 2/3 seperately
+
+#Sector 1
+sector1 <- matrix(ncol=8, nrow=nrow(sec)) #create empty matrix
+sector1[,1:5] <- sec[,c("BFS", grep("sec1", colnames(sec), value = TRUE))] #select columns for BFS and sector 1
+colnames(sector1) <- c("BFS","Y1995","Y2001", "Y2005", "Y2008", "Y1985", "Y1997", "Y2009")
+
+for (i in 1:nrow(sector1)){
+  mod1 <- lm(sector1[i,c(2:5)]~c(1995,2001,2005,2008)) ## linear model
+  sector1[i,c("Y1985")] <- round(coef(mod1)[1]+coef(mod1)[2]*1985,0)
+  sector1[i,c("Y1997")] <- round(coef(mod1)[1]+coef(mod1)[2]*1997,0)
+  sector1[i,c("Y2009")] <- round(coef(mod1)[1]+coef(mod1)[2]*2009,0)
+}
+
+#same for Sector 2&3
+sector23 <- matrix(ncol=8, nrow=nrow(sec))
+sector23[,1:5] <- sec[,c("BFS", grep("sec23", colnames(sec), value = TRUE))]
+colnames(sector23) <- c("BFS","Y1995","Y2001", "Y2005", "Y2008", "Y1985", "Y1997", "Y2009")
+
+for (i in 1:nrow(sector23)){
+  mod1 <- lm(sector23[i,c(2:5)]~c(1995,2001,2005,2008))
+  sector23[i,c("Y1985")] <- round(coef(mod1)[1]+coef(mod1)[2]*1985,0)
+  sector23[i,c("Y1997")] <- round(coef(mod1)[1]+coef(mod1)[2]*1997,0)
+  sector23[i,c("Y2009")] <- round(coef(mod1)[1]+coef(mod1)[2]*2009,0)
+}
 
 
-#socio-economic covariates
+#Divide the changes in municipal employment estimated for the AS flying periods by
+#the number of years to get an average annual rate of change for each period
+#because this can also be calculated for the future projected data
+#vector years of LULC data
+LULC_years <- c("1985", "1997", "2009", "2018")
+LULC_change_periods <- c()
+for (i in 1:(length(LULC_years)-1)) {
+            LULC_change_periods[[i]] <- c(LULC_years[i],LULC_years[i+1])
+        }
+names(LULC_change_periods) <- sapply(LULC_change_periods, function(x) paste(x[1], x[2], sep = "_"))
 
-#municipality level employment data from Gerecke et al. 2019
-#read in the rasters for both sectors at each time point
+
+
+Period_length <- as.numeric(Raster_combo[2])- as.numeric(Raster_combo[1])
+Num_steps <- ceiling(Period_length/Step_length)
+
+
+
+#aggregate to labour regions
+#use St_intersects or the metadata for the future scenarios which lists
+#which economic region each municipality falls into
+
+#load shapefile of labour market regions
+LMR_shp <- sf::st_read("E:/LULCC_CH/Data/Preds/Raw/CH_geoms/2022_GEOM_TK/03_ANAL/Gesamtfläche_gf/K4_amre_20180101_gf/K4amre_20180101gf_ch2007Poly.shp")
+
+
+
+
 
 Sect1_1985 <- raster("Covariates/Socio_economic/Employment/Municipality_employment/Original/SecTor1_1985.tif")
 Sect1_1997 <- raster("Covariates/Socio_economic/Employment/Municipality_employment/Original/SECTor1_1997.tif")
@@ -72,39 +311,39 @@ Sect23_1985 <- raster("Covariates/Socio_economic/Employment/Municipality_employm
 Sect23_1997 <- raster("Covariates/Socio_economic/Employment/Municipality_employment/Original/Sector23_1997.tif")
 Sect23_2009 <- raster("Covariates/Socio_economic/Employment/Municipality_employment/Original/Sector23_2009.tif")
 
-        #change extent of layers
-        Sect1_1985 <- setExtent(Sect1_1985, Ref_grid)
-        Sect1_1997 <- setExtent(Sect1_1997, Ref_grid)
-        Sect1_2009 <- setExtent(Sect1_2009, Ref_grid)
-        Sect23_1985 <- setExtent(Sect23_1985, Ref_grid)
-        Sect23_1997 <- setExtent(Sect23_1997, Ref_grid)
-        Sect23_2009 <- setExtent(Sect23_2009, Ref_grid)
+#change extent of layers
+Sect1_1985 <- setExtent(Sect1_1985, Ref_grid)
+Sect1_1997 <- setExtent(Sect1_1997, Ref_grid)
+Sect1_2009 <- setExtent(Sect1_2009, Ref_grid)
+Sect23_1985 <- setExtent(Sect23_1985, Ref_grid)
+Sect23_1997 <- setExtent(Sect23_1997, Ref_grid)
+Sect23_2009 <- setExtent(Sect23_2009, Ref_grid)
 
-        #removing negative values and NAs
-        values(Sect1_1985)[is.na(values(Sect1_1985))] <- 0
-        values(Sect1_1997)[is.na(values(Sect1_1997))] <- 0
-        values(Sect1_2009)[is.na(values(Sect1_2009))] <- 0
-        values(Sect23_1985)[is.na(values(Sect23_1985))] <- 0
-        values(Sect23_1997)[is.na(values(Sect23_1997))] <- 0
-        values(Sect23_2009)[is.na(values(Sect23_2009))] <- 0
-        Sect1_1985[Sect1_1985<0]<-0
-        Sect1_1997[Sect1_1997<0]<-0
-        Sect1_2009[Sect1_2009<0]<-0
-        Sect23_1985[Sect23_1985<0]<-0
-        Sect23_1997[Sect23_1997<0]<-0
-        Sect23_2009[Sect23_2009<0]<-0
+#removing negative values and NAs
+values(Sect1_1985)[is.na(values(Sect1_1985))] <- 0
+values(Sect1_1997)[is.na(values(Sect1_1997))] <- 0
+values(Sect1_2009)[is.na(values(Sect1_2009))] <- 0
+values(Sect23_1985)[is.na(values(Sect23_1985))] <- 0
+values(Sect23_1997)[is.na(values(Sect23_1997))] <- 0
+values(Sect23_2009)[is.na(values(Sect23_2009))] <- 0
+Sect1_1985[Sect1_1985<0]<-0
+Sect1_1997[Sect1_1997<0]<-0
+Sect1_2009[Sect1_2009<0]<-0
+Sect23_1985[Sect23_1985<0]<-0
+Sect23_1997[Sect23_1997<0]<-0
+Sect23_2009[Sect23_2009<0]<-0
 
-        #calculating change in employment numbers between periods
-        Primary_period1 <- Sect1_1997-Sect1_1985
-        Primary_period2 <- Sect1_2009-Sect1_1997
-        S23_period1 <- Sect23_1997-Sect23_1985
-        S23_period2 <- Sect23_2009-Sect23_1997
+#calculating change in employment numbers between periods
+Primary_period1 <- Sect1_1997-Sect1_1985
+Primary_period2 <- Sect1_2009-Sect1_1997
+S23_period1 <- Sect23_1997-Sect23_1985
+S23_period2 <- Sect23_2009-Sect23_1997
 
-        #resampling
-        Primary_period1_res <- resample(Primary_period1, Ref_grid)
-        Primary_period2_res <- resample(Primary_period2, Ref_grid)
-        S23_period1_res <- resample(S23_period1, Ref_grid)
-        S23_period2_res <- resample(S23_period2, Ref_grid)
+#resampling
+Primary_period1_res <- resample(Primary_period1, Ref_grid)
+Primary_period2_res <- resample(Primary_period2, Ref_grid)
+S23_period1_res <- resample(S23_period1, Ref_grid)
+S23_period2_res <- resample(S23_period2, Ref_grid)
 
         #write rasters
         writeRaster(Sect1_1985, "Covariates/Socio_economic/Employment/Municipality_employment/Prepared/SecTor1_1985", overwrite = TRUE)
@@ -118,6 +357,8 @@ Sect23_2009 <- raster("Covariates/Socio_economic/Employment/Municipality_employm
         writeRaster(Primary_period2_res, "Covariates/Socio_economic/Employment/Municipality_employment/Prepared/Primary_employment_change_97_09_cov11.tif", overwrite = TRUE)
         writeRaster(S23_period1_res, "Covariates/Socio_economic/Employment/Municipality_employment/Prepared/Sect23_employment_change_85_97_cov12.tif", overwrite = TRUE)
         writeRaster(S23_period2_res, "Covariates/Socio_economic/Employment/Municipality_employment/Prepared/Sect23_employment_change_97_09_cov13.tif", overwrite = TRUE)
+
+
 
 #Soil variables: Descombes et al. 2020
     #Soil aeration

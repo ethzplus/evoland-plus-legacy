@@ -16,12 +16,12 @@
 ### =========================================================================
 ### A- Preparation
 ### =========================================================================
+
+lulcc.nhoodprep <- function(){
+
 # Set working directory
 wpath <- "E:/LULCC_CH"
 setwd(wpath)
-
-#navigate to the working directory in the files pane for easy viewing
-rstudioapi::filesPaneNavigate(wpath)
 
 # Install packages if they are not already installed
 packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse",
@@ -40,6 +40,21 @@ invisible(sapply(list.files("Scripts/Functions",
                             pattern = ".R",
                             full.names = TRUE,
                             recursive=TRUE), source))
+
+#Historic LULC data folder path
+LULC_folder <- "Data/Historic_LULC"
+
+#vector years of LULC data
+LULC_years <- gsub(".*?([0-9]+).*", "\\1", list.files(LULC_folder, full.names = FALSE, pattern = ".gri"))
+
+#create a list of the data/modelling periods
+LULC_change_periods <- c()
+for (i in 1:(length(LULC_years)-1)) {
+            LULC_change_periods[[i]] <- c(LULC_years[i],LULC_years[i+1])}
+names(LULC_change_periods) <- sapply(LULC_change_periods, function(x) paste(x[1], x[2], sep = "_"))
+
+#character string for data period
+Data_periods <- names(LULC_change_periods)
 
 #create folders required
 nhood_folder_names <- c("Data/Preds/Tools/Neighbourhood_details_for_dynamic_updating",
@@ -124,7 +139,9 @@ mapply(lulcc.generatenhoodrasters,
 ### =========================================================================
 
 #get names of all neighbourhood layers from files
-new_nhood_names <- list.files(path = "Data/Preds/Prepared/Layers/Neighbourhood/Neighbourhood_layers", pattern = ".gri")
+new_nhood_names <- list.files(path = "Data/Preds/Prepared/Layers/Neighbourhood/Neighbourhood_layers",
+                              pattern = ".gri",
+                              full.names = TRUE)
 
 #split by period
 new_names_by_period <- lapply(Data_periods, function(x) grep(x, new_nhood_names, value = TRUE))
@@ -149,7 +166,7 @@ names_for_period <- Reduce(c,LULC_class_names_reordered)
 })
 
 #reduce nested list to a single vector of layer names
-layer_names <- str_remove(Reduce(c, new_names_period_LULC), ".gri")
+layer_names <- Reduce(c, new_names_period_LULC)
 
 #regex strings of period and active class names and matrix_IDs
 period_names_regex <- str_c(Data_periods, collapse = "|")
@@ -158,7 +175,8 @@ matrix_id_regex <- str_c(names(All_matrices), collapse ="|")
 
 #create data.frame to store details of neighbourhood layers to be used when layers are creating during simulations
 Focal_details <- setNames(data.frame(matrix(ncol = 4, nrow= length(layer_names))), c("layer_name", "period", "active_lulc", "matrix_id"))
-Focal_details$layer_name <- layer_names
+Focal_details$Prepared_data_path <- layer_names
+Focal_details$layer_name <- str_remove_all(str_remove_all(layer_names, "Data/Preds/Prepared/Layers/Neighbourhood/Neighbourhood_layers/"), ".gri")
 Focal_details$period <- str_extract(Focal_details$layer_name, period_names_regex)
 Focal_details$active_lulc <- str_extract(Focal_details$layer_name, class_names_regex)
 Focal_details$matrix_id <- str_extract(Focal_details$layer_name, matrix_id_regex)
@@ -167,33 +185,69 @@ Focal_details$matrix_id <- str_extract(Focal_details$layer_name, matrix_id_regex
 saveRDS(Focal_details, "Data/Preds/Prepared/Layers/Neighbourhood/Focal_layer_lookup")
 
 ### =========================================================================
-### E- Updating covariate table with layer names- updated xl.
+### E- Updating predictor table with layer names- updated xl.
 ### =========================================================================
 
-#work with the list of layer names nested by period: New_names_period_LULC
-nested_layer_names <- lapply(new_names_period_LULC, function(x) str_remove(x, ".gri"))
-names(nested_layer_names) <- Data_periods
+#Add additional columns to Focal details
+Focal_details$Covariate_ID <- paste0(Focal_details$active_lulc, "_nhood_", Focal_details$matrix_id)
+Focal_details$CA_category <- "Neighbourhood"
+Focal_details$Predictor_category <- "Neighbourhood"
+Focal_details$Variable_name <- mapply(function(LULC_class, MID){
+                                      width <- str_remove(str_split(MID, "_")[[1]][1], "n")
+                                      version <- str_split(MID, "_")[[1]][2]
+                                      string <- paste0(LULC_class, " Neighbourhood effect matrix (size: ", width,"x",width ,"cells; random central value and decay rate version:", version)},
+                                      LULC_class = Focal_details$active_lulc,
+                                      MID = Focal_details$matrix_id,
+                                      SIMPLIFY = TRUE)
+Focal_details$Static_or_dynamic <- "Dynamic"
+Focal_details$Prepared <- "Y"
+Focal_details$Original_resolution <- "100m"
+Focal_details$Temporal_coverage <- sapply(Focal_details$period, function(x) str_split(x, "_")[[1]][1])
+Focal_details$Data_citation <- NA
+Focal_details$URL <- NA
+Focal_details$Temporal_resolution <- Focal_details$period
+Focal_details$Raw_data_path <- NA
 
-#append folder path to give full file paths needed for covariate table
-nested_filepaths <- lapply(new_names_period_LULC, function(x) paste0("Data/Preds/Prepared/Layers/Neighbourhood/Neighbourhood_layers/", x))
-names(nested_filepaths) <- Data_periods
+#split focal_details by period
+Periodic_focal_details <- split(Focal_details, Focal_details$period)
 
-#load covariate table and replace the values in the columns
-Covariate_tables <- lapply(Data_periods, function(x) data.table(read.xlsx("Data/Preds/Predictor_table.xlsx", sheet = x)))
-names(Covariate_tables) <- Data_periods
+#Predictor table file path
+Pred_table_path <- "Data/Preds/Tools/Predictor_table.xlsx"
 
-#loop over the sets of file paths for each period and adjust sheets
+#get names of sheets to loop over
+sheets <- excel_sheets(Pred_table_path)
 
-Updated_covariate_tables <- mapply(
-  function(file_paths, layer_names, Covariate_table){
-Covariate_table[Predictor_category == "Neighbourhood", File_name:= file_paths] #replace file name in rows for neighbourhood predictors
-Covariate_table[Predictor_category == "Neighbourhood", Layer_name:= layer_names] #replace layer name in rows for neighbourhood predictors
-return(Covariate_table)}, layer_names = nested_layer_names,
-                          file_paths = nested_filepaths,
-                          Covariate_table = Covariate_tables,
-                          SIMPLIFY = FALSE)
+#load all sheets as a list
+Pred_tables <- lapply(sheets, function(x) read.xlsx(Pred_table_path, sheet = x))
+names(Pred_tables) <- sheets
 
-openxlsx::write.xlsx(Updated_covariate_tables, file = "Data/Preds/Predictor_table.xlsx", overwrite = TRUE)
+#load predictor_table as workbook to add sheets
+Pred_table_update <- openxlsx::loadWorkbook(file = Pred_table_path)
+
+#loop over periods and add the rows of focal details table to the correct table of the pred table
+lapply(names(Periodic_focal_details), function(x){
+
+  #subset to Focal table to columns of pred table
+  Period_table <- Periodic_focal_details[[x]]
+  Period_table <- Period_table[,which(colnames(Period_table) %in% colnames(Pred_tables[[x]]))]
+
+  #incase nhood rows already exist remove them
+  Pred_table <- Pred_tables[[x]]
+  Pred_table <- Pred_table[Pred_table$Predictor_category != "Neighbourhood",]
+
+  #create Unique_ID seq proceeding from last row value in pred table
+  last_cov_num <- as.numeric(str_remove(tail(c(Pred_table$Unique_ID), n=1), "cov_"))
+  Period_table$Unique_ID <- paste0("cov_", seq(last_cov_num+1, last_cov_num+nrow(Period_table)))
+
+  #bind together
+  combined_table <- rbind(Pred_table, Period_table)
+
+  #add table to worksheet, try() is necessary in case sheets already exist
+  writeData(Pred_table_update, sheet = paste(x), x = combined_table)
+  })
+
+#save workbook
+openxlsx::saveWorkbook(Pred_table_update, Pred_table_path, overwrite = TRUE)
 
 ### =========================================================================
 ### F- Example plotting of nhood matrices and decay rates
@@ -225,3 +279,5 @@ openxlsx::write.xlsx(Updated_covariate_tables, file = "Data/Preds/Predictor_tabl
 # ggsave(plot = Decay_plot, filename = "E:/Dry_run/Results/Figures/publication_specific/nhood_decay_curves", device='tiff', dpi=300, width = 15, height = 9, units = "cm")
 
 cat(paste0(' Preparation of Neighbourhood predictor layers complete \n'))
+}
+lulcc.nhoodprep()
