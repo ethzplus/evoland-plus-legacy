@@ -12,11 +12,10 @@
 ## Author: Ben Black
 #############################################################################
 
-# Set your working directory
-wpath<-"E:/LULCC_CH"
-setwd(wpath)
+# Install packages
+#install Dinamica seperately
+install.packages("Model/dinamica_1.0.4.tar.gz", repos=NULL, type="source")
 
-# Install packages if they are not already installed
 packs <- c("data.table","stringi","stringr", "raster", "tidyverse", "testthat",
            "sjmisc", "tictoc", "readxl", "parallel", "terra", "gridExtra",
            "extrafont", "purrr", "rlist", "glmnet", "gam", "mgcv",
@@ -24,7 +23,7 @@ packs <- c("data.table","stringi","stringr", "raster", "tidyverse", "testthat",
            "ecospat","caret", "ggpubr", "rstatix", "ggstatsplot", "tibble",
            "car", "tidyr", "PMCMRplus", "reshape2", "ggsignif", "ggthemes",
            "ggside", "ghibli", "gridtext", "grid", "tidyverse", "openxlsx",
-           "ggpattern", "Dinamica", "slackr")
+           "ggpattern", "Dinamica", "slackr", "rstudioapi")
 
 new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]
 
@@ -35,6 +34,9 @@ invisible(lapply(packs, require, character.only = TRUE))
 
 # Source custom functions
 invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TRUE, recursive = TRUE), source))
+
+#Install Dinamica EGO using included installer (Windows)
+system2(command = paste("E:\\LULCC_CH\\Model\\SetupDinamicaEGO-720.exe"))
 
 # Create a seperate environment for storing output of sourced scripts
 output_env <- new.env()
@@ -73,7 +75,6 @@ output_env$Regionalization <- TRUE
 output_env$Regionalization <- FALSE
 }
 
-
 #create table for controlling simulations
 Simulation_control_table <- data.frame(matrix(ncol = 9, nrow = 0))
 colnames(Simulation_control_table) <- c("Simulation_num.",
@@ -88,7 +89,7 @@ colnames(Simulation_control_table) <- c("Simulation_num.",
 
 #User enter scenario names to model
 #vector abbreviations of scenario's for folder/file naming
-Scenario_names <- c("BIOPRO", "DIV", "SHAD", "BAU", "FUTEI")
+Scenario_names <- c("BAU", "EI_NAT", "EI_CUL", "EI_SOC", "GR_EX")
 
 #User enter start and end dates for the scenarios
 #either enter a single number value or a vector of values the same length as the number of scenarios
@@ -196,7 +197,7 @@ source("Scripts/preparation/Calibrate_allocation_parameters.R", local = output_e
 
 #Perform pre-check to make sure that all element required for Dinamica modelling
 #are prepared
-Control_table_path <- "E:/LULCC_CH/Tools/Calibration_control.csv"
+Control_table_path <- paste0(getwd(),"/Tools/Calibration_control.csv")
 Pre_check_result <- lulcc.modelprechecks(Control_table_path)
 
 #TO DO: change model name to simulation
@@ -204,20 +205,29 @@ Pre_check_result <- lulcc.modelprechecks(Control_table_path)
 if(Pre_check_result == TRUE){
 
 #Read in Model.ego file
-Model_text <- try(readLines("E:/LULCC_CH/Model/Dinamica_models/LULCC_CH.ego"))
+Model_text <- try(readLines("Model/Dinamica_models/LULCC_CH.ego"))
+
+#Replace dummy string for working directory path path
+Model_text <- str_replace(Model_text, "=====WORK_DIR=====", getwd())
 
 #Replace dummy string for control table file path
 Model_text <- str_replace(Model_text, "=====TABLE_PATH=====", Control_table_path)
 
 #save a temporary copy of the model.ego file to run
-Temp_model_path <- gsub(".ego", paste0("_", Sys.Date(), ".ego"), "Model/Dinamica_models/LULCC_CH.ego")
+Temp_model_path <- gsub(".ego", paste0("_simulation_", Sys.Date(), ".ego"), "Model/Dinamica_models/LULCC_CH.ego")
 writeLines(Model_text, Temp_model_path)
+
+#Get path for the Dinamica console executable
+#(matching on regex '&' string) to be version agnostic
+DC_path <- list.files("C:/", recursive = TRUE, full.names = TRUE, pattern = ".*DinamicaConsole.*\\.exe")
+DC_path <- gsub('(*/)\\1+', '\\1', DC_path) #remove instances of double "/"
+DC_path <- gsub("/", "\\\\", DC_path) #replace "/" with "\\"
 
 #vector a path for saving the output text of this simulation
 #run which indicates any errors
 output_path <- paste0("Results/Simulation_notifications/Simulation_output_", Sys.Date(), ".txt")
 
-system2(command = paste("C:\\Program Files\\Dinamica EGO 7\\DinamicaConsole7.exe"),
+system2(command = paste(DC_path),
         args = c("-disable-parallel-steps",
              Temp_model_path),
        wait = TRUE,
@@ -240,9 +250,3 @@ slackr_bot('Simulation completed sucessfully')
 #Delete the temporary model file
 unlink(Temp_model_path)
 }
-
-
-
-
-
-

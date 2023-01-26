@@ -8,14 +8,15 @@
 ### =========================================================================
 ### A- Preparation
 ### =========================================================================
-# Set working directory
-wpath<-"E:/LULCC_CH"
+
+#receive working directory
+wpath <- s3
 setwd(wpath)
 
 #Vector packages for loading
-packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse",
+packs<-c("foreach", "data.table", "raster", "tidyverse",
          "testthat", "sjmisc", "tictoc", "doParallel",
-         "lulcc", "pbapply", "stringr", "readr", "xlsx", "randomForest", "Dinamica", "future", "future.apply")
+         "lulcc", "pbapply", "stringr", "readr", "xlsx", "randomForest", "Dinamica", "future", "future.apply", "parallelly")
 
 new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
 
@@ -34,8 +35,9 @@ Ref_grid <- raster("Data/Ref_grid.gri")
 #values for testing purposes
 # Simulation_time_step <- 2020
 # Simulation_num <- "1"
-# Control_table_path <- "E:/LULCC_CH/Tools/Calibration_control.csv"
-# File_path_simulated_LULC_maps <- "E:/LULCC_CH/Results/Dinamica_simulated_LULC/CALIBRATION/v1/simulated_LULC_scenario_CALIBRATION_simID_v1_year_"
+# Control_table_path <- "Tools/Calibration_control.csv"
+# File_path_simulated_LULC_maps <- "Results/Dinamica_simulated_LULC/CALIBRATION/v1/simulated_LULC_scenario_CALIBRATION_simID_v1_year_"
+# Use_parallel <- "N"
 
 #Receive current simulation time
 Simulation_time_step <- v1
@@ -45,13 +47,12 @@ Simulation_num <- v2
 
 #load table of simulations
 Control_table_path <- s1
-
 Simulation_table <- read.csv(Control_table_path)[Simulation_num,]
 
-#Enter name of Scenario to be tested as string or numeric (i.e. "BAU" etc.)
+#Vector name of Scenario to be tested as string or numeric (i.e. "BAU" etc.)
 Scenario_ID <- Simulation_table$Scenario_ID.string
 
-#Enter an ID for this run of the scenario (e.g V1)
+#Vector an ID for this run of the scenario (e.g V1)
 Simulation_ID <- Simulation_table$Simulation_ID.string
 
 #Define model_mode: Calibration or Simulation
@@ -411,7 +412,7 @@ LULC_col_name <- colnames(i)[2]
 Prediction_probs[which(Prediction_probs$ID %in% i[["ID"]]), LULC_col_name] <- i[[LULC_col_name]]
 }
 
-}else{ #close parallel TPC chunk
+}else if (Use_parallel == "N"){ #close parallel TPC chunk
 
 #Non_parallel TPC calculation:
 

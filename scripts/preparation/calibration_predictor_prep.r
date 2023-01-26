@@ -309,7 +309,7 @@ FTE_lab_market <-  raster::extract(Data_stack, LMR_shp, fun=sum, na.rm=TRUE, df=
 FTE_lab_market$name <- LMR_shp$name
 
 #REMOVE
-#Sector_extrapolations <- readRDS("E:/LULCC_CH/Data/Preds/Raw/Socio_economic/Employment/Historic_employment/Sector_extrapolations.rds")
+Sector_extrapolations <- readRDS("E:/LULCC_CH/Data/Preds/Raw/Socio_economic/Employment/Historic_employment/Sector_extrapolations.rds")
 
 #split into sectors, vector sector numbers
 sector_nums <-c(1,2,3)
@@ -513,6 +513,9 @@ Muni_shp <- shapefile("Data/Preds/Raw/CH_geoms/SHAPEFILE_LV95_LN02/swissBOUNDARI
 
 #filter out non-swiss municipalities
 Muni_shp <- Muni_shp[Muni_shp@data$ICC == "CH" & Muni_shp@data$OBJEKTART == "Gemeindegebiet", ]
+
+#create a municpality raster to be used in other data preparation
+
 
 #Import data of municipality mutations from FSO web service using conditions:
 #1. Muations between 01/01/1981 and 01/05/2022

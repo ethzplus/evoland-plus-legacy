@@ -95,9 +95,6 @@ file_match_regex <- glob2rx(paste0(Data_period_name, "*", model_scale))
 Datasets_for_period <-readRDS(if(Feature_selection_employed == FALSE) {list.files("Data/Transition_datasets/Pre_predictor_filtering", pattern = file_match_regex, full.names = TRUE)}else if(
 Feature_selection_employed == TRUE) {list.files("Data/Transition_datasets/Post_predictor_filtering", pattern = file_match_regex, full.names = TRUE)})
 
-#load covariate table to use the names for splitting
-Covariate_table <-  data.table(openxlsx::read.xlsx("Data/Preds/Predictor_table.xlsx", sheet = Data_period_name))
-
 #Optional:For datasets that have not undergone feature selection the neighbourhood predictors
 #can be subsetted to 1 for each active LULC class to avoid collinearity
 
@@ -173,13 +170,21 @@ All_model_outputs <- lapply(model_list, function(model){
 lulcc.multispectransmodelling(model)
 })
 
-
 ### =========================================================================
 ### E- Extract model objects and save in seperate folder structure
 ### =========================================================================
 
+#This process requires the user to have checked the model evaluation results
+#and determined which is the preferred model specification to use moving forward
+#with the LULCC modelling i.e model spec with the best performance
+
+#This code section is to extract the model objects for the desired specification
+#and save them in a seperate location and at the same time create a model lookup
+#table to be used by Dinamica when predicting transition potential
+#at future time points
+
 #vector model periods
-Model_periods <- c("1985_1997", "1997_2009", "2009_2018")
+Model_periods <- unique(model_specs$Data_period_name)
 
 lapply(Model_periods , function(Model_period){
 #paste together path
@@ -194,7 +199,7 @@ names_w_dir <- sapply(as.list(list.files(Model_folder_path, recursive = TRUE, fu
                  )
 
 #load viable trans_list for period
-Initial_LULC_classes <-  unique(readRDS("E:/LULCC_CH/Tools/Viable_transitions_lists.rds")[[Model_period]][["Initial_class"]])
+Initial_LULC_classes <-  unique(readRDS("Tools/Viable_transitions_lists.rds")[[Model_period]][["Initial_class"]])
 Initial_LULC_classes <- paste0(Initial_LULC_classes, "_")
 
 #replacing the "_" between LULC classes with a '.'

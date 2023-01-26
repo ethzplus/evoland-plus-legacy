@@ -55,7 +55,7 @@ train$sid <- NULL
 test$sid <- NULL
 
 #train a probabilistic ranger classification model
-Mod <- ranger(x = train[,-c("transitions_result")],
+Mod <- ranger(x = train[,c(names(train) != "transitions_result")],
                     y = train$transitions_result,
                     num.tree = 500,
                     probability = TRUE)

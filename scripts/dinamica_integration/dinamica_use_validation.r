@@ -9,8 +9,8 @@
 ### A- Receive info from Dinamica
 ### =========================================================================
 
-# Set working directory
-wpath <- "E:/LULCC_CH"
+#receive working directory
+wpath <- s4
 setwd(wpath)
 
 #receive table of simulation time steps
@@ -36,7 +36,7 @@ Sim_ID <- s3
 #and generate file paths for saving validation results
 
 #vector folder path for validation results
-Val_res_folder <- paste0("E:/LULCC_CH/Results/Validation/", Sim_ID)
+Val_res_folder <- paste0(wpath, "/Results/Validation/", Sim_ID)
 Val_res_path <- paste0(Val_res_folder, "/", paste("Simulation", Sim_ID, "from", Simulation_time_steps[1, "Keys"], "to", Simulation_time_steps[nrow(Simulation_time_steps), "Keys"], sep = "_"))
 
 if(Model_mode == "simulation"){
@@ -66,7 +66,7 @@ outputString("Val_result_path", Validation_result_path)
 ### =========================================================================
 
 #gather file path for observed LULC year that is closest to that of the final simulation year
-Obs_LULC_paths <- list.files("E:/LULCC_CH/Data/Historic_LULC", full.names = TRUE, pattern = ".grd")
+Obs_LULC_paths <- list.files("Data/Historic_LULC", full.names = TRUE, pattern = ".grd")
 
 #extract numerics
 Obs_LULC_years <- as.numeric(gsub(".*?([0-9]+).*", "\\1", Obs_LULC_paths))

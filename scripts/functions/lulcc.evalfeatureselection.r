@@ -15,7 +15,8 @@
 #' @export
 
 
-lulcc.evalfeatureselection <- function(Data_period_name,
+lulcc.evalfeatureselection <- function(Predictor_table_path,
+                                       Data_period_name,
                                        Dataset_scale,
                                        Pre_FS_folder,
                                        FS_results_folder,
@@ -26,7 +27,7 @@ lulcc.evalfeatureselection <- function(Data_period_name,
 ### =========================================================================
 
 #load covariate table to use the names for splitting
-Covariate_table <-  data.table(read.xlsx("Data/Preds/Calibration_covariate_data.xlsx", sheet = paste0(Data_period_name)))
+Covariate_table <-  data.table(read.xlsx(Predictor_table_path, sheet = paste0(Data_period_name)))
 
 #load in results of 2 step covariate selection
 Feature_selection_results <- unlist(readRDS(list.files(FS_results_folder, full.names = TRUE, pattern = paste0(Data_period_name, "_combined"))), recursive = FALSE)

@@ -8,8 +8,9 @@
 ### =========================================================================
 ### A- Preparation
 ### =========================================================================
-# Set working directory
-wpath<-"E:/LULCC_CH"
+
+#receive working directory
+wpath <- s3
 setwd(wpath)
 
 #Vector packages for loading
@@ -34,8 +35,9 @@ Ref_grid <- raster("Data/Ref_grid.gri")
 #values for testing purposes
 #Simulation_time_step <- 2020
 #Simulation_num <- "1"
-#Control_table_path <- "E:/LULCC_CH/Tools/Calibration_control.csv"
-#File_path_simulated_LULC_maps <- "E:/LULCC_CH/Results/Dinamica_simulated_LULC/CALIBRATION/v1/simulated_LULC_scenario_CALIBRATION_simID_v1_year_"
+#Control_table_path <- "Tools/Calibration_control.csv"
+#File_path_simulated_LULC_maps <- "Results/Dinamica_simulated_LULC/CALIBRATION/v1/simulated_LULC_scenario_CALIBRATION_simID_v1_year_"
+
 
 #Receive current simulation time
 Simulation_time_step <- v1
@@ -43,15 +45,14 @@ Simulation_time_step <- v1
 #simulation number being performed
 Simulation_num <- v2
 
-#load table of simulations
+#load table of simulations and subset to current
 Control_table_path <- s1
-
 Simulation_table <- read.csv(Control_table_path)[Simulation_num,]
 
-#Enter name of Scenario to be tested as string or numeric (i.e. "BAU" etc.)
+#Vector name of Scenario to be tested as string or numeric (i.e. "BAU" etc.)
 Scenario_ID <- Simulation_table$Scenario_ID.string
 
-#Enter an ID for this run of the scenario (e.g V1)
+#Vector ID for this run of the scenario (e.g V1)
 Simulation_ID <- Simulation_table$Simulation_ID.string
 
 #Define model_mode: Calibration or Simulation
@@ -475,7 +476,7 @@ Raster_prob_values <- rbind(Prediction_probs, Trans_dataset_na)
 Raster_prob_values[order(Raster_prob_values$ID),]
 
 ### =========================================================================
-### H- Spatially adjust transition probabilities
+### H- Spatially perturb transition probabilities
 ### =========================================================================
 
 #NOW WOULD BE THE TIME TO SPATIALLY ADJUST PROBABILITY VALUES USING POLYGONS/RASTERS
@@ -505,7 +506,6 @@ prob_map_path <- paste0(prob_map_folder, "/", Trans_ID, "_probability_", Initial
 
 writeRaster(Prob_raster, prob_map_path, overwrite=T)
 } #close loop over transitions
-
 
 #Return the probability map folder path as a string to
 #Dinamica to indicate completion

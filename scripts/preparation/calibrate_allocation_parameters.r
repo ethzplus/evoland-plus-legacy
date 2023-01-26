@@ -322,18 +322,58 @@ readr::write_csv(Calibration_control_table, "Tools/Calibration_control.csv")
 
 #Perform pre-check to make sure that all element required for Dinamica modelling
 #are prepared
-Pre_check_result <- lulcc.modelprechecks(Control_table_path = "Tools/Calibration_control.csv")
+Control_table_path <- paste0(getwd(),"/Tools/Calibration_control.csv")
+Pre_check_result <- lulcc.modelprechecks(Control_table_path)
 
-#run the dinamica calibration model
+#run the dinamica model with the calibration table
 if(Pre_check_result == TRUE){
-  system(paste(shQuote("C:\\Program Files\\Dinamica EGO 7\\DinamicaConsole7.exe",
-                                                  type = "cmd"),
-             shQuote("E:\\LULCC_CH\\Model\\Dinamica_models\\LULCC_Calibration.egomlx",
-                     type = "cmd")), wait = FALSE, intern = FALSE, show.output.on.console= TRUE)
-  }else{
+
+#Read in Model.ego file
+Model_text <- try(readLines("Model/Dinamica_models/LULCC_CH.ego"))
+
+#Replace dummy string for working directory path path
+Model_text <- str_replace(Model_text, "=====WORK_DIR=====", getwd())
+
+#Replace dummy string for control table file path
+Model_text <- str_replace(Model_text, "=====TABLE_PATH=====", Control_table_path)
+
+#save a temporary copy of the model.ego file to run
+Temp_model_path <- gsub(".ego", paste0("_calibration_", Sys.Date(), ".ego"), "Model/Dinamica_models/LULCC_CH.ego")
+writeLines(Model_text, Temp_model_path)
+
+#Get path for the Dinamica console executable
+#(matching on regex '&' string) to be version agnostic
+DC_path <- list.files("C:/", recursive = TRUE, full.names = TRUE, pattern = ".*DinamicaConsole.*\\.exe")
+DC_path <- gsub('(*/)\\1+', '\\1', DC_path) #remove instances of double "/"
+DC_path <- gsub("/", "\\\\", DC_path) #replace "/" with "\\"
+
+#vector a path for saving the output text of this simulation
+#run which indicates any errors
+output_path <- paste0("Results/Simulation_notifications/calibration_output_", Sys.Date(), ".txt")
+
+system2(command = paste(DC_path),
+        args = c("-disable-parallel-steps",
+             Temp_model_path),
+       wait = TRUE,
+       stdout= output_path,
+       stderr = output_path)
+
+}else{
   print("Some elements required for modelling are not present/incorrect,
-        consult the pre-check results object")
-             }
+        consult the pre-check results object")}
+
+#Check to see if the output.txt file contains the pattern "ERROR"
+#(case sensitive) which indicates that the system command has failed
+#If TRUE then send a message through Slack
+if(grepl("ERROR", paste(readLines(output_path), collapse = "|"), ignore.case = FALSE) == TRUE){
+slackr_bot('Modelling has stopped because of error')
+}else{
+#Send completion message
+slackr_bot('Modelling completed sucessfully')
+
+#Delete the temporary model file
+unlink(Temp_model_path)
+}
 
 ### =========================================================================
 ### E- Evaluate calibration, selecting best parameter set

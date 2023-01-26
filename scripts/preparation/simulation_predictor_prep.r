@@ -13,7 +13,8 @@ setwd(wpath)
 #Vector packages for loading
 packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse",
          "testthat", "sjmisc", "tictoc", "doParallel",
-         "lulcc", "pbapply", "stringr", "readr", "openxlsx", "randomForest", "Dinamica", "bfsMaps")
+         "lulcc", "pbapply", "stringr", "readr", "openxlsx", "bfsMaps",
+         "jsonlite", "httr", "xlsx")
 
 new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
 
@@ -25,9 +26,24 @@ invisible(lapply(packs, require, character.only = TRUE))
 #Predictor table file path
 Pred_table_path <- "Data/Preds/Tools/Predictor_table.xlsx"
 
+#Load in the grid to use use for re-projecting the CRS and extent of predictor data
+Ref_grid <- raster("Data/Ref_grid.gri")
+
+#vector time steps for future predictions
+#Simulation start time is 2020 and end time is 2060
+#we have initially agreed to use 5 year time steps
+Simulation_start <- 2020
+Simulation_end <- 2060
+Step_length <- 5
+
+Time_steps <- seq(Simulation_start, Simulation_end, Step_length)
+
 ### =========================================================================
 ### A- Prepare data of future economic scenarios
 ### =========================================================================
+
+#base dir for saving
+Prepared_FTE_dir <- "Data/Preds/Prepared/Layers/Socio_economic/Employment"
 
 #use Zenodo API service to get URLs for file downloads
 ES_data_URLs <- fromJSON(rawToChar(GET("https://zenodo.org/api/records/4774914")[["content"]]))[["files"]][["links"]][["download"]]
@@ -55,11 +71,14 @@ for(i in ES_data_URLs){
     }
 }
 
+#because the future projected economic values as expressed using codes for the
+#various Spatial aggregations we need a look up table to parse them to
+#class values for spatializing
+
 #Load in the sheet of the metadata file which details the spatial aggregations (regions)
 #use read.xlsx2 to not ommit blank columns
 Metadat_regions <- xlsx::read.xlsx2("Data/Preds/Raw/Socio_economic/Employment/Employment_scenarios/Metadata.xlsx",
                         sheetName = "Region")
-
 #remove empty row
 Metadat_regions <- Metadat_regions[-c(1),]
 
@@ -79,21 +98,186 @@ Dat <- Dat[complete.cases(Dat),]
 #no easy programmatic way to name the different aggregation tables
 #so we vector based on manual inspection
 #1. Master table with all designations for each municipality
-#2.
+#2. Employment basins (labour market regions) disaggregated by canton
 #3. MS (spatial mobility) region designation (106)
-#4. Employment basins from 2018 (labour market areas) (101): FSO (2019)
+#4. Employment basins from 2018 (labour market regions) (101): FSO (2019)
 #5. Cantons
 #6. Large labour market area (see 4.) (16)
 #7. Large Region
 #8. Urban-rural typology
-names(Lookup_tables_regions) <- c("Regions_master", "x", "Spatial_mobility_regions", )
+names(Lookup_tables_regions) <- c("Master",
+                                  "LMR_by_Canton",
+                                  "Spatial_mobility_regions",
+                                  "LMR_regions",
+                                  "Cantons",
+                                  "Large_LMR",
+                                  "Large_region",
+                                  "Urban-rural_type")
 
+#because we are interested in spatializing the projected employment data at the
+#level of the labour market regions then only the corresponding lookup table is needed
+LMR_lookup <- Lookup_tables_regions[["LMR_regions"]]
+
+#clean names
+names(LMR_lookup) <- c("ID", "Region_name")
+
+#remove prefix of ID number
+LMR_lookup$ID <- str_remove_all(LMR_lookup$ID, "BE")
+
+#remove leading zeros
+LMR_lookup$ID <- sub("^0+", "", LMR_lookup$ID)
+
+#In addition we need a second look up table for aggregating the economic sector
+#names in the future data to the primary,secondary and tertiary sectors
+#in line with the historic data
+
+#The economic sectors are grouped by their division numbers as detailed in this report:
+#https://www.bfs.admin.ch/bfsstatic/dam/assets/347016/master
+#Primary sector = divisions 1-3
+#Secondary sector = divisions 4-43
+#Tertiary sector = 45-98
+Sector_divisions <- list(Sec1 = c(0,3),
+                         Sec2 = c(4,43),
+                         Sec3 = c(45,98))
+
+#Load sheet of metadata linking economic division numbers to category names
+Sector_lookup <- xlsx::read.xlsx2("Data/Preds/Raw/Socio_economic/Employment/Employment_scenarios/Metadata.xlsx",
+                        sheetName = "Industry")
+
+#remove empty row
+Sector_lookup <- Sector_lookup[-1,]
+
+#change column name to avoid accent
+names(Sector_lookup)[2] <- "Category"
+
+#Alter division column to single values
+Sector_lookup$max_div <- sapply(Sector_lookup$Division, function(x){
+  if(grepl(x, pattern = "-")== TRUE){max_value <- as.numeric(str_split(x, "-")[[1]][2])}else{
+    max_value <- x
+  }
+})
+
+#add column with aggregated sector name
+Sector_lookup$Sector <- sapply(Sector_lookup$max_div, function(x){
+  Sec_test <- sapply(Sector_divisions, function(y){
+    between(x, y[1], y[2])
+  })
+  Sec_name <- names(which(Sec_test == TRUE))
+})
+
+#get file paths of future data under all scenarios
+Econ_data_paths <- as.list(list.files("Data/Preds/Raw/Socio_economic/Employment/Employment_scenarios", full.names = TRUE))
+names(Econ_data_paths) <- str_remove_all(list.files("Data/Preds/Raw/Socio_economic/Employment/Employment_scenarios", full.names = FALSE), ".xlsx")
+
+#exclude the metadata file
+Econ_data_paths$Metadata <- NULL
+
+#The string at the start of the file name is an abbreviation of the
+#scenario name and the regional variation
+
+Scenario_name <- list(c = "Combined",
+                      e = "Ecolo",
+                      t = "Techno",
+                      r = "Ref")
+
+Scenario_vari <- list(n1 = "Central",
+                      ru = "Urban",
+                      rp = "Peri_urban")
+
+#clean scenario names
+names(Econ_data_paths) <- sapply(names(Econ_data_paths), function(x){
+  name <- Scenario_name[substr(x, 1, 1)]
+  vari <- Scenario_vari[substr(x, 2, 3)]
+  paste0(name, "_", vari)
+})
+
+#Subset to which econ scenarios are required for our scenarios
+Scenario_corr <- list(BAU = "Ref_Urban") #add others as needed
 
 #load shapefile of labour market regions
 LMR_shp <- sf::st_read("E:/LULCC_CH/Data/Preds/Raw/CH_geoms/2022_GEOM_TK/03_ANAL/Gesamtfläche_gf/K4_amre_20180101_gf/K4amre_20180101gf_ch2007Poly.shp")
 
+#rasterize
+LMR_shp$name <- as.factor(LMR_shp$name)
+LMR_shp$rast_ID <- seq(1:nrow(LMR_shp))
+LMR_rast <- rasterize(LMR_shp, Ref_grid, field = "rast_ID", fun='last', background=NA)
+
+#upper loop over scenario list
+for(i in 1:length(Scenario_corr)){
+
+  #load future dataset
+  Econ_dat <- readxl::read_excel(Econ_data_paths[[Scenario_corr[[i]]]], sheet = "Bassins d'emploi")
+
+  #subset to relevant columns
+  Econ_dat <- Econ_dat[,c("time", "EmpFTE", "sector", "regionBE")]
+
+  #subset to years of time steps
+  Econ_dat <- Econ_dat[Econ_dat$time %in% Time_steps,]
+
+  #add column for economic sector
+  Econ_dat$Agg_sec <- sapply(Econ_dat$sector, function(x){
+     Sector_lookup[Sector_lookup$Category == x, "Sector"]
+  })
+
+  #add region name
+  Econ_dat$Region_name <- sapply(Econ_dat$regionBE, function(x){
+    LMR_lookup[LMR_lookup$ID == x, "Region_name"]
+  })
+
+  #Calculate the average annual difference
+  Region_values <- as.data.frame(Econ_dat %>% group_by(Agg_sec, Region_name, time) %>% #grouping
+                                   summarize(SumFTE = sum(EmpFTE)) %>% #sum over the economic activities
+                                      mutate(Avg_chg_FTE = (SumFTE - lag(SumFTE))/Step_length)) %>% #calculate avg. annual change between time points
+                                          select(-(SumFTE))
+
+  #remove incomplete rows (2020 time point)
+  Region_values <- Region_values[complete.cases(Region_values), ]
+
+  #add ID for LMR region to match raster values
+  Region_values$ID <- sapply(Region_values$Region_name, function(x){
+    id <- LMR_shp[LMR_shp$name == x, "rast_ID"][[1]]
+    })
+
+  #split by sector
+  Sectoral_values <- split(Region_values, Region_values$Agg_sec)
+
+  #loop over sectors, pivoting data to wide and creating rasters
+  Future_FTE_file_paths <- lapply(Sectoral_values, function(Sector_dat){
+
+    #pivot to wide
+    Sector_dat_wide <- as.data.frame(Sector_dat %>% pivot_wider(names_from = time,
+                                                  values_from = Avg_chg_FTE,
+                                                  names_sep = "_"))
+
+    #vector column indices for timepoints
+    Date_cols <- which(colnames(Sector_dat_wide) %in% paste(Time_steps[-1]))
+    names(Date_cols) <- sapply(1:(length(Time_steps)-1), function(x) {
+            paste0(Time_steps[x], "_", Time_steps[x+1])})
+
+    #vector file names
+    FTE_file_names <- paste0(Prepared_FTE_dir, "/", "Avg_chg_FTE_", names(Date_cols),
+                             "_", unique(Sector_dat_wide[,"Agg_sec"]), "_",
+                                    names(Scenario_corr)[i],".tif")
+
+    #use subs to match raster values based on ID and repeat across all columns
+    Sector_rasts <- subs(LMR_rast,
+                  Sector_dat_wide,
+                  by='ID',
+                  which= Date_cols) #-1 used to exclude '2020'
+
+    #save a seperate file for each layer
+    writeRaster(Sector_rasts,
+            filename = FTE_file_names,
+            bylayer=TRUE,
+            format="GTiff",
+            overwrite = TRUE)
+
+    return(FTE_file_names)
+    }) #close loop over sectors
+} #close loop over scenarios
+
 ### =========================================================================
-### x- Prepare data of future population projections
+### B- Prepare data of future population projections
 ### =========================================================================
 
 #This process does not result in the creation of spatial layers of
@@ -319,31 +503,14 @@ writeData(pop_proj_wb, sheet = new_sheet_name, x = tempdf)
 #save workbook
 openxlsx::saveWorkbook(pop_proj_wb, "Data/Preds/Tools/Population_projections.xlsx", overwrite = TRUE)
 
-
 ### =========================================================================
-### X- Add sheets to predictor table for future time steps
-### =========================================================================
-
-###Gather details of static variables
-
-#load the predictor table sheet for the most recent calibration period
-Predictor_table <- read.xlsx(Pred_table_path, sheet = "Period_2009_2018")
-
-#filtering to static predictors
-Static_preds <- Predictor_table[Predictor_table$Static_or_dynamic == "static",]
-Static_preds$Scenario <- "All"
-
-### =========================================================================
-### C- Gather details of Dynamic variables
+### C- Prepare temporary climatic data for BAU
 ### =========================================================================
 
-##TEMPORARILY PERFORMING THIS PROCESS FOR bau USING AGGREGATED CLIMATIC DATA
+##TEMPORARILY PERFORMING THIS PROCESS FOR BAU USING AGGREGATED CLIMATIC DATA
 ## ADAPT WHEN FUTURE DATA IS PRODUCED AT 5 YEAR INTERVALS
 
 #upscale climatic data to 100m
-#Load in the grid to use use for re-projecting the CRS and extent of covariate data
-Ref_grid <- raster("Data/Ref_grid.gri")
-
 #list the files of the raw climatic variables, pattern match on rcp45 because this is all that is need for BAU
 Clim_var_paths <- list.files("E:/LULCC_CH/Data/Preds/Raw/Climatic/Future", recursive = TRUE, full.names = TRUE, pattern = "rcp45", ignore.case = TRUE)
 
@@ -353,7 +520,7 @@ names(Clim_var_names) <- Predictor_table[Predictor_table$Predictor_category == "
 #subset to the required variables
 Clim_var_paths <- grep(paste0("\\b(", paste(Clim_var_names, collapse="|"), ")\\b"), Clim_var_paths, value = TRUE)
 names(Clim_var_paths) <- str_remove_all(str_remove_all(str_replace_all(Clim_var_paths, "Raw", "Prepared/Layers"), ".rData"), ".rds")
-print(names(Clim_var_paths))
+print(Clim_var_paths)
 
 #NOTE THIS IS NOT WORKING FOR THE GDDX VARIABLES
 #(BECAUSE THE RASTER HAS NO crs AND APPLYING ONE AND THEN PROJECTING
@@ -381,15 +548,29 @@ prepped_rasts <- mapply(function(file_path, save_path){
   save_path = names(Clim_var_paths),
   SIMPLIFY = FALSE)
 
-#create DF for capturing info
-Dynamic_preds <- data.frame(matrix(ncol = length(colnames(Static_preds)), nrow=1))
-colnames(Dynamic_preds) <- colnames(Static_preds)
-
 #list files of aggregated climatic data
-Prep_clim_vars_paths <- list.files("Data/Preds/Prepared/Simulation/SA_preds/Climatic", recursive = TRUE, full.names = TRUE)
+Prep_clim_vars_paths <- list.files("Data/Preds/Prepared/Layers/Climatic/Future", recursive = TRUE, full.names = TRUE, pattern = ".tif")
 
 #filter out tif.aux files and remove work dir
 Prep_clim_vars_paths <- str_remove_all(grep(Prep_clim_vars_paths, pattern='.aux', invert=TRUE, value=TRUE), wpath)
+
+### =========================================================================
+### D- Prepare a table of info for future predictors to be added to predictor lookup table
+### =========================================================================
+
+#bind together vectors of file paths for future predictors that have been created
+Future_pred_paths <- c(unlist(Future_FTE_file_paths) ,Prep_clim_vars_paths)
+
+#load the predictor table sheet for the most recent calibration period
+Predictor_table <- read.xlsx(Pred_table_path, sheetName = "2009_2018")
+
+#filtering to static predictors
+Static_preds <- Predictor_table[Predictor_table$Static_or_dynamic == "static",]
+Static_preds$Scenario <- "All"
+
+#create DF for capturing info
+Dynamic_preds <- data.frame(matrix(ncol = length(colnames(Static_preds)), nrow=1))
+colnames(Dynamic_preds) <- colnames(Static_preds)
 
 #fill in column details
 Dynamic_preds[c(1:length(Prep_clim_vars_paths)), "File_name"] <- Prep_clim_vars_paths
@@ -411,15 +592,6 @@ Dynamic_preds$Temporal_coverage <- sapply(Dynamic_preds$File_name, function(x) s
 ### =========================================================================
 ### D- Add static/dynamic variable data to sheets  for future time points
 ### =========================================================================
-
-#vector time steps for future predictions
-#Simulation start time is 2020 and end time is 2060
-#we have initially agreed to use 5 year time steps
-Simulation_start <- 2020
-Simulation_end <- 2060
-Step_length <- 5
-
-Time_steps <- seq(Simulation_start, Simulation_end, Step_length)
 
 #loop over time steps binding static and dynamic preds
 Combined_vars_for_time_steps <- sapply(Time_steps, function(sim_year){

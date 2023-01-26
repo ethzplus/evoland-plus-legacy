@@ -1,34 +1,24 @@
-#############################################################################
-## Trans_modelling: Fit and evaluate models of LULC under multiple model specifications
-##
-##
-## Date: 08-04-2022
-## Author: Ben Black
-#############################################################################
+
 
 ### =========================================================================
 ### A- Preparation
 ### =========================================================================
-# Set the working directory
+
 wpath <- "E:/LULCC_CH"
 setwd(wpath)
 
-# navigate to the working directory in the files pane for easy viewing
 rstudioapi::filesPaneNavigate(wpath)
 
-# Install packages if they are not already installed
-packs<-c("data.table","stringi","stringr","rlist",  # Data management and processing
-         "randomForest", "RRF", "butcher", # Core modelling
-         "ROCR","ecospat","caret", "foreach", "doMC", "data.table", "raster", "tidyverse",
-         "testthat", "sjmisc", "tictoc", "lulcc", "pbapply", "stringr", "readr", "openxlsx", "readxl", "future", "future.apply") #Model evaluation
+#I've deliberately deleted the right hand side of the assignment below
+#add a vector that could be used with lines 16-21 to load some common packages
+#that would be needed for this analysis
+packs <-
 
 new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
 if (length(new.packs)) install.packages(new.packs)
 
-# Load required packages
+#what is lapply()doing in this lines?
 invisible(lapply(packs, require, character.only = TRUE))
-
-# Source custom functions
 invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TRUE, recursive = TRUE), source))
 
 ### =========================================================================
@@ -42,12 +32,12 @@ invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TR
 #load an exemplar data set
 exp_data <- readRDS("Data/Transition_datasets/Post_predictor_filtering/Period_2009_2018_filtered_predictors_regionalized")[[1]]
 
-#bind independent and dependent variables for train/test split
+#?
 exp_data <- cbind(exp_data$trans_result, exp_data$cov_data)
 names(exp_data)[1] <- "transitions_result"
 
-#split into train and test
-exp_data$sid <- 1:nrow(exp_data) #add numeric ID
+#?
+exp_data$sid <- 1:nrow(exp_data)
 chc <-  dplyr::slice_sample(dplyr::group_by(exp_data, transitions_result), prop =  0.7, replace=FALSE)
 train <- exp_data[chc$sid,]
 test <- exp_data[-chc$sid,]
@@ -55,14 +45,12 @@ train$sid <- NULL
 test$sid <- NULL
 
 #train an rf model
-Mod <- randomForest(x = train[,c(names(train) != "transitions_result")],
+Mod <- randomForest(x = train[,-c("transitions_result")],
                     y = train$transitions_result,
                     ntree = 500,
                     keep.forest = TRUE)
 
-#run prediction on the training data so that all instances are run through every tree
-#returning the 'nodes' produces a matrix with each column being a tree and
-#every row a data instance withe values being the terminal node ID
+#what is the function 'attr' doing here? what would be another base R alternative?
 Train_nodes <- attr(predict(Mod, train, nodes=TRUE),'nodes')
 
 #run prediction on test data and get the terminal node ID for each instance
@@ -70,20 +58,13 @@ Train_nodes <- attr(predict(Mod, train, nodes=TRUE),'nodes')
 Test_nodes <- attr(predict(Mod, test, nodes=TRUE),'nodes')
 
 # loop over all the unique terminal node IDs in the training data
-#and calculate the probablistic predictions. This only needs to be done once
-#for each fitted model and then the resulting nested list can be loaded from file
-#and then we can loop over the terminal node IDs of the test data and simply extract
-#the correct probablistic predictions
-#In the scheme of the LULC this reduces the burden when doing multiple simulation steps
-
-#Eventually this process should be included in the model fitting
-#and then can be load in with the fitted model object
+#and calculate the probablistic predictions.
 
 #Create a duplicate matrix to be filled with the results
 # Prob_preds_training <- vector("list", ncol(Train_nodes))
 # names(Prob_preds_training) <- colnames(Train_nodes)
 
-#outer loop over columns
+#outer loop over columns (e.g RF trees)
 future::plan(multisession)
 system.time({Prob_preds_training <- future_lapply(1:ncol(Train_nodes), function(tree){
 

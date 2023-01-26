@@ -4,8 +4,6 @@
 ## Date: 10-10-2022
 ## Author: Ben Black
 #############################################################################
-# Set working directory
-wpath <- "E:/LULCC_CH"
 
 #receive basic path from Dinamica (produced by script Dinamica_initialize)
 LULC_base_path <- s1

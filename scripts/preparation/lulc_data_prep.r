@@ -37,8 +37,8 @@ prj_95 <- "+init=epsg:2056" ## CH1903+ in which AS data is needed
 ### B- Creating numerical rasters of LULC in NOAs04 classification for each period
 ### =========================================================================
 
-# Read in table of Areal Statistik LULC data from all historic periods  ####
-AS_table <- read.csv("Data/Historic_LULC/NOAS04_LULC/raw/AREA_NOAS04_72_LATEST.csv", sep = ";")
+# Read in table of Areal Statistik LULC data from all historic period
+AS_table <- read.csv2(url("https://dam-api.bfs.admin.ch/hub/api/dam/assets/20104753/master"), sep = ";")
 
 #splitting into a list of tables for separate periods
 # Keep only columns of coordinates and LULC classes under the 72 categories scheme
@@ -48,6 +48,7 @@ NOAS04_1997 = AS_table[,c("E", "N", "AS97_72")],
 NOAS04_2009 = AS_table[,c("E", "N", "AS09R_72")],
 NOAS04_2018 = AS_table[,c("E", "N", "AS18_72")])
 
+rm(AS_table)
 #Create raster for each period
 
 #instantiate small function for raster creation
@@ -168,20 +169,3 @@ mapply(FUN = writeRaster,
 #                                            breaks =c(0,14,18,19,28,36,40,41,45,49,53,56,57,60,63,65,71,72)))]
 
 #Now follow procedure of creating rasters for each period as for NOAS04 rasters above
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

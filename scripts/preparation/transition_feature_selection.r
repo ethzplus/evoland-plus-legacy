@@ -29,7 +29,7 @@ invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TR
 # Import model specifications table
 model_specs <- read_excel("Tools/Model_specs.xlsx")
 
-#Filter for models with feature selection already completed
+#Filter for models with feature selection not required
 Filtering_required <- model_specs[model_specs$Feature_selection_employed == "TRUE",]%>%
   group_by(model_scale)%>%
   distinct(Data_period_name)
@@ -57,6 +57,9 @@ lapply(list(Pre_FS_folder,
                      Filtered_datasets_folder_path,
                      FS_results_folder), function(x) dir.create(x, recursive = TRUE))
 
+#Predictor table file path
+Pred_table_path <- "Data/Preds/Tools/Predictor_table.xlsx"
+
 ### =========================================================================
 ### Perform feature selection
 ### =========================================================================
@@ -70,9 +73,9 @@ lulcc.featureselection <- function(Dataset_details){
 Data_period_name <- Dataset_details$Data_period_name
 Dataset_scale <- Dataset_details$model_scale
 
-# Load the covariate data table that will be used to identify the categories of covariates
+# Load the predictor data table that will be used to identify the categories of covariates
 #and perform collinearity testing seperately
-Covariate_table <- read.xlsx("Data/Preds/Predictor_table.xlsx", sheet = Data_period_name)
+Predictor_table <- read.xlsx(Pred_table_path, sheet = Data_period_name)
 
 file_match_regex <- glob2rx(paste0(Data_period_name, "*", Dataset_scale))
 
@@ -89,7 +92,7 @@ collin_selection_results <- lapply(Datasets_for_period, function(z) {
     lulcc.filtersel(
       transition_result = z[["trans_result"]],
       cov_data = z[["cov_data"]],
-      categories =  Covariate_table$CA_category[which(Covariate_table$Covariate_ID %in% names(z[["cov_data"]]))],
+      categories =  Predictor_table$CA_category[which(Predictor_table$Covariate_ID %in% names(z[["cov_data"]]))],
       collin_weight_vector = z[["collin_weights"]],
       embedded_weight_vector = z[["embed_weights"]],
       focals= c("Neighbourhood"),

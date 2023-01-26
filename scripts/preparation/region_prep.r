@@ -30,8 +30,6 @@ invisible(lapply(packs, require, character.only = TRUE))
 invisible(sapply(list.files("Scripts/Functions",pattern = ".R", full.names = TRUE, recursive=TRUE), source))# Set your working directory
 
 #define projection systems
-prj_03 <- "+init=epsg:21781"
-prj_95 <- "+init=epsg:2056"
 Ref_grid <- raster("Data/Ref_grid.gri")
 Ref_crs <- crs(Ref_grid)
 
@@ -42,10 +40,15 @@ Ref_crs <- crs(Ref_grid)
 #Load in an exemplar Raster of the correct res/extent etc.
 LULC_2009 <- raster("Data/LULC/NOAS04_LULC/rasterized/NOAS04_2009.tif")
 
+#Download data
+Bioreg_dir <- "Data/Bioreg_CH"
+lulcc.downloadunzip(url = "https://data.geo.admin.ch/ch.bafu.biogeographische_regionen/data.zip",
+                    save_dir = Bioreg_dir)
+
 #Load in shapefile of Bioregions of Switzerland
 bioreg.shp <- readOGR(dsn="Data/Bioreg_CH/BiogeographischeRegionen", layer = "N2020_Revision_BiogeoRegion")
 
-##project to new CRS
+#project to new CRS
 bioreg.shp <- spTransform(bioreg.shp, CRSobj = Ref_crs)
 
 #save shapefile in new CRS as an .RDs file for easy use in R

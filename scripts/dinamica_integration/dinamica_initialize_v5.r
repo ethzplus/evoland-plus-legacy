@@ -7,9 +7,6 @@
 ### =========================================================================
 ### A- Preparation
 ### =========================================================================
-# Set working directory
-wpath <- "E:/LULCC_CH"
-setwd(wpath)
 
 # Install packages if they are not already installed
 packs<-c("data.table","stringi","stringr","plyr","readxl", "ggpubr",
@@ -25,6 +22,10 @@ invisible(lapply(packs, require, character.only = TRUE))
 ### =========================================================================
 ### B- Enter model specifications
 ### =========================================================================
+
+#receive working directory
+wpath <- s2
+setwd(wpath)
 
 #simulation number being performed
 Simulation_num <- v1
@@ -62,9 +63,6 @@ simulated_LULC_folder_path <- paste(wpath, "Results/Dinamica_simulated_LULC", Sc
 ### =========================================================================
 ### C- Work Dir and model mode initialization
 ### =========================================================================
-
-#Change working directory for Dinamica if desired otherwise current WD (replace wpath with new location)
-outputString("work_dir_path", wpath)
 
 #send step length
 outputDouble("Step_length", Step_length)

@@ -29,8 +29,11 @@ invisible(lapply(packs, require, character.only = TRUE))
 # Source custom functions
 invisible(sapply(list.files("Scripts/Functions",pattern = ".R", full.names = TRUE, recursive=TRUE), source))
 
+#Historic LULC data folder path
+LULC_folder <- "Data/Historic_LULC"
+
 #vector years of LULC data
-LULC_years <- c("1985", "1997", "2009", "2018")
+LULC_years <- gsub(".*?([0-9]+).*", "\\1", list.files(LULC_folder, full.names = FALSE, pattern = ".gri"))
 
 #Dataframe of LULC labels and values
 LULC_classes <- data.frame(label = c("Urban", "Static", "Open_Forest",
@@ -38,29 +41,33 @@ LULC_classes <- data.frame(label = c("Urban", "Static", "Open_Forest",
                                       "Alp_Past", "Grassland", "Perm_crops", "Glacier"),
                            value = c(10,11,12,13,14,15,16,17,18,19))
 
-#Historic LULC data folder path
-LULC_folder <- "Data/Historic_LULC"
-
 #Vector duration of time steps to be used in modelling
 Step_length <- 5
 
 ### =========================================================================
-### C- Preparing Transition tables for each calibration period
+### B- Calculate historic areal change for LULC classes
 ### =========================================================================
+
+#load LULC rasters
+LULC_rasters <- lapply(list.files(LULC_folder, full.names = TRUE, pattern = ".gri"), raster)
+names(LULC_rasters) <- LULC_years
 
 #create a table of raw areal coverage of each LULC class in each time point
 LULC_areas <- lapply(LULC_rasters, function(x) freq(x))
 
 #Reduce to single table
-Merged_areas <- Reduce(function(x, y) merge(x, y, by="value"), LULC_areas)
-names(Merged_areas)[2:5] <- names(LULC_areas)
+LULC_areal_change <- Reduce(function(x, y) merge(x, y, by="value"), LULC_areas)
+names(LULC_areal_change)[2:5] <- names(LULC_areas)
+
+#remove row summing lulc class values
+LULC_areal_change <- LULC_areal_change[1:(nrow(LULC_areal_change)-1),]
 
 #update values to LULC class names
 RAT <- LULC_rasters[["1985"]]@data@attributes[[1]]
-Merged_areas$value <- sapply(Merged_areas$value, function(x) RAT[RAT$Pixel_value == x,"lulc_name"])
+LULC_areal_change$LULC_class <- sapply(LULC_areal_change$value, function(x) RAT[RAT$Pixel_value == x,"lulc_name"])
 
 #create workbook to save in
-xlsx::write.xlsx(Merged_areas, "Data/Transition_tables/raw_trans_tables/Summary_table.xlsx", sheet = "Areal_coverage", append = TRUE)
+write.csv(LULC_areal_change, "Data/Transition_tables/raw_trans_tables/LULC_historic_areal_change.csv", row.names = FALSE)
 
 
 ### =========================================================================
@@ -85,12 +92,7 @@ xlsx::write.xlsx(Merged_areas, "Data/Transition_tables/raw_trans_tables/Summary_
 #The order of the rows in the table is also crucial because the probability maps produced for each transition
 #need to be named accroding to their row number so the value is associated correctly in allocation.
 
-#Load list of historic lulc rasters
-LULC_rasters <- lapply(list.files(LULC_folder, full.names = TRUE, pattern = ".gri"), raster)
-names(LULC_rasters) <- LULC_years
-
-#because each matrix relies on a different combination of raster layers
-#create a vector of these to run through
+#create a list combining the correct LULC years for each transition period
 LULC_change_periods <- c()
 for (i in 1:(length(LULC_years)-1)) {
             LULC_change_periods[[i]] <- c(LULC_years[i],LULC_years[i+1])
@@ -104,9 +106,6 @@ lulcc.periodictransmatrices <- function(Raster_combo, Raster_stack, period_name,
 #produce transition matrix of areal changes over whole period
 trans_rates_for_period <- crosstab(Raster_stack[[grep(Raster_combo[1], names(Raster_stack))]],
                       Raster_stack[[grep(Raster_combo[2], names(Raster_stack))]])
-
-#save the raw rates tables into an xlsx for the scenario based extrapolation
-xlsx::write.xlsx(trans_rates_for_period, file="Data/Transition_tables/raw_trans_tables/Summary_table.xlsx", sheet= period_name, row.names=FALSE, append = TRUE)
 
 #converting the transition matrix values into percentage changes
 sum01 <- apply(trans_rates_for_period, MARGIN=1, FUN=sum)
@@ -165,7 +164,7 @@ Calibration_singlestep_tables <- lapply(list.files("Data/Transition_tables/raw_t
 names(Calibration_singlestep_tables) <- str_remove_all(list.files("Data/Transition_tables/raw_trans_tables", full.names = FALSE, pattern = "singlestep"), paste(c("Calibration_", "_singlestep_trans_table.csv"), collapse = "|"))
 
 #Add columns to the tables with the LULC class names to make them easier to interpret
-Viable_transitions_by_period <- lapply(Calibration_singlestep_tables, function(x){
+Viable_transitions_by_period_SS <- lapply(Calibration_singlestep_tables, function(x){
   x$Initial_class <- sapply(x$From., function(y) {LULC_classes[LULC_classes$value == y, c("label")]})
   x$Final_class <- sapply(x$To., function(y) {LULC_classes[LULC_classes$value == y, c("label")]})
   x$Trans_name <- paste(x$Initial_class, x$Final_class, sep = "_")
@@ -181,13 +180,46 @@ Viable_transitions_by_period <- lapply(Calibration_singlestep_tables, function(x
   })
 
 #save viable transitions lists
-saveRDS(Viable_transitions_by_period, "E:/LULCC_CH/Tools/Viable_transitions_lists.rds")
+saveRDS(Viable_transitions_by_period_SS, "E:/LULCC_CH/Tools/Viable_transitions_lists.rds")
 
-#merge the trans_tables for possible extrapolation of rates over time
-Trans_tables_bound <- rbindlist(Viable_transitions_by_period, idcol = "Period")
-Trans_tables_bound$Trans_ID <- NULL
-Trans_table_time <- pivot_wider(data = Trans_tables_bound, names_from = "Period", values_from = "Rate")
+### =========================================================================
+### D- Combining transition rates tables for calibration periods to use for extrapolation
+### =========================================================================
 
+#perform process for single step trans table first
+Trans_tables_bound_SS <- rbindlist(Viable_transitions_by_period_SS, idcol = "Period")
+Trans_tables_bound_SS$Trans_ID <- NULL
+Trans_table_time_SS <- pivot_wider(data = Trans_tables_bound_SS, names_from = "Period", values_from = "Rate")
+
+#save
+write.csv(Trans_table_time_SS, "Data/Transition_tables/trans_rates_table_calibration_periods_SS.csv")
+
+#Repeat for the multi-step transition matrices
+
+#Load multi-step net transition tables produced for historic periods
+Calibration_multistep_tables <- lapply(list.files("Data/Transition_tables/raw_trans_tables", full.names = TRUE, pattern = "multistep"), read.csv)
+names(Calibration_multistep_tables) <- str_remove_all(list.files("Data/Transition_tables/raw_trans_tables", full.names = FALSE, pattern = "multistep"), paste(c("Calibration_", "_multistep_trans_table.csv"), collapse = "|"))
+
+#Add columns to the tables with the LULC class names to make them easier to interpret
+Viable_transitions_by_period_MS <- lapply(Calibration_multistep_tables, function(x){
+  x$Initial_class <- sapply(x$From., function(y) {LULC_classes[LULC_classes$value == y, c("label")]})
+  x$Final_class <- sapply(x$To., function(y) {LULC_classes[LULC_classes$value == y, c("label")]})
+  x$Trans_name <- paste(x$Initial_class, x$Final_class, sep = "_")
+
+  #subset by transitions from static class
+  x <- x[x$Initial_class != "Static",]
+
+  x$Trans_ID <- sprintf("%02d", 1:nrow(x))
+  return(x)
+  })
+
+#because the same inclusion threshold does not apply to the multi-step rates
+#instead subset by the trans names in the single step equivalent table
+single_step_table <- read.csv("Data/Transition_tables/trans_rates_table_calibration_periods_SS.csv")
+trans_names <- single_step_table[!is.na(single_step_table$X2009_2018), "Trans_name"]
+Viable_transitions_by_period_MS <- lapply(Viable_transitions_by_period_MS, function(x){
+filtered_table <- x[x$Trans_name %in% trans_names,]
+})
 
 #remove added columns and save as individual csv. files as exemplar trans tables
 #to be loaded into dinamica
@@ -198,11 +230,23 @@ mapply(function(trans_table, table_name){
 
   #save
   write_csv(trans_table, file= paste0("Data/Transition_tables/raw_trans_tables/Calibration_", table_name, "_viable_trans.csv"))},
-         trans_table = Viable_transitions_by_period,
-         table_name = names(Viable_transitions_by_period)
+         trans_table = Viable_transitions_by_period_MS,
+         table_name = names(Viable_transitions_by_period_MS)
   )
 
+#merge the trans_tables for possible extrapolation of rates over time
+Trans_tables_bound_MS <- rbindlist(Viable_transitions_by_period_MS, idcol = "Period")
+Trans_tables_bound_MS$Trans_ID <- NULL
+Trans_table_time_MS <- pivot_wider(data = Trans_tables_bound_MS, names_from = "Period", values_from = "Rate")
 
 #save
-write.csv(Trans_table_time, "Data/Transition_tables/trans_rates_table_calibration_periods.csv")
+write.csv(Trans_table_time_MS, "Data/Transition_tables/trans_rates_table_calibration_periods_MS.csv")
+
+
+
+
+
+
+
+
 
