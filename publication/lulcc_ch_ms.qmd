@@ -1,0 +1,134 @@
+---
+title: Scenarios of Land use and land cover change for Switzerland between 2020-2060
+author:
+  - name: Benjamin Black
+    email: bblack@ethz.ch
+    affiliations:
+        - id: ETH_PLUS
+          name: ETH Zürich
+          department: Planning of Landscape and Urban Systems (PLUS) Institut für Raum- und Landschaftsentwicklung (IRL)
+          address: HIL H 52.1, Stefano-Franscini-Platz 5
+          city: Zürich
+          postal-code: 8093
+    attributes:
+        corresponding: true
+  - name: Adrienne  Grêt-Regamey
+    email: gret@ethz.ch
+    affiliations:
+        - ref: ETH_PLUS
+abstract: |
+  This is the abstract.
+keywords:
+  - keyword1
+  - keyword2
+date: last-modified
+bibliography: bibliography.bib
+linenumbers: false
+numbersections: true
+citation-abbreviation: publications/citation_abbrevs.json
+form:
+crossref:
+  fig-title: Figure
+  fig-prefix: Figure
+  fig-labels: arabic
+format:
+  elsevier-pdf:
+    echo: false
+    fig-format: png
+    journal:
+      formatting: preprint
+      layout: onecolumn
+      cite-style: authoryear
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<!--#set citation alias for SFSO-->
+
+\defcitealias{sfso2021}{SFSO, 2021}
+
+# Introduction
+
+<!-- paragraph 1: Introduce Switzerland as study area and the environmental implications of LULC, or start broad with why we perform LULC modelling and then lead into ValPar.CH/Switzerland?  -->
+
+Land use change simulations are useful for a variety of reasons, from a socioetal perspective...
+
+<!-- "models are tools that support analysis of causes and consequences of changes to facilitate understanding of the functioning of the land use system and to support land use planning and policy (Verburg et al. 2004b)." -->
+
+<!-- Verburg et al. (2019): "Land use modelling can play multiple roles within land -->
+
+<!-- system science and has a critical role in major environ- -->
+
+<!-- mental assessments, both as a mechanism to evaluate -->
+
+<!-- drivers of global environmental change and as a means to -->
+
+<!-- help design measures to mitigate or adapt to global -->
+
+<!-- change."  -->
+
+<!-- Wang et al. 2018: "examining responses of ES to LULC dynamics (e.g., Newbold et al., 2015). These studies highlight the profound influences of LULC changes on the provision of ES"  -->
+
+It is one of the most prominent factors driving environmental degradation.
+
+from a scientific perspective because land use and land cover is used a proxy in the calculation of other environmental pheneomena, i.e. it is related to biodiversity of the provision of Ecosystem services (Gomes et al. 2021).
+
+We often have an interest in simulating multiple possible alternatives of future land use change
+
+<!-- paragraph X: Introduce constrained cellular automata -->
+
+There are many modelling approaches that allow us to do this: some are spatially explicit and some are not all with their relative advantages and disadvantages. In terms of large scale simulations one of the most popular approaches for LULCC scenario simulation are constrained cellular automata (CCA).
+
+CCA models of LULCC (LULCC-CCAs) treat landscapes as a pixelated grid of cells of individual LULC states with cells changing state over time typically based on two processes. Firstly, the spatial distribution of potential LULCC is determined through calculation of cellular probabilities of change, often referred to as transition potential (TP), to alternate LULC states. The means by which this is achieved, differs between popular LULCC-CAs although it is commonly based on the quantification of correlative relationships with explanatory variables such as biophysical and socio-economic and neighbourhood (focal LULC) predictors <!--citation -->. Secondly, the amount of cellular LULC changes that occur in a given time step is prescribed by values of transition rates extrapolated from historic LULC data, with an allocation algorithm selecting the required number of cells to change based upon their transition probabilities <!--citation possibly White et al. 1997 -->.
+
+<!-- paragraph X: How are scenario's operationalized with LULCC-CCA's -->
+
+The internal model process of LULCC-CCAs offer several opportunities to operationalize aspects of scenarios within simulations that may be used in isolation or in combination with each other. Firstly, the data supplied in the form of dynamic variables used to predict cellular TP values can be scenario specific. For example, in scenarios contrasting differential levels of climatic change, the data provided may come from simulations of different Relative Concentration Pathways <!--citation -->. A second approach is to alter predicted cellular TP values according to proscribed criteria, This can be done directly: such as spatially designated land management policies, for example reducing the potential for transition to urban LULC states inside environmental protection areas <!--citation possibly Gharbia et al. 2016 use zoning; Price et al. 2017; Clerici et al. 2019 --> Or indirectly by altering the influence of variables within the model used to calculate TPs <!--citation: Trroupin and Carmel 2016; Gago-Silva et al. 2017 (altered WoE coefficients) -->.Finally, the influence of different scenarios can be incorporated through specification of the transitions rates.... <!--citations: ; Troupin and Carmel 2016; Shresta et al. 2018; Cheng et al. 2020 (change rates)--> The influence of these three mechanisms within the LULCC-CCA model are highlighted visually in Figure 1 below
+
+<!-- paragraph X: Research objective -->
+
+To perform scenario-based simulation of future LULCC in Switzerland between 2020 and 2060 we utilized a constrained cellular automata (CCA) modelling approach combining the R statistical computing environment with the environment modelling software Dinamica EGO <!--citation -->.
+
+<!-- header 2 -->
+
+# Methods
+
+## Model overview
+
+@fig-process highlights the primary processes taking place within the LULCC-CCA model, the details of each these processes are summarized in the subsequent sections although for brevity some material has been presented as appendices.
+
+![test](figures_tables/Fig1.jpg){#fig-process}
+
+## Land use land cover transition identification
+
+The process of identifying LULC transitions, i.e. pixel changes from an initial specific LULC class to a different final LULC class, was based upon a preceding study by @black_re-considering_2023. We utilized classified LULC datasets for four time periods from the Swiss area statistics \citepalias{sfso2021}: 1981-1985; 1992-1997; 2004-2009; 2013-2018 (Note that date range is the extent of the data-collection flying period, and in fact each product represents a single LULC map). Given that transitions are identified between two time points these four historic LULC maps meant that we had three LULC transition periods, which will henceforth be referred to using the latter year of the flying period as: 1985-1997; 1997-2009; and 2009-2018 respectively. Following @black_re-considering_2023 we aggregated the original 72 LULC classes in the data to 10 classes: Alpine pastures; Closed forest; Glacier; Grassland; Intensive agriculture; Open Forest; Shrubland; Permanent crops; Settlement/urban/amenities; Static (see Appendix A for a table of class aggregations)
+
+## Transition potential modelling
+
+## CA parameter calibration
+
+## Scenario development
+
+## Scenario quantification
+
+### Transition rates
+
+Price et al. 2017 use a similar process as we plan to calculate the expected increases in the 'most important' categories and then calculate increates in the other categories from the remaining land.
+
+Price et al. 2017 on calculating demand for urban area: "To calculate a total urban area demand per scenario, we used the modelled population level for 2060 in combination with the minimum and maximum of current per capita urban area demand data for the five cantons in our study area."
+
+## Validation
+
+## Simulation
+
+# Results
+
+# Discussion
+
+# References
+
+# Figures and tables
+
+# References {.unnumbered}
