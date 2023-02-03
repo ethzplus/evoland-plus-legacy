@@ -8,9 +8,6 @@
 ### =========================================================================
 ### A- Preparation
 ### =========================================================================
-# Set working directory
-wpath <- "E:/LULCC_CH"
-setwd(wpath)
 
 # Install packages if they are not already installed
 packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse", "testthat",

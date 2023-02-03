@@ -1,17 +1,13 @@
 #############################################################################
-## Scenario_data_prep: Prepare predictor data lookup tables for simulation
+## Simulation_predictor_prep: Prepare predictor data lookup tables for simulation
 ## time steps
 ##
 ## Date: 18-11-2021
 ## Author: Ben Black
 #############################################################################
 
-# Set working directory
-wpath<-"E:/LULCC_CH"
-setwd(wpath)
-
 #Vector packages for loading
-packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse",
+packs<-c("foreach", "data.table", "raster", "tidyverse",
          "testthat", "sjmisc", "tictoc", "doParallel",
          "lulcc", "pbapply", "stringr", "readr", "openxlsx", "bfsMaps",
          "jsonlite", "httr", "xlsx")
@@ -24,7 +20,7 @@ if(length(new.packs)) install.packages(new.packs)
 invisible(lapply(packs, require, character.only = TRUE))
 
 #Predictor table file path
-Pred_table_path <- "Data/Preds/Tools/Predictor_table.xlsx"
+Pred_table_path <- "Tools/Predictor_table.xlsx"
 
 #Load in the grid to use use for re-projecting the CRS and extent of predictor data
 Ref_grid <- raster("Data/Ref_grid.gri")
@@ -39,12 +35,13 @@ Step_length <- 5
 Time_steps <- seq(Simulation_start, Simulation_end, Step_length)
 
 ### =========================================================================
-### A- Prepare data of future economic scenarios
+### A- Future economic scenarios
 ### =========================================================================
 
 #base dir for saving
 Prepared_FTE_dir <- "Data/Preds/Prepared/Layers/Socio_economic/Employment"
 
+#TO DO: convert process to use zenodo downloading functions from inborutils::
 #use Zenodo API service to get URLs for file downloads
 ES_data_URLs <- fromJSON(rawToChar(GET("https://zenodo.org/api/records/4774914")[["content"]]))[["files"]][["links"]][["download"]]
 
@@ -192,7 +189,11 @@ names(Econ_data_paths) <- sapply(names(Econ_data_paths), function(x){
 })
 
 #Subset to which econ scenarios are required for our scenarios
-Scenario_corr <- list(BAU = "Ref_Urban") #add others as needed
+
+#load scenario specifications table
+Scenario_data_table <- openxlsx::read.xlsx("Tools/Scenario_specifications.xlsx", sheet = "Predictor_data")
+Scenario_corr <- as.list()
+names(Scenario_corr) <- Scenario_data_table[,"Scenario_ID"]
 
 #load shapefile of labour market regions
 LMR_shp <- sf::st_read("E:/LULCC_CH/Data/Preds/Raw/CH_geoms/2022_GEOM_TK/03_ANAL/Gesamtfläche_gf/K4_amre_20180101_gf/K4amre_20180101gf_ch2007Poly.shp")
@@ -277,7 +278,7 @@ for(i in 1:length(Scenario_corr)){
 } #close loop over scenarios
 
 ### =========================================================================
-### B- Prepare data of future population projections
+### B- future population projections
 ### =========================================================================
 
 #This process does not result in the creation of spatial layers of
@@ -504,8 +505,12 @@ writeData(pop_proj_wb, sheet = new_sheet_name, x = tempdf)
 openxlsx::saveWorkbook(pop_proj_wb, "Data/Preds/Tools/Population_projections.xlsx", overwrite = TRUE)
 
 ### =========================================================================
-### C- Prepare temporary climatic data for BAU
+### C- future climatic data
 ### =========================================================================
+
+#
+
+
 
 ##TEMPORARILY PERFORMING THIS PROCESS FOR BAU USING AGGREGATED CLIMATIC DATA
 ## ADAPT WHEN FUTURE DATA IS PRODUCED AT 5 YEAR INTERVALS

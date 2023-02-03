@@ -37,18 +37,16 @@ dir.create(BZ_dir, recursive = TRUE)
 
 #download directly from website
 tmpdir <- tempdir()
-url <- "https://www.kgk-cgc.ch/download_file/237/239.zip"
+url <- "https://www.kgk-cgc.ch/download_file/1018/239.zip"
 file <- basename(url)
-download.file(url, file)
-unzip(file, exdir = tmpdir)
+download.file(url, file, mode = "wb")
+zip::unzip(zipfile = file, exdir = tmpdir)
 unlink(file)
 
-sp_patterns <- paste0(".shp", ".gpkg", collapse = "" )
+gpkg <- list.files(tmpdir, pattern = ".gpkg", full.names = TRUE)
 
-shapeFile <- list.files(tmpdir, pattern = ".shp", full.names = TRUE)
-
-#load shapefile
-shp_file <- sf::st_read(shapeFile)
+#load shapefile from geopackage
+shp_file <- sf::st_read(gpkg)
 
 #re-project to research CRS
 shp_file <- sf::st_transform(shp_file, crs = Ref_crs)
@@ -69,6 +67,10 @@ BZ_rat$Class_Names <- str_replace_all(BZ_IDs, " ", "_")
 
 #add RAT to raster object
 levels(BZ_rast) <- BZ_rat
+
+#convert raster to binary values (0 or 1 and NA)
+
+
 
 #saving the raster in R's native .grd format which preserves the attribute table
 writeRaster(BZ_rast, filename= "Data/Spat_prob_perturb_layers/Bulding_zones/BZ_raster.grd", overwrite = TRUE)
@@ -216,19 +218,50 @@ Raster_prob_values <- rbind(Prediction_probs, Trans_dataset_na)
 #sort by ID
 Raster_prob_values[order(Raster_prob_values$ID),]
 
+Simulation_time_step <- "2020"
+Scenario_ID <- "BAU"
+
+#names of columns of probability predictions
+Pred_prob_columns <- grep("Prob_", names(Prediction_probs), value = TRUE)
+rm(Prediction_probs)
+
 ### =========================================================================
-### write function to perform perturbations
+### write function to perform perturbations (raster version)
 ### =========================================================================
 
-#function should be looped over a list of Perturbation ID's according to scenario ID
 
-lulcc.spatprobperturbation <- function(Perturbation_ID, Perturb_perc, Spatial_prob_table, time_step){
+lulcc.spatprobperturbation <- function(Perturbation_ID, Raster_prob_values, Time_step){}
 
-  if(Perturbation_ID == "Build_zone"){
+  #convert probability table to raster stack
+  Prob_raster_stack <- stack(lapply(Pred_prob_columns, function(x) rasterFromXYZ(Raster_prob_values[,c("x", "y", x)])))
+  names(Prob_raster_stack@layers) <- Pred_prob_columns
 
-  }
+  #load table of scenario interventions
+  Interventions <- openxlsx::read.xlsx("Tools/Scenario_specifications.xlsx", sheet = "Interventions")
 
-  if(Perturbation_ID == "Land_fragment"){
+  #subset to scenario and time point
+  Current_interventions <- Interventions[Interventions$Scenario_ID == Scenario_ID & Interventions$Time_step == Simulation_time_step,]
+
+  #loop over rows
+  for(i in 1:nrow(Current_interventions)){}
+
+    i = 1
+
+    #chunk for Build_zone intervention
+    if(Current_interventions[i, "Intervention_ID"] == "Build_zone"){}
+
+    #load building zone raster
+    Intervention_rast <- raster(x ="Data/Spat_prob_perturb_layers/Building_zones/BZ_raster.gri")
+
+    #do raster calculation
+    rst1_mod <- overlay(rst1, rst2, fun = function(x, y) {
+      x[!is.na(y[])] <- NA
+      return(x)
+      })
+
+  #} #close Build_zone intervention
+
+if(Perturbation_ID == "Land_fragment"){
 
     #identify existing settlements with surrounding buffer in order to create regions in which to
     #calculate landscape fragmentation
@@ -240,7 +273,11 @@ lulcc.spatprobperturbation <- function(Perturbation_ID, Perturb_perc, Spatial_pr
 
   }
 
-}
+#convert raster stack back to table
 
-list_lsm(level = "landscape",
-         type=)
+
+#} close function
+
+### =========================================================================
+### write function to perform perturbations (dataframe version)
+### =========================================================================

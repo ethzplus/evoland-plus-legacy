@@ -9,18 +9,12 @@
 ### =========================================================================
 ### A- Preparation
 ### =========================================================================
-# Set the working directory
-wpath <- "E:/LULCC_CH"
-setwd(wpath)
-
-# navigate to the working directory in the files pane for easy viewing
-rstudioapi::filesPaneNavigate(wpath)
 
 # Install packages if they are not already installed
-packs<-c("data.table","stringi","stringr","rlist",  # Data management and processing
-         "randomForest", "RRF", "butcher", # Core modelling
+packs<-c("data.table","stringi","stringr","rlist",
+         "randomForest", "RRF", "butcher",
          "ROCR","ecospat","caret", "foreach", "doMC", "data.table", "raster", "tidyverse",
-         "testthat", "sjmisc", "tictoc", "lulcc", "pbapply", "stringr", "readr", "openxlsx", "readxl") #Model evaluation
+         "testthat", "sjmisc", "tictoc", "lulcc", "pbapply", "stringr", "readr", "openxlsx", "readxl")
 
 new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]
 

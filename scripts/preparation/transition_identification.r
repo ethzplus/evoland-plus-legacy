@@ -9,12 +9,6 @@
 ### =========================================================================
 ### A- Preparation
 ### =========================================================================
-# Set working directory
-wpath<-"E:/LULCC_CH"
-setwd(wpath)
-
-#navigate to the working directory in the files pane for easy viewing
-rstudioapi::filesPaneNavigate(wpath)
 
 # Install packages if they are not already installed
 packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse", "testthat", "sjmisc", "tictoc", "parallel", "terra", "pbapply", "rgdal", "rgeos", "sf", "tiff")

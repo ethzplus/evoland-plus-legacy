@@ -6,24 +6,18 @@ execute:
   echo: false
 ---
 
-```{r setup, include=FALSE}
-# Install packages
-#install Dinamica seperately
-#install.packages("Model/dinamica_1.0.4.tar.gz", repos=NULL, type="source")
+````{r}
+selectInput("OS", "Operating system:",
+                c("Windows", "GNU/Linux"))
+textOutput("result")
+````
 
-packs <- c("data.table", "shiny")
-
-new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]
-
-if (length(new.packs)) install.packages(new.packs)
-
-# Load required packages
-invisible(lapply(packs, require, character.only = TRUE))
-
-# Source custom functions
-invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TRUE, recursive = TRUE), source))
-```
-
+````{r}
+#| context: server
+   output$result <- renderText({
+     paste("You chose test:", input$OS)
+   })
+````
 
 ```{ojs}
 viewof flavor = Inputs.checkbox(["Salty", "Spicy", "Sour", "Umami"], {label: "Flavor"})

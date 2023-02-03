@@ -5,15 +5,8 @@
 ## Author: Ben Black
 #############################################################################
 
-# Set the working directory
-wpath <- "E:/LULCC_CH"
-setwd(wpath)
-
-# navigate to the working directory in the files pane for easy viewing
-rstudioapi::filesPaneNavigate(wpath)
-
 # Install packages if they are not already installed
-packs <- c("data.table", "raster", "tidyverse", "testthat", "sjmisc", "tictoc", "randomForest", "RRF", "rlist", "purrr",
+packs<-c("data.table", "raster", "tidyverse", "testthat", "sjmisc", "tictoc", "randomForest", "RRF", "rlist", "purrr",
            "doParallel", "future.apply", "ghibli", "readxl", "openxlsx", "ggpattern")
 
 new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]

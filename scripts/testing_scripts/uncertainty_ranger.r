@@ -11,11 +11,8 @@
 ### A- Preparation
 ### =========================================================================
 # Set the working directory
-wpath <- "E:/LULCC_CH"
+wpath <- "YOUR DIR"
 setwd(wpath)
-
-# navigate to the working directory in the files pane for easy viewing
-rstudioapi::filesPaneNavigate(wpath)
 
 # Install packages if they are not already installed
 packs<-c("data.table","stringi","stringr","rlist",  # Data management and processing
@@ -27,9 +24,6 @@ if (length(new.packs)) install.packages(new.packs)
 
 # Load required packages
 invisible(lapply(packs, require, character.only = TRUE))
-
-# Source custom functions
-invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TRUE, recursive = TRUE), source))
 
 ### =========================================================================
 ### B- Creation of shannon entropy table for exemplar dataset

@@ -203,13 +203,13 @@ Muni_urban_areas$Perc_pop[[i]] <- predict(canton_model, newdata = Muni_urban_are
 
 #Our scenarios rely on specific population projects from FSO ("Ref", "High", "Low")
 # Identify which population scenario is required according to scenario being simulated
-Pop_scenario <- if(grepl("BIOPRO", Scenario_ID, ignore.case = TRUE)){"Low"} else if(
-  grepl("SHAD", Scenario_ID, ignore.case = TRUE)){"High"}else{"Ref"} #Final else clause covers scenarios: "DIV", "BAU", "FUTEI"
+Scenario_data_table <- openxlsx::read.xlsx("Tools/Scenario_specifications.xlsx", sheet = "Predictor_data")
+Pop_scenario <- Scenario_data_table[Scenario_data_table$Scenario_ID == Scenario_ID, "FSO_pop_scenario"]
 
 #load correct sheet of future population predictions according to scenario
 Pop_prediction_table <- openxlsx::read.xlsx("Data/Preds/Tools/Population_projections.xlsx", sheet = Pop_scenario)
 
-#loop over unique kanton numbers, rescaled the predicted population percentages
+#loop over unique kanton numbers, rescale the predicted population percentages
 #and calculate the estimated population per municipality as a % of the cantonal total
 
 #add results column

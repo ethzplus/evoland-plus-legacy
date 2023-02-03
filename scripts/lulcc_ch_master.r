@@ -12,21 +12,29 @@
 ## Author: Ben Black
 #############################################################################
 
-# Install packages
-#install Dinamica seperately
-install.packages("Model/dinamica_1.0.4.tar.gz", repos=NULL, type="source")
+# Install and load packages
 
-packs <- c("data.table","stringi","stringr", "raster", "tidyverse", "testthat",
-           "sjmisc", "tictoc", "readxl", "parallel", "terra", "gridExtra",
-           "extrafont", "purrr", "rlist", "glmnet", "gam", "mgcv",
-           "randomForest", "RRF", "lightgbm", "ranger", "maxnet", "ROCR",
-           "ecospat","caret", "ggpubr", "rstatix", "ggstatsplot", "tibble",
-           "car", "tidyr", "PMCMRplus", "reshape2", "ggsignif", "ggthemes",
-           "ggside", "ghibli", "gridtext", "grid", "tidyverse", "openxlsx",
-           "ggpattern", "Dinamica", "slackr", "rstudioapi")
+#install Dinamica from source
+#install.packages("Model/dinamica_1.0.4.tar.gz", repos=NULL, type="source")
 
+#SDMtools is depreciated and needs to be installed from source
+#packageurl <- "https://cran.r-project.org/src/contrib/Archive/SDMTools/SDMTools_1.1-221.2.tar.gz"
+install.packages(packageurl, repos=NULL, type="source")
+
+#vector other required packages
+packs<-c("data.table", "raster", "tidyverse", "SDMTools", "doParallel",
+"sf", "tiff", "igraph", "readr", "foreach", "testthat",
+"sjmisc", "tictoc", "parallel", "terra", "pbapply", "rgdal",
+"rgeos", "bfsMaps", "rjstat", "future.apply", "future", "stringr",
+"stringi", "readxl", "rlist", "rstatix", "openxlsx", "pxR", "zen4R",
+"rvest", "viridis", "sp", "lulcc", "jsonlite", "httr", "xlsx",
+"gdata", "landscapemetrics", "randomForest", "RRF", "purrr",
+"ghibli", "ggpattern", "butcher", "ROCR", "ecospat", "caret", "Dinamica",
+"gridExtra", "extrafont", "ggpubr", "ggstatsplot","PMCMRplus", "reshape2",
+"ggsignif", "ggthemes", "ggside", "gridtext", "grid", "slackr", "rstudioapi")
+
+#install new packages
 new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]
-
 if (length(new.packs)) install.packages(new.packs)
 
 # Load required packages
@@ -36,7 +44,12 @@ invisible(lapply(packs, require, character.only = TRUE))
 invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TRUE, recursive = TRUE), source))
 
 #Install Dinamica EGO using included installer (Windows)
-system2(command = paste("E:\\LULCC_CH\\Model\\SetupDinamicaEGO-720.exe"))
+#create string for installer
+install_path <- paste0(getwd(), "/Model/SetupDinamicaEGO-720.exe")
+install_path <- gsub("/", "\\\\", install_path) #replace "/" with "\\"
+
+#system command
+system2(command = paste(install_path))
 
 # Create a seperate environment for storing output of sourced scripts
 output_env <- new.env()
@@ -139,7 +152,7 @@ source("Scripts/preparation/Region_prep.R", local = output_env)
 #when data layers are created
 
 #Prepare suitability and accessibility predictors
-#source("Scripts/preparation/SA_var_prep_v3.R", local = output_env)
+source("Scripts/preparation/Calibration_predictor_prep.R", local = output_env)
 
 ### =========================================================================
 ### C- Identify LULC transitions and create transition datasets

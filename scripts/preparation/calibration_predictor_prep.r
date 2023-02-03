@@ -9,15 +9,12 @@
 ### =========================================================================
 ### A- Preparation
 ### =========================================================================
-# Set your working directory
-wpath <- "E:/LULCC_CH"
-setwd(wpath)
 
 # Install packages if they are not already installed
 packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse", "testthat",
          "sjmisc", "tictoc", "parallel", "terra", "pbapply", "rgdal", "rgeos",
          "sf", "tiff", "bfsMaps", "rjstat", "future.apply", "future", "stringr",
-         "stringi" ,"readxl","rlist", "rstatix", "openxlsx", "pxR")
+         "stringi" ,"readxl","rlist", "rstatix", "openxlsx", "pxR", "zen4R", "rvest")
 
 new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
 
@@ -27,7 +24,7 @@ if(length(new.packs)) install.packages(new.packs)
 invisible(lapply(packs, require, character.only = TRUE))
 
 # Source custom functions
-invisible(sapply(list.files("Scripts/Functions",pattern = ".R", full.names = TRUE, recursive=TRUE), source))
+invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TRUE, recursive = TRUE), source))
 
 #Load in the grid to use use for re-projecting the CRS and extent of predictor data
 Ref_grid <- raster("Data/Ref_grid.gri")
@@ -42,30 +39,98 @@ for (i in 1:(length(LULC_years)-1)) {
 names(LULC_change_periods) <- sapply(LULC_change_periods, function(x) paste(x[1], x[2], sep = "_"))
 
 # #download basic map geometries for Switzerland
-# Geoms_path <- "Data/Preds/Raw/CH_geoms"
-# dir.create(Geoms_path)
-# DownloadBfSMaps(url = "https://dam-api.bfs.admin.ch/hub/api/dam/assets/21245514/master",
-# path = Geoms_path)
+Geoms_path <- "Data/Preds/Raw/CH_geoms"
+dir.create(Geoms_path)
+DownloadBfSMaps(url = "https://dam-api.bfs.admin.ch/hub/api/dam/assets/21245514/master",
+path = Geoms_path)
+
+#download raw predictor data using Zenodo API service to get URLs for file downloads
+
+#connect to Zenodo API
+zenodo <- ZenodoManager$new()
+
+#Get record info
+rec <- zenodo$getRecordByDOI("10.5281/zenodo.7590103")
+files <- rec$listFiles(pretty = TRUE)
+
+#increase timeout limit for downloading file
+options(timeout=6000)
+
+#create a temporary directory to store the zipped file
+tmpdir <- tempdir()
+
+#Download to tmpdir
+#rec$downloadFiles(path = tmpdir,)
+download.file(files$download, paste0(tmpdir, "/", files$filename), mode = "wb")
+
+#unzip (this can be tempermental may need to manually unzip)
+#function for unzipping large files using system
+decompress_file <- function(directory, file, .file_cache = FALSE) {
+
+    if (.file_cache == TRUE) {
+       print("decompression skipped")
+    } else {
+
+      # Set working directory for decompression
+      # simplifies unzip directory location behavior
+      wd <- getwd()
+      setwd(directory)
+
+      # Run decompression
+      decompression <-
+        system2("unzip",
+                args = c("-o", # include override flag
+                         file),
+                stdout = TRUE)
+
+      # uncomment to delete archive once decompressed
+      # file.remove(file)
+
+      # Reset working directory
+      setwd(wd); rm(wd)
+
+      # Test for success criteria
+      # change the search depending on
+      # your implementation
+      if (grepl("Warning message", tail(decompression, 1))) {
+        print(decompression)
+      }
+    }
+}
+
+#using function
+decompress_file(tmpdir, file = paste0(tmpdir, "\\", files$filename), .file_cache = FALSE)
+
+#using r utils::unzip
+unzip(paste0(tmpdir, "/", files$filename), exdir = str_remove(paste0(tmpdir, "/", files$filename), ".zip"))
+
+#TO DO: update path when Manuel has finished Zenodo upload.
+#select just the raw data
+raw_data_path <- str_replace(paste0(tmpdir, "/", files$filename), ".zip", "/Data/Raw")
+
+#Move files into project structure
+file.copy(raw_data_path, "Data/Preds", recursive=TRUE)
+
+#remove the zipped folder in temp dir
+unlink(paste0(tmpdir, "/", files$filename))
 
 ### =========================================================================
-### X- Gather predictor information
+### B- Gather predictor information
 ### =========================================================================
 
 #The predictor table contains details of the suitability and accessibility
 #predictors in seperate sheets for the different time periods, some predictors
 #are the same across periods (static) whereas other are temporally dynamic
 #In terms of preparations some predictors are prepared by downloading the data
-#direct from source and then processing with others being standardized
+#direct from raw and then processing with others being standardized
 #from existing raw data
 
-#create basic directories for prepared predictor layers
-Prepped_stacks_dir<- "Data/Preds/Prepared/Stacks"
+#create base directory for prepared predictor layers
 Prepped_layers_dir  <- "Data/Preds/Prepared/Layers"
 dir.create(Prepped_layers_dir, recursive = TRUE)
-dir.create(Prepped_stacks_dir, recursive = TRUE)
 
 #Predictor table file path
-Pred_table_path <- "Data/Preds/Tools/Predictor_table.xlsx"
+Pred_table_path <- "Tools/Predictor_table.xlsx"
 
 #get names of sheets to loop over
 sheets <- excel_sheets(Pred_table_path)
@@ -75,57 +140,94 @@ Pred_tables <- lapply(sheets, function(x) read.xlsx(Pred_table_path, sheet = x))
 names(Pred_tables) <- sheets
 
 #combine tables for all periods
-Pred_table_long <- as.data.frame(rbindlist(Pred_tables, idcol = "period"))
+Pred_table_long <- as.data.frame(rbindlist(Pred_tables))
 
-#filter for layers already completed
-Pred_table_long <- Pred_table_long[Pred_table_long$Prepared != "Y",]
-
-#create dirs for all predictor cateogries
+#create dirs for all predictor categories
 sapply(unique(Pred_table_long[["Predictor_category"]]), function(x) {
   dir.create(paste0(Prepped_layers_dir, "/", x), recursive = TRUE)
   })
+
+#seperate unprepared/prepared layers
+Preds_to_prepare <- Pred_table_long[Pred_table_long$Prepared != "Y",]
+
 ### =========================================================================
-### X- Predictors from raw data
+### C- Predictors from raw data
 ### =========================================================================
 
-#The predictors with a raw data source are those already prepared in ValPar.CH
+#The static predictors with a raw data raw are those already prepared in ValPar.CH
 #at 25m resolution because they already use a grid of the same extent and CRS
-#processing is just aggregating to 100m
+#processing is just aggregating to 100m. However the dynamic climatic predictors need
+#to be aggregated from several layers.
 
 #seperate the preds that have a Raw path
-Preds_source <- Pred_table_long[!is.na(Pred_table_long$Raw_data_path),]
+Preds_raw <- Preds_to_prepare[!is.na(Preds_to_prepare$Raw_data_path),]
+
+#First process the static predictors
+Preds_static <- Preds_raw[Preds_raw$Static_or_dynamic == "static",]
 
 #reduce to unique predictors
-Preds_source_unique <- Preds_source[!duplicated(Preds_source$Covariate_ID), c("Covariate_ID", "Predictor_category", "URL", "Raw_data_path", "Prepared_data_path")]
+Preds_static_unique <- Preds_static[!duplicated(Preds_static$Covariate_ID), c("Covariate_ID", "Predictor_category", "URL", "Raw_data_path", "Prepared_data_path")]
 
 #loop over the preds loading the raw data, processing and saving, returning a prepared data_path
-for(i in 1:nrow(Preds_source_unique)){
+for(i in 1:nrow(Preds_static_unique)){
 
   #load data
-  Raw_dat <- readRDS(unlist(Preds_source_unique[i,"Raw_data_path"]))
+  Raw_dat <- readRDS(unlist(Preds_static_unique[i,"Raw_data_path"]))
 
   #aggregate
   Agg_dat <- aggregate(Raw_dat, fact=4, fun=mean)
 
   #vector save path
-  layer_path <- paste0(Prepped_layers_dir, "/", Preds_source_unique[i,"Predictor_category"] ,"/", Preds_source_unique[i,"Covariate_ID"], ".tif")
+  layer_path <- paste0(Prepped_layers_dir, "/", Preds_static_unique[i,"Predictor_category"] ,"/", Preds_static_unique[i,"Covariate_ID"], ".tif")
 
   #save
   writeRaster(Agg_dat, layer_path, overwrite=TRUE)
 
   #add the prepared path to the table
-  Pred_table_long[Pred_table_long$Covariate_ID == Preds_source_unique[i,"Covariate_ID"], "Prepared_data_path"] <- layer_path
-  Pred_table_long[Pred_table_long$Covariate_ID == Preds_source_unique[i,"Covariate_ID"], "Prepared"] <- "Y"
+  Pred_table_long[Pred_table_long$Covariate_ID == Preds_static_unique[i,"Covariate_ID"], "Prepared_data_path"] <- layer_path
+  Pred_table_long[Pred_table_long$Covariate_ID == Preds_static_unique[i,"Covariate_ID"], "Prepared"] <- "Y"
+
+  #clean up
+  rm(Raw_dat, Agg_dat, layer_path)
+}
+
+
+#Process the dynamic predictors
+Preds_dynamic <- Preds_raw[Preds_raw$Static_or_dynamic == "dynamic",]
+
+#Loop over the predictors, Calculating periodic averages for each
+#re-scaling the rasters, saving and updating predictor table
+for(i in 1:nrow(Preds_dynamic)){
+    #read in rasters as stack
+    raster_stack <- stack(lapply(list.files(Preds_dynamic[i,"Raw_data_path"], full.names = TRUE), readRDS))
+
+    #calculate mean on the stack
+    raster_mean <- mean(raster_stack)
+
+    #aggregate
+    Agg_dat <- aggregate(raster_mean, fact=4, fun=mean)
+
+    #vector save path
+    layer_path <- paste0(Prepped_layers_dir, "/", Preds_dynamic[i,"Predictor_category"] ,"/", Preds_dynamic[i,"Covariate_ID"],"_",Preds_dynamic[i,"period"],".tif")
+
+    #save
+    writeRaster(Agg_dat, layer_path, overwrite=TRUE)
+
+    #add the prepared path to the table
+    Pred_table_long[which(Pred_table_long$Covariate_ID == Preds_dynamic[i,"Covariate_ID"] & Pred_table_long$period == Preds_dynamic[i,"period"]), "Prepared_data_path"] <- layer_path
+    Pred_table_long[which(Pred_table_long$Covariate_ID == Preds_dynamic[i,"Covariate_ID"] & Pred_table_long$period == Preds_dynamic[i,"period"]), "Prepared"] <- "Y"
+
+    rm(raster_stack, raster_mean, Agg_dat, layer_path)
 }
 
 ### =========================================================================
-### X- Predictors from source
+### D- Predictors from source
 ### =========================================================================
 #The predictors that are prepared directly from source require different
 #processing operations as such they are grouped into seperate chunks below
 
 ### -------------------------------------------------------------------------
-### X.1- Socio_economic: Employment
+### D.1- Socio_economic: Employment
 ### -------------------------------------------------------------------------
 
 #In order to have a common variable between the historic data and the future
@@ -138,7 +240,7 @@ for(i in 1:nrow(Preds_source_unique)){
 #needs to be aggregated to this scale
 
 #The historic employment data from the Federal statistical office
-#comes from two sources:
+#comes from two raws:
 #1. The business census (conducted from 1995-2008 for the timepoints: 1995, 2001, 2005, 2008)
 #2. The business structure statistics (STATENT, conducted annual from 2011)
 
@@ -150,9 +252,9 @@ for(i in 1:nrow(Preds_source_unique)){
 #however changes are minor in the scope of the number of industries them exactly
 
 #get urls for variable and convert to named list
-All_urls <- str_split(Pred_table_long[grep(Pred_table_long$Covariate_ID, pattern="Avg_chg_FTE"), "URL"][1], ",")[[1]]
+All_urls <- str_split(Preds_to_prepare[grep(Preds_to_prepare$Covariate_ID, pattern="Avg_chg_FTE"), "URL"][1], ",")[[1]]
 named_urls <- lapply(str_split(All_urls, pattern = " = "), function(x) trimws(x[2]))
-names(named_urls) <- lapply(str_split(All_urls, pattern = " = "), function(x) x[1])
+names(named_urls) <- lapply(str_split(All_urls, pattern = " = "), function(x) trimws(x[1]))
 
 ### Statent data
 #seperate the Statent urls
@@ -223,7 +325,7 @@ Statent_brick <- resample(Statent_brick, Ref_grid, method = 'ngb') # reproject t
 ### Business census data
 Biz_census_urls <- named_urls[1:3]
 
-#specificy dir and download datasets
+#specify dir and download datasets
 Biz_census_dir <- c("Data/Preds/Raw/Socio_economic/Employment/Historic_employment/Business_census")
 sapply(Biz_census_urls, function(x) lulcc.downloadunzip(url = x,
                                              save_dir = Biz_census_dir))
@@ -302,14 +404,11 @@ Data_stack <- stack(Statent_brick, BC_brick)
 
 #intersect with labour market regions
 #load shapefile of labour market regions
-LMR_shp <- sf::st_read("E:/LULCC_CH/Data/Preds/Raw/CH_geoms/2022_GEOM_TK/03_ANAL/Gesamtfläche_gf/K4_amre_20180101_gf/K4amre_20180101gf_ch2007Poly.shp")
+LMR_shp <- sf::st_read("Data/Preds/Raw/CH_geoms/2022_GEOM_TK/03_ANAL/Gesamtfläche_gf/K4_amre_20180101_gf/K4amre_20180101gf_ch2007Poly.shp")
 
 #sum data in each labour market region
 FTE_lab_market <-  raster::extract(Data_stack, LMR_shp, fun=sum, na.rm=TRUE, df=TRUE)
 FTE_lab_market$name <- LMR_shp$name
-
-#REMOVE
-Sector_extrapolations <- readRDS("E:/LULCC_CH/Data/Preds/Raw/Socio_economic/Employment/Historic_employment/Sector_extrapolations.rds")
 
 #split into sectors, vector sector numbers
 sector_nums <-c(1,2,3)
@@ -362,14 +461,15 @@ Period_sector_values <- rbindlist(lapply(LULC_change_periods, function(period_da
 Duration <- abs(diff(as.numeric(period_dates)))
 
 #Inner loop over sector_extrapolations
-Sector_values <- rbindlist(mapply(function(Sector_data, Sector_name){
+Sector_values <- rbindlist(mapply(function(Sector_data, Sector_name, period_dates){
 
   #subset data
   dat <- Sector_data[, paste0(Sector_name, "_", period_dates)]
   Sector_data$Avg.diff <- (dat[,1]-dat[,2])/Duration
-  return(Sector_data[, c("ID", "Name", "Avg.diff")])
+  return(Sector_data[, c("ID", "name", "Avg.diff")])
   }, Sector_data = Sector_extrapolations,
   Sector_name = names(Sector_extrapolations),
+  MoreArgs = list(period_dates = period_dates),
 SIMPLIFY = FALSE), idcol = "Sector", fill = TRUE)
 
 }), idcol = "Period") #close outer loop
@@ -411,11 +511,11 @@ Pred_table_long[grep(Pred_table_long$Covariate_ID, pattern="Avg_chg_FTE"), "Prep
 Pred_table_long[grep(Pred_table_long$Covariate_ID, pattern="Avg_chg_FTE"), "Prepared"] <- "Y"
 
 ### -------------------------------------------------------------------------
-### X.2- Biophysical: Soil, continentality and light (Descombes et al. 2020)
+### D.2- Biophysical: Soil, continentality and light (Descombes et al. 2020)
 ### -------------------------------------------------------------------------
 
 #grab url from table
-Biophys_url <- str_split(Pred_table_long[grep(Pred_table_long$Data_citation, pattern= "Descombes et al. 2020"), "URL"][1], ",")[[1]]
+Biophys_url <- str_split(Preds_to_prepare[grep(Preds_to_prepare$Data_citation, pattern= "Descombes et al. 2020"), "URL"][1], ",")[[1]]
 
 #use function to download and unpack
 Biophys_dir <- c("Data/Preds/Raw/Biophysical")
@@ -431,14 +531,14 @@ names(Biophys_meta)[1:3] <- c("Layer_name", "Abbrev", "Desc_name")
 Biophys_meta$Desc_name[25] <- "Continentality"
 
 #get layer names using variable names
-Biophys_var_names <- unique(Pred_table_long[Pred_table_long$Data_citation == "Descombes et al. 2020", "Variable_name"])
+Biophys_var_names <- unique(Preds_to_prepare[Preds_to_prepare$Data_citation == "Descombes et al. 2020", "Variable_name"])
 Biophys_layer_names <- Biophys_meta[Biophys_meta$Desc_name %in% Biophys_var_names, "Layer_name"]
 
 #Get variable descriptive names
 Biophys_desc_names <- Biophys_meta[Biophys_meta$Desc_name %in% Biophys_var_names, "Desc_name"]
 
 #Match descriptive names with the pred table and return the covariate ID
-names(Biophys_layer_names) <- unique(sapply(Biophys_desc_names, function(x){Pred_table_long[Pred_table_long$Variable_name == x, "Covariate_ID"]}))
+names(Biophys_layer_names) <- unique(sapply(Biophys_desc_names, function(x){Preds_to_prepare[Preds_to_prepare$Variable_name == x, "Covariate_ID"]}))
 
 #get layer paths
 Biophys_paths <- lapply(Biophys_layer_names, function(x) {
@@ -458,7 +558,7 @@ for(i in 1:length(Biophys_paths)){
   Prepped_dat_resamp <- resample(Prepped_dat, Ref_grid)
 
   #vector save path
-  layer_path <- paste0(Prepped_layers_dir, "/", unique(Pred_table_long[Pred_table_long$Covariate_ID == Var_name, "Predictor_category"]) ,"/", Var_name, ".tif")
+  layer_path <- paste0(Prepped_layers_dir, "/", unique(Preds_to_prepare[Preds_to_prepare$Covariate_ID == Var_name, "Predictor_category"]) ,"/", Var_name, ".tif")
 
   #save
   writeRaster(Prepped_dat_resamp, layer_path, overwrite=TRUE)
@@ -469,11 +569,13 @@ for(i in 1:length(Biophys_paths)){
 }
 
 ### -------------------------------------------------------------------------
-### X.3- Population
+### D.3- Population
 ### -------------------------------------------------------------------------
 
 ### Prepare municipality population data incorporating mutations
 
+#use if statement to only perform prep if layers have not already been prepared
+if(str_contains(Preds_to_prepare$Covariate_ID, "Muni_pop")){
 #read in PX data from html and convert to DF
 px_data <- data.frame(read.px("https://dam-api.bfs.admin.ch/hub/api/dam/assets/23164063/master"))
 
@@ -507,7 +609,7 @@ saveRDS(raw_mun_popdata, "Data/Preds/Raw/Socio_economic/Population/raw_muni_pop_
 
 # import municipality shape file
 lulcc.downloadunzip(url = "https://data.geo.admin.ch/ch.swisstopo.swissboundaries3d/swissboundaries3d_2021-07/swissboundaries3d_2021-07_2056_5728.shp.zip",
-                    save_dir = "E:/LULCC_CH/Data/Preds/Raw/CH_geoms")
+                    save_dir = "Data/Preds/Raw/CH_geoms")
 
 Muni_shp <- shapefile("Data/Preds/Raw/CH_geoms/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.shp")
 
@@ -589,7 +691,7 @@ Var_name <- "Muni_pop"
 Muni_save_paths <- sapply(LULC_years[1:3], function(i){
 
   #file_path
-  save_path <- paste0(Prepped_layers_dir, "/", unique(Pred_table_long[Pred_table_long$Covariate_ID == Var_name, "Predictor_category"]), "/Population/", Var_name ,"_", i, ".tif")
+  save_path <- paste0(Prepped_layers_dir, "/", unique(Preds_to_prepare[Preds_to_prepare$Covariate_ID == Var_name, "Predictor_category"]), "/Population/", Var_name ,"_", i, ".tif")
 
   #loop over the BFS numbers of the polygons and match to population values
   Muni_shp@data[paste0("Pop_", i)] <- as.numeric(sapply(Muni_shp@data$BFS_NUMMER, function(Muni_num){
@@ -609,6 +711,7 @@ Muni_save_paths <- sapply(LULC_years[1:3], function(i){
   Pred_table_long[Pred_table_long$Covariate_ID == Var_name, "Prepared_data_path"] <- Muni_save_paths
   Pred_table_long[Pred_table_long$Covariate_ID == Var_name, "Prepared"] <- "Y"
 
+} #close if statement
 
 ### =========================================================================
 ### X- Update predictor table for SA predictors
@@ -639,200 +742,6 @@ cat(paste0(' Preparation of Suitability and accessibility predictor layers compl
 #This process is lengthy so is presented in a seperate script,which includes
 #updating of the predictor table after layer creation
 
-#source script
-source("Scripts/preparation/Nhood_data_prep.R", echo = TRUE)
-
-### =========================================================================
-### X- Climatic covariates
-### =========================================================================
-
-#periodic averages of each climatic variable for each period
-
-        #first we need an efficient way to find and copy the files from the SwitchDrive 'CH-BMG' folder architecture
-
-        #bio1 predictor
-        bio1_dirs <- list.files("C:/Users/bblack/switchdrive/CH-BMG/data/predictors/ch/bioclim/chclim25/present/pixel", pattern = "*bio1.rds$", recursive = TRUE)
-
-        #split files into periods
-        bio1_1985 <- bio1_dirs[c(1:5)]
-        bio1_1997 <- bio1_dirs[c(6:11)]
-        bio1_2009 <- bio1_dirs[c(12:17)]
-
-        #copy the files for each period to folders in my file structure
-        rawPath <- "C:/Users/bblack/switchdrive/CH-BMG/data/predictors/ch/bioclim/chclim25/present/pixel"
-        bio1_directory_1985 <- "Covariates/Climatic/Periodic_averages/Period1_1981_1985/Original/Avg_ann_temp/"
-        bio1_directory_1997 <- "Covariates/Climatic/Periodic_averages/Period2_1993_1997/Original/Avg_ann_temp/"
-        bio1_directory_2009 <- "Covariates/Climatic/Periodic_averages/Period3_2005_2009/Original/Avg_ann_temp/"
-
-        file.copy(file.path(rawPath, bio1_1985), bio1_directory_1985 , overwrite = TRUE)
-        file.copy(file.path(rawPath, bio1_1997), bio1_directory_1997 , overwrite = TRUE)
-        file.copy(file.path(rawPath, bio1_2009), bio1_directory_2009 , overwrite = TRUE)
-
-
-        #bio12 predictor
-        bio12_dirs <- list.files("C:/Users/bblack/switchdrive/CH-BMG/data/predictors/ch/bioclim/chclim25/present/pixel", pattern = "*bio12.rds$", recursive = TRUE)
-        #split files into periods
-        bio12_1985 <- bio12_dirs[c(1:5)]
-        bio12_1997 <- bio12_dirs[c(6:11)]
-        bio12_2009 <- bio12_dirs[c(12:17)]
-
-        #copy the files for each period to folders in my file structure
-        bio12_directory_1985 <- "Covariates/Climatic/Periodic_averages/Period1_1981_1985/Original/Avg_precip/"
-        bio12_directory_1997 <- "Covariates/Climatic/Periodic_averages/Period2_1993_1997/Original/Avg_precip/"
-        bio12_directory_2009 <- "Covariates/Climatic/Periodic_averages/Period3_2005_2009/Original/Avg_precip/"
-
-        file.copy(file.path(rawPath, bio12_1985), bio12_directory_1985 , overwrite = TRUE)
-        file.copy(file.path(rawPath, bio12_1997), bio12_directory_1997 , overwrite = TRUE)
-        file.copy(file.path(rawPath, bio12_2009), bio12_directory_2009 , overwrite = TRUE)
-
-
-        #gdd0 predictor
-        gdd0_dirs <- list.files("C:/Users/bblack/switchdrive/CH-BMG/data/predictors/ch/bioclim/chclim25/present/pixel", pattern = "*gdd0.rds$", recursive = TRUE)
-        #split files into periods
-        gdd0_1985 <- gdd0_dirs[c(1:5)]
-        gdd0_1997 <- gdd0_dirs[c(6:11)]
-        gdd0_2009 <- gdd0_dirs[c(12:17)]
-
-        #copy the files for each period to folders in my file structure
-        gdd0_directory_1985 <- "Covariates/Climatic/Periodic_averages/Period1_1981_1985/Original/Sum_gdays_0deg/"
-        gdd0_directory_1997 <- "Covariates/Climatic/Periodic_averages/Period2_1993_1997/Original/Sum_gdays_0deg/"
-        gdd0_directory_2009 <- "Covariates/Climatic/Periodic_averages/Period3_2005_2009/Original/Sum_gdays_0deg/"
-
-        file.copy(file.path(rawPath, gdd0_1985), gdd0_directory_1985 , overwrite = TRUE)
-        file.copy(file.path(rawPath, gdd0_1997), gdd0_directory_1997 , overwrite = TRUE)
-        file.copy(file.path(rawPath, gdd0_2009), gdd0_directory_2009 , overwrite = TRUE)
-
-        #gdd3 predictor
-        gdd3_dirs <- list.files("C:/Users/bblack/switchdrive/CH-BMG/data/predictors/ch/bioclim/chclim25/present/pixel", pattern = "*gdd3.rds$", recursive = TRUE)
-        #split files into periods
-        gdd3_1985 <- gdd3_dirs[c(1:5)]
-        gdd3_1997 <- gdd3_dirs[c(6:11)]
-        gdd3_2009 <- gdd3_dirs[c(12:17)]
-
-        #copy the files for each period to folders in my file structure
-        gdd3_directory_1985 <- "Covariates/Climatic/Periodic_averages/Period1_1981_1985/Original/Sum_gdays_3deg/"
-        gdd3_directory_1997 <- "Covariates/Climatic/Periodic_averages/Period2_1993_1997/Original/Sum_gdays_3deg/"
-        gdd3_directory_2009 <- "Covariates/Climatic/Periodic_averages/Period3_2005_2009/Original/Sum_gdays_3deg/"
-
-        file.copy(file.path(rawPath, gdd3_1985), gdd3_directory_1985 , overwrite = TRUE)
-        file.copy(file.path(rawPath, gdd3_1997), gdd3_directory_1997 , overwrite = TRUE)
-        file.copy(file.path(rawPath, gdd3_2009), gdd3_directory_2009 , overwrite = TRUE)
-
-
-        #gdd5 predictor
-        gdd5_dirs <- list.files("C:/Users/bblack/switchdrive/CH-BMG/data/predictors/ch/bioclim/chclim25/present/pixel", pattern = "*gdd5.rds$", recursive = TRUE)
-        #split files into periods
-        gdd5_1985 <- gdd5_dirs[c(1:5)]
-        gdd5_1997 <- gdd5_dirs[c(6:11)]
-        gdd5_2009 <- gdd5_dirs[c(12:17)]
-
-        #copy the files for each period to folders in my file structure
-        gdd5_directory_1985 <- "Covariates/Climatic/Periodic_averages/Period1_1981_1985/Original/Sum_gdays_5deg/"
-        gdd5_directory_1997 <- "Covariates/Climatic/Periodic_averages/Period2_1993_1997/Original/Sum_gdays_5deg/"
-        gdd5_directory_2009 <- "Covariates/Climatic/Periodic_averages/Period3_2005_2009/Original/Sum_gdays_5deg/"
-
-        file.copy(file.path(rawPath, gdd5_1985), gdd5_directory_1985 , overwrite = TRUE)
-        file.copy(file.path(rawPath, gdd5_1997), gdd5_directory_1997 , overwrite = TRUE)
-        file.copy(file.path(rawPath, gdd5_2009), gdd5_directory_2009 , overwrite = TRUE)
-
-
-        #Using a loop to calculate average values for each covariate in the years that make each up LULC flying period (i.e. lulc year and preceding 4 years)
-        Covariates <- c("Avg_ann_temp", "Avg_precip", "Sum_gdays_0deg", "Sum_gdays_3deg" , "Sum_gdays_5deg")
-        Covariates_names_1985 <- c("Avg_ann_temp_cov24", "Avg_precip_cov25", "Sum_gdays_0deg_cov26", "Sum_gdays_3deg_cov27" , "Sum_gdays_5deg_cov28")
-        Covariates_names_1997 <- c("Avg_ann_temp_cov29", "Avg_precip_cov30", "Sum_gdays_0deg_cov31", "Sum_gdays_3deg_cov32" , "Sum_gdays_5deg_cov33")
-        Covariates_names_2009 <- c("Avg_ann_temp_cov34", "Avg_precip_cov35", "Sum_gdays_0deg_cov36", "Sum_gdays_3deg_cov37" , "Sum_gdays_5deg_cov38")
-
-
-        #initiate function for period1 (1981-1985) (passing covariates/folders argument)
-        batch_rastMean_1985 <- function(Covariates){
-
-        #loop through the different folders
-        for (i in 1:length(Covariates)) {
-
-            #get a list of the input rasters in each folder
-            #pattern = "*.tif$" filters for main raster files only and skips any associated files (e.g. world files)
-            grids <- list.files(paste0("Covariates/Climatic/Periodic_averages/Period1_1981_1985/Original/", Covariates[i], "/"), pattern = "*.rds$")
-            x <- lapply(paste0("Covariates/Climatic/Periodic_averages/Period1_1981_1985/Original/", Covariates[i], "/", grids), readRDS)
-
-            #create a raster stack from the input grids (in this example there are 12 tif files in each folder)
-            s <-stack(x)
-
-            #run the mean function on the raster stack - i.e. add (non-cumulatively) the rasters together
-            r25 <- mean(s)
-
-            #aggregate the raster from 25m to 100m
-            r100 <- aggregate(r25, fact=4, fun=mean)
-
-            #write the output raster to file
-            r100 <- writeRaster(r100, filename = paste0("Covariates/Climatic/Periodic_averages/Period1_1981_1985/Prepared/", "Average_", Covariates_names_1985[i], ".tif"), overwrite=TRUE)
-
-        }
-    }
-
-    #run the function
-    batch_rastMean_1985(Covariates)
-
-    #initiate function for period 2 (1993-1997) (passing covariates/folders argument)
-    batch_rastMean_1997 <- function(Covariates){
-
-        #loop through the different folders
-        for (i in 1:length(Covariates)) {
-
-            #get a list of the input rasters in each folder
-            #pattern = "*.tif$" filters for main raster files only and skips any associated files (e.g. world files)
-            grids <- list.files(paste0("Covariates/Climatic/Periodic_averages/Period2_1993_1997/Original/", Covariates[i], "/"), pattern = "*.rds$")
-            x <- lapply(paste0("Covariates/Climatic/Periodic_averages/Period2_1993_1997/Original/", Covariates[i], "/", grids), readRDS)
-
-            #create a raster stack from the input grids (in this example there are 12 tif files in each folder)
-            s <-stack(x)
-
-            #run the mean function on the raster stack - i.e. add (non-cumulatively) the rasters together
-            r25 <- mean(s)
-
-            #aggregate the raster from 25m to 100m
-            r100 <- aggregate(r25, fact=4, fun=mean)
-
-            #write the output raster to file
-            r100 <- writeRaster(r100, filename = paste0("Covariates/Climatic/Periodic_averages/Period2_1993_1997/Prepared/", "Average_", Covariates_names_1997[i], ".tif"), overwrite=TRUE)
-
-        }
-    }
-
-
-    #run the function
-    batch_rastMean_1997(Covariates)
-
-    #initiate function for period 3 (2005-2009) (passing covariates/folders argument)
-    batch_rastMean_2009 <- function(Covariates){
-
-        #loop through the different folders
-        for (i in 1:length(Covariates)) {
-
-            #get a list of the input rasters in each folder
-            #pattern = "*.tif$" filters for main raster files only and skips any associated files (e.g. world files)
-            grids <- list.files(paste0("Covariates/Climatic/Periodic_averages/Period3_2005_2009/Original/", Covariates[i], "/"), pattern = "*.rds$")
-            x <- lapply(paste0("Covariates/Climatic/Periodic_averages/Period3_2005_2009/Original/", Covariates[i], "/", grids), readRDS)
-
-            #create a raster stack from the input grids (in this example there are 12 tif files in each folder)
-            s <-stack(x)
-
-            #run the mean function on the raster stack - i.e. add (non-cumulatively) the rasters together
-            r25 <- mean(s)
-
-            #aggregate the raster from 25m to 100m
-            r100 <- aggregate(r25, fact=4, fun=mean)
-
-            #write the output raster to file
-            r100 <- writeRaster(r100, filename = paste0("Covariates/Climatic/Periodic_averages/Period3_2005_2009/Prepared/", "Average_", Covariates_names_2009[i], ".tif"), overwrite=TRUE)
-
-        }
-    }
-
-    #run the function
-    batch_rastMean_2009(Covariates)
-
-
-
-
-
+#raw script
+source("Scripts/preparation/Nhood_predictor_prep.R", echo = TRUE)
 
