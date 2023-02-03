@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.2.313">
+<meta name="generator" content="quarto-1.2.335">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>LULCC_CH_model</title>
+<title>LULCC_CH land use change model for Switzerland</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -110,7 +110,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">LULCC_CH_model</h1>
+<h1 class="title">LULCC_CH land use change model for Switzerland</h1>
 </div>
 
 
@@ -143,15 +143,48 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="cell" data-context="server">
 
 </div>
+<section id="install-dinamica-ego" class="level2">
+<h2 class="anchored" data-anchor-id="install-dinamica-ego">Install Dinamica EGO</h2>
+<p>LULCC_CH uses a combination of Rstats and the 3rd party software Dinamica EGO if Dinamica EGO is not installed on your computer it can be installed using the included executables for different operating systems. Select your operating system below and the appropriate installer window will open</p>
 <div class="cell">
-<div class="sourceCode cell-code hidden" id="cb1" data-startfrom="22" data-source-offset="0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 21;"><span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>viewof flavor <span class="op">=</span> Inputs<span class="op">.</span><span class="fu">checkbox</span>([<span class="st">"Salty"</span><span class="op">,</span> <span class="st">"Spicy"</span><span class="op">,</span> <span class="st">"Sour"</span><span class="op">,</span> <span class="st">"Umami"</span>]<span class="op">,</span> {<span class="dt">label</span><span class="op">:</span> <span class="st">"Flavor"</span>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code hidden" id="cb1" data-startfrom="61" data-source-offset="0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 60;"><span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>viewof OS <span class="op">=</span> Inputs<span class="op">.</span><span class="fu">checkbox</span>([<span class="st">"Windows"</span><span class="op">,</span> <span class="st">"GNU/Linux"</span>]<span class="op">,</span> {<span class="dt">label</span><span class="op">:</span> <span class="st">"Operating system:"</span>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <div id="ojs-cell-1" data-nodetype="declaration">
 
 </div>
 </div>
 </div>
+<div class="cell">
+
+</div>
 <p>
+<script type="application/shiny-prerendered" data-context="server-start">
+# Install packages
+#install Dinamica seperately
+
+#install.packages("Model/dinamica_1.0.4.tar.gz", repos=NULL, type="source")
+
+# packs <- c("data.table","stringi","stringr", "raster", "tidyverse", #"testthat",
+#            "sjmisc", "tictoc", "readxl", "parallel", "terra", "gridExtra",
+#            "extrafont", "purrr", "rlist", "glmnet", "gam", "mgcv",
+#            "randomForest", "RRF", "lightgbm", "ranger", "maxnet", "ROCR",
+#            "ecospat","caret", "ggpubr", "rstatix", "ggstatsplot", "tibble",
+#            "car", "tidyr", "PMCMRplus", "reshape2", "ggsignif", "ggthemes",
+#            "ggside", "ghibli", "gridtext", "grid", "tidyverse", "openxlsx",
+#            "ggpattern", "Dinamica", "slackr", "rstudioapi")
+#
+# new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]
+#
+# if (length(new.packs)) install.packages(new.packs)
+#
+# # Load required packages
+# invisible(lapply(packs, require, character.only = TRUE))
+#
+# # Source custom functions
+# invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = #TRUE, recursive = TRUE), source))
+
+</script>
+
 <script type="application/shiny-prerendered" data-context="server">
    output$result <- renderText({
      paste("You chose:", input$OS)
@@ -193,14 +226,15 @@ ojs_define <- function(..., .session = shiny::getDefaultReactiveDomain()) {
 <!--html_preserve-->
 
 <script type="application/shiny-prerendered" data-context="execution_dependencies">
-{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38]}},"value":[{"type":"character","attributes":{},"value":["base","bslib","cachem","cli","compiler","datasets","digest","ellipsis","evaluate","fastmap","graphics","grDevices","htmltools","htmlwidgets","httpuv","jquerylib","jsonlite","knitr","later","lifecycle","magrittr","memoise","methods","mime","promises","R6","Rcpp","rlang","rmarkdown","rstudioapi","sass","shiny","stats","tools","utils","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["4.2.2","0.4.2","1.0.6","3.5.0","4.2.2","4.2.2","0.6.31","0.3.2","0.20","1.1.0","4.2.2","4.2.2","0.5.4","1.6.1","1.6.7","0.1.4","1.8.4","1.42","1.3.0","1.0.3","2.0.3","2.0.1","4.2.2","0.12","1.2.0.1","2.5.1","1.0.9","1.0.6","2.20","0.14","0.4.4","1.7.4","4.2.2","4.2.2","4.2.2","0.36","1.8-4","2.3.6"]}]}]}
+{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38]}},"value":[{"type":"character","attributes":{},"value":["base","bslib","cachem","cli","compiler","datasets","digest","ellipsis","evaluate","fastmap","graphics","grDevices","htmltools","htmlwidgets","httpuv","jquerylib","jsonlite","knitr","later","lifecycle","magrittr","memoise","methods","mime","promises","R6","Rcpp","rlang","rmarkdown","rstudioapi","sass","shiny","stats","tools","utils","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["4.2.2","0.4.2","1.0.6","3.5.0","4.2.2","4.2.2","0.6.31","0.3.2","0.20","1.1.0","4.2.2","4.2.2","0.5.4","1.6.1","1.6.7","0.1.4","1.8.4","1.42","1.3.0","1.0.3","2.0.3","2.0.1","4.2.2","0.12","1.2.0.1","2.5.1","1.0.9","1.0.6","2.20","0.14","0.4.4","1.7.4","4.2.2","4.2.2","4.2.2","0.37","1.8-4","2.3.7"]}]}]}
 </script>
 <!--/html_preserve-->
+</section>
 
 </main>
 <!-- /main column -->
 <script type="ojs-module-contents">
-{"contents":[{"methodName":"interpret","cellName":"ojs-cell-1","inline":false,"source":"viewof flavor = Inputs.checkbox([\"Salty\", \"Spicy\", \"Sour\", \"Umami\"], {label: \"Flavor\"})\n"},{"methodName":"interpretQuiet","source":"shinyInput('flavor')"}]}
+{"contents":[{"methodName":"interpret","cellName":"ojs-cell-1","inline":false,"source":"viewof OS = Inputs.checkbox([\"Windows\", \"GNU/Linux\"], {label: \"Operating system:\"})\n"},{"methodName":"interpretQuiet","source":"shinyInput('OS')"}]}
 </script>
 <script type="module">
 window._ojs.paths.runtimeToDoc = "../../..";
