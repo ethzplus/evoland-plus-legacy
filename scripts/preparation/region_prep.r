@@ -9,25 +9,23 @@
 ### =========================================================================
 ### A- Preparation
 ### =========================================================================
-# Set your working directory
-wpath<-"E:/LULCC_CH"
-setwd(wpath)
 
-#navigate to the working directory in the files pane for easy viewing
-rstudioapi::filesPaneNavigate(wpath)
-
+# All packages are sourced in the master document, uncomment here
+#if running the script in isolation
 # Install packages if they are not already installed
-packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse", "testthat", "sjmisc", "tictoc", "parallel", "terra", "pbapply", "sp", "rgdal")
-
-new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
-
-if(length(new.packs)) install.packages(new.packs)
-
-# Load required packages
-invisible(lapply(packs, require, character.only = TRUE))
-
-# Source custom functions
-invisible(sapply(list.files("Scripts/Functions",pattern = ".R", full.names = TRUE, recursive=TRUE), source))# Set your working directory
+# packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse", "testthat",
+#          "sjmisc", "tictoc", "parallel", "terra", "pbapply", "sp", "rgdal")
+#
+# new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
+#
+# if(length(new.packs)) install.packages(new.packs)
+#
+# # Load required packages
+# invisible(lapply(packs, require, character.only = TRUE))
+#
+# # Source custom functions
+# invisible(sapply(list.files("Scripts/Functions",pattern = ".R",
+# full.names = TRUE, recursive=TRUE), source))
 
 #define projection systems
 Ref_grid <- raster("Data/Ref_grid.gri")
@@ -51,7 +49,7 @@ bioreg.shp <- readOGR(dsn="Data/Bioreg_CH/BiogeographischeRegionen", layer = "N2
 #project to new CRS
 bioreg.shp <- spTransform(bioreg.shp, CRSobj = Ref_crs)
 
-#save shapefile in new CRS as an .RDs file for easy use in R
+#save shapefile in new CRS as an .rds file for easy use in R
 write_rds(bioreg.shp, file = "Data/Bioreg_CH/Bioreg_shape.rds")
 
 #necessary to set the regionNumm column as numeric data type in order to Rasterise

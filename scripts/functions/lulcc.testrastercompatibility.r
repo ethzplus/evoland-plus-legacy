@@ -18,7 +18,11 @@ for(i in 1:length(Rasterlist)){
   comparison_result[[i]] <- capture_warnings(compareRaster(ExemplarRaster,Rasterlist[[i]], res=T, orig=T, stopiffalse=F, showwarning=T))
 }
 
-if ((is_empty(comparison_result, first.only = FALSE, all.na.empty = TRUE)) == TRUE) {  cat('Rasters ready to stack...\n')
-} else {cat('Differences in Rasters characteristics, opening comparison results...\n')
+if ((is_empty(comparison_result, first.only = FALSE, all.na.empty = TRUE)) == TRUE) {
+  cat('Rasters ready to stack...\n')
+} else {
+  cat('Differences in Rasters characteristics, opening comparison results...\n')
+
   print(comparison_result)}
+return(comparison_result)
 }

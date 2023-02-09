@@ -6,18 +6,19 @@
 ## Author: Ben Black
 #############################################################################
 
+# All packages are sourced in the master document, uncomment here
 #Vector packages for loading
-packs<-c("foreach", "data.table", "raster", "tidyverse",
-         "testthat", "sjmisc", "tictoc", "doParallel",
-         "lulcc", "pbapply", "stringr", "readr", "openxlsx", "bfsMaps",
-         "jsonlite", "httr", "xlsx")
-
-new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
-
-if(length(new.packs)) install.packages(new.packs)
-
-# Load required packages
-invisible(lapply(packs, require, character.only = TRUE))
+# packs<-c("foreach", "data.table", "raster", "tidyverse",
+#          "testthat", "sjmisc", "tictoc", "doParallel",
+#          "lulcc", "pbapply", "stringr", "readr", "openxlsx", "bfsMaps",
+#          "jsonlite", "httr", "xlsx", "zen4R)
+#
+# new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
+#
+# if(length(new.packs)) install.packages(new.packs)
+#
+# # Load required packages
+# invisible(lapply(packs, require, character.only = TRUE))
 
 #Predictor table file path
 Pred_table_path <- "Tools/Predictor_table.xlsx"
@@ -25,47 +26,38 @@ Pred_table_path <- "Tools/Predictor_table.xlsx"
 #Load in the grid to use use for re-projecting the CRS and extent of predictor data
 Ref_grid <- raster("Data/Ref_grid.gri")
 
-#vector time steps for future predictions
-#Simulation start time is 2020 and end time is 2060
-#we have initially agreed to use 5 year time steps
-Simulation_start <- 2020
-Simulation_end <- 2060
-Step_length <- 5
+#Fetch simulation start and end times is 2020 and end times
+#from simulation control table
+Simulation_control <- read.csv("Tools/Simulation_control.csv")
+Simulation_start <- Simulation_control$Scenario_start.real
+Simulation_end <- Simulation_control$Scenario_end.real
+Step_length <- Simulation_control$Step_length.real
 
+#vector time steps for future predictions
 Time_steps <- seq(Simulation_start, Simulation_end, Step_length)
+
+#base dir for saving
+Prepared_layers_dir <- "Data/Preds/Prepared/Layers"
 
 ### =========================================================================
 ### A- Future economic scenarios
 ### =========================================================================
 
-#base dir for saving
-Prepared_FTE_dir <- "Data/Preds/Prepared/Layers/Socio_economic/Employment"
-
-#TO DO: convert process to use zenodo downloading functions from inborutils::
 #use Zenodo API service to get URLs for file downloads
-ES_data_URLs <- fromJSON(rawToChar(GET("https://zenodo.org/api/records/4774914")[["content"]]))[["files"]][["links"]][["download"]]
+#Get record info
+zenodo <- ZenodoManager$new()
+rec <- zenodo$getRecordByDOI("10.5281/zenodo.4774914")
+files <- rec$listFiles(pretty = TRUE)
 
 #remove files for sensitivity analysis
-ES_data_URLs <- ES_data_URLs[-c(5,6)]
+ES_data_URLs <- files[-c(5,6),][["download"]]
 
 #create dir
 ES_dir <- "Data/Preds/Raw/Socio_economic/Employment/Employment_scenarios"
-dir.create(ES_dir, recursive = TRUE)
 
 #loop over URLS, downloading and unzipping
 for(i in ES_data_URLs){
-
-  file <- basename(i)
-
-  #if file is zipped then create temp dir and extract
-  if(grepl(".zip", i)== TRUE){
-    tmpdir <- tempdir()
-    download.file(i, paste0(tmpdir, "/", file))
-    unzip(paste0(tmpdir, "/", file), exdir = ES_dir) #unzip folder, saving to new dir
-    unlink(tmpdir) #remove temp dir
-  }else{ #non-zipped just download
-    download.file(i, paste0(ES_dir, "/", file), mode = "wb")
-    }
+  lulcc.downloadunzip(url = i, save_dir = ES_dir)
 }
 
 #because the future projected economic values as expressed using codes for the
@@ -189,14 +181,13 @@ names(Econ_data_paths) <- sapply(names(Econ_data_paths), function(x){
 })
 
 #Subset to which econ scenarios are required for our scenarios
-
 #load scenario specifications table
 Scenario_data_table <- openxlsx::read.xlsx("Tools/Scenario_specifications.xlsx", sheet = "Predictor_data")
-Scenario_corr <- as.list()
+Scenario_corr <- as.list(Scenario_data_table$Econ_scenario)
 names(Scenario_corr) <- Scenario_data_table[,"Scenario_ID"]
 
 #load shapefile of labour market regions
-LMR_shp <- sf::st_read("E:/LULCC_CH/Data/Preds/Raw/CH_geoms/2022_GEOM_TK/03_ANAL/Gesamtfläche_gf/K4_amre_20180101_gf/K4amre_20180101gf_ch2007Poly.shp")
+LMR_shp <- sf::st_read("Data/Preds/Raw/CH_geoms/2022_GEOM_TK/03_ANAL/Gesamtfläche_gf/K4_amre_20180101_gf/K4amre_20180101gf_ch2007Poly.shp")
 
 #rasterize
 LMR_shp$name <- as.factor(LMR_shp$name)
@@ -227,7 +218,7 @@ for(i in 1:length(Scenario_corr)){
 
   #Calculate the average annual difference
   Region_values <- as.data.frame(Econ_dat %>% group_by(Agg_sec, Region_name, time) %>% #grouping
-                                   summarize(SumFTE = sum(EmpFTE)) %>% #sum over the economic activities
+                                   dplyr::summarize(SumFTE = sum(EmpFTE)) %>% #sum over the economic activities
                                       mutate(Avg_chg_FTE = (SumFTE - lag(SumFTE))/Step_length)) %>% #calculate avg. annual change between time points
                                           select(-(SumFTE))
 
@@ -256,8 +247,8 @@ for(i in 1:length(Scenario_corr)){
             paste0(Time_steps[x], "_", Time_steps[x+1])})
 
     #vector file names
-    FTE_file_names <- paste0(Prepared_FTE_dir, "/", "Avg_chg_FTE_", names(Date_cols),
-                             "_", unique(Sector_dat_wide[,"Agg_sec"]), "_",
+    FTE_file_names <- paste0(Prepared_layers_dir, "/Socio_economic/Employment/Avg_chg_FTE_", unique(Sector_dat_wide[,"Agg_sec"]),
+                             "_", names(Date_cols), "_",
                                     names(Scenario_corr)[i],".tif")
 
     #use subs to match raster values based on ID and repeat across all columns
@@ -275,7 +266,11 @@ for(i in 1:length(Scenario_corr)){
 
     return(FTE_file_names)
     }) #close loop over sectors
+
 } #close loop over scenarios
+
+#list the files match on the scenario names
+Future_FTE_file_paths <- list.files(paste0(Prepared_layers_dir, "/Socio_economic/Employment"), full.names = TRUE, pattern = paste(names(Scenario_corr), collapse = "|"))
 
 ### =========================================================================
 ### B- future population projections
@@ -289,7 +284,7 @@ for(i in 1:length(Scenario_corr)){
 #with population values then being distributed according the correct projection
 #under the scenario being simulated.
 
-### X.1- Prepare historic cantonal population data
+### B.1- Prepare historic cantonal population data
 
 #reload historic muni pop data produced in historic predictor prep
 raw_mun_popdata <- readRDS("Data/Preds/Raw/Socio_economic/Population/raw_muni_pop_historic.rds")
@@ -331,16 +326,7 @@ unique(Canton_shp@data[Canton_shp@data$NAME == x, "KANTONSNUM"])
 #get the indices of columns that represent the years
 date_cols <- na.omit(as.numeric(gsub(".*?([0-9]+).*", "\\1", colnames(raw_can_popdata))))
 
-#check that the raw municipality pop values sum to the raw cantonal pop values
-raw_canton_sums <- do.call(cbind, lapply(date_cols, function(x){
-pop_sum <- raw_mun_popdata %>%
-  group_by(KANTONSNUM) %>%
-  summarise(across(c(paste(x)), sum))
-return(pop_sum)
-}))
-
-### X.2- Calculate % cantonal population per municipality
-
+### B.2- Calculate % cantonal population per municipality
 pop_percentages <- do.call(cbind, sapply(date_cols, function(year){
 
 #loop over canton numbers
@@ -368,16 +354,7 @@ return(muni_percs)
 pop_percentages$BFS_NUM <- raw_mun_popdata$BFS_NUM
 pop_percentages$KANTONSNUM <- raw_mun_popdata$KANTONSNUM
 
-#check that muni pop percentages equate to 100%
-pop_percentages_validation <- do.call(cbind, lapply(date_cols, function(x){
-pop_sum <- pop_percentages %>%
-  group_by(KANTONSNUM) %>%
-  summarise(across(c(paste0("Perc_", x)), sum))
-pop_sum$KANTONSNUM <- NULL
-return(pop_sum)
-}))
-
-### X.3- Calculate % urban area per municipality
+### B.3- Calculate % urban area per municipality
 
 #Load the most recent LULC map
 current_LULC <- raster("Data/Historic_LULC/LULC_2018_agg.gri")
@@ -393,8 +370,8 @@ Canton_urban_areas$Canton_num <- Canton_shp$KANTONSNUM
 
 #combine areas for cantons with multiple polygons
 Canton_urban_areas <- Canton_urban_areas %>%
-  group_by(Canton_num) %>%
-  summarise(across(c(layer), sum))
+  dplyr::group_by(Canton_num) %>%
+  dplyr::summarise(across(c(layer), sum))
 
 #load the municipality shape file
 Muni_shp <- shapefile("Data/Preds/Raw/CH_geoms/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.shp")
@@ -426,7 +403,7 @@ Muni_urban_areas$Perc_urban[muni] <- (Muni_urban_areas[muni, "layer"]/Kan_urban_
   } #close inner loop
 } #close outer loop
 
-### X.4- Model relationship between cantonal % population and % urban area
+### B.4- Model relationship between cantonal % population and % urban area
 
 #subset pop percentages to 2018
 Muni_percs <- pop_percentages[, c("BFS_NUM", "KANTONSNUM", "Perc_2018")]
@@ -453,7 +430,7 @@ names(Canton_models) <- unique(Muni_percs$KANTONSNUM)
 #save models
 saveRDS(Canton_models, "Data/Preds/Tools/Dynamic_pop_models.rds")
 
-### X.5- Prepare Cantonal projections of population development
+### B.5- Prepare Cantonal projections of population development
 
 raw_data_path <- "Data/Preds/Raw/Socio_economic/Population/raw_pop_projections.xlsx"
 
@@ -467,13 +444,13 @@ Sheet_names <- getSheetNames(raw_data_path)
 names(Sheet_names) <- c("Ref", "High", "Low")
 
 #Create a workbook to add the ckleaned data too
-pop_proj_wb <- createWorkbook()
+pop_proj_wb <- openxlsx::createWorkbook()
 
 #The population projection table does not contain the canton numbers and because
 #the Canton names are in German they cannot be matched with the shapefile
 #to get the numbers (e.g Wallis - Valais etc.) instead load a different FSO
 #table to get the numbers
-Canton_lookup <- read.xlsx("https://www.atlas.bfs.admin.ch/core/projects/13.40/xshared/xlsx/134_131.xlsx", rows = c(4:31), cols = c(2,3))
+Canton_lookup <- openxlsx::read.xlsx("https://www.atlas.bfs.admin.ch/core/projects/13.40/xshared/xlsx/134_131.xlsx", rows = c(4:31), cols = c(2,3))
 Canton_lookup$Canton_num <- seq(1:nrow(Canton_lookup))
 
 #loop over time steps adding sheets and adding the predictors to them
@@ -483,7 +460,7 @@ org_sheet_name <- Sheet_names[i]
 new_sheet_name <- names(Sheet_names)[i]
 
 #load correct sheet of raw data
-tempdf <- read.xlsx(raw_data_path, sheet = org_sheet_name, startRow = 2)
+tempdf <- openxlsx::read.xlsx(raw_data_path, sheet = org_sheet_name, startRow = 2)
 colnames(tempdf)[1] = "Canton_name" #rename first column
 tempdf <- tempdf[tempdf$Canton_name != "Schweiz",] # remove the total for switzerland
 tempdf <- tempdf[complete.cases(tempdf),] #remove incomplete or empty rows
@@ -508,91 +485,147 @@ openxlsx::saveWorkbook(pop_proj_wb, "Data/Preds/Tools/Population_projections.xls
 ### C- future climatic data
 ### =========================================================================
 
-#
+#The climatic data for the future time points has been download in the script:
+# "Calibration_predictor_prep" it's native resolution is 25m so it needs to be
+#rescaled to 100m
 
+#list the files of the raw climatic variables
+Clim_var_paths <- list.files("Data/Preds/Raw/Climatic/Future", recursive = TRUE, full.names = TRUE)
 
+#loop over then re-scaled and saving layers
+Prep_clim_vars_paths <-lapply(Clim_var_paths, function(x){
 
-##TEMPORARILY PERFORMING THIS PROCESS FOR BAU USING AGGREGATED CLIMATIC DATA
-## ADAPT WHEN FUTURE DATA IS PRODUCED AT 5 YEAR INTERVALS
+  #alter file base name to match covariate ID from calibration period
+  file_name <- str_replace_all(basename(x), c(Tave="Average_Avg_ann_temp",
+                                              Prec= "Average_Avg_precip",
+                                              "0_degrees" = "Average_Sum_gdays_0deg",
+                                              "3_degrees" = "Average_Sum_gdays_3deg",
+                                              "5_degrees" = "Average_Sum_gdays_5deg"))
 
-#upscale climatic data to 100m
-#list the files of the raw climatic variables, pattern match on rcp45 because this is all that is need for BAU
-Clim_var_paths <- list.files("E:/LULCC_CH/Data/Preds/Raw/Climatic/Future", recursive = TRUE, full.names = TRUE, pattern = "rcp45", ignore.case = TRUE)
+  #vector save path
+  layer_path <-paste0(Prepared_layers_dir, "/Climatic/", file_name)
 
-Clim_var_names <- c("bio1", "bio12", "gdd0", "gdd3", "gdd5")
-names(Clim_var_names) <- Predictor_table[Predictor_table$Predictor_category == "Climatic", "Covariate_ID"][2:6]
+  #load data
+  Raw_dat <- raster(x)
 
-#subset to the required variables
-Clim_var_paths <- grep(paste0("\\b(", paste(Clim_var_names, collapse="|"), ")\\b"), Clim_var_paths, value = TRUE)
-names(Clim_var_paths) <- str_remove_all(str_remove_all(str_replace_all(Clim_var_paths, "Raw", "Prepared/Layers"), ".rData"), ".rds")
-print(Clim_var_paths)
+  #aggregate
+  Agg_dat <- aggregate(Raw_dat, fact=4, fun=mean)
 
-#NOTE THIS IS NOT WORKING FOR THE GDDX VARIABLES
-#(BECAUSE THE RASTER HAS NO crs AND APPLYING ONE AND THEN PROJECTING
-#GIVES A RASTER OF ALL NAs) SO INSTEAD i MANUALLY MOVED THE OLD GDDX LAYERS
-#TO THE NEW FILE LOCATIONS
-#loop over the files and ensure they are all standarised to the 100m grid
-prepped_rasts <- mapply(function(file_path, save_path){
-
-  #read raster
-  if(grepl(".rData", file_path) == TRUE){
-  load(file_path)
-  crs(X) <- crs(Ref_grid) #necessary to set CRS
-  #extent(X) <- extent(Ref_grid)
-  prepped_rast <- projectRaster(X, to = Ref_grid) #reproject
-
-  } else{
-    rast <- readRDS(file_path)
-    prepped_rast <- projectRaster(rast, to = Ref_grid)#reproject
-    }
   #save
-  dir.create(save_path, recursive = TRUE)
-  writeRaster(prepped_rast, file = paste0(save_path, ".tif"), overwrite=TRUE)
-  return(prepped_rast)
-  }, file_path = Clim_var_paths,
-  save_path = names(Clim_var_paths),
-  SIMPLIFY = FALSE)
+  writeRaster(Agg_dat, layer_path, overwrite=TRUE)
 
-#list files of aggregated climatic data
-Prep_clim_vars_paths <- list.files("Data/Preds/Prepared/Layers/Climatic/Future", recursive = TRUE, full.names = TRUE, pattern = ".tif")
+  return(layer_path)
+})
 
-#filter out tif.aux files and remove work dir
-Prep_clim_vars_paths <- str_remove_all(grep(Prep_clim_vars_paths, pattern='.aux', invert=TRUE, value=TRUE), wpath)
+#saveRDS(Prep_clim_vars_paths, "E:/LULCC_CH/Data/Preds/Tools/Prep_clim_vars_paths_temp.rds")
 
 ### =========================================================================
 ### D- Prepare a table of info for future predictors to be added to predictor lookup table
 ### =========================================================================
 
 #bind together vectors of file paths for future predictors that have been created
-Future_pred_paths <- c(unlist(Future_FTE_file_paths) ,Prep_clim_vars_paths)
+Future_pred_paths <- unlist(c(Future_FTE_file_paths, Prep_clim_vars_paths))
 
 #load the predictor table sheet for the most recent calibration period
 Predictor_table <- read.xlsx(Pred_table_path, sheetName = "2009_2018")
+
+#load the sheet of the scenario table for RCP designations
+Scenario_RCPs <- Scenario_data_table$Climate_RCP
+names(Scenario_RCPs) <- Scenario_data_table[,"Scenario_ID"]
 
 #filtering to static predictors
 Static_preds <- Predictor_table[Predictor_table$Static_or_dynamic == "static",]
 Static_preds$Scenario <- "All"
 
 #create DF for capturing info
-Dynamic_preds <- data.frame(matrix(ncol = length(colnames(Static_preds)), nrow=1))
+Dynamic_preds <- data.frame(matrix(ncol = length(colnames(Static_preds)), nrow=length(Future_pred_paths)))
 colnames(Dynamic_preds) <- colnames(Static_preds)
 
 #fill in column details
-Dynamic_preds[c(1:length(Prep_clim_vars_paths)), "File_name"] <- Prep_clim_vars_paths
-Dynamic_preds$Scenario <- "BAU"
+Dynamic_preds[,"Prepared_data_path"] <- Future_pred_paths
+Dynamic_preds$Predictor_category <- sapply(Dynamic_preds$Prepared_data_path, function(x) str_match(x, paste(c("Climatic", "Socio_economic"), collapse = "|")))  #instead grepl on the file path
 Dynamic_preds$Static_or_dynamic <- "Dynamic"
 Dynamic_preds$CA_category <- "Suitability"
-Dynamic_preds$Predictor_category <- "Climatic"
-Dynamic_preds$Original_resolution <- "25m"
-Dynamic_preds$numeric_or_categorical <- "num"
 Dynamic_preds$Prepared <- "Y"
 
-#loop over the named vector of climate variable names to match based on the file name
-Dynamic_preds$Covariate_ID <- sapply(Dynamic_preds$File_name, function(x){
-  var_name <- names(Clim_var_names[sapply(paste0("\\b(", Clim_var_names, ")\\b"), function(name) grepl(name, x))])
+
+Dynamic_preds$Scenario <- sapply(1:nrow(Dynamic_preds), function(i){
+
+  #use if/else statement based on predictor category
+  if(Dynamic_preds[i, "Predictor_category"] == "Climatic"){
+
+    #match on the RCP string in the file path and return the scenario name
+    #becuase multiple scenarios use the same RCP this will be a vector
+    Scenario_name <-names(Scenario_RCPs)[which(Scenario_RCPs == c(str_match(Dynamic_preds[i,"Prepared_data_path"], paste(c(Scenario_RCPs), collapse = "|"))))]
+
+    }else if(Dynamic_preds[i, "Predictor_category"] == "Socio_economic"){
+
+    #match on the scenario name
+    Scenario_name <- str_match(Dynamic_preds[i,"Prepared_data_path"], paste(c(names(Scenario_RCPs)), collapse = "|"))
+    }
+
+  return(Scenario_name)
+})
+
+Dynamic_preds$Original_resolution <- sapply(1:nrow(Dynamic_preds), function(i){
+
+  #use if/else statement based on predictor category
+  if(Dynamic_preds[i, "Predictor_category"] == "Climatic"){
+      res <- "25m"
+    }else if(Dynamic_preds[i, "Predictor_category"] == "Socio_economic"){
+      res <- "Labour market region"
+    }
+})
+
+Dynamic_preds$URL <- sapply(1:nrow(Dynamic_preds), function(i){
+  if(Dynamic_preds[i, "Predictor_category"] == "Climatic"){
+      "https://zenodo.org/record/7590103#.Y-KKIpDYqUk"
+    }else if(Dynamic_preds[i, "Predictor_category"] == "Socio_economic"){
+      "https://zenodo.org/record/4774914#.Y-KKQJDYqUn"
+    }
+})
+
+Dynamic_preds$Data_citation <- sapply(1:nrow(Dynamic_preds), function(i){
+  if(Dynamic_preds[i, "Predictor_category"] == "Climatic"){
+      "Broennimann (2023)"
+    }else if(Dynamic_preds[i, "Predictor_category"] == "Socio_economic"){
+      "Cretegny and Muller (2020)"
+    }
+})
+
+
+#match covariate IDs found in the predictor table to the file paths
+Dynamic_preds$Covariate_ID <- sapply(Dynamic_preds$Prepared_data_path, function(x){
+  var_name <- na.omit(c(str_match(x, regex(Predictor_table$Covariate_ID, ignore_case = T))))
   })
 
-Dynamic_preds$Temporal_coverage <- sapply(Dynamic_preds$File_name, function(x) str_split(x, "/")[[1]][[8]])
+Dynamic_preds$period <- sapply(1:nrow(Dynamic_preds), function(i){
+
+  #seperate file path
+  dat_path <- Dynamic_preds[i, "Prepared_data_path"]
+
+  #vector largest numeric value contained in file path
+  largest_year <- max(as.numeric(unlist(regmatches(dat_path, gregexpr("[[:digit:]]+", dat_path)))))
+
+  #use if/else statement based on predictor category
+  if(Dynamic_preds[i, "Predictor_category"] == "Climatic"){
+
+    #socio_economic variables are for the period after that contained in the path
+    Period <- paste0(largest_year, "_", (largest_year+Step_length))
+
+    }else if(Dynamic_preds[i, "Predictor_category"] == "Socio_economic"){
+
+    #socio_economic variables are for the period express in the path
+    Period <- paste0((largest_year-Step_length), "_", largest_year)
+
+    }
+  return(Period)
+})
+
+#This is not 100% accurate because the climatic layers actual
+#using only the four previous years instead of 5
+# but for the table it is not important
+Dynamic_preds$Temporal_coverage <- Dynamic_preds$period
 
 ### =========================================================================
 ### D- Add static/dynamic variable data to sheets  for future time points
@@ -600,12 +633,19 @@ Dynamic_preds$Temporal_coverage <- sapply(Dynamic_preds$File_name, function(x) s
 
 #loop over time steps binding static and dynamic preds
 Combined_vars_for_time_steps <- sapply(Time_steps, function(sim_year){
-  #subset dynamic variables by
-  Dynamic_preds <- Dynamic_preds[sapply(Dynamic_preds$Temporal_coverage, function(data_period){
-    dates <- as.numeric(str_split(data_period, "_")[[1]])
-    between(sim_year, dates[1], dates[2])
-  }),]
+
+  sim_period <- paste0(sim_year, "_", sim_year+Step_length)
+
+  #subset dynamic variables to the current time_period
+  # Dynamic_preds <- Dynamic_preds[sapply(Dynamic_preds$period, function(data_period){
+  #   dates <- as.numeric(str_split(data_period, "_")[[1]])
+  #   between(sim_year, dates[1], dates[2])
+  # }),]
+  Dynamic_preds <- Dynamic_preds[Dynamic_preds$period == sim_period,]
+
   Combined_vars <- rbind(Static_preds, Dynamic_preds)
+  Combined_vars$period <- sim_period
+  return(Combined_vars)
 }, simplify = FALSE)
 names(Combined_vars_for_time_steps) <- Time_steps
 
@@ -630,7 +670,7 @@ openxlsx::saveWorkbook(pred_workbook, Pred_table_path, overwrite = TRUE)
 #predictors being included in the stacks
 
 #vector scenario names
-Scenario_names <- c("BAU", "BIOPRO", "DIV", "SHAD", "FUTEI")
+Scenario_names <- Scenario_data_table$Scenario_ID
 
 #upper loop over time steps
 sapply(Time_steps, function(sim_year){
@@ -638,19 +678,32 @@ sapply(Time_steps, function(sim_year){
   #load corresponding sheet of predictor table
   pred_details <- openxlsx::read.xlsx(Pred_table_path, sheet = paste(sim_year))
 
+  #convert scenario column back to character vectors
+  pred_details$Scenario <- sapply(pred_details$Scenario, function(x) unlist(strsplit(x, ",")))
+
   #loop over scenario names
   sapply(Scenario_names, function(scenario){
 
-    #subset preds to scenario name and 'All' for static variables
-    pred_details <- pred_details[pred_details$Scenario == scenario | pred_details$Scenario == "All",]
+    #first seperate static variables scenario = "All""
+    preds_static <- pred_details[pred_details$Scenario == "All",]
+
+    #then those relevant for the scenario, necessary to do it this way
+    #because some rows contain multiple values for scenario
+    preds_scenario <- pred_details[sapply(pred_details$Scenario, function(x){scenario %in% x}),]
+
+    #bind static and scenario specific preds
+    preds_scenario <- rbind(preds_static, preds_scenario)
 
     #use file paths to stack
-    pred_stack <- raster::stack(pred_details$File_name)
+    pred_stack <- raster::stack(preds_scenario$Prepared_data_path)
 
     #name layers
-    names(pred_stack@layers) <- pred_details$Covariate_ID
+    names(pred_stack@layers) <- preds_scenario$Covariate_ID
 
     #save
-    saveRDS(pred_stack, file = paste0("Data/Preds/Prepared/Stacks/Simulation/SA_preds/SA_pred_stacks/SA_pred_", scenario, "_", sim_year, ".rds"))
+    saveRDS(pred_stack, file = paste0("Data/Preds/Prepared/Stacks/Simulation/SA_preds/SA_pred_", scenario, "_", sim_year, ".rds"))
     }) #close loop over scenarios
 }) #close loop over time steps
+
+#TO do copy over predictor stacks
+

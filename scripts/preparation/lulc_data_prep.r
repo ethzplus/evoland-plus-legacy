@@ -9,20 +9,23 @@
 ### A- Preparation
 ### =========================================================================
 
+# All packages are sourced in the master document, uncomment here
+#if running the script in isolation
 # Install packages if they are not already installed
-packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse", "testthat",
-         "sjmisc", "tictoc", "parallel", "terra", "pbapply", "rgdal",
-         "rgeos", "sf", "tiff")
-
-new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
-
-if(length(new.packs)) install.packages(new.packs)
-
-# Load required packages
-invisible(lapply(packs, require, character.only = TRUE))
-
-# Source custom functions
-invisible(sapply(list.files("Scripts/Functions",pattern = ".R", full.names = TRUE, recursive=TRUE), source))
+# packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse", "testthat",
+#          "sjmisc", "tictoc", "parallel", "terra", "pbapply", "rgdal",
+#          "rgeos", "sf", "tiff")
+#
+# new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
+#
+# if(length(new.packs)) install.packages(new.packs)
+#
+# # Load required packages
+# invisible(lapply(packs, require, character.only = TRUE))
+#
+# # Source custom functions
+# invisible(sapply(list.files("Scripts/Functions",pattern = ".R",
+# full.names = TRUE, recursive=TRUE), source))
 
 #Load in the grid file we are using for spatial extent and CRS
 Ref_grid <- raster("Data/Ref_grid.gri")
@@ -46,6 +49,7 @@ NOAS04_2009 = AS_table[,c("E", "N", "AS09R_72")],
 NOAS04_2018 = AS_table[,c("E", "N", "AS18_72")])
 
 rm(AS_table)
+
 #Create raster for each period
 
 #instantiate small function for raster creation
@@ -84,13 +88,13 @@ NOAS04_periods_rasters <- mapply(create.reproject.save.raster,
 ### Preparing numerical Rasters ###
 
 #3 possible approaches to re-classifying rasters:
-#1. Using a 3 column (From, to, value) matrix
-#2. Using a 2 col (initial value, new value) matrix
-#3. using seperately specificed vectors of categories and breaks.
+#Method 1. Using a 3 column (From, to, value) matrix
+#Method 2. Using a 2 col (initial value, new value) matrix
+#Method 3. using seperately specificed vectors of categories and breaks.
 
 #1 or 2 are preferable because they can be performed directly on rasters themselves whereas 3 is a tabular operation.
 
-#1. 3 col matrix based re-classification
+#Method 1. 3 col matrix based re-classification
 # create classification matrix
 reclass_num <- c(0, 14, 10,
                  14, 18, 11,
@@ -140,12 +144,12 @@ mapply(FUN = writeRaster,
        x = Reclassified_rasters_3col_rat,
        filename =  paste0("Data/Historic_LULC/", names(Reclassified_rasters_3col) , ".grd"),datatype='INT2U', overwrite=T)
 
-#2. 2 col matrix based re-classification
+#Method 2. 2 col matrix based re-classification
 #Aggregation_scheme <- read.csv("Data/LULC/Dry_run_agg_scheme.csv")
 #Reclassified_rasters_2col <- lapply(NOAS04_periods_rasters, function(x) reclassify(x, Aggregation_scheme))
 #names(Reclassified_rasters_2col) <- c("LULC_1985_agg", "LULC_1997_agg", "LULC_2009_agg", "LULC_2018_agg")
 
-#3. approach using categories and breaks
+#Method 3. approach using categories and breaks
 #Here the categories object links each aggregated LULC class to the fine scale classes through the
 #breaks contained in the cut function below i.e. the first break denoted by the comma selects the NOAS04 classes 1 and 2
 #and turns them into the aggregated category 10 which according to my aggregated classes is: Settlement/Urban/Amenities.

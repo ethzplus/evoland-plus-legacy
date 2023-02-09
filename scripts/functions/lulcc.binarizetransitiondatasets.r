@@ -8,7 +8,6 @@
 #' @author Ben Black
 #' @export
 
-#Here is my function alternative to do this task:
 lulcc.binarizetransitiondatasets <- function(data_set_for_splitting, viable_trans_list){
 
 #convert DF to data.table
@@ -23,7 +22,7 @@ data_set_for_splitting_subset <- data_set_for_splitting[!"Static"]
 #add a numeric ID for recombining later
 data_set_for_splitting_subset$Num_ID <- seq.int(nrow(data_set_for_splitting_subset))
 
-#strip unnecssary columns
+#strip unnecessary columns
 LULC_cols <- c('Num_ID', 'Initial_class_lulc_name', 'Final_class_lulc_name')
 Trans_rel_cols <- data_set_for_splitting_subset[, .SD, .SDcols = LULC_cols]
 
@@ -43,7 +42,7 @@ for(row in 1:nrow(viable_trans_list)){
   Trans_DF <- data.frame(apply(Trans_rel_cols, 1, function(x) ifelse(x["Initial_class_lulc_name"] == f & x["Final_class_lulc_name"] == t,
                                                                      1, ifelse(x["Initial_class_lulc_name"] == f & x["Final_class_lulc_name"] !=t,
                                                                                0, NA))))
-  colnames(Trans_DF) <- Trans_ID #make the column in the dataframe named the same as Trans_ID
+  colnames(Trans_DF) <- Trans_ID #make the column in the dataframe name the same as Trans_ID
   Trans_cols_list[[Trans_ID]] <- Trans_DF
 
 } #close inner loop
@@ -65,15 +64,15 @@ rm(data_set_for_splitting_recombine)
 #create a vector of transition IDs that matches the transition column names in the data
 Trans_ID_vector <- as.vector(viable_trans_list$Trans_name)
 
- #subset the data.table by all the columns apart from those related to the transistions
- Info_cols <- Data_unique_cols[, .SD, .SDcols = !patterns(paste(Trans_ID_vector, collapse="|"))]
+#subset the data.table by all the columns apart from those related to the transitions
+Info_cols <- Data_unique_cols[, .SD, .SDcols = !patterns(paste(Trans_ID_vector, collapse="|"))]
 
- #subset only the columns that are related to the transitions because the number of these varies for each table it is best to use the negative invocation
- Trans_cols <- Data_unique_cols[, .SD, .SDcols = patterns(paste(Trans_ID_vector, collapse="|"))]
+#subset only the columns that are related to the transitions because the number of these varies for each table it is best to use the negative invocation
+Trans_cols <- Data_unique_cols[, .SD, .SDcols = patterns(paste(Trans_ID_vector, collapse="|"))]
 
- Trans_cols_list <- split.default(Trans_cols, names(Trans_cols)) #Split transitions cols into a list of dataframes one for each column.
+Trans_cols_list <- split.default(Trans_cols, names(Trans_cols)) #Split transitions cols into a list of dataframes one for each column.
 
- Trans_dataframes_seperated <- sapply(Trans_cols_list, function(y) {
+Trans_dataframes_seperated <- sapply(Trans_cols_list, function(y) {
    combined_data <- na.omit(cbind(Info_cols, y))
    }, simplify=F) #bind each individual column with the info cols and then return the results as a list
 

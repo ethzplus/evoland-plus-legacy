@@ -5,26 +5,29 @@
 #' @export
 
 lulcc.splitforcovselection <- function(trans_dataset, predictor_table){
+
 #Identify the last col of the dataset as the 'transition result; and rename appropriately.
-setnames(trans_dataset, ncol(trans_dataset), "trans_result")
+#setnames(trans_dataset, ncol(trans_dataset), "trans_result")
+names(trans_dataset)[ncol(trans_dataset)] <- "trans_result"
 
 #seperate the trans result column
-trans_result <- trans_dataset[, trans_result]
+trans_result <- trans_dataset[,"trans_result"]
 
 #Identify the covariate data
-cov_data <- trans_dataset[, .SD, .SDcols = predictor_table$Covariate_ID]
+cov_data <- trans_dataset[, c(predictor_table$Covariate_ID)]
 
 #remove cols which only have 1 unique value
 cov_data <- Filter(function(x)(length(unique(x))>2), cov_data)
 
 #group the non-cov dat
-non_cov_data <- trans_dataset[, .SD, .SDcols = -predictor_table$Covariate_ID]
+#non_cov_data <- trans_dataset[, .SD, .SDcols = -predictor_table$Covariate_ID]
+non_cov_data <- trans_dataset[, !(colnames(trans_dataset) %in% predictor_table$Covariate_ID)]
 
 #get the number of unique values in the trans_result col
 num_trans <- as.numeric(length(unique(trans_result)))
 
 #Measure of class imbalance
-imbalance_ratio <- sum(trans_result==min(trans_result))/sum(trans_result==max(trans_result)) #instances of minority class/majority class
+imbalance_ratio <- sum(trans_result == min(trans_result))/sum(trans_result == max(trans_result)) #instances of minority class/majority class
 
 #record dataset size
 num_units <- length(trans_result)

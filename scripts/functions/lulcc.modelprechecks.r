@@ -104,8 +104,6 @@ Scenario_transition_matrix_files <- unlist(lapply(Scenario_IDs, function(ID){
 #and evaluate if all are TRUE
 All_trans_matrixs_exist <- sapply(Scenario_transition_matrix_files, function(x) file.exists(x))
 
-#If the test returns false throw an error message that stops the script
-#initialising Dinamica
 if (all(All_trans_matrixs_exist) == FALSE) {
 Model_pre_checks <- list.append(Model_pre_checks,
                                 list(Message ="Transition tables are missing,
@@ -437,7 +435,7 @@ Simulation_pred_stacks_exist <- sapply(Scenario_IDs, function(Scenario_ID){
 
   #inner loop over time steps
   Time_step_paths <- sapply(Time_steps_subset, function(Time_step){
-  paste0("Data/Preds/Prepared/Stacks/Simulation/SA_preds/SA_pred_stacks/SA_pred_", Scenario_ID, "_", Time_step, ".rds")})
+  paste0("Data/Preds/Prepared/Stacks/Simulation/SA_preds/SA_pred_", Scenario_ID, "_", Time_step, ".rds")})
 
   Paths_exist <- sapply(Time_step_paths, function(x) file.exists(x))
   })

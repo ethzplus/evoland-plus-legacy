@@ -12,15 +12,20 @@
 
 lulcc.downloadunzip <- function(url, save_dir){
 
-#create dir
-dir.create(save_dir, recursive = TRUE)
+  #create dir
+  dir.create(save_dir, recursive = TRUE)
 
-#create temporary directory
-tmpdir <- tempdir()
+  #get file base name
+  file <- basename(i)
 
-#download folder from url
-file <- basename(url)
-download.file(url, paste0(tmpdir, "/", file), mode = "wb")
-unzip(paste0(tmpdir, "/", file), exdir = save_dir)
-unlink(tmpdir)
+  #if file is zipped then create temp dir and extract
+  if(grepl(".zip", i)== TRUE){
+    tmpdir <- tempdir()
+    download.file(i, paste0(tmpdir, "/", file))
+    unzip(paste0(tmpdir, "/", file), exdir = save_dir) #unzip folder, saving to new dir
+    unlink(tmpdir) #remove temp dir
+  }else{ #non-zipped just download
+    download.file(i, paste0(save_dir, "/", file), mode = "wb")
+    }
+
 }

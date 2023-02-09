@@ -10,21 +10,23 @@
 ### A- Preparation
 ### =========================================================================
 
+# All packages are sourced in the master document, uncomment here
+#if running the script in isolation
 # Install packages if they are not already installed
-packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse", "testthat",
-         "sjmisc", "tictoc", "parallel", "terra", "pbapply", "rgdal", "rgeos",
-         "sf", "tiff", "bfsMaps", "rjstat", "future.apply", "future", "stringr",
-         "stringi" ,"readxl","rlist", "rstatix", "openxlsx", "pxR", "zen4R", "rvest")
+# packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse", "testthat",
+#          "sjmisc", "tictoc", "parallel", "terra", "pbapply", "rgdal", "rgeos",
+#          "sf", "tiff", "bfsMaps", "rjstat", "future.apply", "future", "stringr",
+#          "stringi" ,"readxl","rlist", "rstatix", "openxlsx", "pxR", "zen4R", "rvest")
 
-new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
-
-if(length(new.packs)) install.packages(new.packs)
-
-# Load required packages
-invisible(lapply(packs, require, character.only = TRUE))
+# new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
+#
+# if(length(new.packs)) install.packages(new.packs)
+#
+# # Load required packages
+# invisible(lapply(packs, require, character.only = TRUE))
 
 # Source custom functions
-invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TRUE, recursive = TRUE), source))
+#invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TRUE, recursive = TRUE), source))
 
 #Load in the grid to use use for re-projecting the CRS and extent of predictor data
 Ref_grid <- raster("Data/Ref_grid.gri")
@@ -136,7 +138,7 @@ Pred_table_path <- "Tools/Predictor_table.xlsx"
 sheets <- excel_sheets(Pred_table_path)
 
 #load all sheets as a list
-Pred_tables <- lapply(sheets, function(x) read.xlsx(Pred_table_path, sheet = x))
+Pred_tables <- lapply(sheets, function(x) openxlsx::read.xlsx(Pred_table_path, sheet = x))
 names(Pred_tables) <- sheets
 
 #combine tables for all periods
@@ -279,7 +281,7 @@ names(Statent_paths) <- sapply(Statent_paths, function(x){str_match(pattern = pa
 #Get the variable IDs for the number of Full Time Equivalents in each sector
 #webpage for variable list: https://www.bfs.admin.ch/bfs/de/home/dienstleistungen/geostat/geodaten-bundesstatistik/arbeitsstaetten-beschaeftigung/statistik-unternehmensstruktur-statent-ab-2011.assetdetail.23264982.html
 #download file from API URL
-Statent_metadata <- read.xlsx("https://dam-api.bfs.admin.ch/hub/api/dam/assets/23264982/master", startRow = 9, cols = c(1,3))
+Statent_metadata <- openxlsx::read.xlsx("https://dam-api.bfs.admin.ch/hub/api/dam/assets/23264982/master", startRow = 9, cols = c(1,3))
 colnames(Statent_metadata) <- c("ID", "Name")
 
 #subset using German variable names
@@ -320,7 +322,7 @@ coordinates(Statent_merged) <- ~E_KOORD+N_KOORD
 gridded(Statent_merged) <- TRUE
 crs(Statent_merged) <- crs(Ref_grid)
 Statent_brick <- brick(Statent_merged)
-Statent_brick <- resample(Statent_brick, Ref_grid, method = 'ngb') # reproject to match extent
+Statent_brick <- raster::resample(Statent_brick, Ref_grid, method = 'ngb') # reproject to match extent
 
 ### Business census data
 Biz_census_urls <- named_urls[1:3]
@@ -397,7 +399,7 @@ gridded(BC_merged) <- TRUE
 crs(BC_merged) <- crs(Ref_grid)
 BC_brick <- brick(BC_merged)
 extent(BC_brick) <- extent(Ref_grid)
-BC_brick <- resample(BC_brick, Ref_grid)
+BC_brick <- raster::resample(BC_brick, Ref_grid)
 
 #Combine the two bricks together
 Data_stack <- stack(Statent_brick, BC_brick)
@@ -604,9 +606,6 @@ raw_mun_popdata$Name_Municipality <- gsub("[[:digit:]]", "", raw_mun_popdata$Nam
 # subset to only municipalities existing in 2021
 raw_mun_popdata <- raw_mun_popdata[raw_mun_popdata$`2021`> 0,]
 
-#save a copy raw_mun_popdata for preparation of future population layers
-saveRDS(raw_mun_popdata, "Data/Preds/Raw/Socio_economic/Population/raw_muni_pop_historic.rds")
-
 # import municipality shape file
 lulcc.downloadunzip(url = "https://data.geo.admin.ch/ch.swisstopo.swissboundaries3d/swissboundaries3d_2021-07/swissboundaries3d_2021-07_2056_5728.shp.zip",
                     save_dir = "Data/Preds/Raw/CH_geoms")
@@ -615,9 +614,6 @@ Muni_shp <- shapefile("Data/Preds/Raw/CH_geoms/SHAPEFILE_LV95_LN02/swissBOUNDARI
 
 #filter out non-swiss municipalities
 Muni_shp <- Muni_shp[Muni_shp@data$ICC == "CH" & Muni_shp@data$OBJEKTART == "Gemeindegebiet", ]
-
-#create a municpality raster to be used in other data preparation
-
 
 #Import data of municipality mutations from FSO web service using conditions:
 #1. Muations between 01/01/1981 and 01/05/2022
@@ -678,6 +674,10 @@ raw_mun_popdata <- Muni_pop_final
 raw_mun_popdata$KANTONSNUM <- sapply(raw_mun_popdata$BFS_NUM, function(x){
 unique(Muni_shp@data[Muni_shp@data$BFS_NUMMER == x, "KANTONSNUM"])
 })
+
+#save a copy raw_mun_popdata for preparation of future population layers
+saveRDS(raw_mun_popdata, "Data/Preds/Raw/Socio_economic/Population/raw_muni_pop_historic.rds")
+
 
 ### Create historic municipality population rasters
 

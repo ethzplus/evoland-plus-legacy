@@ -121,7 +121,7 @@ SA_pred_stack <- readRDS(list.files("Data/Preds/Prepared/Stacks/Calibration", pa
 if (grepl("simulation", Model_mode, ignore.case = TRUE)){
 
 #get file path by matching on scenario ID and time step
-SA_pred_stack <- readRDS(list.files("Data/Preds/Prepared/Stacks/Simulation/SA_preds/SA_pred_stacks", pattern = paste0(Scenario_ID, "_", Simulation_time_step),  full.names = TRUE))
+SA_pred_stack <- readRDS(list.files("Data/Preds/Prepared/Stacks/Simulation/SA_preds", pattern = paste0(Scenario_ID, "_", Simulation_time_step),  full.names = TRUE))
 } #close simulation if statement
 
 ### =========================================================================
@@ -310,7 +310,8 @@ names(Trans_data_stack) <- c(names(LULC_data), names(SA_pred_stack@layers))
 } #close if statement calibration
 
 #For simulation mode
-#only stack the Nhood_rasters here because otherwise they were not including in the upper stack function
+#only stack the Nhood_rasters here because otherwise they were not included
+#in the upper stack function
 if (grepl("simulation", Model_mode, ignore.case = TRUE)){
 
 #load the raster of Bioregions

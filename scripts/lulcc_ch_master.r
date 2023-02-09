@@ -19,7 +19,7 @@
 
 #SDMtools is depreciated and needs to be installed from source
 #packageurl <- "https://cran.r-project.org/src/contrib/Archive/SDMTools/SDMTools_1.1-221.2.tar.gz"
-install.packages(packageurl, repos=NULL, type="source")
+#install.packages(packageurl, repos=NULL, type="source")
 
 #vector other required packages
 packs<-c("data.table", "raster", "tidyverse", "SDMTools", "doParallel",

@@ -59,8 +59,12 @@ Pred_table_path <- "Tools/Predictor_table.xlsx"
 ### Perform feature selection
 ### =========================================================================
 
+#FOR TESTING DELETE AFTER
+Dataset_details <-Datasets_for_FS[[1]]
+
+
 #wrapper function to run feature selection over multiple scales and datasets
-lulcc.featureselection <- function(Dataset_details){
+lulcc.featureselection <- function(Dataset_details){}
 
 ### =========================================================================
 ### A- Load data
@@ -70,20 +74,18 @@ Dataset_scale <- Dataset_details$model_scale
 
 # Load the predictor data table that will be used to identify the categories of covariates
 #and perform collinearity testing seperately
-Predictor_table <- read.xlsx(Pred_table_path, sheet = Data_period_name)
+Predictor_table <- openxlsx::read.xlsx(Pred_table_path, sheet = Data_period_name)
 
-file_match_regex <- glob2rx(paste0(Data_period_name, "*", Dataset_scale))
+#file_match_regex <- glob2rx(paste0(Data_period_name, "*", Dataset_scale))
 
-#load in the data for the period specified
-Datasets_for_period <- readRDS(list.files(Pre_FS_folder, pattern = file_match_regex, full.names = TRUE))
-
-cat(paste0(' Transition datasets loaded \n'))
+#vector file paths for the data for the period specified
+Data_paths <- list.files(paste0(Pre_FS_folder, "/", Dataset_details$Data_period_name), pattern = Dataset_details$model_scale, full.names = TRUE)
 
 ### =========================================================================
 ### B- Stage 1: Collinearity based feature selection
 ### =========================================================================
 
-collin_selection_results <- lapply(Datasets_for_period, function(z) {
+collin_selection_results <- Future_lapply(Data_paths, function(z) {
     lulcc.filtersel(
       transition_result = z[["trans_result"]],
       cov_data = z[["cov_data"]],
@@ -101,7 +103,7 @@ Save_path_collinearity <- paste0(collinearity_folder_path, "/", Data_period_name
 
 cat(paste0(' Collinearity based covariate selection complete \n'))
 
-rm(Datasets_for_period)
+rm(Data_paths)
 
 ### =========================================================================
 ### C- Stage 2: GRRF Embedded feature selection
@@ -150,10 +152,10 @@ cat(paste0(' Results of covariate selection combined and saved \n'))
 ### =========================================================================
 
 #Reload full datasets
-Datasets_for_period <- readRDS(list.files(Pre_FS_folder, pattern = file_match_regex, full.names = TRUE))
+Data_paths <- readRDS(list.files(Pre_FS_folder, pattern = file_match_regex, full.names = TRUE))
 
 # merge them
-Datasets_filtering_results_combined <- list.merge(Datasets_for_period, GRRF_selection_results)
+Datasets_filtering_results_combined <- list.merge(Data_paths, GRRF_selection_results)
 
 # Perform subsetting
 Filtered_covariates_final <- lapply(Datasets_filtering_results_combined, function(x) {

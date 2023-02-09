@@ -17,29 +17,24 @@
 ### A- Preparation
 ### =========================================================================
 
-lulcc.nhoodprep <- function(){
-
-# Set working directory
-wpath <- "E:/LULCC_CH"
-setwd(wpath)
-
+# All packages are sourced in the master document, uncomment here
 # Install packages if they are not already installed
-packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse",
-         "testthat","sjmisc", "tictoc", "parallel", "terra",
-         "pbapply", "readr", "readxl", "openxlsx", "viridis")
-
-new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
-
-if(length(new.packs)) install.packages(new.packs)
-
-# Load required packages
-invisible(lapply(packs, require, character.only = TRUE))
+# packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse",
+#          "testthat","sjmisc", "tictoc", "parallel", "terra",
+#          "pbapply", "readr", "readxl", "openxlsx", "viridis")
+#
+# new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
+#
+# if(length(new.packs)) install.packages(new.packs)
+#
+# # Load required packages
+# invisible(lapply(packs, require, character.only = TRUE))
 
 # Source custom functions
-invisible(sapply(list.files("Scripts/Functions",
-                            pattern = ".R",
-                            full.names = TRUE,
-                            recursive=TRUE), source))
+# invisible(sapply(list.files("Scripts/Functions",
+#                             pattern = ".R",
+#                             full.names = TRUE,
+#                             recursive=TRUE), source))
 
 #Historic LULC data folder path
 LULC_folder <- "Data/Historic_LULC"
@@ -279,5 +274,3 @@ openxlsx::saveWorkbook(Pred_table_update, Pred_table_path, overwrite = TRUE)
 # ggsave(plot = Decay_plot, filename = "E:/Dry_run/Results/Figures/publication_specific/nhood_decay_curves", device='tiff', dpi=300, width = 15, height = 9, units = "cm")
 
 cat(paste0(' Preparation of Neighbourhood predictor layers complete \n'))
-}
-lulcc.nhoodprep()

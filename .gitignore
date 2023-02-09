@@ -1,0 +1,17 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+#specific folders to ignore
+/Data
+/Model/guidebook_dinamica_5
+/Model/Useful_submodels
+/Model/Dinamica_models/Model_backup
+/Model/Dinamica_models/Model_testing
+/Model/SetupDinamicaEGO-720.exe
+/Results
+/PopulationModel_ValPar
+/Scenario_trans_rates
+/publication/test/nul
+/publication/LULCC_CH_ms_temp/nul
