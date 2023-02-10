@@ -3,10 +3,9 @@
 ### 2 stage covariate selection procedure
 ### =========================================================================
 #'
-#'
-#' @param All_cov_names list of unique covariate names
+#' @param All_pred_names list of unique covariate names
 #'   produced by function lulcc.evalfeatureselection
-#' @param cov_selection_results list object containing results of
+#' @param Filtered_predictors list object containing results of
 #'   covariate selection produced by function lulcc.evalfeatureselection
 #' @param summary_level Characters describing aspect of transition
 #'   datasets to summarize by accepts:
@@ -16,7 +15,7 @@
 #' @export
 
 
-lulcc.analysecovselection <- function(All_cov_names, cov_selection_results, summary_level) {
+lulcc.analysecovselection <- function(All_pred_names, Filtered_predictors, summary_level) {
 
 #Instantiate small functions
 
@@ -38,10 +37,10 @@ getmode <- function(v) {
 if(summary_level=="across_trans"){
 #create vector of all covariates selected by each selection process
 # collinearity based selection
-All_collinearity_selected_covs <- unlist(lapply(cov_selection_results, function(x) x[["collinearity_filtered_covs"]]))
+All_collinearity_selected_covs <- unlist(lapply(Filtered_predictors, function(x) x[["collinearity_preds"]]))
 
 #Embedded GRRF selection
-All_embedded_selected_covs <- unlist(lapply(cov_selection_results, function(x) x[["GRRF_embedded_selected_covs"]]))
+All_embedded_selected_covs <- unlist(lapply(Filtered_predictors, function(x) x[["GRRF_preds"]]))
 
 #Result 1: How many of the full selection of covariates remain after each stage of selection?
 #for this we need to reduce the full vectors of covariates to just the unique values they contain
@@ -58,28 +57,28 @@ Embedded_selected_variable_occurence <- data.frame(table(All_embedded_selected_c
 #Result 3: Measures of central tendency for number of covariates per transition at each stage of filtering
 
 #First count the number of covariates selected under each process for each transition
-Number_of_Covariates_selected_both <- lapply(cov_selection_results, function(x) {
-    collinearity_selected_covs <- length(x[["collinearity_filtered_covs"]])
-  GRRF_embedded_selected_covs <- length(x[["GRRF_embedded_selected_covs"]])
-  output <- list(collinearity_selected_covs, GRRF_embedded_selected_covs)
-  names(output) <- c("collinearity_selected_covs", "GRRF_embedded_selected_covs")
+Number_of_Covariates_selected_both <- lapply(Filtered_predictors, function(x) {
+    collinearity_selected_covs <- length(x[["collinearity_preds"]])
+  GRRF_preds <- length(x[["GRRF_preds"]])
+  output <- list(collinearity_selected_covs, GRRF_preds)
+  names(output) <- c("collinearity_selected_covs", "GRRF_preds")
   return(output)
 })
 
 
 MOCT_collinearity_selection <- MOCT(unlist(lapply(Number_of_Covariates_selected_both, function(x) x[["collinearity_selected_covs"]])))
-MOCT_embedded_selection <- MOCT(unlist(lapply(Number_of_Covariates_selected_both, function(x) x[["GRRF_embedded_selected_covs"]])))
+MOCT_embedded_selection <- MOCT(unlist(lapply(Number_of_Covariates_selected_both, function(x) x[["GRRF_preds"]])))
 
 #create dot plots of differences in covariate numbers across transitions
 
 #bind together unique covs by transitions with results of feature selection
 #get number of covariates
-Pre_FS_cov_nums <- rbindlist(lapply(All_cov_names, as.data.frame(length)), id = "Transition")
+Pre_FS_cov_nums <- rbindlist(lapply(All_pred_names, as.data.frame(length)), id = "Transition")
 names(Pre_FS_cov_nums) <- c("Transition", "Pre_FS")
 
-Post_FS_cov_nums <- rbindlist(lapply(cov_selection_results, function(x){
-collinearity <- length(x[["collinearity_filtered_covs"]])
-embedded <- length(x[["GRRF_embedded_selected_covs"]])
+Post_FS_cov_nums <- rbindlist(lapply(Filtered_predictors, function(x){
+collinearity <- length(x[["collinearity_preds"]])
+embedded <- length(x[["GRRF_preds"]])
 output <- as.data.frame(cbind(collinearity, embedded))
 }), use.names = TRUE, idcol = "Transition")
 
@@ -185,12 +184,12 @@ return(Output)
 if(summary_level=="Bioregion"){
 
 #nest data to bioregion
-Bioregion_Covariate_selection_variable_names_both <- lulcc.listbybioregion(cov_selection_results)
+Bioregion_Covariate_selection_variable_names_both <- lulcc.listbybioregion(Filtered_predictors)
 
 #Get vectors of all covariates under each selection process in each Bioregion
 All_covariates_by_Bioregion <- lapply(Bioregion_Covariate_selection_variable_names_both, function(x) {
-  list(Collinearity_selected_covs = unlist(lapply(x, function(y) y[["collinearity_filtered_covs"]])),
-  Embedded_selected_covs =unlist(lapply(x, function(y) y[["GRRF_embedded_selected_covs"]]))
+  list(Collinearity_selected_covs = unlist(lapply(x, function(y) y[["collinearity_preds"]])),
+  Embedded_selected_covs =unlist(lapply(x, function(y) y[["GRRF_preds"]]))
     )
 })
 
@@ -215,13 +214,13 @@ return(Output)
 
 #First count the number of covariates selected under each process for each transition
 Number_of_Covariates_selected_by_Bioregion <- lapply(Bioregion_Covariate_selection_variable_names_both, function(x) lapply(x, function(y) {
-    list(Num_collinearity_selected_covs = length(y[["collinearity_filtered_covs"]]),
-  Num_GRRF_embedded_selected_covs = length(y[["GRRF_embedded_selected_covs"]]))
+    list(Num_collinearity_selected_covs = length(y[["collinearity_preds"]]),
+  Num_GRRF_preds = length(y[["GRRF_preds"]]))
 }))
 
 MOCT_results <- lapply(Number_of_Covariates_selected_by_Bioregion, function(x) {
 list(MOCT_collinearity_selection = MOCT(unlist(lapply(x, function(y) y[["Num_collinearity_selected_covs"]]))),
-MOCT_embedded_selection = MOCT(unlist(lapply(x, function(z) z[["Num_GRRF_embedded_selected_covs"]])))
+MOCT_embedded_selection = MOCT(unlist(lapply(x, function(z) z[["Num_GRRF_preds"]])))
 )
 })
 
@@ -234,12 +233,12 @@ return(list.merge(cov_selection_Bioregion_results, MOCT_results))
 if(summary_level=="Initial_lulc"){
 
 #nest data to initial_lulc
-Covariate_selection_variable_names_both_LULC <- lulcc.listbylulc(cov_selection_results, initial_or_final = "Initial")
+Covariate_selection_variable_names_both_LULC <- lulcc.listbylulc(Filtered_predictors, initial_or_final = "Initial")
 
 #Get vectors of all covariates under each selection process grouped by initial lulc class
 All_covariates_by_LULC <- lapply(Covariate_selection_variable_names_both_LULC, function(x) {
-  list(Collinearity_selected_covs = unlist(lapply(x, function(y) y[["collinearity_filtered_covs"]])),
-  Embedded_selected_covs =unlist(lapply(x, function(y) y[["GRRF_embedded_selected_covs"]]))
+  list(Collinearity_selected_covs = unlist(lapply(x, function(y) y[["collinearity_preds"]])),
+  Embedded_selected_covs =unlist(lapply(x, function(y) y[["GRRF_preds"]]))
     )
 })
 
@@ -265,13 +264,13 @@ return(Output)
 
 #First count the number of covariates selected under each process for each transition
 Number_of_Covariates_selected_by_lulc <- lapply(Covariate_selection_variable_names_both_LULC, function(x) lapply(x, function(y) {
-    list(Num_collinearity_selected_covs = length(y[["collinearity_filtered_covs"]]),
-  Num_GRRF_embedded_selected_covs = length(y[["GRRF_embedded_selected_covs"]]))
+    list(Num_collinearity_selected_covs = length(y[["collinearity_preds"]]),
+  Num_GRRF_preds = length(y[["GRRF_preds"]]))
 }))
 
 MOCT_results <- lapply(Number_of_Covariates_selected_by_lulc, function(x) {
 list(MOCT_collinearity_selection = MOCT(unlist(lapply(x, function(y) y[["Num_collinearity_selected_covs"]]))),
-MOCT_embedded_selection = MOCT(unlist(lapply(x, function(z) z[["Num_GRRF_embedded_selected_covs"]])))
+MOCT_embedded_selection = MOCT(unlist(lapply(x, function(z) z[["Num_GRRF_preds"]])))
 )
 })
 
@@ -283,12 +282,12 @@ return(list.merge(cov_selection_lulc_results, MOCT_results))
 if(summary_level=="Final_lulc"){
 
 #nest data to initial_lulc
-Covariate_selection_variable_names_both_LULC <- lulcc.listbylulc(cov_selection_results, initial_or_final = "Final")
+Covariate_selection_variable_names_both_LULC <- lulcc.listbylulc(Filtered_predictors, initial_or_final = "Final")
 
 #Get vectors of all covariates under each selection process grouped by final lulc class
 All_covariates_by_LULC <- lapply(Covariate_selection_variable_names_both_LULC, function(x) {
-  list(Collinearity_selected_covs = unlist(lapply(x, function(y) y[["collinearity_filtered_covs"]])),
-  Embedded_selected_covs =unlist(lapply(x, function(y) y[["GRRF_embedded_selected_covs"]]))
+  list(Collinearity_selected_covs = unlist(lapply(x, function(y) y[["collinearity_preds"]])),
+  Embedded_selected_covs =unlist(lapply(x, function(y) y[["GRRF_preds"]]))
     )
 })
 
@@ -314,13 +313,13 @@ return(Output)
 
 #First count the number of covariates selected under each process for each transition
 Number_of_Covariates_selected_by_lulc <- lapply(Covariate_selection_variable_names_both_LULC, function(x) lapply(x, function(y) {
-    list(Num_collinearity_selected_covs = length(y[["collinearity_filtered_covs"]]),
-  Num_GRRF_embedded_selected_covs = length(y[["GRRF_embedded_selected_covs"]]))
+    list(Num_collinearity_selected_covs = length(y[["collinearity_preds"]]),
+  Num_GRRF_preds = length(y[["GRRF_preds"]]))
 }))
 
 MOCT_results <- lapply(Number_of_Covariates_selected_by_lulc, function(x) {
 list(MOCT_collinearity_selection = MOCT(unlist(lapply(x, function(y) y[["Num_collinearity_selected_covs"]]))),
-MOCT_embedded_selection = MOCT(unlist(lapply(x, function(z) z[["Num_GRRF_embedded_selected_covs"]])))
+MOCT_embedded_selection = MOCT(unlist(lapply(x, function(z) z[["Num_GRRF_preds"]])))
 )
 })
 
