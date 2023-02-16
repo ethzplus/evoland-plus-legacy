@@ -131,8 +131,8 @@ unlink(paste0(tmpdir, "/", files$filename))
 Prepped_layers_dir  <- "Data/Preds/Prepared/Layers"
 dir.create(Prepped_layers_dir, recursive = TRUE)
 
-#Predictor table file path
-Pred_table_path <- "Tools/Predictor_table.xlsx"
+#Predictor table file path (received from output_env only uncomment for testing)
+#Pred_table_path <- "Tools/Predictor_table.xlsx"
 
 #get names of sheets to loop over
 sheets <- excel_sheets(Pred_table_path)

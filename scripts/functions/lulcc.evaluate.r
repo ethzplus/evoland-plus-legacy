@@ -22,7 +22,13 @@
 #' @return an obejct of class 'wsl.evaluation'
 #' @author Philipp Brun (main) with edits by Antoine Adde and Ben Black
 #' @export
-lulcc.evaluate<-function(x,tester=data.frame(),thres=numeric(),crit="pp=op", prevalence_correction=FALSE, train_test){
+
+lulcc.evaluate <- function(x,
+                           tester=data.frame(),
+                           thres=numeric(),
+                           crit="pp=op",
+                           prevalence_correction=FALSE,
+                           train_test){
 
   ### ------------------------
   ### check thresholds

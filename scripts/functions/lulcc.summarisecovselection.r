@@ -204,7 +204,7 @@ lulcc.summarisecovselection <- function(nested_list_of_trans, split_by) {
         geom_bar(position = "stack", stat = "identity") +
         labs(fill = "Initial LULC class", x = "Covariates" , y = "Frequency across transition datasets", title = Plot_title) +
         theme(axis.text.x = element_text(size = 9,angle = 90)) +
-        scale_fill_uchicago()
+        scale_fill_brewer(palette = "Dark2")
     })
     names(Cov_occurence_plots) <- c("Cov_occurence_collinearity_selection_plot", "Cov_occurence_embedded_selection_plot")
 

@@ -90,7 +90,7 @@ lulcc.preps=function(env=parent.frame(),call){
 } else if (env$replicatetype=="splitsample"){
   for (i in 1:env$reps){
          dat$sid <- 1:nrow(dat) #add numeric ID
-     chc= dplyr::slice_sample(dplyr::group_by(dat, transitions_result), prop =  0.7, replace=FALSE)
+     chc = dplyr::slice_sample(dplyr::group_by(dat, transitions_result), prop =  0.7, replace= FALSE)
      obschoice[[i]] <-dat[chc$sid,]
      testing[[i]] <- dat[-chc$sid,]
      obschoice[[i]]$sid <- NULL

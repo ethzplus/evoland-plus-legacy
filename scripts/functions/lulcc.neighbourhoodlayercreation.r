@@ -109,8 +109,8 @@ All_focal_rasters <- mapply(function(active_class_raster, active_class_raster_na
 
  Matrices_for_lulc_class <- mapply(function(single_matrix, matrix_name){ #Inner loop: running the focal function using each matrix in the list
   Focal_layer <- focal(x=active_class_raster, w= single_matrix, na.rm=FALSE, pad=TRUE, padValue=0, NAonly=FALSE) #create focal layer using matrix
-  Focal_file_name <- paste(Data_period, active_class_raster_name, "nhood", matrix_name, sep = "_") #create file path for saving this layer
-  Focal_full_path <- paste0(Nhood_folder_path, Focal_file_name, ".grd") #create full folder path
+  Focal_file_name <- paste(active_class_raster_name, "nhood", matrix_name, Data_period, sep = "_") #create file path for saving this layer
+  Focal_full_path <- paste0(Nhood_folder_path, "/", Focal_file_name, ".grd") #create full folder path
   writeRaster(Focal_layer, Focal_full_path ,datatype='INT2U', overwrite=TRUE) #save layer
   names(Focal_layer) <- Focal_file_name #rename focal layer
   return(Focal_layer) #return layer for inspection

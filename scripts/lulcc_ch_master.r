@@ -27,8 +27,8 @@ packs<-c("data.table", "raster", "tidyverse", "SDMTools", "doParallel",
 "sjmisc", "tictoc", "parallel", "terra", "pbapply", "rgdal",
 "rgeos", "bfsMaps", "rjstat", "future.apply", "future", "stringr",
 "stringi", "readxl", "rlist", "rstatix", "openxlsx", "pxR", "zen4R",
-"rvest", "viridis", "sp", "lulcc", "jsonlite", "httr", "xlsx",
-"gdata", "landscapemetrics", "randomForest", "RRF", "purrr",
+"rvest", "viridis", "sp", "jsonlite", "httr", "xlsx",
+"gdata", "landscapemetrics", "randomForest", "RRF",
 "ghibli", "ggpattern", "butcher", "ROCR", "ecospat", "caret", "Dinamica",
 "gridExtra", "extrafont", "ggpubr", "ggstatsplot","PMCMRplus", "reshape2",
 "ggsignif", "ggthemes", "ggside", "gridtext", "grid", "slackr", "rstudioapi")
@@ -41,7 +41,10 @@ if (length(new.packs)) install.packages(new.packs)
 invisible(lapply(packs, require, character.only = TRUE))
 
 # Source custom functions
-invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TRUE, recursive = TRUE), source))
+invisible(sapply(list.files("Scripts/Functions",
+                            pattern = ".R",
+                            full.names = TRUE,
+                            recursive = TRUE),source))
 
 #Install Dinamica EGO using included installer (Windows)
 #create string for installer
@@ -54,33 +57,30 @@ system2(command = paste(install_path))
 # Create a seperate environment for storing output of sourced scripts
 output_env <- new.env()
 
-#Because the simulations take a long time to complete it can be useful to have R
-#send a message to Slack if the run has been completed successfully
-#To do this user must set up the 'slackr' package according to the vignette:
-#vignette('webhook-setup', package = 'slackr')
-
-#Create config file (only needs to be done once)
-# create_config_file(token = 'xapp-1-A049C8Z8ALW-4318425761910-7988238c82da2316a2c87bee2ad1962d6e42792243edd7517b12cce53a73056f',
-#   incoming_webhook_url = 'https://hooks.slack.com/services/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',
-#   channel = '#general',
-#   username = 'slackr',
-#   icon_emoji = 'tada')
-
-#Connect to Slack
-slackr_setup(channel = '#general',
-             incoming_webhook_url = 'https://hooks.slack.com/services/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')
-
 #TO DO: Document how users should set up the various 'tools' tables that control
 #the creation of transition datasets and the tp models.
 
-# Import model specifications table
-model_specs <- read_excel("Tools/model_specs.xlsx")
+#Import model specifications table
+Model_specs_path <- "Tools/model_specs.xlsx"
+model_specs <- read_excel(Model_specs_path)
+output_env$Model_specs_path <- Model_specs_path
+
+#Path to model hyper parameter grids
+Param_grid_path <- "Tools/param-grid.xlsx"
+output_env$Param_grid_path <- Param_grid_path
+
+#Path to predictor table
+Pred_table_path <- "Tools/Predictor_table.xlsx"
+output_env$Pred_table_path <- Pred_table_path
+
+# Vector data periods contained in model specifications table
+Data_periods <- unique(model_specs$Data_period_name)
 
 #attach data period names to env.
-output_env$Data_periods <- unique(model_specs$Data_period_name)
+output_env$Data_periods <- Data_periods
 
 #attach string to env. indicating whether regionalized datasets should be produced
-if(any(grep(model_specs$model_scale,
+if(any(grep(model_specs$Model_scale,
         pattern = "regionalized",
         ignore.case = TRUE)) == TRUE){
 output_env$Regionalization <- TRUE
@@ -133,6 +133,22 @@ Simulation_control_table$Completed.string <- "N"
 #save the table
 write_csv(Simulation_control_table, "Tools/Simulation_control.csv")
 
+#Because the simulations take a long time to complete it can be useful to have R
+#send a message to Slack if the run has been completed successfully
+#To do this user must set up the 'slackr' package according to the vignette:
+#vignette('webhook-setup', package = 'slackr')
+
+#Create config file (only needs to be done once)
+# create_config_file(token = 'xapp-1-A049C8Z8ALW-4318425761910-7988238c82da2316a2c87bee2ad1962d6e42792243edd7517b12cce53a73056f',
+#   incoming_webhook_url = 'https://hooks.slack.com/services/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',
+#   channel = '#general',
+#   username = 'slackr',
+#   icon_emoji = 'tada')
+
+#Connect to Slack
+slackr_setup(channel = '#general',
+             incoming_webhook_url = 'https://hooks.slack.com/services/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')
+
 ### =========================================================================
 ### A- Prepare LULC/region data
 ### =========================================================================
@@ -160,40 +176,66 @@ source("Scripts/preparation/Calibration_predictor_prep.R", local = output_env)
 
 source("Scripts/preparation/Transition_identification.R", local = output_env)
 
+### =========================================================================
+### D- Create transition datasets
+### =========================================================================
+
 source("Scripts/preparation/Transition_dataset_prep.R", local = output_env)
 
 ### =========================================================================
-### D- Predictor variable selection on LULCC transition datasets
+### E- Predictor variable selection on LULCC transition datasets
 ### =========================================================================
 
 source("Scripts/preparation/Transition_feature_selection.R", local = output_env)
 
 ### =========================================================================
-### E- Statistical modelling of LULCC transition datasets
+### F- Statistical modelling of LULCC transition datasets
 ### =========================================================================
+
+#TO DO: USER CREATE TABLE OF MODEL SPECIFCATIONS AND PARAM GRID TO BE TESTED
 
 source("Scripts/preparation/Trans_modelling.R", local = output_env)
 
 ### =========================================================================
-### F- Summarizing model validation results
+### G- Summarizing model validation results
 ### =========================================================================
 
+#The results comparing the performance of different transition model
+#specifications require manual interpretation as the choice of optimal model
+#must balance numerous aspects: accuracy, overfitting, computation time etc.
 source("Scripts/preparation/Transition_model_evaluation.R", local = output_env)
 
+#Enter choice of optimal model specifcations
+#Model_type <- "rf"
+#Model_scale <- "regionalized"
+#Feature_selection_employed <- "TRUE"
+#Balance_adjustment <- "TRUE"
+
+#adjust contents of model_specs table to only optimal specifcations
+lulcc.finalisemodelspecifications(Model_specs_path = Model_specs_path,
+                                  Param_grid_path = Param_grid_path)
+
 ### =========================================================================
-### G- Prepare tables of transition rates for scenarios
+### H- Re-fitting optimal model specifications on full data
+### =========================================================================
+
+source("Scripts/preparation/Trans_model_finalization.R", local = output_env)
+
+
+### =========================================================================
+### I- Prepare tables of transition rates for scenarios
 ### =========================================================================
 
 source("Scripts/preparation/Scenario_trans_rates_prep.R", local = output_env)
 
 ### =========================================================================
-### H- Prepare predictor data for scenarios
+### J- Prepare predictor data for scenarios
 ### =========================================================================
 
 source("Scripts/preparation/Scenario_data_prep.R", local = output_env)
 
 ### =========================================================================
-### I- Calibrate allocation parameters for Dinamica
+### K- Calibrate allocation parameters for Dinamica
 ### =========================================================================
 
 #1. Estimate values for the allocation parameters and then apply random perturbation
@@ -205,7 +247,7 @@ source("Scripts/preparation/Scenario_data_prep.R", local = output_env)
 source("Scripts/preparation/Calibrate_allocation_parameters.R", local = output_env)
 
 ### =========================================================================
-### J- Run Dinamica simulations over scenarios
+### L- Run Dinamica simulations over scenarios
 ### =========================================================================
 
 #Perform pre-check to make sure that all element required for Dinamica modelling

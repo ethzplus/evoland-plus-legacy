@@ -10,10 +10,11 @@
 #'
 #' @author Antoine Adde with edits by Ben Black
 #' @export
-lulcc.savethis<-function(object, model_name=NULL, transition_name=NULL, tag=NULL, save_path){
-save_this_path<-paste(save_path, transition_name, sep="/")
-suppressWarnings(dir.create(save_this_path,  recursive = TRUE))
-if(is.null(tag)){f<-gsub("_\\.",".",paste0(save_this_path,"/", paste(transition_name,model_name,sep="_"),".rds"))
-}else{f<-gsub("_\\.", ".",paste0(save_this_path,"/", paste(transition_name,tag,sep="_"),".rds"))}
+lulcc.savethis <- function(object, model_name=NULL, transition_name=NULL, tag=NULL, save_path){
+
+suppressWarnings(dir.create(save_path,  recursive = TRUE))
+
+if(is.null(tag)){f <- paste0(save_path,"/", paste(transition_name, model_name, sep="_"),".rds")
+}else{f <-paste0(save_path,"/", paste(transition_name, tag, sep="_"),".rds")}
 saveRDS(object, file=f)
 }

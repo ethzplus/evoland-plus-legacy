@@ -376,6 +376,7 @@ results <- future.apply::future_lapply(1:nrow(Model_lookup),
                                        future.packages = packs,
                                        function(i){
 
+gc()
 #vector trans_name
 Trans_name <- Model_lookup[i, "Trans_name"]
 Trans_ID <- Model_lookup[i, "Trans_ID"]
@@ -397,6 +398,7 @@ names(prob_predicts)[[2]] <- paste0("Prob_", Final_LULC)
 #bind to ID
 predict_ID <- cbind(ID = pred_data[, c("ID")], prob_predicts[paste0("Prob_", Final_LULC)])
 
+gc()
 #return the prediction results to be bound together
 return(predict_ID)
 }) #close loop over Models

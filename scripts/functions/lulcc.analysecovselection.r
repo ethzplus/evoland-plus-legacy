@@ -51,9 +51,6 @@ Covs_remaining_after_embedded_selection <- length(unique(All_embedded_selected_c
 Collinearity_selected_variable_occurence <- data.frame(table(All_collinearity_selected_covs)) %>% arrange(desc(Freq))
 Embedded_selected_variable_occurence <- data.frame(table(All_embedded_selected_covs)) %>% arrange(desc(Freq))
 
-#create visualisation i.e bar plot number of occurrence each covariate
-
-
 #Result 3: Measures of central tendency for number of covariates per transition at each stage of filtering
 
 #First count the number of covariates selected under each process for each transition

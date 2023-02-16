@@ -29,179 +29,144 @@
 
 #Provide base folder paths for saving fitted_models
 model_base_folder <- "Data/Transition_models"
-eval_results_base_folder <- "Results/Transition_model_evaluation"
-
-#File path for table of model parameters
-param_grid <- Param_grid_path
+eval_results_base_folder <- "Data/Model_evaluation"
 
 dir.create(model_base_folder, recursive = TRUE)
 dir.create(eval_results_base_folder, recursive = TRUE)
 
 #load table of model specifications
 # Import model specifications table
-model_specs <- read_excel(Model_specs_path)
+model_specs <- read_excel("Tools/Model_specs.xlsx")
 
 #Filter for models already completed
-models_specs <- model_specs[model_specs$Modelling_completed == "N",]
+models_required <- model_specs[model_specs$Modelling_completed == "N",]
+
+#reorder so that GLMs are first because they are much faster
+models_sorted <- models_required[order(models_required$Model_type),]
 
 #split into named list
-model_list <- lapply(split(models_specs, seq(nrow(models_specs))), as.list)
-names(model_list) <- models_specs$Detail_model_tag
+model_list <- lapply(split(models_sorted, seq(nrow(models_sorted))), as.list)
+names(model_list) <- models_sorted$Detail_model_tag
 
 #Instantiate wrapper function over process of modelling prep, fitting,
 #evaluation, saving and completeness checking
-lulcc.multispectransmodelling <- function(model_specs){
+
+lulcc.multispectransmodelling <- function(model_specifications){
 
 ### =========================================================================
 ### A- Prepare model specifications
 ### =========================================================================
 
 #vector model specifcations
-Data_period <- model_specs$Data_period
-Model_type <- model_specs$Model_type
-Model_scale <- model_specs$Model_scale
-Feature_selection_employed <- model_specs$Feature_selection_employed
-Nhood_extent <- model_specs$Nhood_extent
-Correct_balance <- model_specs$Balance_adjustment
+Data_period_name <- model_specifications$Data_period_name
+Model_type <- model_specifications$Model_type
+model_scale <- model_specifications$model_scale
+Feature_selection_employed <- model_specifications$Feature_selection_employed
+Subset_nhood <- model_specifications$subset_nhood
+Nhood_extent <- model_specifications$Nhood_extent
+balance_adjustment <- model_specifications$balance_adjustment
 
-cat(paste0('Conducting modelling under specification ',model_specs$Detail_model_tag , '...\n'))
+correct_balance <- if(balance_adjustment == "non_adjusted"){
+  FALSE} else if(balance_adjustment == "downsampled"){TRUE}
+
+cat(paste0('Conducting modelling under specification ',model_specifications$Detail_model_tag , '...\n'))
 
 #finalise folder paths
-FS_string <- if(Feature_selection_employed == TRUE) {"filtered"} else if (Feature_selection_employed == FALSE){"unfiltered"}
+FS_string <- if(Feature_selection_employed == TRUE) {"filtered"}
+else if (Feature_selection_employed == FALSE){"unfiltered"}
 
-if(Correct_balance == TRUE){
-model_folder <- paste0(model_base_folder, "/", toupper(Model_type) , "_models", "/", Model_scale, "_", FS_string, "/")
-eval_results_folder <- paste0(eval_results_base_folder, "/", toupper(Model_type) , "_model_evaluation_downsampled", "/", Model_scale, "_", FS_string, "/")
-}else if(Correct_balance == FALSE){
-model_folder <- paste0(model_base_folder, "/", toupper(Model_type) , "_models_non_adjusted", "/", Model_scale, "_", FS_string, "/")
-eval_results_folder <- paste0(eval_results_base_folder, "/", toupper(Model_type) , "_model_evaluation_non_adjusted", "/", Model_scale, "_", FS_string, "/")
+if(correct_balance == TRUE){
+model_folder <- paste0(model_base_folder, "/Fitted_", toupper(Model_type) , "_models", "/", model_scale, "_", FS_string, "/")
+eval_results_folder <- paste0(eval_results_base_folder, "/", toupper(Model_type) , "_model_evaluation", "/", model_scale, "_", FS_string, "/")
+}else if(correct_balance == FALSE){
+model_folder <- paste0(model_base_folder, "/Fitted_", toupper(Model_type) , "_models_non_adjusted", "/", model_scale, "_", FS_string, "/")
+eval_results_folder <- paste0(eval_results_base_folder, "/", toupper(Model_type) , "_model_evaluation_non_adjusted", "/", model_scale, "_", FS_string, "/")
 }
 
-#Get file paths of transition datasets for period
-Data_paths_for_period <-if(Feature_selection_employed == FALSE) {list.files(paste0("Data/Transition_datasets/Pre_predictor_filtering/", Data_period), pattern = Model_scale, full.names = TRUE)}else if(
-Feature_selection_employed == TRUE) {list.files(paste0("Data/Transition_datasets/Post_predictor_filtering/", Data_period), pattern = Model_scale, full.names = TRUE)}
-names(Data_paths_for_period) <- sapply(Data_paths_for_period, function(x) str_remove(basename(x), ".rds"))
+#create Regex to get file path
+file_match_regex <- glob2rx(paste0(Data_period_name, "*", model_scale))
+
+#Load transition datasets for period
+Datasets_for_period <-readRDS(if(Feature_selection_employed == FALSE) {list.files("Data/Transition_datasets/Pre_predictor_filtering", pattern = file_match_regex, full.names = TRUE)}else if(
+Feature_selection_employed == TRUE) {list.files("Data/Transition_datasets/Post_predictor_filtering", pattern = file_match_regex, full.names = TRUE)})
+
+#Optional:For datasets that have not undergone feature selection the neighbourhood predictors
+#can be subsetted to 1 for each active LULC class to avoid collinearity
+
+#instantiate small function to do subsetting
+lulcc.subsetnhoodvars <- function(transition_dataset, nhood_id){
+  nhood_vars <- transition_dataset$cov_data[, .SD, .SDcols = patterns(nhood_id)] #seperate nhood cols by id.
+  nonnhood_vars <- transition_dataset$cov_data[, .SD, .SDcols = !patterns("nhood")] #seperate non-nhood cols
+  transition_dataset$cov_data <- cbind(nonnhood_vars, nhood_vars)
+  return(transition_dataset)
+}
+
+if(Feature_selection_employed == FALSE && Subset_nhood == "Y") {
+Datasets_for_period <-lapply(Datasets_for_period, function(x) lulcc.subsetnhoodvars(transition_dataset = x, nhood_id = Nhood_extent))
+}
 
 ### =========================================================================
-### B- Performing modelling
+### B- Define model parameters
 ### =========================================================================
 
-#Now opening loop over datasets
-future::plan(multisession(workers = availableCores()-2))
-Modelling_outputs <- future_lapply(Data_paths_for_period, function(Dataset_path) {
-gc()
+#File path for table of model parameters
+param_grid <- Param_grid_path
 
-# Source custom functions
-invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TRUE, recursive = TRUE), source))
-
-cat(paste0('Modelling transition: ', str_remove(basename(Dataset_path), ".rds"), '\n'))
-
-#load dataset
-Trans_dataset <- readRDS(Dataset_path)
-Trans_name <- str_remove(basename(Dataset_path), ".rds")
-
-### =========================================================================
-### B.1 - Attach model parameters
-### =========================================================================
-
-#Attach  a list of model parameters('model_settings')
-#for each type of model specifcied in the parameter grid
-model_settings <- lulcc.setparams(transition_result = Trans_dataset$trans_result,
-                                    covariate_names= names(Trans_dataset$cov_data),
+#Use model parameters to create a list of model input objects ('model_settings') for each transition
+Datasets_with_modparams <- lapply(Datasets_for_period, function(x) {
+  model_settings <- lulcc.setparams(transition_result = x$trans_result,
+                                    covariate_names= names(x$cov_data),
                                     model_name = Model_type,
                                     param_grid= param_grid, # Parameter tuning grid (all possible combinations will be evaluated)
                                     weights= 1)
+output <-list.append(x, model_settings = model_settings)
+})
 
-Trans_dataset <- list.append(Trans_dataset, model_settings = model_settings)
-rm(model_settings)
-cat(paste0('Modelling parameters defined \n'))
+rm(Datasets_for_period)
 
-### =========================================================================
-### B.2- Fit, evaluate and save models
-### =========================================================================
-
-#Apply function for fitting and evaluating models and saving results
-#the output returned is a list of errors caught by try()
-Trans_model_capture <- lulcc.fitevalsave(Transition_dataset = Trans_dataset,
-                                      Transition_name = Trans_name,
-                                      replicatetype= "splitsample",
-                                      reps=5,
-                                      balance_class = Correct_balance,
-                                      Downsampling_bounds = list(lower = 0.05, upper = 60),
-                                      Data_period = Data_period,
-                                      model_folder = model_folder,
-                                      eval_results_folder = eval_results_folder,
-                                      Model_type = Model_type)
-
-gc()
-return(Trans_model_capture)
-}, future.seed=TRUE, future.packages = packs
-) #close loop over trnasition datasets
-plan(sequential)
+cat(paste0('3) Modelling parameters defined \n'))
 
 ### =========================================================================
-### B.3- Update model specification table to reflect that this specification
-### of models is complete
+### C- Fit, evaluate and save models
 ### =========================================================================
 
-#check for failures in the Modelling outputs
-Modelling_check <- unlist(Modelling_outputs)
+Modelling_outputs <- mapply(lulcc.fitevalsave, Transition_dataset = Datasets_with_modparams,
+                       current_transition_name = names(Datasets_with_modparams),
+                       MoreArgs = list(replicatetype="none",
+                                       reps=1,
+                                       balance_class = correct_balance,
+                                       Downsampling_bounds = list(lower = 0.05, upper = 60),
+                                       Data_period_name = Data_period_name,
+                                       model_folder = model_folder,
+                                       eval_results_folder = eval_results_folder,
+                                       Model_type = Model_type),
+                       SIMPLIFY = FALSE)
 
-if(all(Modelling_check == "Success") == TRUE){
+### =========================================================================
+### D- Update model specification table to reflect that the model is complete
+### =========================================================================
 
-  #load model spec table and replace the values in the 'Completed' column
-  model_spec_table <- readxl::read_excel(Model_specs_path)
+#load model spec table and replace the values in the 'Completed' column
+model_spec_table <- read_excel("Tools/Model_specs.xlsx")
 
-  #find the correct row
-  model_spec_table$Modelling_completed[model_spec_table$Detail_model_tag == model_specs$Detail_model_tag] <- "Y"
+#find the correct row
+model_spec_table$Modelling_completed[model_spec_table$Detail_model_tag == model_specifications$Detail_model_tag] <- "Y"
 
-  openxlsx::write.xlsx(model_spec_table, file = Model_specs_path, overwrite = TRUE)
+openxlsx::write.xlsx(model_spec_table, file = "Tools/Model_specs.xlsx", overwrite = TRUE)
 
-  cat(paste0('Model fitting and evaluation for:', model_specs$Detail_model_tag, 'completed without errors'))
-} else if(all(Modelling_check == "Success") == FALSE){
+cat(paste0('\n\n4) Models fitting and evaluation process finished \n'))
 
-  #count number of errors
-  Num_errors <- length(Modelling_check[Modelling_check != "Success"])
-
-   #print error message
-  cat(paste0(Num_errors, ' errors occurred in model fitting and evaluation for the model specification: \n',
-             model_specs$Detail_model_tag,
-             '\n please consult saved modelling output file: \n',
-             paste0(eval_results_folder, model_specs$Detail_model_tag, "_modelling_output_summary.rds")
-             ))
-
-  if(Num_errors <10){
-
-    cat("As the number of erros was <10 the model spec table has been updated
-        to indicate that this specification has been completed, the likely cause
-        of error is transition dataset with insufficient number of transition
-        instances (1's) or where feature selection has reduced to a single predictor variable")
-    #load model spec table and replace the values in the 'Completed' column
-    model_spec_table <- readxl::read_excel(Model_specs_path)
-
-    #find the correct row
-    model_spec_table$Modelling_completed[model_spec_table$Detail_model_tag == model_specs$Detail_model_tag] <- "Y"
-
-    #add a warning
-    model_spec_table$Num_errors <- Num_errors
-
-    #save
-    openxlsx::write.xlsx(model_spec_table, file = Model_specs_path, overwrite = TRUE)
-  }
-
-
-  #save modelling outputs for user inspection
-  saveRDS(Modelling_outputs, paste0(eval_results_folder, model_specs$Detail_model_tag, "_modelling_output_summary.rds"))
-
-}
-
+#saveRDS(Modelling_outputs, paste0(eval_results_folder, model_specifications$Detail_model_tag, "_output_check.rds"))
+return(Modelling_outputs)
 } #close wrapper function
 
-#loop wrapper function over list of models
-lapply(model_list, function(model){lulcc.multispectransmodelling(model)})
+#loop over list of models
+All_model_outputs <- lapply(model_list, function(model){
+lulcc.multispectransmodelling(model)
+})
 
 ### =========================================================================
-### C- Extract model objects and save in seperate folder structure
+### E- Extract model objects and save in seperate folder structure
 ### =========================================================================
 
 #This process requires the user to have checked the model evaluation results
@@ -214,11 +179,11 @@ lapply(model_list, function(model){lulcc.multispectransmodelling(model)})
 #at future time points
 
 #vector model periods
-Model_periods <- unique(model_specs$Data_period)
+Model_periods <- unique(model_specs$Data_period_name)
 
 lapply(Model_periods , function(Model_period){
 #paste together path
-Model_folder_path <- paste0("Data/Fitted_models/RF_models/regionalized_filtered/Period_", Model_period, "_rf_models")
+Model_folder_path <- paste0("Data/Fitted_models/Fitted_RF_models/regionalized_filtered/Period_", Model_period, "_rf_models")
 
 #list model file paths
 model_paths <- as.list(list.files(Model_folder_path, recursive = TRUE, full.names = TRUE))

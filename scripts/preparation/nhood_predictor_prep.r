@@ -54,7 +54,7 @@ Data_periods <- names(LULC_change_periods)
 #create folders required
 nhood_folder_names <- c("Data/Preds/Tools/Neighbourhood_details_for_dynamic_updating",
 "Data/Preds/Tools/Neighbourhood_matrices",
-"Data/Preds/Prepared/Layers/Neighbourhood/Neighbourhood_layers")
+"Data/Preds/Prepared/Layers/Neighbourhood/")
 
 sapply(nhood_folder_names, function(x){dir.create(x, recursive = TRUE)})
 
@@ -118,23 +118,25 @@ LULC_rasters <- lapply(LULC_years, function(x) {
 #provide vector of active LULC class names
 Active_class_names <- c('Urban', 'Int_AG', 'Alp_Past', 'Grassland', 'Perm_crops')
 
-Nhood_folder_path <- "Data/Preds/Prepared/Layers/Neighbourhood/Neighbourhood_layers/"
+Nhood_folder_path <- "Data/Preds/Prepared/Layers/Neighbourhood"
 
 #mapply function over the LULC rasters and Data period names
 #saves rasters to file and return list of focal layer names
-mapply(lulcc.generatenhoodrasters,
+future::plan(multisession, workers = availableCores()-2)
+future_mapply(lulcc.generatenhoodrasters,
                LULC_raster = LULC_rasters,
                Data_period = Data_periods,
                MoreArgs = list(Neighbourhood_matrices = All_matrices,
                                Active_LULC_class_names = Active_class_names,
                                Nhood_folder_path = Nhood_folder_path))
+plan(sequential)
 
 ### =========================================================================
 ### D- Manage file names/details for neighbourhood layers
 ### =========================================================================
 
 #get names of all neighbourhood layers from files
-new_nhood_names <- list.files(path = "Data/Preds/Prepared/Layers/Neighbourhood/Neighbourhood_layers",
+new_nhood_names <- list.files(path = Nhood_folder_path,
                               pattern = ".gri",
                               full.names = TRUE)
 
@@ -171,13 +173,13 @@ matrix_id_regex <- str_c(names(All_matrices), collapse ="|")
 #create data.frame to store details of neighbourhood layers to be used when layers are creating during simulations
 Focal_details <- setNames(data.frame(matrix(ncol = 4, nrow= length(layer_names))), c("layer_name", "period", "active_lulc", "matrix_id"))
 Focal_details$Prepared_data_path <- layer_names
-Focal_details$layer_name <- str_remove_all(str_remove_all(layer_names, "Data/Preds/Prepared/Layers/Neighbourhood/Neighbourhood_layers/"), ".gri")
+Focal_details$layer_name <- str_remove_all(str_remove_all(layer_names, paste0(Nhood_folder_path, "/")), ".gri")
 Focal_details$period <- str_extract(Focal_details$layer_name, period_names_regex)
 Focal_details$active_lulc <- str_extract(Focal_details$layer_name, class_names_regex)
 Focal_details$matrix_id <- str_extract(Focal_details$layer_name, matrix_id_regex)
 
 #save dataframe to use as a look up table in dynamic focal layer creation.
-saveRDS(Focal_details, "Data/Preds/Prepared/Layers/Neighbourhood/Focal_layer_lookup")
+saveRDS(Focal_details, "Data/Preds/Tools/Neighbourhood_details_for_dynamic_updating/Focal_layer_lookup.rds")
 
 ### =========================================================================
 ### E- Updating predictor table with layer names- updated xl.
@@ -207,13 +209,13 @@ Focal_details$Raw_data_path <- NA
 Periodic_focal_details <- split(Focal_details, Focal_details$period)
 
 #Predictor table file path
-Pred_table_path <- "Data/Preds/Tools/Predictor_table.xlsx"
+Pred_table_path <- "Tools/Predictor_table.xlsx"
 
 #get names of sheets to loop over
 sheets <- excel_sheets(Pred_table_path)
 
 #load all sheets as a list
-Pred_tables <- lapply(sheets, function(x) read.xlsx(Pred_table_path, sheet = x))
+Pred_tables <- lapply(sheets, function(x) openxlsx::read.xlsx(Pred_table_path, sheet = x))
 names(Pred_tables) <- sheets
 
 #load predictor_table as workbook to add sheets

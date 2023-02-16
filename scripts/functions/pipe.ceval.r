@@ -73,9 +73,9 @@ pipe.ceval<-function(f,pa,tesdat,crit,tre=numeric()){
     boyce<-NA}
 
     # AUC
-    z=prediction(f,pa)
-    auc=performance(z,measure="auc")@y.values[[1]]
-    rmse=performance(z,measure="rmse")@y.values[[1]]
+    z = prediction(f,pa)
+    auc= ROCR::performance(z,measure="auc")@y.values[[1]]
+    rmse= ROCR::performance(z,measure="rmse")@y.values[[1]]
 
 	# Somer's AUC
 	aucS=(2*auc)-1 # rescale AUC to -1 +1
