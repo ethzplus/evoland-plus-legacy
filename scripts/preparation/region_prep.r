@@ -28,7 +28,7 @@
 # full.names = TRUE, recursive=TRUE), source))
 
 #define projection systems
-Ref_grid <- raster("Data/Ref_grid.gri")
+Ref_grid <- raster(Ref_grid_path)
 Ref_crs <- crs(Ref_grid)
 
 ### =========================================================================

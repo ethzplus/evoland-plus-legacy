@@ -142,20 +142,20 @@ plan(sequential)
 ### =========================================================================
 
 #load model spec table and replace the values in the 'Completed' column
-model_spec_table <- openxlsx::read_excel("Tools/Predict_model_specs.xlsx")
+model_spec_table <- readxl::read_excel("Tools/Predict_model_specs.xlsx")
 
 #find the correct row
 model_spec_table$Modelling_completed[model_spec_table$Detail_model_tag == model_specs$Detail_model_tag] <- "Y"
 
 openxlsx::write.xlsx(model_spec_table, file = "Tools/Predict_model_specs.xlsx", overwrite = TRUE)
 
-cat(paste0('Models fitting and evaluation process finished \n'))
+cat(paste0('Prediction model fitting finished \n'))
 
 return(Predict_model_paths)
 } #close wrapper function
 
 #loop wrapper function over list of models
-All_predict_model_paths <- lapply(model_list, function(model){
+All_predict_model_paths <- lapply(model_list[2:3], function(model){
 lulcc.multispectransmodelling(model)
 })
 
@@ -173,9 +173,9 @@ names(Viable_transitions_lists) <- Model_periods
 Model_lookups <- lapply(Model_periods, function(x) {
 
   #Get file paths for models and uncertainty tables and convert to DF adding columns for file_path, model_name, unc_table_path
-  model_df <- data.frame(File_path = list.files(paste0(model_base_folder, x), full.names = TRUE),
-                         Model_name = list.files(paste0(model_base_folder, x), full.names = FALSE))
-                         #Unc_table_path = list.files(paste0("Data/Uncertainty_tables/", x), full.names = TRUE))
+  model_df <- data.frame(File_path = list.files(paste0(model_base_folder, "/", x), full.names = TRUE),
+                         Model_name = list.files(paste0(model_base_folder, "/", x), full.names = FALSE))
+                         #Unc_table_path = list.files(paste0("Data/Uncertainty_tables/", x), full.names = TRUE)) #adding uncertainty table as a list object if desired
 
 
   #model_region (split on 1st period)
@@ -202,7 +202,7 @@ Model_lookups <- lapply(Model_periods, function(x) {
   model_df$Model_type <-sapply(model_df$Model_name, function(x) str_split(x, "\\.")[[1]][5], simplify = TRUE)
 
   #reorder columns
-  col_order <- c("Trans_name", "Region", "Initial_LULC", "Final_LULC", "Model_type", "Model_period", "Model_name", "File_path", "Unc_table_path")
+  col_order <- c("Trans_name", "Region", "Initial_LULC", "Final_LULC", "Model_type", "Model_period", "Model_name", "File_path") #"Unc_table_path" to vector if included
   model_df <- model_df[, col_order]
 
   #remove rows for persistence models which are not required by Dinamica
@@ -210,7 +210,7 @@ Model_lookups <- lapply(Model_periods, function(x) {
 
   return(model_df)
   })
-
+names(Model_lookups) <- Model_periods
 #adding ID column using lists of viable transitions
 Model_lookups_with_ID <- mapply(function(Model_lookup, trans_table){
   Model_lookup$Trans_ID <- sapply(Model_lookup$Trans_name, function(x) trans_table[trans_table$Trans_name == x, "Trans_ID"])

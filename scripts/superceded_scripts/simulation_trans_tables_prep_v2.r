@@ -9,16 +9,14 @@
 ### A- Preparation
 ### =========================================================================
 
-# Set working directory
-wpath<-"E:/LULCC_CH"
-setwd(wpath)
-
+# All packages are sourced in the master document, uncomment here
+#if running the script in isolation
 #Vector packages for loading
-packs<-c("data.table", "raster", "tidyverse",
-         "lulcc", "stringr", "readr", "xlsx", "gdata")
-
-# Load required packages
-invisible(lapply(packs, require, character.only = TRUE))
+# packs<-c("data.table", "raster", "tidyverse",
+#          "lulcc", "stringr", "readr", "xlsx", "gdata")
+#
+# # Load required packages
+# invisible(lapply(packs, require, character.only = TRUE))
 
 #Dataframe of LULC labels and values
 LULC_classes <- data.frame(label = c("Urban", "Static", "Open_Forest",
@@ -28,22 +26,32 @@ LULC_classes <- data.frame(label = c("Urban", "Static", "Open_Forest",
 
 LULC_years <- gsub(".*?([0-9]+).*", "\\1", list.files("Data/Historic_LULC", full.names = FALSE, pattern = ".gri"))
 
-#Vector time periods for calibration
-Periods <- c("1985_1997", "1997_2009", "2009_2018")
+#Vector time Data_periods for calibration
+#Inherit from master
+#Data_periods <- c("1985_1997", "1997_2009", "2009_2018")
 
 #The model lookup table specifies which transitions are modelled and
-#can be used to subset the transition rates tables
+#should be used to subset the transition rates tables
 
-#Load Model lookup tables for each period
-Model_lookups <- lapply(Periods, function(Period){read.xlsx("Tools/Model_lookup.xlsx", sheetIndex = Period)})
-names(Model_lookups) <- Periods
+#Load Model lookup tables for each period and subset to just transition names
+Periodic_trans_names <- lapply(Data_periods, function(Period){
+  full_table <- read.xlsx("Tools/Model_lookup.xlsx", sheetIndex = Period)
+  trans_names <- unique(full_table[["Trans_name"]])
+  })
+names(Periodic_trans_names) <- Data_periods
+
+#identify final year of calibration periods
+Final_calib_year <- max(c(sapply(names(Periodic_trans_names), function(x)as.numeric(str_split(x, "_")[[1]]), simplify = TRUE)))
+
+#load simulation control table
+Sim_control_table <- read.csv(Sim_control_path)
 
 ### =========================================================================
-### C- Create folder structure for scenario specific trans tables
+### B- Create folder structure for scenario specific trans tables
 ### =========================================================================
 
 #use simulation control table to get names of Scenarios
-Scenario_names <- unique(read.csv("Tools/Simulation_control.csv")[["Scenario_ID.string"]])
+Scenario_names <- unique(Sim_control_table[["Scenario_ID.string"]])
 
 #base folder for creating scenario specific folders
 base_trans_table_folder <- "Data/Transition_tables/prepared_trans_tables/"
@@ -54,68 +62,47 @@ sapply(Scenario_names, function(x){
 })
 
 ### =========================================================================
-### D- Create time dependent naming structure for trans tables
-### =========================================================================
-
-#earliest possible model start time is 1985 and end time is 2060
-#we have initially agreed to use 5 year time steps
-Scenario_start <- 1985
-Scenario_end <- 2060
-Step_length <- 5
-
-#vector sequence of time points and suffix
-Time_steps <- seq(Scenario_start, Scenario_end, Step_length)
-
-#These time points and suffixes can be used to name trans tables in a loop over scenarios
-
-#instantiate function for subsetting and saving transition tables across time steps
-lulcc.savescenariotranstables <- function(Scenario_name, Time_steps, Base_folder, trans_table){
-sapply(Time_steps, function(x){
-
-  #subset table
-  trans_table <- trans_table[,c("From.", "To.", x)]
-
-  #clean column names
-  names(trans_table) <- c("From*", "To*", "Rate")
-
-  #vector file path
-  file_name <- paste0(Base_folder, "/", Scenario_name, "/", Scenario_name, "_trans_table_", x, ".csv")
-
-  #save
-  write_csv(trans_table, file = file_name)
-})
-}
-
-### =========================================================================
-### F- interpolate/Extrapolate transition rates until 2060 as a reference for scenarios
+### C- interpolate/Extrapolate transition rates until 2060 as a reference for scenarios
 ### =========================================================================
 
 #Extrapolation of transition rates should be done using the multistep transition
-#rates tables for the calibration periods because the step length matches
+#rates tables for the calibration Data_periods because the step length matches
 #that of the future time points (5 years). But in some cases extrapolating
 #based on the single step may also be desirable.
 
 #instantiate function to do extrapolation of trans rates and plotting
-lulcc.transratesextrapolation <- function(trans_rate_table_path, plot_dir, single_multi_step, base_dir){
+lulcc.transratesextrapolation <- function(trans_rate_table_path,
+                                          single_multi_step,
+                                          base_dir,
+                                          time_steps){
 
+#vector save dir and create
 save_dir <- paste0(base_dir, "/", single_multi_step)
 dir.create(save_dir, recursive = TRUE)
 
+#read in trans rate table
 trans_rate_table <- read.csv(trans_rate_table_path)
+
+#Identify columns for all data periods and final period
+Period_cols <- grep(paste(Data_periods, collapse ="|"), colnames(trans_rate_table), value = TRUE)
+Final_period_col <- grep(Data_periods[length(Data_periods)], colnames(trans_rate_table), value = TRUE)
+
 
 #exclude any rows with NAs in the 2009_2018 columns as these are transitions
 #that are not modelled in the future
-trans_rate_table <- trans_rate_table[!is.na(trans_rate_table$X2009_2018),]
+trans_rate_table <- trans_rate_table[!is.na(trans_rate_table[[Final_period_col]]),]
 
 #calculate average net transition rate over historical period
-trans_rate_table$Rate <- rowMeans(trans_rate_table[c("X1985_1997", "X1997_2009", "X2009_2018")], na.rm = TRUE)
+trans_rate_table$Rate <- rowMeans(trans_rate_table[Period_cols], na.rm = TRUE)
+
 
 #extrapolating rates for future time steps
 #rename period columns to single date to create an interval variable
-names(trans_rate_table)[7:9] <- c("1997", "2009", "2018")
+names(trans_rate_table)[names(trans_rate_table) %in% Period_cols] <- c(sapply(Data_periods, function(x)as.numeric(str_split(x, "_")[[1]][2]), simplify = TRUE))
+
 
 #pivot to long format
-trans_rates_long <- trans_rate_table %>% pivot_longer(cols = c("1997", "2009", "2018"),
+trans_rates_long <- trans_rate_table %>% pivot_longer(cols = paste(sapply(Data_periods, function(x)as.numeric(str_split(x, "_")[[1]][2]), simplify = TRUE)),
                                                             names_to = "Year",
                                                             values_to = "Perc_rate")
 trans_rates_long$Year <- as.numeric(trans_rates_long$Year)
@@ -123,17 +110,15 @@ trans_rates_long$Year <- as.numeric(trans_rates_long$Year)
 #log transformation of rate to ensure zero bounded values
 trans_rates_long$Perc_rate_log <- log(trans_rates_long$Perc_rate)
 
-Simulation_steps <- Time_steps
-
 #create a df from these used for predicting
-Pred_df <- as.data.frame(Simulation_steps)
+Pred_df <- as.data.frame(time_steps)
 names(Pred_df) <- "Year"
 
 #create a duplicate table for storing extrapolated values with a column of
 #unique Trans_IDs and a column for each simulation step
 Extrap_calibration_rates <- data.frame(matrix(nrow = length(unique(trans_rates_long$Trans_name)),
-                                                                   ncol = length(Simulation_steps)+1))
-colnames(Extrap_calibration_rates) <- c("Trans_name", Simulation_steps)
+                                                                   ncol = length(time_steps)+1))
+colnames(Extrap_calibration_rates) <- c("Trans_name", time_steps)
 Extrap_calibration_rates$Trans_name <- unique(trans_rate_table$Trans_name)
 
 #loop over unique trans_IDs, create a linear model for the perc_rate
@@ -147,14 +132,14 @@ Mod <-   lm(formula = Perc_rate ~ Year,
      data = trans_rates_long[trans_rates_long$Trans_name == Name,])
 
 #create model with log transformed response variable
-Mod_log <-   lm(formula = Perc_rate_log ~ Year,
-     data = trans_rates_long[trans_rates_long$Trans_name == Name,])
+#Mod_log <-   lm(formula = Perc_rate_log ~ Year,
+#     data = trans_rates_long[trans_rates_long$Trans_name == Name,])
 
 #use
 #predict
 Pred <- predict(Mod, newdata = Pred_df)
 
-Pred_glm <- exp(predict(Mod_log, newdata = Pred_df))
+#Pred_glm <- exp(predict(Mod_log, newdata = Pred_df))
 
 #append to results df
 Extrap_calibration_rates[Extrap_calibration_rates$Trans_name == Name, c(2:ncol(Extrap_calibration_rates))] <- Pred
@@ -172,7 +157,7 @@ ggsave(filename = paste0(Name, "_", single_multi_step, "_trans_rate_plot.jpg") ,
 }
 
 #combine historical and extrapolated values
-Combined_table <- cbind(trans_rate_table, Extrap_calibration_rates[,c(paste(Simulation_steps))])
+Combined_table <- cbind(trans_rate_table, Extrap_calibration_rates[,c(paste(time_steps))])
 Combined_table$Rate <- NULL
 
 #save
@@ -180,50 +165,85 @@ write.xlsx(Combined_table, paste0(save_dir, "/Extrapolated_trans_rates_", single
 return(Combined_table)
 } #close function
 
+All_time_steps <- seq(min(LULC_years), max(Sim_control_table$Scenario_end.real), Step_length)
+
 #vector directory used by function
 Extrap_dir <- "Data/Transition_tables/Extrapolations"
 
-#Apply function to multit-step tables
+#Apply function to multi-step tables
 MS_extrap_trans_rates <- lulcc.transratesextrapolation(trans_rate_table_path = "Data/Transition_tables/trans_rates_table_calibration_periods_MS.csv",
                         single_multi_step = "multi_step",
-                        base_dir = Extrap_dir)
+                        base_dir = Extrap_dir,
+                        time_steps = All_time_steps)
 
 #Replace any negative values with zero because negative rate is not possible
 MS_extrap_trans_rates[MS_extrap_trans_rates < 0] <- 0
 
 #Apply to single step if desired
-#SS_extrap_trans_rates <- lulcc.transratesextrapolation(trans_rate_table_path = "Data/Transition_tables/trans_rates_table_calibration_periods.csv",
+#SS_extrap_trans_rates <- lulcc.transratesextrapolation(trans_rate_table_path = "Data/Transition_tables/trans_rates_table_calibration_Data_periods.csv",
 #                        single_multi_step = "single_step",
 #                       base_dir = Extrap_dir)
-
 
 ### =========================================================================
 ### E- Calibration trans tables
 ### =========================================================================
 
-#Use table of interpolated/extrapolated trans rates to save a trans table
-#for each time point in the calibration period for loading into Dinamica
+#instantiate function for subsetting and saving transition tables across time steps
+lulcc.savescenariotranstables <- function(Scenario_name,
+                                          Time_steps,
+                                          Base_folder,
+                                          trans_rate_table,
+                                          Periodic_trans_names){
+    #Loop over time steps
+    sapply(Time_steps, function(year){
 
-#seperate vector of time points into those relevant for each calibration period
-# Time_points_by_period <- list(Period_1985_1997 = Time_steps[Time_steps <= 1997],
-#              Period_1997_2009 = Time_steps[Time_steps >= 1997 & Time_steps <= 2009],
-#              Period_2009_2018 = Time_steps[Time_steps >= 2009 & Time_steps <= 2020])
+    #identify what time period the current year is from
 
-#Load calibration trans_tables as a list with the same names
-# calibration_trans_tables <- lapply(list.files("Data/Transition_tables/raw_trans_tables", full.names = TRUE, pattern = "viable_trans"), read.csv)
-# names(calibration_trans_tables) <- names(Time_points_by_period)
+    #if statement based on whether current year is less than the most
+    #recent year contained in the data periods names
 
-#subset time points vector to calibration period
-Calibration_time_steps <- Time_steps[Time_steps <= 2020]
+    #if yes then identify which historic period it belongs too
+    #if no then use the most recent data period
+    if(year < max(c(sapply(names(Periodic_trans_names), function(x)as.numeric(str_split(x, "_")[[1]]), simplify = TRUE)))){
+    Time_period <- names(Periodic_trans_names)[sapply(names(Periodic_trans_names), function(x){
+    Period_dates <- as.numeric(str_split(x, "_")[[1]])
+    between(year, Period_dates[1], Period_dates[2])
+    })]} else if (year >= max(c(sapply(names(Periodic_trans_names), function(x)as.numeric(str_split(x, "_")[[1]]), simplify = TRUE)))){
+      Time_period <- names(Periodic_trans_names)[length(Periodic_trans_names)]
+    }
+
+    #subset table to only required transition names
+    trans_rate_table <- trans_rate_table[trans_rate_table$Trans_name %in% Periodic_trans_names[[Time_period]],]
+
+    #select required columns
+    trans_rate_table <- trans_rate_table[,c("From.", "To.", year)]
+
+    #clean column names
+    names(trans_rate_table) <- c("From*", "To*", "Rate")
+
+    #vector file path
+    file_name <- paste0(Base_folder, "/", Scenario_name, "/", Scenario_name, "_trans_table_", year, ".csv")
+
+    #save
+    write_csv(trans_rate_table, file = file_name)
+
+  }) #close loop over time_steps
+
+  } #close function
+
+#vector time points for calibration period
+#for the end date find the multiple of the step length that is closest to the most recent LULC year
+Calibration_time_steps <- seq(min(LULC_years), round(as.numeric(max(LULC_years))/Step_length)*Step_length, Step_length)
 
 #Apply function to save individual tables
 lulcc.savescenariotranstables(Scenario_name = "CALIBRATION",
                               Time_steps = Calibration_time_steps,
-                              trans_table = MS_extrap_trans_rates,
-                              Base_folder = base_trans_table_folder)
+                              trans_rate_table = MS_extrap_trans_rates,
+                              Base_folder = base_trans_table_folder,
+                              Periodic_trans_names = Periodic_trans_names)
 
 ### =========================================================================
-### G- calculate expected LULC class areal change until 2060
+### G- calculate expected LULC class areal change until end of simulatiion
 ### =========================================================================
 
 #1. Use the extrapolated transition rates and areal coverage of LULC classes in
@@ -231,29 +251,29 @@ lulcc.savescenariotranstables(Scenario_name = "CALIBRATION",
 #This can be considered as the reference scenario as even the BAU will be a
 #modification from this
 
-#load historic LULC areal change table and subset to final time point
+#load historic LULC areal change table
 Historic_LULC_area <- read.csv("Data/Transition_tables/raw_trans_tables/LULC_historic_areal_change.csv")
 
-#vector future time step
-Future_time_steps <- Time_steps[Time_steps >=2025]
+#vector simulation time steps
+Sim_time_steps <- All_time_steps[between(All_time_steps,(min(Sim_control_table$Scenario_start.real)+Step_length), max(Sim_control_table$Scenario_end.real))]
 
 #create table to capture cumulative transition areal changes
 #same details as extrapolated rates but only for future time points
-Trans_areal_increase <- MS_extrap_trans_rates[, !(colnames(MS_extrap_trans_rates) %in% c(paste(setdiff(Time_steps, Future_time_steps)), "1997", "2009", "2018"))]
-Trans_areal_increase[,paste(Future_time_steps)] <- as.numeric(NA)
+Trans_areal_increase <- MS_extrap_trans_rates[, !(colnames(MS_extrap_trans_rates) %in% c(paste(setdiff(All_time_steps, Sim_time_steps)), paste(sapply(Data_periods, function(x)as.numeric(str_split(x, "_")[[1]][2]), simplify = TRUE))))]
+Trans_areal_increase[,paste(Sim_time_steps)] <- as.numeric(NA)
 
 #create table to capture total area of lulc classes for future time points
-LULC_proj_area <- Historic_LULC_area[,c("LULC_class", "X2018")]
-names(LULC_proj_area)[2] <- "2020"
-LULC_proj_area[paste(Future_time_steps)] <- NA
+LULC_proj_area <- Historic_LULC_area[,c("LULC_class", grep(Final_calib_year, names(Historic_LULC_area), value = TRUE))]
+names(LULC_proj_area)[2] <- round(as.numeric(max(LULC_years))/Step_length)*Step_length
+LULC_proj_area[paste(Sim_time_steps)] <- NA
 
 #duplicate table to capture net changes in LULC classes
-LULC_net_change <- LULC_proj_area[,colnames(LULC_proj_area) != "2020"]
+LULC_net_change <- LULC_proj_area[,colnames(LULC_proj_area) != round(as.numeric(max(LULC_years))/Step_length)*Step_length ]
 
-loop_years <- c("2020", paste(Future_time_steps))
+loop_years <- c(round(as.numeric(max(LULC_years))/Step_length)*Step_length, paste(Sim_time_steps))
 
 #outer loop over time steps
-for(i in 1:length(loop_years)){
+for(i in 1:(length(loop_years)-1)){
   calc_year <- loop_years[i+1]
   prev_year <- loop_years[i]
 
@@ -281,28 +301,31 @@ for(i in 1:length(loop_years)){
     } #close LULC class loop
 }
 
+#export LULC_proj_area and LULC_net_change to excel
+
+
 ### =========================================================================
 ### H- Scenario modification of LULC coverage, transition areas and rates
 ### =========================================================================
 
 #Load inputs of scenario specific modifications to LULC class areas in 2060
-Scenario_area_mods <- readxl::read_excel("Tools/Dummy_scenario_trans_modification.xlsx")
+Scenario_area_mods <- readxl::read_excel("Tools/simulation_LULC_areas_2060.xlsx")
 
 #create a list of tables to capture modified LULC areas
 Mod_LULC_areas <- LULC_proj_area
-Mod_LULC_areas[paste(Future_time_steps)] <- NA
+Mod_LULC_areas[paste(Sim_time_steps)] <- NA
 Mod_area_tables <- lapply(Scenario_area_mods$Scenario, function(x) Mod_LULC_areas)
 names(Mod_area_tables) <- unique(Scenario_area_mods$Scenario)
 
 #Create tables to capture modified transition areal increases
 Mod_trans_areas <- Trans_areal_increase
-Mod_trans_areas[paste(Future_time_steps)] <- NA
+Mod_trans_areas[paste(Sim_time_steps)] <- NA
 Mod_trans_area_tables <- lapply(Scenario_area_mods$Scenario, function(x) Mod_trans_areas)
 names(Mod_trans_area_tables) <- unique(Scenario_area_mods$Scenario)
 
 #Create tables to capture modified transition rates
 Mod_trans_rates <- Trans_areal_increase
-Mod_trans_rates[paste(Future_time_steps)] <- NA
+Mod_trans_rates[paste(Sim_time_steps)] <- NA
 Mod_trans_rate_tables <- lapply(Scenario_area_mods$Scenario, function(x) Mod_trans_rates)
 names(Mod_trans_rate_tables) <- unique(Scenario_area_mods$Scenario)
 
@@ -311,14 +334,7 @@ for(i in Scenario_area_mods$Scenario){}
 i <- "BAU"
 
   #Separate scenario % changes
-  Mod_percs <- unlist(Scenario_area_mods[Scenario_area_mods$Scenario == i, colnames(Scenario_area_mods) != "Scenario"])
-  Proj_area_2060 <- LULC_proj_area[, ncol(LULC_proj_area)]
-
-  #multiply with 2060 projected areas from ref scenario
-  #TO DO: make conditional on whether the class is shrinking or gaining
-  #because multiplying a shrinking class that had a percentage increase
-  #according to the scenario should not result in a greater degree of shrinkage
-  gross_cover_2060 <- Proj_area_2060+(Proj_area_2060*Mod_percs)
+  gross_cover_2060 <- unlist(Scenario_area_mods[Scenario_area_mods$Scenario == i, colnames(Scenario_area_mods) != "Scenario"])
 
   #because the qualitiative modification of class areas under the scenarios
   #is not necessarily balanced it can lead to the sum of class areas exceeding
@@ -361,14 +377,27 @@ i <- "BAU"
   #transitions where this is the initial class with the transiton area
   #calculated in the same way above
 
-    #duplicate tables for storing trans_areas for gains and losses
+  #duplicate tables for storing trans_areas for gains and losses
   Trans_gains_calc_year <- Mod_trans_area_tables[[i]]
-  Trans_gains_calc_year[,paste(Future_time_steps)] <- 0
+  Trans_gains_calc_year[,paste(Sim_time_steps)] <- 0
   Trans_losses_calc_year <- Mod_trans_area_tables[[i]]
-  Trans_losses_calc_year[,paste(Future_time_steps)] <- 0
+  Trans_losses_calc_year[,paste(Sim_time_steps)] <- 0
 
+  #Perform nested loop operation to fill scenario table of Mod_trans_area_tables
   #upper loop over time steps
-  for(calc_year in paste(Future_time_steps)){
+  for(calc_year in paste(Sim_time_steps)){
+
+    #At the moment I am simulating gains only by increasing the transitions
+    #to this class and not by decreasing the transitions away from the class
+
+    #Whereas in fact there should be a balance according to the ratio of loss vs. gains
+
+
+    #Similarly the for the shrinking classes I am modifying
+    #increasing the rate of transitions away from them but not by decreasing
+    #the rate to them again this should be balanced
+
+    #This means that both gaining and shrinking classes should have two passes each
 
     #1st inner loop over the gaining lulc classes
     for(gain_class in names(net_change[net_change > 0])){
@@ -394,10 +423,10 @@ i <- "BAU"
     #2nd inner loop over the shrinking lulc classes
     for(loss_class in names(net_change[net_change < 0])){
 
-      #subset trans areal increases to gaining transitions
+      #subset trans areal increases to shrinking transitions
       Loss_trans <- Trans_areal_increase[Trans_areal_increase$Initial_class == loss_class,]
 
-      #inner loop over transitions for gaining class
+      #inner loop over transitions for shrinking class
       for(trans in 1:nrow(Loss_trans)){
 
         #calculate contribution of trans
@@ -406,19 +435,27 @@ i <- "BAU"
         #calculate area of trans as proportion of step_change according to % contribution
         trans_area <- trans_contrib*Step_change[names(Step_change)== loss_class]
 
-        #add to table
-        Trans_losses_calc_year[Trans_losses_calc_year$Trans_name == Loss_trans[trans,"Trans_name"],calc_year] <- trans_area
+        #add to the absolute value to the table
+        Trans_losses_calc_year[Trans_losses_calc_year$Trans_name == Loss_trans[trans,"Trans_name"],calc_year] <- abs(trans_area)
       } #close loop over shrinking trans
 
     } #close loop over shrinking classes
 
-    #subtract losses from gains to get final transition areas
-    Final_trans_areas <- Trans_gains_calc_year[,calc_year]-Trans_losses_calc_year[,calc_year]
+    #Add the gains to the 'losses' (absolute values) to get final transition areas
+    Final_trans_areas <- Trans_gains_calc_year[,calc_year]+Trans_losses_calc_year[,calc_year]
+
+    #At this point there maybe still some classes that have a negative
+    #transition rate in this case we need to do a second pass
+    #and reduce the gaining transitions
 
     #add to table ensuring no negative values
-    Mod_trans_area_tables[[i]][,calc_year] <- sapply(Final_trans_areas, function(A) if(A >= 0){A}else{0})
+    Mod_trans_area_tables[[i]][,calc_year] <- Final_trans_areas
+
+    #Mod_trans_area_tables[[i]][,calc_year] <- sapply(Final_trans_areas, function(A) if(A >= 0){A}else{0})
 
     } #close loop over time steps
+
+
 
     #calculate Modified transition rates by looping over loop_years
     for(calc_year in 2:length(loop_years)){
@@ -432,7 +469,7 @@ i <- "BAU"
       }
     }
 
-#add in the trans rates columns from the historic periods
+#add in the trans rates columns from the historic Data_periods
 #tO DO CHANGE TO BE ALL OF THE TIME STEPS INSTEAD OF THE LULC YEARS
 #SUBSET BY COLUMN NAME BE CAREFUL TO USE PASTE() FOR NUMERICS
 Mod_trans_rate_tables[[i]] <- cbind(Mod_trans_rate_tables[[i]], MS_extrap_trans_rates[,c(LULC_years[!LULC_years == "1985"], "2020")])

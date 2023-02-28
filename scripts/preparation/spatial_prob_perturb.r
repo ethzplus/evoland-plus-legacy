@@ -19,7 +19,7 @@ if(length(new.packs)) install.packages(new.packs)
 # Load required packages
 invisible(lapply(packs, require, character.only = TRUE))
 
-Ref_grid <- raster("Data/Ref_grid.gri")
+Ref_grid <- raster(Ref_grid_path)
 Ref_crs <- crs(Ref_grid)
 
 ### =========================================================================

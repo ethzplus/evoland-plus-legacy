@@ -54,7 +54,7 @@ Scenario_end <- Simulation_table$Scenario_end.real
 Step_length <- Simulation_table$Step_length.real
 
 #Specify base folder for tables of allocation parameters
-Params_folder <- "E:/LULCC_CH/Data/Allocation_parameters"
+Params_folder <- paste(wpath, "/Data/Allocation_parameters")
 
 #specify save location for simulated LULC maps (replace quoted section)
 #folder path based upon Scenario and Simulation ID's

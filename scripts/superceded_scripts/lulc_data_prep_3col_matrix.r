@@ -28,7 +28,7 @@
 # full.names = TRUE, recursive=TRUE), source))
 
 #Load in the grid file we are using for spatial extent and CRS
-Ref_grid <- raster(Ref_grid_path)
+Ref_grid <- raster("Data/Ref_grid.gri")
 
 #Create objects for spatial extents
 prj_95 <- "+init=epsg:2056" ## CH1903+ in which AS data is needed
@@ -38,13 +38,7 @@ prj_95 <- "+init=epsg:2056" ## CH1903+ in which AS data is needed
 ### =========================================================================
 
 # Read in table of Areal Statistik LULC data from all historic period
-
-#possible to read directly from URL but this exhibits strange behaviour
-#sometimes differing number of rows
-#AS_table <- read.csv2(url("https://dam-api.bfs.admin.ch/hub/api/dam/assets/20104753/master"), sep = ";")
-
-#read from file for security
-AS_table <- read.csv2("Data/Historic_LULC/NOAS04_LULC/raw/AREA_NOAS04_72_LATEST.csv", sep = ";")
+AS_table <- read.csv2(url("https://dam-api.bfs.admin.ch/hub/api/dam/assets/20104753/master"), sep = ";")
 
 #splitting into a list of tables for separate periods
 # Keep only columns of coordinates and LULC classes under the 72 categories scheme
@@ -60,7 +54,7 @@ rm(AS_table)
 
 #instantiate small function for raster creation
 create.reproject.save.raster <- function(table_for_period, raster_name){
- sp::coordinates(table_for_period) <- ~E+N
+ coordinates(table_for_period) <- ~E+N
  gridded(table_for_period) <- TRUE
  Raster_for_period <- raster(table_for_period, values= TRUE)
  projection(Raster_for_period) <- prj_95 # define current projection
@@ -91,17 +85,45 @@ NOAS04_periods_rasters <- mapply(create.reproject.save.raster,
 #18 Permanent crops
 #19 Glacier
 
-#Preparing rasters using a 2 col (initial value, new value) matrix
+### Preparing numerical Rasters ###
 
-#load aggregation scheme
-Aggregation_scheme <- read_excel(LULC_aggregation_path)
+#3 possible approaches to re-classifying rasters:
+#Method 1. Using a 3 column (From, to, value) matrix
+#Method 2. Using a 2 col (initial value, new value) matrix
+#Method 3. using seperately specificed vectors of categories and breaks.
 
-#subset to just the ID cols
-Agg_matrix <- as.matrix(Aggregation_scheme[,c("NOAS04_ID", "Aggregated_ID")])
+#1 or 2 are preferable because they can be performed directly on rasters themselves whereas 3 is a tabular operation.
 
+#Method 1. 3 col matrix based re-classification
+# create classification matrix
+reclass_num <- c(0, 14, 10,
+                 14, 18, 11,
+                 18, 19, 10,
+                 19, 28, 11,
+                 28, 36, 10,
+                 36, 40, 18,
+                 40, 41, 15,
+                 41, 45, 17,
+                 45, 49, 16,
+                 49, 53, 13,
+                 53, 56, 12,
+                 56, 57, 13,
+                 57, 60, 12,
+                 60, 63, 11,
+                 63, 65, 14,
+                 65, 71, 11,
+                 71, 72, 19,
+                 72, Inf, NA)
 
-Reclassified_rasters <- lapply(NOAS04_periods_rasters, function(x) reclassify(x, rcl = Agg_matrix))
-names(Reclassified_rasters) <- c("LULC_1985_agg", "LULC_1997_agg", "LULC_2009_agg", "LULC_2018_agg")
+reclass_num_matrix <- matrix(reclass_num,
+                ncol = 3,
+                byrow = TRUE)
+
+#reclassify
+Reclassified_rasters_3col <- lapply(NOAS04_periods_rasters, function(x) reclassify(x, reclass_num_matrix))
+
+#rename
+names(Reclassified_rasters_3col) <- paste0(str_replace_all(names(NOAS04_periods_rasters), "NOAS04", "LULC"), "_agg")
 
 #add raster attribute table (rat)
 LULC_rat <- data.frame(
@@ -112,13 +134,39 @@ LULC_rat <- data.frame(
   "Alp_Past", "Grassland", "Perm_crops", "Glacier")
 )
 
-Reclassified_rasters <- lapply(Reclassified_rasters, function(x) {
+Reclassified_rasters_3col_rat <- lapply(Reclassified_rasters_3col, function(x) {
   raster_with_att <- ratify(x)
   levels(raster_with_att) <- LULC_rat
   return(raster_with_att)})
 
 #save
 mapply(FUN = writeRaster,
-       x = Reclassified_rasters,
-       filename =  paste0("Data/Historic_LULC/", names(Reclassified_rasters) , ".grd"),datatype='INT2U', overwrite=T)
+       x = Reclassified_rasters_3col_rat,
+       filename =  paste0("Data/Historic_LULC/", names(Reclassified_rasters_3col) , ".grd"),datatype='INT2U', overwrite=T)
 
+#Method 2. 2 col matrix based re-classification
+#Aggregation_scheme <- read.csv("Data/LULC/Dry_run_agg_scheme.csv")
+#Reclassified_rasters_2col <- lapply(NOAS04_periods_rasters, function(x) reclassify(x, Aggregation_scheme))
+#names(Reclassified_rasters_2col) <- c("LULC_1985_agg", "LULC_1997_agg", "LULC_2009_agg", "LULC_2018_agg")
+
+#Method 3. approach using categories and breaks
+#Here the categories object links each aggregated LULC class to the fine scale classes through the
+#breaks contained in the cut function below i.e. the first break denoted by the comma selects the NOAS04 classes 1 and 2
+#and turns them into the aggregated category 10 which according to my aggregated classes is: Settlement/Urban/Amenities.
+#Repeats of the aggregated categories in the list are necessary because the fine categories are not necessarily
+#grouped how we would like them to be.
+
+#categories <- c(10,11,10,11,10,18,15,17,16,13,12,13,12,11,14,11,19)
+
+#create seperate data frame for aggregations (requires the .csv file to be read in in section A)
+#Agg_cat <- AS_72
+
+#Assign aggregated classes to each column of historic data
+#Agg_cat$AS85R_72 <- categories[as.numeric(cut(Agg_cat$AS85R_72,
+#                                             breaks =c(0,14,18,19,28,36,40,41,45,49,53,56,57,60,63,65,71,72)))]
+#Agg_cat$AS97R_72 <- categories[as.numeric(cut(Agg_cat$AS97R_72,
+#                                             breaks =c(0,14,18,19,28,36,40,41,45,49,53,56,57,60,63,65,71,72)))]
+#Agg_cat$AS09_72 <- categories[as.numeric(cut(Agg_cat$AS09_72,
+#                                            breaks =c(0,14,18,19,28,36,40,41,45,49,53,56,57,60,63,65,71,72)))]
+
+#Now follow procedure of creating rasters for each period as for NOAS04 rasters above

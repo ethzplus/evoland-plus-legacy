@@ -35,8 +35,13 @@ LULC_classes <- data.frame(label = c("Urban", "Static", "Open_Forest",
                                       "Alp_Past", "Grassland", "Perm_crops", "Glacier"),
                            value = c(10,11,12,13,14,15,16,17,18,19))
 
+#vector directory
+trans_rates_dir <- "Data/Transition_tables/raw_trans_tables"
+dir.create(trans_rates_dir, recursive = TRUE)
+
 #Vector duration of time steps to be used in modelling
-Step_length <- 5
+#Provided from master script
+#Step_length <- 5
 
 ### =========================================================================
 ### B- Calculate historic areal change for LULC classes
@@ -61,8 +66,7 @@ RAT <- LULC_rasters[["1985"]]@data@attributes[[1]]
 LULC_areal_change$LULC_class <- sapply(LULC_areal_change$value, function(x) RAT[RAT$Pixel_value == x,"lulc_name"])
 
 #create workbook to save in
-write.csv(LULC_areal_change, "Data/Transition_tables/raw_trans_tables/LULC_historic_areal_change.csv", row.names = FALSE)
-
+write.csv(LULC_areal_change, paste0(trans_rates_dir,"/LULC_historic_areal_change.csv"), row.names = FALSE)
 
 ### =========================================================================
 ### C- Preparing Transition tables for each calibration period
@@ -84,7 +88,7 @@ write.csv(LULC_areal_change, "Data/Transition_tables/raw_trans_tables/LULC_histo
 #So in preparing tables for each scenarios future time points then we need to stick to this
 
 #The order of the rows in the table is also crucial because the probability maps produced for each transition
-#need to be named accroding to their row number so the value is associated correctly in allocation.
+#need to be named according to their row number so the value is associated correctly in allocation.
 
 #create a list combining the correct LULC years for each transition period
 LULC_change_periods <- c()
@@ -124,7 +128,7 @@ perchange_for_period <- perchange_for_period[!perchange_for_period$Rate == 0,]
 perchange_for_period <- perchange_for_period[order(perchange_for_period$From),]
 
 #save this 'single step' transition table
-write_csv(perchange_for_period, paste0("Data/Transition_tables/raw_trans_tables/Calibration_", period_name, "_singlestep_trans_table.csv"))
+write_csv(perchange_for_period, paste0(trans_rates_dir, "/Calibration_", period_name, "_singlestep_trans_table.csv"))
 
 #Convert to Multistep matrix
 #calculate number of time steps in period
@@ -135,7 +139,7 @@ perchange_for_period_multistep <- perchange_for_period
 perchange_for_period_multistep$Rate <- perchange_for_period_multistep$Rate/Num_steps
 
 #save multi step transition table
-write_csv(perchange_for_period_multistep, paste0("Data/Transition_tables/raw_trans_tables/Calibration_", period_name, "_multistep_trans_table.csv"))
+write_csv(perchange_for_period_multistep, paste0(trans_rates_dir,"/Calibration_", period_name, "_multistep_trans_table.csv"))
 }
 
 #Run function
@@ -151,11 +155,12 @@ Transition_matrices_by_period <- mapply(lulcc.periodictransmatrices, Raster_comb
 ### =========================================================================
 
 #vector inclusion threshold (minimum % of total transitions deemed acceptable for modelling)
-Inclusion_thres <- 0.5
+#Provided from master script
+#Inclusion_thres <- 0.5
 
 #Load single-step net transition tables produced for historic periods
-Calibration_singlestep_tables <- lapply(list.files("Data/Transition_tables/raw_trans_tables", full.names = TRUE, pattern = "singlestep"), read.csv)
-names(Calibration_singlestep_tables) <- str_remove_all(list.files("Data/Transition_tables/raw_trans_tables", full.names = FALSE, pattern = "singlestep"), paste(c("Calibration_", "_singlestep_trans_table.csv"), collapse = "|"))
+Calibration_singlestep_tables <- lapply(list.files(trans_rates_dir, full.names = TRUE, pattern = "singlestep"), read.csv)
+names(Calibration_singlestep_tables) <- str_remove_all(list.files(trans_rates_dir, full.names = FALSE, pattern = "singlestep"), paste(c("Calibration_", "_singlestep_trans_table.csv"), collapse = "|"))
 
 #Add columns to the tables with the LULC class names to make them easier to interpret
 Viable_transitions_by_period_SS <- lapply(Calibration_singlestep_tables, function(x){
@@ -191,8 +196,8 @@ write.csv(Trans_table_time_SS, "Data/Transition_tables/trans_rates_table_calibra
 #Repeat for the multi-step transition matrices
 
 #Load multi-step net transition tables produced for historic periods
-Calibration_multistep_tables <- lapply(list.files("Data/Transition_tables/raw_trans_tables", full.names = TRUE, pattern = "multistep"), read.csv)
-names(Calibration_multistep_tables) <- str_remove_all(list.files("Data/Transition_tables/raw_trans_tables", full.names = FALSE, pattern = "multistep"), paste(c("Calibration_", "_multistep_trans_table.csv"), collapse = "|"))
+Calibration_multistep_tables <- lapply(list.files(trans_rates_dir, full.names = TRUE, pattern = "multistep"), read.csv)
+names(Calibration_multistep_tables) <- str_remove_all(list.files(trans_rates_dir, full.names = FALSE, pattern = "multistep"), paste(c("Calibration_", "_multistep_trans_table.csv"), collapse = "|"))
 
 #Add columns to the tables with the LULC class names to make them easier to interpret
 Viable_transitions_by_period_MS <- lapply(Calibration_multistep_tables, function(x){
@@ -223,7 +228,7 @@ mapply(function(trans_table, table_name){
   trans_table[, c("Trans_ID", "Trans_name", "Initial_class", "Final_class")] <- list(NULL)
 
   #save
-  write_csv(trans_table, file= paste0("Data/Transition_tables/raw_trans_tables/Calibration_", table_name, "_viable_trans.csv"))},
+  write_csv(trans_table, file= paste0(trans_rates_dir,"/Calibration_", table_name, "_viable_trans.csv"))},
          trans_table = Viable_transitions_by_period_MS,
          table_name = names(Viable_transitions_by_period_MS)
   )

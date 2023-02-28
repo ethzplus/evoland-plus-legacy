@@ -114,7 +114,7 @@ return(raster_list)
 #which has the extent, crs and resolution that we want
 #in this case the Ref_grid file used for re-sampling some of the predictors.
 #exemplar raster for comparison
-Exemplar_raster <- raster("Data/Ref_grid.gri")
+Exemplar_raster <- raster(Ref_grid_path)
 
 Raster_comparison_results <- lapply(Rasters_by_periods, function(raster_list)
 lulcc.TestRasterCompatibility(raster_list, Exemplar_raster))

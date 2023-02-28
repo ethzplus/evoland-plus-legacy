@@ -24,7 +24,7 @@
 Pred_table_path <- "Tools/Predictor_table.xlsx"
 
 #Load in the grid to use use for re-projecting the CRS and extent of predictor data
-Ref_grid <- raster("Data/Ref_grid.gri")
+Ref_grid <- raster(Ref_grid_path)
 
 #Fetch simulation start and end times is 2020 and end times
 #from simulation control table

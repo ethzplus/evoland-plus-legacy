@@ -48,57 +48,13 @@ invisible(sapply(list.files("Scripts/Functions",
 
 #Install Dinamica EGO using included installer (Windows)
 #create string for installer
-install_path <- paste0(getwd(), "/Model/SetupDinamicaEGO-720.exe")
-install_path <- gsub("/", "\\\\", install_path) #replace "/" with "\\"
+#install_path <- paste0(getwd(), "/Model/SetupDinamicaEGO-720.exe")
+#install_path <- gsub("/", "\\\\", install_path) #replace "/" with "\\"
 
 #system command
-system2(command = paste(install_path))
-
-# Create a seperate environment for storing output of sourced scripts
-output_env <- new.env()
-
-#TO DO: Document how users should set up the various 'tools' tables that control
-#the creation of transition datasets and the tp models.
-
-#Import model specifications table
-Model_specs_path <- "Tools/model_specs.xlsx"
-model_specs <- read_excel(Model_specs_path)
-output_env$Model_specs_path <- Model_specs_path
-
-#Path to model hyper parameter grids
-Param_grid_path <- "Tools/param-grid.xlsx"
-output_env$Param_grid_path <- Param_grid_path
-
-#Path to predictor table
-Pred_table_path <- "Tools/Predictor_table.xlsx"
-output_env$Pred_table_path <- Pred_table_path
-
-# Vector data periods contained in model specifications table
-Data_periods <- unique(model_specs$Data_period_name)
-
-#attach data period names to env.
-output_env$Data_periods <- Data_periods
-
-#attach string to env. indicating whether regionalized datasets should be produced
-if(any(grep(model_specs$Model_scale,
-        pattern = "regionalized",
-        ignore.case = TRUE)) == TRUE){
-output_env$Regionalization <- TRUE
-} else{
-output_env$Regionalization <- FALSE
-}
+#system2(command = paste(install_path))
 
 #create table for controlling simulations
-Simulation_control_table <- data.frame(matrix(ncol = 9, nrow = 0))
-colnames(Simulation_control_table) <- c("Simulation_num.",
-                                         "Scenario_ID.string",
-                                         "Simulation_ID.string",
-                                         "Model_mode.string",
-                                         "Scenario_start.real",
-                                         "Scenario_end.real",
-                                         "Step_length.real",
-                                         "Parallel_TPC.string",
-                                         "Completed.string")
 
 #User enter scenario names to model
 #vector abbreviations of scenario's for folder/file naming
@@ -116,6 +72,31 @@ Step_length <- 5
 #User enter number of runs to perform for each simulation
 reps <- 2
 
+#Threshold for identifying transitions: This represents the number of transition
+#instances from class X -> Y as a % of the the total area of class X
+#a good value for this threshold is 0.5 such that if the number of cells
+#transitioning <0.5% of the total number of cells of the initial class then the
+#transition is not included. The rationale for this is that the statistical model
+#produced for the transition will be too weak due to high-imbalance
+Inclusion_thres <- 0.5
+
+### =========================================================================
+### Simulation control table prep
+### =========================================================================
+
+Simulation_control_table <- data.frame(matrix(ncol = 9, nrow = 0))
+colnames(Simulation_control_table) <- c("Simulation_num.",
+                                         "Scenario_ID.string",
+                                         "Simulation_ID.string",
+                                         "Model_mode.string",
+                                         "Scenario_start.real",
+                                         "Scenario_end.real",
+                                         "Step_length.real",
+                                         "Parallel_TPC.string",
+                                         "Completed.string")
+
+
+
 #expand vector of scenario names according to number of repetitions and add to table
 Scenario_IDs <- c(sapply(Scenario_names, function(x) rep(x, reps), simplify = TRUE))
 Simulation_control_table[1:length(Scenario_IDs), "Scenario_ID.string"] <- Scenario_IDs
@@ -127,11 +108,53 @@ Simulation_control_table$Scenario_end.real <- if(length(unique(Scenario_end)) ==
 Simulation_control_table$Step_length.real <- Step_length
 Simulation_control_table$Model_mode.string <- "Simulation"
 Simulation_control_table$Simulation_num. <- seq(1, nrow(Simulation_control_table),1)
-Simulation_control_table$Parallel_TPC.string <- "Y"
+Simulation_control_table$Parallel_TPC.string <- "N"
 Simulation_control_table$Completed.string <- "N"
 
 #save the table
-write_csv(Simulation_control_table, "Tools/Simulation_control.csv")
+Sim_control_path <- "Tools/Simulation_control.csv"
+write_csv(Simulation_control_table, Sim_control_path)
+
+### =========================================================================
+### Modelling set-up
+### =========================================================================
+
+#TO DO: Document how users should set up the various 'tools' tables that control
+#the creation of transition datasets and the tp models.
+
+#list objects required for modelling
+Model_tools_objects <- list(LULC_aggregation_path = "Tools/LULC_class_aggregation.xlsx",#Path to LULC class aggregation table
+                          Model_specs_path = "Tools/model_specs.xlsx", #Path to model specifications table
+                          Param_grid_path = "Tools/param-grid.xlsx", #Path to model hyper parameter grids
+                          Pred_table_path = "Tools/Predictor_table.xlsx", #Path to predictor table
+                          Ref_grid_path = "Data/Ref_grid.gri",
+                          Sim_control_path = Sim_control_path, #Path to simulation control table
+                          Step_length= Step_length,
+                          Scenario_names = Scenario_names,
+                          Inclusion_thres = Inclusion_thres) #Path to grid to standardise spatial data
+
+#Import model specifications table
+model_specs <- read_excel(Model_tools_objects$Model_specs_path)
+
+# Vector data periods contained in model specifications table
+Model_tools_objects$Data_periods <- unique(model_specs$Data_period_name)
+
+#attach string to env. indicating whether regionalized datasets should be produced
+if(any(grep(model_specs$Model_scale,
+        pattern = "regionalized",
+        ignore.case = TRUE)) == TRUE){
+Model_tools_objects$Regionalization <- TRUE
+} else{
+Model_tools_objects$Regionalization <- FALSE
+}
+
+# Create a seperate environment for storing output of sourced scripts
+scripting_env <- new.env()
+
+#send objects to global environment
+list2env(Model_tools_objects, .GlobalEnv)
+list2env(Model_tools_objects, scripting_env)
+
 
 #Because the simulations take a long time to complete it can be useful to have R
 #send a message to Slack if the run has been completed successfully
@@ -154,10 +177,10 @@ slackr_setup(channel = '#general',
 ### =========================================================================
 
 #Prepare LULC data layers
-source("Scripts/preparation/LULC_data_prep.R", local = output_env)
+source("Scripts/preparation/LULC_data_prep.R", local = scripting_env)
 
 #Prepare raster of Swiss Bioregions
-source("Scripts/preparation/Region_prep.R", local = output_env)
+source("Scripts/preparation/Region_prep.R", local = scripting_env)
 
 ### =========================================================================
 ### B- Prepare predictor data
@@ -168,25 +191,25 @@ source("Scripts/preparation/Region_prep.R", local = output_env)
 #when data layers are created
 
 #Prepare suitability and accessibility predictors
-source("Scripts/preparation/Calibration_predictor_prep.R", local = output_env)
+source("Scripts/preparation/Calibration_predictor_prep.R", local = scripting_env)
 
 ### =========================================================================
 ### C- Identify LULC transitions and create transition datasets
 ### =========================================================================
 
-source("Scripts/preparation/Transition_identification.R", local = output_env)
+source("Scripts/preparation/Transition_identification.R", local = scripting_env)
 
 ### =========================================================================
 ### D- Create transition datasets
 ### =========================================================================
 
-source("Scripts/preparation/Transition_dataset_prep.R", local = output_env)
+source("Scripts/preparation/Transition_dataset_prep.R", local = scripting_env)
 
 ### =========================================================================
 ### E- Predictor variable selection on LULCC transition datasets
 ### =========================================================================
 
-source("Scripts/preparation/Transition_feature_selection.R", local = output_env)
+source("Scripts/preparation/Transition_feature_selection.R", local = scripting_env)
 
 ### =========================================================================
 ### F- Statistical modelling of LULCC transition datasets
@@ -194,7 +217,7 @@ source("Scripts/preparation/Transition_feature_selection.R", local = output_env)
 
 #TO DO: USER CREATE TABLE OF MODEL SPECIFCATIONS AND PARAM GRID TO BE TESTED
 
-source("Scripts/preparation/Trans_modelling.R", local = output_env)
+source("Scripts/preparation/Trans_modelling.R", local = scripting_env)
 
 ### =========================================================================
 ### G- Summarizing model validation results
@@ -203,7 +226,7 @@ source("Scripts/preparation/Trans_modelling.R", local = output_env)
 #The results comparing the performance of different transition model
 #specifications require manual interpretation as the choice of optimal model
 #must balance numerous aspects: accuracy, overfitting, computation time etc.
-source("Scripts/preparation/Transition_model_evaluation.R", local = output_env)
+source("Scripts/preparation/Transition_model_evaluation.R", local = scripting_env)
 
 #Enter choice of optimal model specifcations
 #Model_type <- "rf"
@@ -219,20 +242,20 @@ lulcc.finalisemodelspecifications(Model_specs_path = Model_specs_path,
 ### H- Re-fitting optimal model specifications on full data
 ### =========================================================================
 
-source("Scripts/preparation/Trans_model_finalization.R", local = output_env)
+source("Scripts/preparation/Trans_model_finalization.R", local = scripting_env)
 
 
 ### =========================================================================
 ### I- Prepare tables of transition rates for scenarios
 ### =========================================================================
 
-source("Scripts/preparation/Scenario_trans_rates_prep.R", local = output_env)
+source("Scripts/preparation/Scenario_trans_rates_prep.R", local = scripting_env)
 
 ### =========================================================================
 ### J- Prepare predictor data for scenarios
 ### =========================================================================
 
-source("Scripts/preparation/Scenario_data_prep.R", local = output_env)
+source("Scripts/preparation/Scenario_data_prep.R", local = scripting_env)
 
 ### =========================================================================
 ### K- Calibrate allocation parameters for Dinamica
@@ -244,7 +267,7 @@ source("Scripts/preparation/Scenario_data_prep.R", local = output_env)
 #3. Identify best performing parameter sets and save copies of tables
 #to be used in scenario simulations
 
-source("Scripts/preparation/Calibrate_allocation_parameters.R", local = output_env)
+source("Scripts/preparation/Calibrate_allocation_parameters.R", local = scripting_env)
 
 ### =========================================================================
 ### L- Run Dinamica simulations over scenarios

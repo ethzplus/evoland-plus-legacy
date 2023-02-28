@@ -29,7 +29,7 @@
 #invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TRUE, recursive = TRUE), source))
 
 #Load in the grid to use use for re-projecting the CRS and extent of predictor data
-Ref_grid <- raster("Data/Ref_grid.gri")
+Ref_grid <- raster(Ref_grid_path)
 
 #vector years of LULC data
 LULC_years <- gsub(".*?([0-9]+).*", "\\1", list.files("Data/Historic_LULC", full.names = FALSE, pattern = ".gri"))

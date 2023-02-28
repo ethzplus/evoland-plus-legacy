@@ -1,2 +1,11 @@
 Simulation_num.,Scenario_ID.string,Simulation_ID.string,Model_mode.string,Scenario_start.real,Scenario_end.real,Step_length.real,Parallel_TPC.string,Completed.string
-1,BAU,v1,Simulation,2020,2060,5,Y,N
+1,BAU,v1,Simulation,2020,2060,5,N,N
+2,BAU,v2,Simulation,2020,2060,5,N,N
+3,EI_NAT,v1,Simulation,2020,2060,5,N,N
+4,EI_NAT,v2,Simulation,2020,2060,5,N,N
+5,EI_CUL,v1,Simulation,2020,2060,5,N,N
+6,EI_CUL,v2,Simulation,2020,2060,5,N,N
+7,EI_SOC,v1,Simulation,2020,2060,5,N,N
+8,EI_SOC,v2,Simulation,2020,2060,5,N,N
+9,GR_EX,v1,Simulation,2020,2060,5,N,N
+10,GR_EX,v2,Simulation,2020,2060,5,N,N
