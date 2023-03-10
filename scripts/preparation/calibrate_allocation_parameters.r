@@ -11,31 +11,27 @@
 ### A- Preparation
 ### =========================================================================
 
-# Install packages if they are not already installed
-packs<-c("data.table", "raster", "tidyverse","SDMtools", "doParallel","sf", "tiff", "igraph", "readr")
-
-new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
-
-if(length(new.packs)) install.packages(new.packs)
-
-#SDMtools is depreciated and needs to be installed from source
-#packageurl <- "https://cran.r-project.org/src/contrib/Archive/SDMTools/SDMTools_1.1-221.2.tar.gz"
-#install.packages(packageurl, repos=NULL, type="source")
-
-# Load required packages
-invisible(lapply(packs, require, character.only = TRUE))
-
-# Source custom functions
+#Packages are loaded in the master script, uncomment here for testing
+# # Install packages if they are not already installed
+# packs<-c("data.table", "raster", "tidyverse","SDMtools", "doParallel","sf",
+#          "tiff", "igraph", "readr")
+#
+# new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
+#
+# if(length(new.packs)) install.packages(new.packs)
+#
+# #SDMtools is depreciated and needs to be installed from source
+# #packageurl <- "https://cran.r-project.org/src/contrib/Archive/SDMTools/SDMTools_1.1-221.2.tar.gz"
+# #install.packages(packageurl, repos=NULL, type="source")
+#
+# # Load required packages
+# invisible(lapply(packs, require, character.only = TRUE))
+#
+# # Source custom functions
 invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TRUE, recursive = TRUE), source))
 
 #vector years of LULC data
-LULC_years <- c("1985", "1997", "2009", "2018")
-
-#Dataframe of LULC labels and values
-LULC_classes <- data.frame(label = c("Urban", "Static", "Open_Forest",
-                                      "Closed_Forest","Shrubland", "Int_AG",
-                                      "Alp_Past", "Grassland", "Perm_crops", "Glacier"),
-                           value = c(10,11,12,13,14,15,16,17,18,19))
+#LULC_years <- gsub(".*?([0-9]+).*", "\\1", list.files("Data/Historic_LULC", full.names = FALSE, pattern = ".gri"))
 
 #Historic LULC data folder path
 LULC_folder <- "Data/Historic_LULC"
@@ -67,7 +63,7 @@ yr1 <- Raster_stack[[grep(Raster_combo[1], names(Raster_stack))]]
 yr2 <- Raster_stack[[grep(Raster_combo[2], names(Raster_stack))]]
 
 #load list of transitions
-transitions <- read.csv(list.files("E:/LULCC_CH/Data/Transition_tables/raw_trans_tables", full.names = TRUE, pattern = paste0(period_name, "_viable_trans")))
+transitions <- read.csv(list.files("Data/Transition_tables/raw_trans_tables", full.names = TRUE, pattern = paste0(period_name, "_viable_trans")))
 
 #set up cluster for parallel computation
 no_cores <- detectCores()-1
@@ -160,7 +156,6 @@ results <- as.data.frame(results)
 #better to save seperate tables for the patch related parameters vs.
 #the % expansion params to eliminate the need to seperate when loading into Dinamica
 
-
 #Adjust col names
 colnames(results) <- c("From*","To*"," Mean_Patch_Size","Patch_Size_Variance","Patch_Isometry", "Perc_expander", "Perc_patcher")
 
@@ -181,9 +176,9 @@ Allocation_params_by_period <- mapply(lulcc.periodicparametercalculation, Raster
 ### =========================================================================
 
 #Whilst we have estimated values of percentage of transitions corresponding to
-#expansion of existing patches vs. occurring in new patches, we don't know how accurate
-#these are so it is desirable to perform calibration by monte-carlo simulation of
-#permutations of these values
+#expansion of existing patches vs. occurring in new patches, we don't know how
+#accurate these are so it is desirable to perform calibration by monte-carlo
+#simulation using random permutations of these values
 
 #IMPORTANT
 #For Dinamica the % expansion values must be expressed as decimals
@@ -203,7 +198,7 @@ colnames(Calibration_control_table) <- c("Simulation_num.",
 
 #reload allocation parameter tables
 Allocation_params_by_period <- lapply(list.files("Data/Allocation_parameters/Calibration/Periodic", full.names = TRUE), read.csv)
-names(Allocation_params_by_period) <- names(LULC_change_periods)
+names(Allocation_params_by_period) <- Data_periods
 
 #reloading also causes r to mess up the column names, readjust
 #Adjust col names
@@ -226,9 +221,14 @@ Step_length <- 5
 Time_steps <- seq(Scenario_start, Scenario_end, Step_length)
 
 #seperate vector of time points into those relevant for each calibration period
-Time_points_by_period <- list("1985_1997" = Time_steps[Time_steps <= 1997],
-             "1997_2009" = Time_steps[Time_steps >= 1997 & Time_steps <= 2009],
-             "2009_2018" = Time_steps[Time_steps >= 2009 & Time_steps <= 2060])
+Time_points_by_period <- lapply(Data_periods, function(period){
+  dates <- as.numeric(str_split(period, "_")[[1]])
+  period_years <- Time_steps[sapply(Time_steps, function(year){
+    if(year > dates[1] & year <= dates[2]){TRUE}else if((Scenario_end-dates[2]) < Step_length)
+      {TRUE}else{FALSE}
+    })]
+})
+names(Time_points_by_period) <- Data_periods
 
 #remove any time periods that are empty
 Time_points_by_period <- Time_points_by_period[lapply(Time_points_by_period,length)>0]
@@ -242,16 +242,17 @@ Allocation_params_by_period <- Allocation_params_by_period[names(Time_points_by_
 #vector base folder for saving allocation param tables
 Base_folder <- "Data/Allocation_parameters/Calibration"
 
-sapply(Time_points_by_period[[1]], function(x){
+#loop over the list of years for each time point saving a copy of the
+#corresponding parameter table foreach one
+sapply(1:length(Time_points_by_period), function(period_indices){
+  sapply(Time_points_by_period[[period_indices]], function(x){
   file_name <- paste0(Base_folder, "/", "v1", "/Allocation_param_table_", x, ".csv")
-  write_csv(Allocation_params_by_period[[1]], file = file_name)
+  write_csv(Allocation_params_by_period[[period_indices]], file = file_name)
+  })
 })
 
 #create a sequence of names for the number of monte-carlo simulations
 mc_sims <- sapply(seq(2, 100,1), function(x) paste0("v", x))
-
-#remove v5-v25 which are already completed
-#mc_sims <- mc_sims[-(4:24)]
 
 #loop over the mc_sim names and perturb the allocation params
 #saving a table for every time point in the calibration period
@@ -275,7 +276,7 @@ checked_val <- if(x > 1){x <- 1}else if(x < 0){0}else{x}
 #recalculate % patcher so that total does not exceed 1 (100%)
 param_table$Perc_patcher <- 1-param_table$Perc_expander
 
-#inner loop over inidvidual time points
+#inner loop over individual time points
 sapply(Time_steps, function(x){
   file_name <- paste0(Base_folder, "/", Sim_name, "/Allocation_param_table_", x, ".csv")
   write_csv(param_table, file = file_name)
@@ -287,7 +288,7 @@ SIMPLIFY = FALSE) #close loop over time periods
 
 }) #close loop over simulation IDs.
 
-#Now add entries for these MC simulations into the simulation control table
+#Now add entries for these MC simulations into the calibration control table
 #add v1 to mc_sims
 mc_sims <- c("v1",mc_sims)
 
@@ -305,7 +306,6 @@ Calibration_control_table$Step_length.real <- Step_length
 Calibration_control_table$Model_mode.string <- "Calibration"
 Calibration_control_table$Parallel_TPC.string <- "Y"
 Calibration_control_table$Completed.string <- "N"
-
 
 #save table
 readr::write_csv(Calibration_control_table, "Tools/Calibration_control.csv")
@@ -332,7 +332,7 @@ Model_text <- str_replace(Model_text, "=====WORK_DIR=====", getwd())
 Model_text <- str_replace(Model_text, "=====TABLE_PATH=====", Control_table_path)
 
 #save a temporary copy of the model.ego file to run
-Temp_model_path <- gsub(".ego", paste0("_calibration_", Sys.Date(), ".ego"), "Model/Dinamica_models/LULCC_CH.ego")
+Temp_model_path <- gsub(".ego", paste0("_calibration_", Sys.time(), ".ego"), "Model/Dinamica_models/LULCC_CH.ego")
 writeLines(Model_text, Temp_model_path)
 
 #Get path for the Dinamica console executable
@@ -343,11 +343,21 @@ DC_path <- gsub("/", "\\\\", DC_path) #replace "/" with "\\"
 
 #vector a path for saving the output text of this simulation
 #run which indicates any errors
-output_path <- paste0("Results/Simulation_notifications/calibration_output_", Sys.Date(), ".txt")
+output_path <- paste0("Results/Simulation_notifications/calibration_output_", Sys.time(), ".txt")
 
+#Dinamica produces it only output 'log' and debug' files which contain the same
+#information but split into chunks, these are automatically saved in the working
+#dir but to avoid clutter we can set an environmental variable to save them elsewhere
+
+#create a temporary dir for storing the Dinamica output files
+#tmpdir <- tempdir()
+#env_dir <- paste0("DINAMICA_EGO_7_LOG_PATH=", tmpdir)
+
+#Use a system command to run the Dinamica model
 system2(command = paste(DC_path),
         args = c("-disable-parallel-steps",
              Temp_model_path),
+       #env = c(env_dir),
        wait = TRUE,
        stdout= output_path,
        stderr = output_path)
@@ -355,6 +365,8 @@ system2(command = paste(DC_path),
 }else{
   print("Some elements required for modelling are not present/incorrect,
         consult the pre-check results object")}
+
+
 
 #Check to see if the output.txt file contains the pattern "ERROR"
 #(case sensitive) which indicates that the system command has failed
@@ -367,6 +379,9 @@ slackr_bot('Modelling completed sucessfully')
 
 #Delete the temporary model file
 unlink(Temp_model_path)
+
+#Delete the temporary dir of Dinamica log/debug files
+unlink(tmpdir)
 }
 
 ### =========================================================================
@@ -390,8 +405,14 @@ Best_sim_ID <- Calibration_results$Sim_ID[Calibration_results$Similarity_score =
 param_table <- read.csv(list.files(paste0(Base_folder, "/", Best_sim_ID), full.names = TRUE, pattern = "2020"))
 colnames(param_table) <- c("From*","To*"," Mean_Patch_Size","Patch_Size_Variance","Patch_Isometry", "Perc_expander", "Perc_patcher")
 
-#expand time points to full simulation range
-sapply(seq(2020, 2060, Step_length), function(x){
+#get simulation start and end times from simulation control table
+Simulation_control <- read.csv(Sim_control_path)
+Simulation_start <- min(Simulation_control$Scenario_start.real)
+Simulation_end <- max(Simulation_control$Scenario_end.real)
+
+
+#loop over simulation time points creating allocation param tables
+sapply(seq(Simulation_start, Simulation_end, Step_length), function(x){
   file_name <- paste0("Data/Allocation_parameters/Simulation/Allocation_param_table_", x, ".csv")
   write_csv(param_table, file = file_name)
 })

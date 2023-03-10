@@ -20,15 +20,15 @@
 # # Load required packages
 # invisible(lapply(packs, require, character.only = TRUE))
 
+#Supplied by master script only uncomment for testing
 #Predictor table file path
-Pred_table_path <- "Tools/Predictor_table.xlsx"
+#Pred_table_path <- "Tools/Predictor_table.xlsx"
 
 #Load in the grid to use use for re-projecting the CRS and extent of predictor data
 Ref_grid <- raster(Ref_grid_path)
 
-#Fetch simulation start and end times is 2020 and end times
-#from simulation control table
-Simulation_control <- read.csv("Tools/Simulation_control.csv")
+#Fetch simulation start and end times from simulation control table
+Simulation_control <- read.csv(Sim_control_path)
 Simulation_start <- Simulation_control$Scenario_start.real
 Simulation_end <- Simulation_control$Scenario_end.real
 Step_length <- Simulation_control$Step_length.real
@@ -40,7 +40,7 @@ Time_steps <- seq(Simulation_start, Simulation_end, Step_length)
 Prepared_layers_dir <- "Data/Preds/Prepared/Layers"
 
 ### =========================================================================
-### A- Future economic scenarios
+### A- Preparing data from future economic scenarios
 ### =========================================================================
 
 #use Zenodo API service to get URLs for file downloads
@@ -273,7 +273,7 @@ for(i in 1:length(Scenario_corr)){
 Future_FTE_file_paths <- list.files(paste0(Prepared_layers_dir, "/Socio_economic/Employment"), full.names = TRUE, pattern = paste(names(Scenario_corr), collapse = "|"))
 
 ### =========================================================================
-### B- future population projections
+### B- Preparing mechanism of future population projections
 ### =========================================================================
 
 #This process does not result in the creation of spatial layers of
@@ -482,7 +482,7 @@ writeData(pop_proj_wb, sheet = new_sheet_name, x = tempdf)
 openxlsx::saveWorkbook(pop_proj_wb, "Data/Preds/Tools/Population_projections.xlsx", overwrite = TRUE)
 
 ### =========================================================================
-### C- future climatic data
+### C- Preparing future climatic data
 ### =========================================================================
 
 #The climatic data for the future time points has been download in the script:
@@ -628,7 +628,7 @@ Dynamic_preds$period <- sapply(1:nrow(Dynamic_preds), function(i){
 Dynamic_preds$Temporal_coverage <- Dynamic_preds$period
 
 ### =========================================================================
-### D- Add static/dynamic variable data to sheets  for future time points
+### E- Add static/dynamic variable data to sheets  for future time points
 ### =========================================================================
 
 #loop over time steps binding static and dynamic preds
@@ -663,7 +663,7 @@ writeData(pred_workbook, sheet = paste(i), x = Combined_vars_for_time_steps[[pas
 openxlsx::saveWorkbook(pred_workbook, Pred_table_path, overwrite = TRUE)
 
 ### =========================================================================
-### E- create predictor variable stack for each scenario/time point
+### F- create predictor variable stack for each scenario/time point
 ### =========================================================================
 
 #To do: implement a check in the loop to make sure there are no duplicate
@@ -705,5 +705,4 @@ sapply(Time_steps, function(sim_year){
     }) #close loop over scenarios
 }) #close loop over time steps
 
-#TO do copy over predictor stacks
 

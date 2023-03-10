@@ -118,6 +118,8 @@ LULC_rasters <- lapply(LULC_years, function(x) {
 #provide vector of active LULC class names
 Active_class_names <- c('Urban', 'Int_AG', 'Alp_Past', 'Grassland', 'Perm_crops')
 
+#Active_class_names <- lulcc.requestfocallulcclasses(LULC_aggregation_path = LULC_aggregation_path)
+
 Nhood_folder_path <- "Data/Preds/Prepared/Layers/Neighbourhood"
 
 #mapply function over the LULC rasters and Data period names

@@ -30,10 +30,9 @@ LULC_folder <- "Data/Historic_LULC"
 LULC_years <- gsub(".*?([0-9]+).*", "\\1", list.files(LULC_folder, full.names = FALSE, pattern = ".gri"))
 
 #Dataframe of LULC labels and values
-LULC_classes <- data.frame(label = c("Urban", "Static", "Open_Forest",
-                                      "Closed_Forest","Shrubland", "Int_AG",
-                                      "Alp_Past", "Grassland", "Perm_crops", "Glacier"),
-                           value = c(10,11,12,13,14,15,16,17,18,19))
+Aggregation_scheme <- read_excel(LULC_aggregation_path)
+LULC_classes <- data.frame(label = unique(Aggregation_scheme$Class_abbreviation))
+LULC_classes$value <- sapply(LULC_classes$label, function(x){unique(Aggregation_scheme[Aggregation_scheme$Class_abbreviation == x, "Aggregated_ID" ])})
 
 #vector directory
 trans_rates_dir <- "Data/Transition_tables/raw_trans_tables"

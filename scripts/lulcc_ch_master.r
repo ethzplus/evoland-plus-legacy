@@ -27,8 +27,8 @@ packs<-c("data.table", "raster", "tidyverse", "SDMTools", "doParallel",
 "sjmisc", "tictoc", "parallel", "terra", "pbapply", "rgdal",
 "rgeos", "bfsMaps", "rjstat", "future.apply", "future", "stringr",
 "stringi", "readxl", "rlist", "rstatix", "openxlsx", "pxR", "zen4R",
-"rvest", "viridis", "sp", "jsonlite", "httr", "xlsx",
-"gdata", "landscapemetrics", "randomForest", "RRF",
+"rvest", "viridis", "sp", "jsonlite", "httr", "xlsx", "callr",
+"gdata", "landscapemetrics", "randomForest", "RRF", "future.callr",
 "ghibli", "ggpattern", "butcher", "ROCR", "ecospat", "caret", "Dinamica",
 "gridExtra", "extrafont", "ggpubr", "ggstatsplot","PMCMRplus", "reshape2",
 "ggsignif", "ggthemes", "ggside", "gridtext", "grid", "slackr", "rstudioapi")
@@ -50,6 +50,15 @@ invisible(sapply(list.files("Scripts/Functions",
 #create string for installer
 #install_path <- paste0(getwd(), "/Model/SetupDinamicaEGO-720.exe")
 #install_path <- gsub("/", "\\\\", install_path) #replace "/" with "\\"
+
+#set environment path for Dinamica log/debug files
+#create a temporary dir for storing the Dinamica output files
+Logdir <- "Model/Dinamica_models/Model_log_files"
+dir.create(Logdir)
+Win_logdir <- paste0(getwd(), "/", Logdir)
+Win_logdir <- gsub('(*/)\\1+', '\\1', Win_logdir) #remove instances of double "/"
+Win_logdir <- gsub("/", "\\\\", Win_logdir) #replace "/" with "\\"
+Sys.setenv(DINAMICA_EGO_7_LOG_PATH = paste(Win_logdir))
 
 #system command
 #system2(command = paste(install_path))
@@ -84,6 +93,9 @@ Inclusion_thres <- 0.5
 ### Simulation control table prep
 ### =========================================================================
 
+#vector save path
+Sim_control_path <- "Tools/Simulation_control.csv"
+
 Simulation_control_table <- data.frame(matrix(ncol = 9, nrow = 0))
 colnames(Simulation_control_table) <- c("Simulation_num.",
                                          "Scenario_ID.string",
@@ -112,7 +124,6 @@ Simulation_control_table$Parallel_TPC.string <- "N"
 Simulation_control_table$Completed.string <- "N"
 
 #save the table
-Sim_control_path <- "Tools/Simulation_control.csv"
 write_csv(Simulation_control_table, Sim_control_path)
 
 ### =========================================================================
@@ -128,6 +139,7 @@ Model_tools_objects <- list(LULC_aggregation_path = "Tools/LULC_class_aggregatio
                           Param_grid_path = "Tools/param-grid.xlsx", #Path to model hyper parameter grids
                           Pred_table_path = "Tools/Predictor_table.xlsx", #Path to predictor table
                           Ref_grid_path = "Data/Ref_grid.gri",
+                          Scenario_specs_path = "Tools/Scenario_specifications.xlsx",
                           Sim_control_path = Sim_control_path, #Path to simulation control table
                           Step_length= Step_length,
                           Scenario_names = Scenario_names,
@@ -169,8 +181,8 @@ list2env(Model_tools_objects, scripting_env)
 #   icon_emoji = 'tada')
 
 #Connect to Slack
-slackr_setup(channel = '#general',
-             incoming_webhook_url = 'https://hooks.slack.com/services/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')
+#slackr_setup(channel = '#general',
+#             incoming_webhook_url = 'https://hooks.slack.com/services/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')
 
 ### =========================================================================
 ### A- Prepare LULC/region data
@@ -249,7 +261,7 @@ source("Scripts/preparation/Trans_model_finalization.R", local = scripting_env)
 ### I- Prepare tables of transition rates for scenarios
 ### =========================================================================
 
-source("Scripts/preparation/Scenario_trans_rates_prep.R", local = scripting_env)
+source("Scripts/preparation/Scenario_trans_tables_prep.R", local = scripting_env)
 
 ### =========================================================================
 ### J- Prepare predictor data for scenarios
@@ -275,7 +287,9 @@ source("Scripts/preparation/Calibrate_allocation_parameters.R", local = scriptin
 
 #Perform pre-check to make sure that all element required for Dinamica modelling
 #are prepared
-Control_table_path <- paste0(getwd(),"/Tools/Calibration_control.csv")
+#Note this path needs to include the working directory because it is used
+#in the windows system command
+Control_table_path <- paste0(getwd(),"/", Sim_control_path)
 Pre_check_result <- lulcc.modelprechecks(Control_table_path)
 
 #TO DO: change model name to simulation

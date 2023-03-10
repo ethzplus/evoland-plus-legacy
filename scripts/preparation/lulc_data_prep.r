@@ -99,17 +99,19 @@ Aggregation_scheme <- read_excel(LULC_aggregation_path)
 #subset to just the ID cols
 Agg_matrix <- as.matrix(Aggregation_scheme[,c("NOAS04_ID", "Aggregated_ID")])
 
-
 Reclassified_rasters <- lapply(NOAS04_periods_rasters, function(x) reclassify(x, rcl = Agg_matrix))
 names(Reclassified_rasters) <- c("LULC_1985_agg", "LULC_1997_agg", "LULC_2009_agg", "LULC_2018_agg")
 
 #add raster attribute table (rat)
+
+LULC_IDs <- unique(Aggregation_scheme$Aggregated_ID)
+names(LULC_IDs) <- sapply(LULC_IDs, function(x){unique(Aggregation_scheme[Aggregation_scheme$Aggregated_ID == x, "Class_abbreviation"])})
+LULC_IDs <- sort(LULC_IDs)
+
 LULC_rat <- data.frame(
-  ID=10:19,
-  Pixel_value= 10:19,
-  lulc_name = c("Urban", "Static", "Open_Forest",
-  "Closed_Forest","Shrubland", "Int_AG",
-  "Alp_Past", "Grassland", "Perm_crops", "Glacier")
+  ID= LULC_IDs,
+  Pixel_value= LULC_IDs,
+  lulc_name = names(LULC_IDs)
 )
 
 Reclassified_rasters <- lapply(Reclassified_rasters, function(x) {

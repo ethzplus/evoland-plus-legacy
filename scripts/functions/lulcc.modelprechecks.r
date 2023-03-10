@@ -301,18 +301,23 @@ if (all(All_models_exist) == FALSE) {
 ###Check 1. ###
 #Use results from the end of feature selection
 #to get a list of unique predictors across all models
-SA_preds <- lapply(list.files("Results/Model_tuning/Covariate_selection/GRRF_embedded_selection", full.names = TRUE), function(x){
+SA_preds <- lapply(list.files("Results/Model_tuning/Predictor_selection/GRRF_embedded_selection", full.names = TRUE, recursive = TRUE), function(x){
 
   #read in results
   Results_object <- readRDS(x)
 
   #extract unique predictors
-  Unique_preds <- unique(Reduce(c, unlist(sapply(Results_object, function(y) y[["var"]]), recursive = FALSE)))
+  Unique_preds <- unique(Results_object[["var"]])
+  #Unique_preds <- unique(Reduce(c, unlist(sapply(Results_object, function(y) y[["var"]]), recursive = FALSE)))
 
   #remove any focal preds because these are only created during prediction
   SA_vars <- grep("nhood", Unique_preds, invert = TRUE, value = TRUE)
 })
-names(SA_preds) <-  names(viable_trans_lists)
+names(SA_preds) <- sapply(list.files("Results/Model_tuning/Predictor_selection/GRRF_embedded_selection", recursive = TRUE), function(x) str_split_i(x, "/",1))
+
+Periodic_SA_preds <- sapply(unique(names(SA_preds)), function(period){
+  unique(unlist(SA_preds[names(SA_preds) == period]))
+})
 
 #loop over sheets of predictor table ensuring that all preds are present
 #for the calibration period sheets (1:3) this needs to be done with the
@@ -320,7 +325,7 @@ names(SA_preds) <-  names(viable_trans_lists)
 #be done with only the from the final period (2009-2018)
 
 #get sheet names of predictor table
-Pred_sheets <- getSheetNames("Data/Preds/Predictor_table.xlsx")
+Pred_sheets <- getSheetNames(Pred_table_path)
 
 #First check that the .xlsx file contains sheets for all of the simulation time steps
 #all time points <2020 are covered by the calibration period so filter these out
@@ -334,42 +339,40 @@ if(length(Missing_sheets) > 0){
                                 Result = Missing_sheets))}
 
 #Loop over calibration periods sheets ensuring that all SA vars are present
-Calibration_preds_in_tables <- unlist(lapply(names(SA_preds), function(Period){
+Calibration_preds_in_tables <- unlist(lapply(names(Periodic_SA_preds), function(Period){
 
   #subset to correct pred set
-  Period_preds <- SA_preds[[Period]]
+  Period_preds <- Periodic_SA_preds[[Period]]
 
   #load predictor table
-  Period_sheet <- openxlsx::read.xlsx("Data/Preds/Predictor_table.xlsx", sheet = grep(Period, Pred_sheets))
+  Period_sheet <- openxlsx::read.xlsx(Pred_table_path, sheet = grep(Period, Pred_sheets))
 
   #test
   output <- Period_preds %in% Period_sheet$Covariate_ID
 }))
 if (all(Calibration_preds_in_tables) == FALSE) {
   Model_pre_checks <- list.append(Model_pre_checks,
-                           list(Message = "Some predictors required for models
-                                in the calibration periods are not contained in
-                                the predictor tables used to produce stacks,
-                                see result for details",
+                           list(Message = "Some predictors required for models in the calibration periods are not contained in the predictor tables used to produce stacks,see result for details",
                                 Result = Calibration_preds_in_tables))}
 
 
 #Seperate names of simulation predictor sheets
-Simulation_sheets <- Pred_sheets[-grep(paste(names(SA_preds), collapse="|"), Pred_sheets)]
+Simulation_sheets <- Pred_sheets[-grep(paste(names(Periodic_SA_preds), collapse="|"), Pred_sheets)]
 
 #Loop over simulation period sheets
-Simulation_preds_in_tables <- unlist(lapply(Simulation_sheets, function(Time_step){
+Simulation_preds_in_tables <- lapply(Simulation_sheets, function(Time_step){
 
   #subset to final period SA preds
-  Period_preds <- SA_preds[[length(SA_preds)]]
+  Period_preds <- Periodic_SA_preds[[length(Periodic_SA_preds)]]
 
   #load predictor table
-  Period_sheet <- openxlsx::read.xlsx("Data/Preds/Predictor_table.xlsx", sheet = Time_step)
+  Period_sheet <- openxlsx::read.xlsx(Pred_table_path, sheet = Time_step)
 
   #test
   output <- Period_preds %in% Period_sheet$Covariate_ID
-}))
-if (all(Simulation_preds_in_tables) == FALSE) {
+})
+
+if (any(unlist(Simulation_preds_in_tables)) == FALSE){
   Model_pre_checks <- list.append(Model_pre_checks,
                            list(Message = "Some predictors required for models
                                 in the simulation time steps are not contained in
@@ -382,24 +385,30 @@ if (all(Simulation_preds_in_tables) == FALSE) {
 Pred_raster_paths <- unique(unlist(sapply(Pred_sheets, function(Sheet){
 
 #load predictor sheet
-Predictor_table <- openxlsx::read.xlsx("Data/Preds/Predictor_table.xlsx", sheet = Sheet)
-Predictor_table$File_name
+Predictor_table <- openxlsx::read.xlsx(Pred_table_path, sheet = Sheet)
+Predictor_table$Prepared_data_path
 }, simplify = TRUE)))
+
 
 #check if they exist
 All_pred_rasters_exist <- sapply(Pred_raster_paths, function(x) file.exists(x))
-if(all(All_pred_rasters_exist == FALSE)) {
+if(any(All_pred_rasters_exist == FALSE)) {
     Model_pre_checks <- list.append(Model_pre_checks,
                            list(Message = "Some of the predictors required are
                                 missing corresponding raster files,
                                 see result for details",
                                 Result = All_pred_rasters_exist))}
 
+
+
 #check that there are no duplicates
 No_duplicate_preds <- sapply(Pred_sheets, function(Sheet){
-#load predictor table
-Predictor_table <- openxlsx::read.xlsx("Data/Preds/Predictor_table.xlsx", sheet = Sheet)
-any(duplicated(Predictor_table$Covariate_ID))
+
+  #load predictor table
+Predictor_table <- openxlsx::read.xlsx(Pred_table_path, sheet = Sheet)
+
+any(duplicated(cbind(Predictor_table$Covariate_ID, Predictor_table$Scenario)))
+
 }, simplify = TRUE)
 if(any(No_duplicate_preds)== TRUE){
       Model_pre_checks <- list.append(Model_pre_checks,

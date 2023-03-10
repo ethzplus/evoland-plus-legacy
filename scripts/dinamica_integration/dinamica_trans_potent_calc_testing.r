@@ -11,12 +11,14 @@
 
 #receive working directory
 wpath <- s3
+#wpath <- getwd()
 setwd(wpath)
 
 #Vector packages for loading
 packs<-c("foreach", "data.table", "raster", "tidyverse",
-         "testthat", "sjmisc", "tictoc", "doParallel",
-         "lulcc", "pbapply", "stringr", "readr", "xlsx", "randomForest", "Dinamica", "future", "future.apply", "parallelly")
+         "testthat", "sjmisc", "tictoc", "doParallel", "callr",
+         "lulcc", "pbapply", "stringr", "readr", "xlsx", "randomForest",
+         "Dinamica", "future", "future.apply", "parallelly", "future.callr", "readxl")
 
 new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
 
@@ -25,8 +27,13 @@ if(length(new.packs)) install.packages(new.packs)
 # Load required packages
 invisible(lapply(packs, require, character.only = TRUE))
 
+LULC_aggregation_path <- "Tools/LULC_class_aggregation.xlsx"#Path to LULC class aggregation table
+Model_specs_path <- "Tools/model_specs.xlsx" #Path to model specifications table
+Pred_table_path <- "Tools/Predictor_table.xlsx" #Path to predictor table
+Ref_grid_path <- "Data/Ref_grid.gri"
+
 #Load in the grid file we are using for spatial extent and CRS
-Ref_grid <- raster("Data/Ref_grid.gri")
+Ref_grid <- raster(Ref_grid_path)
 
 ### =========================================================================
 ### B- Receive information from Dinamica
@@ -41,12 +48,15 @@ Ref_grid <- raster("Data/Ref_grid.gri")
 
 #Receive current simulation time
 Simulation_time_step <- v1
+#Simulation_time_step <- 2020
 
 #simulation number being performed
 Simulation_num <- v2
+#Simulation_num <- 1
 
 #load table of simulations
 Control_table_path <- s1
+#Control_table_path <- Sim_control_path
 Simulation_table <- read.csv(Control_table_path)[Simulation_num,]
 
 #Vector name of Scenario to be tested as string or numeric (i.e. "BAU" etc.)
@@ -60,19 +70,24 @@ Model_mode <- Simulation_table$Model_mode.string
 
 #Receive folder path for loading simulated LULC maps
 File_path_simulated_LULC_maps <- s2
+#File_path_simulated_LULC_maps <- "Results/Dinamica_simulated_LULC/BAU/V1/simulated_LULC_scenario_BAU_simID_v1_year_"
 
 #Use parallel processing for transition potential calculation
 Use_parallel <- Simulation_table$Parallel_TPC.string
+#Use_parallel <- "Y"
 
-#Convert model mode into a string related to the model period being used
+#Convert model mode into a string of the dates calibration period being used
 #this makes it easier to load files because they use this nomenclature
 
-Period_tag <- if(grepl("calibration", Model_mode, ignore.case = TRUE)&
-                 Simulation_time_step <= 1997
-                 ){"1985_1997"}else if (grepl("calibration", Model_mode, ignore.case = TRUE)&
-                 Simulation_time_step >= 1997 &
-                 Simulation_time_step <= 2009
-                 ){"1997_2009"}else{"2009_2018"}
+Calibration_periods <- unique(readxl::read_excel(Model_specs_path)[["Data_period_name"]])
+
+Period_tag <- if(grepl("calibration", Model_mode, ignore.case = TRUE)){
+  Period_log <- lapply(Calibration_periods, function(period){
+  dates <- as.numeric(str_split(period, "_")[[1]])
+   if(Simulation_time_step > dates[1] & Simulation_time_step <= dates[2]){TRUE}else{FALSE}
+  })
+  Period_log[Period_log== TRUE]
+  }else{Calibration_periods[length(Calibration_periods)]}
 #The last clause covers when calibration is occuring between 2009 and 2018
 #and when the model is in simulation mode
 
@@ -90,11 +105,10 @@ current_LULC_path <- paste0(File_path_simulated_LULC_maps, Simulation_time_step,
 #load current LULC map
 Current_LULC <- raster(current_LULC_path)
 
-#vector LULC labels
-LULC_labels <- c("Urban", "Static", "Open_Forest",
-                                      "Closed_Forest","Shrubland", "Int_AG",
-                                      "Alp_Past", "Grassland", "Perm_crops", "Glacier")
-names(LULC_labels) <- c(10,11,12,13,14,15,16,17,18,19)
+#load aggregation scheme
+Aggregation_scheme <- read_excel(LULC_aggregation_path)
+LULC_labels <- unique(Aggregation_scheme$Class_abbreviation)
+names(LULC_labels) <- sapply(LULC_labels, function(x){unique(Aggregation_scheme[Aggregation_scheme$Class_abbreviation == x, "Aggregated_ID" ])})
 
 #vector LULC values that are present in the current map and get the class names
 #(in case not all classes are present anymore during simulation)
@@ -139,7 +153,7 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)){
 Urban_rast <- Current_LULC == 10
 
 #load canton shapefile
-Canton_shp <- shapefile("PopulationModel_Valpar/Data/01_Raw_Data/swissboundaries/swissboundaries3d_2021-07_2056_5728.shp/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.shp")
+Canton_shp <- shapefile("Data/Preds/Raw/CH_geoms/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.shp")
 
 #Zonal stats to get urban area per kanton
 Canton_urban_areas <- raster::extract(Urban_rast, Canton_shp, fun=sum, na.rm=TRUE, df=TRUE)
@@ -150,10 +164,10 @@ Canton_urban_areas$Canton_num <- Canton_shp$KANTONSNUM
 #combine areas for cantons with multiple polygons
 Canton_urban_areas <- Canton_urban_areas %>%
   group_by(Canton_num) %>%
-  summarise(across(c(layer), sum))
+  dplyr::summarise(across(c(layer), sum))
 
 #load the municipality shape file
-Muni_shp <- shapefile("PopulationModel_Valpar/Data/01_Raw_Data/swissboundaries/swissboundaries3d_2021-07_2056_5728.shp/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.shp")
+Muni_shp <- shapefile("Data/Preds/Raw/CH_geoms/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.shp")
 
 #filter out non-swiss municipalities
 Muni_shp <- Muni_shp[Muni_shp@data$ICC == "CH" & Muni_shp@data$OBJEKTART == "Gemeindegebiet", ]
@@ -303,7 +317,7 @@ rm(Focal_matrices, Focal_layer, Focal_name, Required_focals_details,
 ### =========================================================================
 
 #Stack all rasters
-#For calibration mode (matching on Period_tag)
+#For calibration mode
 if (grepl("calibration", Model_mode, ignore.case = TRUE)){
 Trans_data_stack <- stack(LULC_data, SA_pred_stack)
 names(Trans_data_stack) <- c(names(LULC_data), names(SA_pred_stack@layers))
@@ -334,11 +348,19 @@ xy_coordinates <- coordinates(Trans_data_stack)
 Trans_dataset <- cbind(Trans_dataset, xy_coordinates)
 
 #release memory
-rm(LULC_data, SA_pred_stack, Nhood_rasters, Trans_data_stack, obs, xy_coordinates)
+rm(LULC_data, SA_pred_stack, Nhood_rasters, Trans_data_stack, xy_coordinates)
 
 ### =========================================================================
 ### G- Run transition potential prediction with RF for each transition
 ### =========================================================================
+
+#saveRDS(Trans_dataset, "Data/Spat_prob_perturb_layers/EXP_trans_dataset.rds")
+#Trans_dataset <- readRDS("Data/Spat_prob_perturb_layers/EXP_trans_dataset.rds")
+
+#subsetting data indices for glacial modelling
+#data_indices <- Trans_dataset[,c("ID", "x", "y")]
+#write.csv(data_indices, "Data/Data_indices_full.csv", row.names = FALSE)
+#write.table(data_indices, "Data/Data_indices_full.txt", row.names = FALSE)
 
 #load model look up
 Model_lookup <- xlsx::read.xlsx("Tools/Model_lookup.xlsx", sheetName = Period_tag)
@@ -354,6 +376,12 @@ Trans_dataset_na <- Trans_dataset_na[, c("x", "y", "ID")]
 
 rm(Trans_dataset)
 
+#saveRDS(Trans_dataset_na, "Data/Spat_prob_perturb_layers/EXP_trans_dataset_NA_values.rds")
+# Data_indices_nonNA <- Trans_dataset_complete[, c("ID", "x", "y")]
+#write.csv(Data_indices_nonNA, "Data/Data_indices_nonNA.csv", row.names = FALSE)
+#write.table(Data_indices_nonNA, "Data/Data_indices_nonNA.txt", row.names = FALSE)
+# writeRaster(Ref_grid, "Data/Ref_grid.tif")
+
 #seperate ID, x/y and Initial_LULC cols to append results to
 Prediction_probs <- Trans_dataset_complete[, c("ID", "x", "y", unique(Model_lookup$Initial_LULC), "Static")]
 
@@ -365,8 +393,10 @@ Trans_dataset_na[[paste0("Prob_", i)]] <- NA
 }
 
 if(Use_parallel == "Y"){
+
+Par_start_time <- Sys.time()
 #set up cluster for parallel computation
-future::plan(multisession(workers = availableCores()-2))
+plan(future.callr::callr, workers=availableCores(omit = 2))
 
 size = 5000*1024^2
 options(future.globals.maxSize= size)
@@ -376,7 +406,7 @@ results <- future.apply::future_lapply(1:nrow(Model_lookup),
                                        future.packages = packs,
                                        function(i){
 
-gc()
+#gc()
 
 #vector trans_name
 Trans_name <- Model_lookup[i, "Trans_name"]
@@ -399,7 +429,7 @@ names(prob_predicts)[[2]] <- paste0("Prob_", Final_LULC)
 #bind to ID
 predict_ID <- cbind(ID = pred_data[, c("ID")], prob_predicts[paste0("Prob_", Final_LULC)])
 
-gc()
+#gc()
 #return the prediction results to be bound together
 return(predict_ID)
 }) #close loop over Models
@@ -415,11 +445,13 @@ LULC_col_name <- colnames(i)[2]
 #Append prediction results
 Prediction_probs[which(Prediction_probs$ID %in% i[["ID"]]), LULC_col_name] <- i[[LULC_col_name]]
 }
+Par_end_time <- Sys.time()
+Par_time <- Par_end_time - Par_start_time  # Parallel time = 1.472859 mins
 
 }else if (Use_parallel == "N"){ #close parallel TPC chunk
 
 #Non_parallel TPC calculation:
-
+Non_par_start <- Sys.time()
 #loop over transitions
 for(i in 1:nrow(Model_lookup)){
 
@@ -450,7 +482,9 @@ predict_ID <- cbind(ID = pred_data[, c("ID")], prob_predicts[paste0("Prob_", Fin
 #append the predictions at the correct rows in the results df
 Prediction_probs[which(Prediction_probs$ID %in% predict_ID$ID), paste0("Prob_", Final_LULC)] <- predict_ID[paste0("Prob_", Final_LULC)]
 } #close loop over Models
-} #Close non-parallel TPC chunk
+Non_par_end <- Sys.time()
+Non_par_time <- Non_par_end - Non_par_start #sequential time = 2.937131 mins
+  } #Close non-parallel TPC chunk
 
 ### =========================================================================
 ### G- Re-scale predictions
@@ -474,12 +508,16 @@ return(value)
 })
 })))
 
+#saveRDS(Prediction_probs, "Data/Spat_prob_perturb_layers/EXP_pred_probs_rescaled.rds")
+
 #bind with background values
 Trans_dataset_na[setdiff(names(Prediction_probs), names(Trans_dataset_na))] <- NA
 Raster_prob_values <- rbind(Prediction_probs, Trans_dataset_na)
 
 #sort by ID
 Raster_prob_values[order(Raster_prob_values$ID),]
+
+#saveRDS(Raster_prob_values, "Data/Spat_prob_perturb_layers/EXP_raster_prob_values.rds")
 
 ### =========================================================================
 ### H- Spatially adjust transition probabilities
@@ -512,7 +550,6 @@ prob_map_path <- paste0(prob_map_folder, "/", Trans_ID, "_probability_", Initial
 
 writeRaster(Prob_raster, prob_map_path, overwrite=T)
 } #close loop over transitions
-
 
 #Return the probability map folder path as a string to
 #Dinamica to indicate completion

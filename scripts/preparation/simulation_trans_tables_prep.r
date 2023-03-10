@@ -18,12 +18,6 @@
 # # Load required packages
 # invisible(lapply(packs, require, character.only = TRUE))
 
-#Dataframe of LULC labels and values
-LULC_classes <- data.frame(label = c("Urban", "Static", "Open_Forest",
-                                      "Closed_Forest","Shrubland", "Int_AG",
-                                      "Alp_Past", "Grassland", "Perm_crops", "Glacier"),
-                           value = c(10,11,12,13,14,15,16,17,18,19))
-
 LULC_years <- gsub(".*?([0-9]+).*", "\\1", list.files("Data/Historic_LULC", full.names = FALSE, pattern = ".gri"))
 
 #Vector time Data_periods for calibration
