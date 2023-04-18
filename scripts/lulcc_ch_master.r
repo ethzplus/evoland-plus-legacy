@@ -51,17 +51,17 @@ invisible(sapply(list.files("Scripts/Functions",
 #install_path <- paste0(getwd(), "/Model/SetupDinamicaEGO-720.exe")
 #install_path <- gsub("/", "\\\\", install_path) #replace "/" with "\\"
 
-#set environment path for Dinamica log/debug files
-#create a temporary dir for storing the Dinamica output files
-Logdir <- "Model/Dinamica_models/Model_log_files"
-dir.create(Logdir)
-Win_logdir <- paste0(getwd(), "/", Logdir)
-Win_logdir <- gsub('(*/)\\1+', '\\1', Win_logdir) #remove instances of double "/"
-Win_logdir <- gsub("/", "\\\\", Win_logdir) #replace "/" with "\\"
-Sys.setenv(DINAMICA_EGO_7_LOG_PATH = paste(Win_logdir))
-
 #system command
 #system2(command = paste(install_path))
+
+#set environment path for Dinamica log/debug files
+#create a temporary dir for storing the Dinamica output files
+# Logdir <- "Model/Dinamica_models/Model_log_files"
+# dir.create(Logdir)
+# Win_logdir <- paste0(getwd(), "/", Logdir)
+# Win_logdir <- gsub('(*/)\\1+', '\\1', Win_logdir) #remove instances of double "/"
+# Win_logdir <- gsub("/", "\\\\", Win_logdir) #replace "/" with "\\"
+# Sys.setenv(DINAMICA_EGO_7_LOG_PATH = paste(Win_logdir))
 
 #create table for controlling simulations
 
@@ -79,7 +79,7 @@ Scenario_end <- 2060
 Step_length <- 5
 
 #User enter number of runs to perform for each simulation
-reps <- 2
+reps <- 1
 
 #Threshold for identifying transitions: This represents the number of transition
 #instances from class X -> Y as a % of the the total area of class X
@@ -96,35 +96,35 @@ Inclusion_thres <- 0.5
 #vector save path
 Sim_control_path <- "Tools/Simulation_control.csv"
 
-Simulation_control_table <- data.frame(matrix(ncol = 9, nrow = 0))
-colnames(Simulation_control_table) <- c("Simulation_num.",
-                                         "Scenario_ID.string",
-                                         "Simulation_ID.string",
-                                         "Model_mode.string",
-                                         "Scenario_start.real",
-                                         "Scenario_end.real",
-                                         "Step_length.real",
-                                         "Parallel_TPC.string",
-                                         "Completed.string")
-
-
-
-#expand vector of scenario names according to number of repetitions and add to table
-Scenario_IDs <- c(sapply(Scenario_names, function(x) rep(x, reps), simplify = TRUE))
-Simulation_control_table[1:length(Scenario_IDs), "Scenario_ID.string"] <- Scenario_IDs
-
-#fill other columns
-Simulation_control_table$Simulation_ID.string <- rep(paste0("v", seq(1, reps, 1)), length(Scenario_names))
-Simulation_control_table$Scenario_start.real <- if(length(unique(Scenario_start)) == 1){Scenario_start} else {c(rep(Scenario_start, length(Scenario_names)))}
-Simulation_control_table$Scenario_end.real <- if(length(unique(Scenario_end)) == 1){Scenario_end} else {c(rep(Scenario_end, length(Scenario_names)))}
-Simulation_control_table$Step_length.real <- Step_length
-Simulation_control_table$Model_mode.string <- "Simulation"
-Simulation_control_table$Simulation_num. <- seq(1, nrow(Simulation_control_table),1)
-Simulation_control_table$Parallel_TPC.string <- "N"
-Simulation_control_table$Completed.string <- "N"
-
-#save the table
-write_csv(Simulation_control_table, Sim_control_path)
+# Simulation_control_table <- data.frame(matrix(ncol = 10, nrow = 0))
+# colnames(Simulation_control_table) <- c("Simulation_num.",
+#                                          "Scenario_ID.string",
+#                                          "Simulation_ID.string",
+#                                          "Model_mode.string",
+#                                          "Scenario_start.real",
+#                                          "Scenario_end.real",
+#                                          "Step_length.real",
+#                                          "Parallel_TPC.string",
+#                                          "Spatial_interventions.string",
+#                                          "Completed.string")
+#
+# #expand vector of scenario names according to number of repetitions and add to table
+# Scenario_IDs <- c(sapply(Scenario_names, function(x) rep(x, reps), simplify = TRUE))
+# Simulation_control_table[1:length(Scenario_IDs), "Scenario_ID.string"] <- Scenario_IDs
+#
+# #fill other columns
+# Simulation_control_table$Simulation_ID.string <- rep(paste0("v", seq(1, reps, 1)), length(Scenario_names))
+# Simulation_control_table$Scenario_start.real <- if(length(unique(Scenario_start)) == 1){Scenario_start} else {c(rep(Scenario_start, length(Scenario_names)))}
+# Simulation_control_table$Scenario_end.real <- if(length(unique(Scenario_end)) == 1){Scenario_end} else {c(rep(Scenario_end, length(Scenario_names)))}
+# Simulation_control_table$Step_length.real <- Step_length
+# Simulation_control_table$Model_mode.string <- "Simulation"
+# Simulation_control_table$Simulation_num. <- seq(1, nrow(Simulation_control_table),1)
+# Simulation_control_table$Parallel_TPC.string <- "N"
+# Simulation_control_table$Spatial_interventions.string <- "Y"
+# Simulation_control_table$Completed.string <- "N"
+#
+# #save the table
+# write_csv(Simulation_control_table, Sim_control_path)
 
 ### =========================================================================
 ### Modelling set-up
@@ -134,39 +134,43 @@ write_csv(Simulation_control_table, Sim_control_path)
 #the creation of transition datasets and the tp models.
 
 #list objects required for modelling
-Model_tools_objects <- list(LULC_aggregation_path = "Tools/LULC_class_aggregation.xlsx",#Path to LULC class aggregation table
+Model_tool_vars <- list(LULC_aggregation_path = "Tools/LULC_class_aggregation.xlsx",#Path to LULC class aggregation table
                           Model_specs_path = "Tools/model_specs.xlsx", #Path to model specifications table
                           Param_grid_path = "Tools/param-grid.xlsx", #Path to model hyper parameter grids
                           Pred_table_path = "Tools/Predictor_table.xlsx", #Path to predictor table
                           Ref_grid_path = "Data/Ref_grid.gri",
                           Scenario_specs_path = "Tools/Scenario_specifications.xlsx",
+                          Calibration_param_dir = "Data/Allocation_parameters/Calibration",
+                          Simulation_param_dir= "Data/Allocation_parameters/Simulation",
                           Sim_control_path = Sim_control_path, #Path to simulation control table
                           Step_length= Step_length,
                           Scenario_names = Scenario_names,
                           Inclusion_thres = Inclusion_thres) #Path to grid to standardise spatial data
 
 #Import model specifications table
-model_specs <- read_excel(Model_tools_objects$Model_specs_path)
+model_specs <- read_excel(Model_tool_vars$Model_specs_path)
 
 # Vector data periods contained in model specifications table
-Model_tools_objects$Data_periods <- unique(model_specs$Data_period_name)
+Model_tool_vars$Data_periods <- unique(model_specs$Data_period_name)
 
 #attach string to env. indicating whether regionalized datasets should be produced
 if(any(grep(model_specs$Model_scale,
         pattern = "regionalized",
         ignore.case = TRUE)) == TRUE){
-Model_tools_objects$Regionalization <- TRUE
+Model_tool_vars$Regionalization <- TRUE
 } else{
-Model_tools_objects$Regionalization <- FALSE
+Model_tool_vars$Regionalization <- FALSE
 }
 
-# Create a seperate environment for storing output of sourced scripts
+#save the list of model tools to be used during simulations
+#saveRDS(Model_tool_vars, "Tools/Model_tool_vars.rds")
+
+#Create a seperate environment for storing output of sourced scripts
 scripting_env <- new.env()
 
 #send objects to global environment
-list2env(Model_tools_objects, .GlobalEnv)
-list2env(Model_tools_objects, scripting_env)
-
+list2env(Model_tool_vars, .GlobalEnv)
+list2env(Model_tool_vars, scripting_env)
 
 #Because the simulations take a long time to complete it can be useful to have R
 #send a message to Slack if the run has been completed successfully
@@ -282,7 +286,13 @@ source("Scripts/preparation/Scenario_data_prep.R", local = scripting_env)
 source("Scripts/preparation/Calibrate_allocation_parameters.R", local = scripting_env)
 
 ### =========================================================================
-### L- Run Dinamica simulations over scenarios
+### L- Prepare scenario specific spatial interventions
+### =========================================================================
+
+source("Scripts/preparation/Spatial_interventions_prep.R", local = scripting_env)
+
+### =========================================================================
+### M- Run Dinamica simulations over scenarios
 ### =========================================================================
 
 #Perform pre-check to make sure that all element required for Dinamica modelling
@@ -330,14 +340,15 @@ system2(command = paste(DC_path),
   print("Some elements required for modelling are not present/incorrect,
         consult the pre-check results object")}
 
+
 #Check to see if the output.txt file contains the pattern "ERROR"
 #(case sensitive) which indicates that the system command has failed
 #If TRUE then send a message through Slack
 if(grepl("ERROR", paste(readLines(output_path), collapse = "|"), ignore.case = FALSE) == TRUE){
-slackr_bot('Simulation has stopped because of error')
+#slackr_bot('Simulation has stopped because of error')
 }else{
 #Send completion message
-slackr_bot('Simulation completed sucessfully')
+#slackr_bot('Simulation completed sucessfully')
 
 #Delete the temporary model file
 unlink(Temp_model_path)

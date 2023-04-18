@@ -31,7 +31,7 @@
 invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TRUE, recursive = TRUE), source))
 
 #vector years of LULC data
-#LULC_years <- gsub(".*?([0-9]+).*", "\\1", list.files("Data/Historic_LULC", full.names = FALSE, pattern = ".gri"))
+LULC_years <- gsub(".*?([0-9]+).*", "\\1", list.files("Data/Historic_LULC", full.names = FALSE, pattern = ".gri"))
 
 #Historic LULC data folder path
 LULC_folder <- "Data/Historic_LULC"
@@ -239,14 +239,11 @@ Allocation_params_by_period <- Allocation_params_by_period[names(Time_points_by_
 #create seperate files of the estimated allocation parameters for each time point
 #under the ID: v1
 
-#vector base folder for saving allocation param tables
-Base_folder <- "Data/Allocation_parameters/Calibration"
-
 #loop over the list of years for each time point saving a copy of the
 #corresponding parameter table foreach one
 sapply(1:length(Time_points_by_period), function(period_indices){
   sapply(Time_points_by_period[[period_indices]], function(x){
-  file_name <- paste0(Base_folder, "/", "v1", "/Allocation_param_table_", x, ".csv")
+  file_name <- paste0(Calibration_param_dir, "/", "v1", "/Allocation_param_table_", x, ".csv")
   write_csv(Allocation_params_by_period[[period_indices]], file = file_name)
   })
 })
@@ -259,10 +256,10 @@ mc_sims <- sapply(seq(2, 100,1), function(x) paste0("v", x))
 sapply(mc_sims, function(Sim_name){
 
 #inner loop over time periods and parameter tables
-mapply(function(Time_steps, Base_folder, param_table){
+mapply(function(Time_steps, Calibration_param_dir, param_table){
 
 #create folder for saving param tables for MC sim name
-dir.create(paste0(Base_folder, "/", Sim_name), recursive = TRUE)
+dir.create(paste0(Calibration_param_dir, "/", Sim_name), recursive = TRUE)
 
 #random perturbation of % expander
 #(increase of decrease value by random amount in normal distribution with mean = 0 and sd = 0.05 effectively 5% bounding)
@@ -278,11 +275,11 @@ param_table$Perc_patcher <- 1-param_table$Perc_expander
 
 #inner loop over individual time points
 sapply(Time_steps, function(x){
-  file_name <- paste0(Base_folder, "/", Sim_name, "/Allocation_param_table_", x, ".csv")
+  file_name <- paste0(Calibration_param_dir, "/", Sim_name, "/Allocation_param_table_", x, ".csv")
   write_csv(param_table, file = file_name)
 }) #close loop over time points
   }, Time_steps = Time_points_by_period,
-     Base_folder = Base_folder,
+     Calibration_param_dir = Calibration_param_dir,
      param_table = Allocation_params_by_period,
 SIMPLIFY = FALSE) #close loop over time periods
 
@@ -304,7 +301,7 @@ Calibration_control_table$Scenario_start.real <- Scenario_start
 Calibration_control_table$Scenario_end.real <- Scenario_end
 Calibration_control_table$Step_length.real <- Step_length
 Calibration_control_table$Model_mode.string <- "Calibration"
-Calibration_control_table$Parallel_TPC.string <- "Y"
+Calibration_control_table$Parallel_TPC.string <- "N"
 Calibration_control_table$Completed.string <- "N"
 
 #save table
@@ -332,7 +329,7 @@ Model_text <- str_replace(Model_text, "=====WORK_DIR=====", getwd())
 Model_text <- str_replace(Model_text, "=====TABLE_PATH=====", Control_table_path)
 
 #save a temporary copy of the model.ego file to run
-Temp_model_path <- gsub(".ego", paste0("_calibration_", Sys.time(), ".ego"), "Model/Dinamica_models/LULCC_CH.ego")
+Temp_model_path <- gsub(".ego", paste0("_calibration_", Sys.Date(), ".ego"), "Model/Dinamica_models/LULCC_CH.ego")
 writeLines(Model_text, Temp_model_path)
 
 #Get path for the Dinamica console executable
@@ -343,7 +340,7 @@ DC_path <- gsub("/", "\\\\", DC_path) #replace "/" with "\\"
 
 #vector a path for saving the output text of this simulation
 #run which indicates any errors
-output_path <- paste0("Results/Simulation_notifications/calibration_output_", Sys.time(), ".txt")
+output_path <- paste0("Results/Simulation_notifications/calibration_output_", Sys.Date(), ".txt")
 
 #Dinamica produces it only output 'log' and debug' files which contain the same
 #information but split into chunks, these are automatically saved in the working
@@ -365,8 +362,6 @@ system2(command = paste(DC_path),
 }else{
   print("Some elements required for modelling are not present/incorrect,
         consult the pre-check results object")}
-
-
 
 #Check to see if the output.txt file contains the pattern "ERROR"
 #(case sensitive) which indicates that the system command has failed
@@ -402,17 +397,24 @@ Best_sim_ID <- Calibration_results$Sim_ID[Calibration_results$Similarity_score =
 #in the Simulation folder
 
 #get exemplar table
-param_table <- read.csv(list.files(paste0(Base_folder, "/", Best_sim_ID), full.names = TRUE, pattern = "2020"))
+param_table <- read.csv(list.files(paste0(Calibration_param_dir, "/", Best_sim_ID), full.names = TRUE, pattern = "2020"))
 colnames(param_table) <- c("From*","To*"," Mean_Patch_Size","Patch_Size_Variance","Patch_Isometry", "Perc_expander", "Perc_patcher")
 
 #get simulation start and end times from simulation control table
 Simulation_control <- read.csv(Sim_control_path)
 Simulation_start <- min(Simulation_control$Scenario_start.real)
 Simulation_end <- max(Simulation_control$Scenario_end.real)
+Scenario_IDs <- unique(Simulation_control$Scenario_ID.string)
 
-
-#loop over simulation time points creating allocation param tables
+#loop over scenario IDs and simulation time points creating allocation param tables
+sapply(Scenario_IDs, function(y){
 sapply(seq(Simulation_start, Simulation_end, Step_length), function(x){
-  file_name <- paste0("Data/Allocation_parameters/Simulation/Allocation_param_table_", x, ".csv")
+  save_dir <- paste0(Simulation_param_dir, "/", y)
+  dir.create(save_dir, recursive = TRUE)
+  file_name <- paste0(save_dir, "/Allocation_param_table_", x, ".csv")
   write_csv(param_table, file = file_name)
 })
+})
+
+
+

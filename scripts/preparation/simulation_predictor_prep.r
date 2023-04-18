@@ -29,9 +29,9 @@ Ref_grid <- raster(Ref_grid_path)
 
 #Fetch simulation start and end times from simulation control table
 Simulation_control <- read.csv(Sim_control_path)
-Simulation_start <- Simulation_control$Scenario_start.real
-Simulation_end <- Simulation_control$Scenario_end.real
-Step_length <- Simulation_control$Step_length.real
+Simulation_start <- min(Simulation_control$Scenario_start.real)
+Simulation_end <- max(Simulation_control$Scenario_end.real)
+Step_length <- unique(Simulation_control$Step_length.real)
 
 #vector time steps for future predictions
 Time_steps <- seq(Simulation_start, Simulation_end, Step_length)
@@ -284,7 +284,9 @@ Future_FTE_file_paths <- list.files(paste0(Prepared_layers_dir, "/Socio_economic
 #with population values then being distributed according the correct projection
 #under the scenario being simulated.
 
-### B.1- Prepare historic cantonal population data
+#------------------------------------------------------------------------------
+#B.1- Prepare historic cantonal population data
+#------------------------------------------------------------------------------
 
 #reload historic muni pop data produced in historic predictor prep
 raw_mun_popdata <- readRDS("Data/Preds/Raw/Socio_economic/Population/raw_muni_pop_historic.rds")
@@ -326,7 +328,10 @@ unique(Canton_shp@data[Canton_shp@data$NAME == x, "KANTONSNUM"])
 #get the indices of columns that represent the years
 date_cols <- na.omit(as.numeric(gsub(".*?([0-9]+).*", "\\1", colnames(raw_can_popdata))))
 
-### B.2- Calculate % cantonal population per municipality
+#-------------------------------------------------------------------------------
+# B.2- Calculate % cantonal population per municipality
+#-------------------------------------------------------------------------------
+
 pop_percentages <- do.call(cbind, sapply(date_cols, function(year){
 
 #loop over canton numbers
@@ -354,7 +359,9 @@ return(muni_percs)
 pop_percentages$BFS_NUM <- raw_mun_popdata$BFS_NUM
 pop_percentages$KANTONSNUM <- raw_mun_popdata$KANTONSNUM
 
-### B.3- Calculate % urban area per municipality
+#------------------------------------------------------------------------------
+#B.3- Calculate % urban area per municipality
+#------------------------------------------------------------------------------
 
 #Load the most recent LULC map
 current_LULC <- raster("Data/Historic_LULC/LULC_2018_agg.gri")
@@ -403,7 +410,9 @@ Muni_urban_areas$Perc_urban[muni] <- (Muni_urban_areas[muni, "layer"]/Kan_urban_
   } #close inner loop
 } #close outer loop
 
-### B.4- Model relationship between cantonal % population and % urban area
+#------------------------------------------------------------------------------
+#B.4- Model relationship between cantonal % population and % urban area
+#------------------------------------------------------------------------------
 
 #subset pop percentages to 2018
 Muni_percs <- pop_percentages[, c("BFS_NUM", "KANTONSNUM", "Perc_2018")]
@@ -440,7 +449,7 @@ download.file(url = "https://dam-api.bfs.admin.ch/hub/api/dam/assets/12107013/ma
 #Vector existing sheet names
 Sheet_names <- getSheetNames(raw_data_path)
 
-#name the sheet names with the new names
+#name the sheet names with the english names
 names(Sheet_names) <- c("Ref", "High", "Low")
 
 #Create a workbook to add the ckleaned data too
@@ -454,6 +463,7 @@ Canton_lookup <- openxlsx::read.xlsx("https://www.atlas.bfs.admin.ch/core/projec
 Canton_lookup$Canton_num <- seq(1:nrow(Canton_lookup))
 
 #loop over time steps adding sheets and adding the predictors to them
+#i=1
 for (i in 1:length(Sheet_names)){
 
 org_sheet_name <- Sheet_names[i]
@@ -464,20 +474,49 @@ tempdf <- openxlsx::read.xlsx(raw_data_path, sheet = org_sheet_name, startRow = 
 colnames(tempdf)[1] = "Canton_name" #rename first column
 tempdf <- tempdf[tempdf$Canton_name != "Schweiz",] # remove the total for switzerland
 tempdf <- tempdf[complete.cases(tempdf),] #remove incomplete or empty rows
+
+#vector the names of the year columns
+year_cols <- names(tempdf)[2:ncol(tempdf)]
+
+#add the canton number
 tempdf$Canton_num <- sapply(tempdf$Canton_name, function(x) {
 Canton_lookup[grepl(x, Canton_lookup$X2), "Canton_num"]
 })
+
 #replace values of non-matching names
 tempdf[setdiff(Canton_lookup$Canton_num, tempdf$Canton_num), "Canton_num"] <- Canton_lookup$Canton_num[setdiff(Canton_lookup$Canton_num, tempdf$Canton_num)]
 rownames(tempdf) <- 1:nrow(tempdf) #correct row names
+
+#check if any time-points for scenarios are missing
+Missing_years <- Time_steps[!paste(Time_steps) %in% colnames(tempdf)]
+
+if(length(Missing_years)>0){
+#extrapolate the missing years
+#add columns for missing years
+tempdf[paste(Missing_years)] <- NA
+
+#loop over rows (cantons)
+for(r in 1:nrow(tempdf)){
+
+  row_dat <-data.frame(t(tempdf[r, year_cols]))
+  names(row_dat) <- "Pred_pop"
+  row_dat$year <- as.numeric(year_cols)
+
+  #create linear model
+  mod <- lm(formula = Pred_pop~year, data = row_dat)
+
+  #predict missing years
+  tempdf[r, paste(Missing_years)] <- round(predict(mod, data.frame(year = Missing_years)),0)
+  } #close loop over rows
+} #close if statement
 
 #create sheet in workbook, the try() is necessary in case sheets already exist
 try(addWorksheet(pop_proj_wb, sheetName = new_sheet_name))
 
 #write the data to the sheet
 writeData(pop_proj_wb, sheet = new_sheet_name, x = tempdf)
-}
 
+}
 #save workbook
 openxlsx::saveWorkbook(pop_proj_wb, "Data/Preds/Tools/Population_projections.xlsx", overwrite = TRUE)
 
@@ -506,13 +545,13 @@ Prep_clim_vars_paths <-lapply(Clim_var_paths, function(x){
   layer_path <-paste0(Prepared_layers_dir, "/Climatic/", file_name)
 
   #load data
-  Raw_dat <- raster(x)
+  #Raw_dat <- raster(x)
 
   #aggregate
-  Agg_dat <- aggregate(Raw_dat, fact=4, fun=mean)
+  #Agg_dat <- aggregate(Raw_dat, fact=4, fun=mean)
 
   #save
-  writeRaster(Agg_dat, layer_path, overwrite=TRUE)
+  #writeRaster(Agg_dat, layer_path, overwrite=TRUE)
 
   return(layer_path)
 })
@@ -689,7 +728,7 @@ sapply(Time_steps, function(sim_year){
 
     #then those relevant for the scenario, necessary to do it this way
     #because some rows contain multiple values for scenario
-    preds_scenario <- pred_details[sapply(pred_details$Scenario, function(x){scenario %in% x}),]
+    preds_scenario <- pred_details[grep(scenario, pred_details$Scenario),]
 
     #bind static and scenario specific preds
     preds_scenario <- rbind(preds_static, preds_scenario)

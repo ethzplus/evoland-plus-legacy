@@ -1,2 +1,6 @@
-Simulation_num.,Scenario_ID.string,Simulation_ID.string,Model_mode.string,Scenario_start.real,Scenario_end.real,Step_length.real,Parallel_TPC.string,Completed.string
-1,BAU,v1,Simulation,2020,2060,5,N,N
+Simulation_num.,Scenario_ID.string,Simulation_ID.string,Model_mode.string,Scenario_start.real,Scenario_end.real,Step_length.real,Parallel_TPC.string,Spatial_interventions.string,Completed.string
+1,BAU,v1,Simulation,2020,2060,5,N,Y,Y
+2,EI_NAT,v1,Simulation,2020,2060,5,N,Y,Y
+3,EI_CUL,v1,Simulation,2020,2060,5,N,Y,Y
+4,EI_SOC,v1,Simulation,2020,2060,5,N,Y,Y
+5,GR_EX,v1,Simulation,2020,2060,5,N,Y,Y

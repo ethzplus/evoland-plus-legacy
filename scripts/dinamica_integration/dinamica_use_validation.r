@@ -37,9 +37,9 @@ Sim_ID <- s3
 
 #vector folder path for validation results
 Val_res_folder <- paste0(wpath, "/Results/Validation/", Sim_ID)
-Val_res_path <- paste0(Val_res_folder, "/", paste("Simulation", Sim_ID, "from", Simulation_time_steps[1, "Keys"], "to", Simulation_time_steps[nrow(Simulation_time_steps), "Keys"], sep = "_"))
+Val_res_path <- paste0(Val_res_folder, "/", paste("Simulation", Sim_ID, "from", Simulation_time_steps[1, "Keys"], "to", Simulation_time_steps[nrow(Simulation_time_steps), "Values"], sep = "_"))
 
-if(Model_mode == "simulation"){
+if(grepl("simulation", Model_mode, ignore.case = TRUE)){
 validation_condition <- 0
 Validation_map_path <- "NA"
 Validation_result_path <- "NA"
@@ -85,7 +85,7 @@ outputString("Obs_LULC_path", Final_LULC_path)
 ### =========================================================================
 
 #alter file path for simulated LULC map for final simulation year
-Sim_final_LULC_path <- paste0(Sim_LULC_path_gen, Simulation_time_steps[nrow(Simulation_time_steps), "Keys"], ".tif")
+Sim_final_LULC_path <- paste0(Sim_LULC_path_gen, Simulation_time_steps[nrow(Simulation_time_steps), "Values"], ".tif")
 
 #output file path for simulated map for final LULC year
 outputString("Sim_LULC_path", Sim_final_LULC_path)

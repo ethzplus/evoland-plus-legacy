@@ -388,25 +388,8 @@ for(i in 1:length(Scenario_names)){
 write.xlsx(Scenario_glacial_change, "Tools/Glacial_area_change.xlsx", row.names = FALSE)
 
 ### =========================================================================
-### F- Scenario modification of LULC coverage and transition areas
+### F- Scenario modification of LULC coverage, transition areas and rates
 ### =========================================================================
-
-#This process involves taking the LULC class areas in 2060 for each scenario that
-#were derived by experts and disaggregating these areas across the relevant
-#class gaining (to) and class shrinking (from) transitions across the simulation
-#time steps before converting the transition areas into tables of rates.
-
-#This process is complicated because it is an optimisation problem without
-#a single solution given that it is possible to either increase or decrease
-#the rates of transitions and this must be conducted across all LULC classes
-#sequentially which can result in negative transition area values which are
-#of course impossible.
-
-#The best approach we can devise is to programmatically try to approximate the
-#result based on histroical proportions of class gains/vs.losses and the
-#relative contributions of the different transitions to this and then manually
-#make appropriate challenges to improve the relation between the projected area
-#values and the proscribed area values
 
 #Load inputs of scenario specific modifications to LULC class areas in 2060
 Scenario_area_mods <- readxl::read_excel("Tools/simulation_LULC_areas_2060.xlsx")
@@ -414,80 +397,11 @@ Scenario_area_mods <- readxl::read_excel("Tools/simulation_LULC_areas_2060.xlsx"
 #Load table of glacial change area per time step under different scenarios
 Glacial_area_change <- readxl::read_excel("Tools/Glacial_area_change.xlsx")
 
-#the values of glacial area in the scenario area_mods currently come from
-#the expert evaluation process and need to be replaced with the modelled values
-for(scenario in Scenario_names){
-
-  #load glacier index
-  Glacier_index <- readRDS(paste0("Data/Glacial_change/Scenario_indices/", scenario, "_glacial_change.rds"))
-  Glacier_ncells <- length(which(Glacier_index[[paste(Scenario_end)]]==1))
-
-  #get current glacier value
-  Proj_glacier_ncell <-  Scenario_area_mods[Scenario_area_mods$Scenario == scenario , "Glacier"]
-
-  #calculate difference
-  ncells_diff <- Glacier_ncells-Proj_glacier_ncell
-
-  #update glacier value in table
-  Scenario_area_mods[Scenario_area_mods$Scenario == scenario , "Glacier"] <- Glacier_ncells
-
-  #update static value with difference
-  Proj_static <- Scenario_area_mods[Scenario_area_mods$Scenario == scenario , "Static"]
-
-  #if the difference between the modelled glacier amount and the project amount
-  #is >0 then reduce the amount of static by the difference
-  if(ncells_diff >0){
-  Scenario_area_mods[Scenario_area_mods$Scenario == scenario , "Static"] <- Proj_static - abs(ncells_diff)
-  }else if(ncells_diff <0){
-   #if the difference between the modelled glacier amount and the project amount
-  #is <0 then increase the amount of static by the difference
-   Scenario_area_mods[Scenario_area_mods$Scenario == scenario , "Static"] <- Proj_static + abs(ncells_diff)
-  }
-
-}
-
-#create a list of tables to capture modified LULC areas under each scenario
+#create a list of tables to capture modified LULC areas
+#for most classes this is not strictly necessary as the amount of chang
 Mod_LULC_areas <- LULC_proj_area
 Mod_LULC_areas[paste(Sim_time_steps)] <- NA
 Mod_area_tables <- lapply(Scenario_area_mods$Scenario, function(x) Mod_LULC_areas)
-names(Mod_area_tables) <- unique(Scenario_area_mods$Scenario)
-
-#the glacier area from 2020 currently comes from the AS data replace this
-#with the value from the glacier index and add the difference to the static class
-
-Mod_area_tables <- lapply(names(Mod_area_tables), function(scenario){
-
-  #seperate scenario table from list
-  Scenario_table <- Mod_area_tables[[scenario]]
-
-  #load glacier index
-  Glacier_index <- readRDS(paste0("Data/Glacial_change/Scenario_indices/", scenario, "_glacial_change.rds"))
-  Glacier_ncells_2020 <- length(which(Glacier_index[["2020"]]==1))
-
-  #get current glacier value
-  AS_glacier_ncell <-  Scenario_table[Scenario_table$LULC_class == "Glacier", "2020"]
-
-  #calculate difference
-  ncells_diff <- Glacier_ncells_2020-AS_glacier_ncell
-
-  #update glacier value in table
-  Scenario_table[Scenario_table$LULC_class == "Glacier", "2020"] <- Glacier_ncells_2020
-
-  #count number of static cells
-  AS_static <- Scenario_table[Scenario_table$LULC_class == "Static", "2020"]
-
-  #if the difference between the modelled glacier amount and the project amount
-  #is >0 then reduce the amount of static by the difference
-  if(ncells_diff >0){
-  Scenario_table[Scenario_table$LULC_class == "Static", "2020"] <- AS_static - abs(ncells_diff)
-  }else if(ncells_diff <0){
-  #if the difference between the modelled glacier amount and the project amount
-  #is <0 then increase the amount of static by the difference
-  Scenario_table[Scenario_table$LULC_class == "Static", "2020"] <- AS_static + abs(ncells_diff)
-  }
-
-  return(Scenario_table)
-})
 names(Mod_area_tables) <- unique(Scenario_area_mods$Scenario)
 rm(Mod_LULC_areas)
 
@@ -505,16 +419,10 @@ Mod_trans_rate_tables <- lapply(Scenario_area_mods$Scenario, function(x) Mod_tra
 names(Mod_trans_rate_tables) <- unique(Scenario_area_mods$Scenario)
 rm(Mod_trans_rates)
 
-
-Perc_gain_losses <- list()
-Final_trans_areas_check <- list()
-
-#loop over scenarios and approximate areas of transitions for each time step
+#loop over scenarios
 for(Scenario in Scenario_area_mods$Scenario){
 
-  #----------------------------------------------------------
-  #Step 1: Calculate net and stepwise LULC class areal changes
-  #-----------------------------------------------------------
+  #### Step 1: Calculate net and stepwise LULC class areal changes####
 
   #Separate scenario % changes
   gross_cover_2060 <- unlist(Scenario_area_mods[Scenario_area_mods$Scenario == Scenario, colnames(Scenario_area_mods) != "Scenario"])
@@ -548,7 +456,7 @@ for(Scenario in Scenario_area_mods$Scenario){
 
   #net areal increase across classes
   #(projected class area 2060 - class area in last year of calibration period)
-  net_change <- gross_cover_2060-Mod_area_tables[[scenario]][, Sim_years[1]]
+  net_change <- gross_cover_2060-LULC_proj_area[, Sim_years[1]]
 
   #Linear areal increase per timestep to meet expectation
   Step_change <- net_change/(length(Sim_years)-1)
@@ -558,14 +466,13 @@ for(Scenario in Scenario_area_mods$Scenario){
 
     #replace the glacier value in Step_change with the deterministic value
     #for the time step and scenario
-    Step_change["Glacier"] <- -(as.numeric(Glacial_area_change[Glacial_area_change$Scenario == Scenario,paste(Sim_years[x+1])]))
+    Step_change["Glacier"] <- as.numeric(Glacial_area_change[Glacial_area_change$Scenario == Scenario,paste(Sim_years[x+1])])
 
     Mod_area_tables[[Scenario]][,paste(Sim_years[x+1])] <- Mod_area_tables[[Scenario]][,paste(Sim_years[x])] + Step_change
     }
 
-  #-------------------------------------------------------------
-  # Step 2 calculate modified areal increases for each transition
-  #-------------------------------------------------------------
+
+  #### Step 2 calculate modified areal increases for each transition ####
 
   #this requires a 2-step calculation as it is possible to adjust areal changes
   #by altering the area of class gaining transitions and by altering the area of
@@ -604,7 +511,7 @@ for(Scenario in Scenario_area_mods$Scenario){
 
     #replace the glacier value in Step_change with the deterministic value
     #for the time step and scenario
-    Step_change["Glacier"] <- -(as.numeric(Glacial_area_change[Glacial_area_change$Scenario == Scenario,calc_year]))
+    Step_change["Glacier"] <- as.numeric(Glacial_area_change[Glacial_area_change$Scenario == Scenario,calc_year])
 
     #Inner loop over the LULC classes
     for(lulc_class in names(net_change)){
@@ -616,9 +523,6 @@ for(Scenario in Scenario_area_mods$Scenario){
       Perc_gain <- Ref_gain_area/(Ref_gain_area+Ref_loss_area)*100
       Perc_loss <- Ref_loss_area/(Ref_gain_area+Ref_loss_area)*100
 
-      #outputs to list for testing
-      Perc_gain_losses[[Scenario]][[calc_year]][[lulc_class]][["Perc_gain"]] <- Perc_gain
-      Perc_gain_losses[[Scenario]][[calc_year]][[lulc_class]][["Perc_loss"]] <- Perc_loss
 
       #if statement for lulc classes that exhibit positive net change
       #(expanding) in the scenario
@@ -640,9 +544,10 @@ for(Scenario in Scenario_area_mods$Scenario){
 
         #amount of step change to be allocated as losses
         Loss_area <- abs(Step_change[names(Step_change) == lulc_class])/100*Perc_loss
+
         }
 
-        #Alter areal gains across transitions to distribute total required Gain_area
+        #Increases areal gains across transitions to distribute total required Gain_area
         #subset trans areal increases to gaining transitions
         Gain_trans <- Trans_areal_increase[Trans_areal_increase$Final_class == lulc_class,]
 
@@ -652,9 +557,6 @@ for(Scenario in Scenario_area_mods$Scenario){
 
         if(lulc_class == "Static"){
           Gain_trans <- Gain_trans[Gain_trans$Initial_class != "Glacier",]
-
-          #update Gain area to remove amount of change due to glacier -> static required
-          Gain_area <- Gain_area-abs(Step_change[names(Step_change) == "Static"])
         }
 
         if(nrow(Gain_trans) >0 & Gain_area != 0){
@@ -706,8 +608,6 @@ for(Scenario in Scenario_area_mods$Scenario){
     #Add the gains to the 'losses' (absolute values) to get final transition areas
     Final_trans_areas <- Trans_gains_calc_year[,calc_year] + Trans_losses_calc_year[,calc_year]
 
-    Final_trans_areas_check[[Scenario]] <- Final_trans_areas
-
     #replace NAs with 0
     Final_trans_areas[is.na(Final_trans_areas)] <- 0
 
@@ -716,180 +616,40 @@ for(Scenario in Scenario_area_mods$Scenario){
     #these losses by increasing the gaining transitions.
 
     #create a duplicate vector to modify
-    # Updated_trans_areas <- Final_trans_areas
-    #
-    # #loop over the negative trans
-    # for(x in which(Final_trans_areas <0)){
-    #
-    #   #get area to increase gains by
-    #   Gain_offset <- abs(Final_trans_areas[x])
-    #
-    #   #identify gaining trans according to their final class
-    #   #equaling the initial class of the negative transition
-    #   Gain_offset_trans_indices <- which(Trans_areal_increase$Final_class == Trans_areal_increase[x,"Initial_class"])
-    #
-    #     #loop over the gaining transitions and calculate what are of the offset
-    #     #they should receive according to their relative gain contribution
-    #     for(trans in Gain_offset_trans_indices){
-    #
-    #         #calculate contribution of trans
-    #         trans_contrib <- Trans_areal_increase[trans,calc_year]/sum(Trans_areal_increase[Gain_offset_trans_indices,calc_year])
-    #
-    #         #calculate area of trans as proportion of step_change according to % contribution
-    #         offset_area <- trans_contrib*Gain_offset
-    #
-    #         updated_trans_area <- Final_trans_areas[trans] + offset_area
-    #
-    #         Updated_trans_areas[trans] <- updated_trans_area
-    #     } #close loop over gaining transitions to offset
-    #   }#close loop over negative trans areal values
+    Updated_trans_areas <- Final_trans_areas
+
+    #loop over the negative trans
+    for(x in which(Final_trans_areas <0)){
+
+      #get area to increase gains by
+      Gain_offset <- abs(Final_trans_areas[x])
+
+      #identify gaining trans according to their final class
+      #equaling the initial class of the negative transition
+      Gain_offset_trans_indices <- which(Trans_areal_increase$Final_class == Trans_areal_increase[x,"Initial_class"])
+
+        #loop over the gaining transitions and calculate what are of the offset
+        #they should receive according to their relative gain contribution
+        for(trans in Gain_offset_trans_indices){
+
+            #calculate contribution of trans
+            trans_contrib <- Trans_areal_increase[trans,calc_year]/sum(Trans_areal_increase[Gain_offset_trans_indices,calc_year])
+
+            #calculate area of trans as proportion of step_change according to % contribution
+            offset_area <- trans_contrib*Gain_offset
+
+            updated_trans_area <- Final_trans_areas[trans] + offset_area
+
+            Updated_trans_areas[trans] <- updated_trans_area
+        } #close loop over gaining transitions to offset
+      }#close loop over negative trans areal values
 
     #add to table ensuring no negative values
-    Mod_trans_area_tables[[Scenario]][,calc_year] <- sapply(Final_trans_areas, function(A) if(A >= 0){A}else{0})
+    Mod_trans_area_tables[[Scenario]][,calc_year] <- sapply(Updated_trans_areas, function(A) if(A >= 0){A}else{0})
 
   } #close loop over time steps
-} # Close loop over scenarios
 
-### =========================================================================
-### G- Check transition areas against desired amounts of LULC classes and manually improve
-### =========================================================================
-
-#first check of mismatches in areas, identifying synergistic transitions
-#that currently have a rate of zero (i.e they have been cancelled out in the 1st approximation)
-Mismatch_check <- lulcc.projectedclassareasmismatch(Scenario_names = Scenario_names,
-                                                         Sim_time_steps = paste(Sim_time_steps),
-                                                         Scenario_trans_area_tables = Mod_trans_area_tables,
-                                                         Scenario_class_area_tables = Mod_area_tables)
-
-#Loop function using multiple thresholds to see if focusing on the synergistic transitions first helps
-Threshold_iterations <- list()
-num_reps = 50
-
-for(t in seq(0.1, 5, 0.1)){
-Iter_result <- lulcc.improvetransareadistrib(Scenario_class_area_tables = Mod_area_tables,
-                                           old_trans_areas = Mod_trans_area_tables,
-                                           Sim_time_steps = Sim_time_steps,
-                                           reps = num_reps,
-                                           mismatch_thres = t)
-
-Threshold_iterations[[paste(t)]] <- Iter_result
-}
-
-#reduce results to only total mismatch perc
-Thres_results <- sapply(Threshold_iterations, function(x) {
-  sapply(x$Mismatch_checks[[num_reps]], function(y) y[["Total_mismatch_perc"]])
-})
-
-#collate values of total mismatch perc across all threshold values, repetitions and scenarios
-#outer loop over threshold values
-Improvement_results <- rbindlist(lapply(Threshold_iterations, function(x) {
-
-  #inner loop over repetitions
-  rep_percs <- data.frame(sapply(seq(1,num_reps,1), function(i){
-
-    #inner loop over scenarios
-    sapply(x$Mismatch_checks[[i]], function(y) y[["Total_mismatch_perc"]])
-  })) #close reps
-  colnames(rep_percs) <- paste(seq(1,num_reps,1))
-
-  #identify reps with minimum mismatch perc for each scenario
-  Scenario_results <- data.frame(matrix(nrow = nrow(rep_percs),ncol=0))
-  Scenario_results$Scenario <- rownames(rep_percs)
-  Scenario_results$min_mismatch_perc <- apply(rep_percs, MARGIN = 1, function(x) min(x, na.rm = TRUE))
-  Scenario_results$rep_num <- colnames(rep_percs)[apply(rep_percs, MARGIN = 1, FUN = which.min)]
-
-return(Scenario_results)
-}), idcol = "Threshold") #close thresholds
-
-#identify best results for each scenario
-Scenario_best_results <- rbindlist(lapply(unique(Improvement_results$Scenario), function(x){
-
-  #seperate results for scenario
-  Scenario_results <- Improvement_results[Improvement_results$Scenario ==x,]
-
-  #identify result with minimum value of mismatch %
-  Best_result <- Scenario_results[which.min(Scenario_results$min_mismatch_perc),]
-}))
-
-#use best results to separate trans_area tables accordingly
-Best_trans_area_tables <- lapply(unique(Scenario_best_results$Scenario), function(x){
-  Sres <- Scenario_best_results[Scenario_best_results$Scenario == x,]
-  Scenario_table <- Threshold_iterations[[Sres$Threshold]][["Area_tables"]][[as.numeric(Sres$rep_num)]][[x]]
-})
-names(Best_trans_area_tables) <- Scenario_best_results$Scenario
-
-#use best results to separate trans_area tables accordingly
-Best_results_mismatch_checks <- lapply(unique(Scenario_best_results$Scenario), function(x){
-  Sres <- Scenario_best_results[Scenario_best_results$Scenario == x,]
-  Scenario_table <- Threshold_iterations[[Sres$Threshold]][["Mismatch_checks"]][[as.numeric(Sres$rep_num)]][[x]]
-})
-names(Best_trans_area_tables) <- Scenario_best_results$Scenario
-
-
-#Final check
-Final_mismatch_check <- lulcc.projectedclassareasmismatch(Scenario_names = Scenario_names,
-                                                         Sim_time_steps = paste(Sim_time_steps),
-                                                         Scenario_trans_area_tables = Best_trans_area_tables,
-                                                         Scenario_class_area_tables = Mod_area_tables,
-                                                         mismatch_thres = 1)
-print(sapply(Final_mismatch_check, function(x){x[["Total_mismatch_perc"]]}))
-
-#compare to the ref values for 2060
-
-#save Final_trans_area_tables
-saveRDS(Best_trans_area_tables, "E:/LULCC_CH/Data/Transition_tables/CURRENT_BEST_AREA_TABLES.rds")
-
-### =========================================================================
-### H- Use transition areas to calculate Modified transition rates
-### =========================================================================
-
-#recalculate table of final class areas for each time step
-#duplicate table to capture net changes in LULC classes
-Proj_class_area_tables <- Mod_area_tables
-
-#loop over scenarios
-for(Scenario in names(Best_trans_area_tables)){
-
-  Scenario_class_areas <- Proj_class_area_tables[[Scenario]]
-  Scenario_trans_areas <- Best_trans_area_tables[[Scenario]]
-
-  #loop over simulation years
-  for(i in 1:(length(Sim_years)-1)){
-    calc_year <- Sim_years[i+1]
-    prev_year <- Sim_years[i]
-
-    #loop over LULC classes calculating net areal changes and cumulative change in class area:
-    for(LULC_class in Scenario_class_areas$LULC_class){
-
-      #calculate gains
-      gain <- sum(Scenario_trans_areas[Scenario_trans_areas$Final_class == LULC_class, calc_year])
-
-      #calculate losses
-      loss <- sum(Scenario_trans_areas[Scenario_trans_areas$Initial_class == LULC_class, calc_year])
-
-      #calculating cumulative LULC areal change
-      Scenario_class_areas[Scenario_class_areas$LULC_class == LULC_class, calc_year] <- Scenario_class_areas[Scenario_class_areas$LULC_class == LULC_class, prev_year]+(gain-loss)
-      } #close LULC class loop
-    } #close loop over time steps
-
-  #replace result in list
-  Proj_class_area_tables[[Scenario]] <- Scenario_class_areas
-} #close loop over scenarios
-
-
-#check against desired areas
-# test <- sapply(names(Proj_class_area_tables), function(x){
-#   Proj_area_2060 <- Proj_class_area_tables[[x]][["2060"]]
-#   desired_area_2060 <- Mod_area_tables[[x]][["2060"]]
-#   Area_mismatch <- desired_area_2060-Proj_area_2060
-#   Perc_mismatch <- (Area_mismatch/desired_area_2060)*100
-# })
-# colSums(abs(test))
-
-Final_trans_rate_tables <- Mod_trans_rate_tables
-
-#loop over scenarios again to calculate transition rates
-for(Scenario in names(Best_trans_area_tables)){
+    #### Step 3 calculate Modified transition rates ####
 
     #outer loop over simulation years
     for(Sim_year in 1:(length(Sim_years)-1)){
@@ -898,34 +658,59 @@ for(Scenario in names(Best_trans_area_tables)){
       prev_year <- paste(Sim_years[Sim_year])
 
       #inner loop over transitions
-      for(trans in 1:nrow(Best_trans_area_tables[[Scenario]])){
+      for(trans in 1:nrow(Mod_trans_area_tables[[Scenario]])){
 
       #vector Initial class of transitions
-      Initial_class <- Best_trans_area_tables[[Scenario]][trans, "Initial_class"]
+      Initial_class <- Mod_trans_area_tables[[Scenario]][trans, "Initial_class"]
 
       #seperate modified class area table
-      Class_areas <- Proj_class_area_tables[[Scenario]][Proj_class_area_tables[[Scenario]][["LULC_class"]] == Initial_class,]
+      Class_areas <- Mod_area_tables[[Scenario]][Mod_area_tables[[Scenario]][["LULC_class"]] == Initial_class,]
 
       #calculate modified transition rate as: modified transition area as
       #% of modified area of initial class in previous time step
-      Trans_rate <- Best_trans_area_tables[[Scenario]][trans, calc_year]/Class_areas[,prev_year]
+      Trans_rate <- Mod_trans_area_tables[[Scenario]][trans, calc_year]/Class_areas[,prev_year]
 
       #Add to table
-      Final_trans_rate_tables[[Scenario]][trans, calc_year] <- Trans_rate
+      Mod_trans_rate_tables[[Scenario]][trans, calc_year] <- Trans_rate
       } #close loop over transitions
     } #close loop over simulation years
 
-}#close loop over scenarios
+} # Close loop over scenarios
 
+#checking area totals using calculated trans rates
+check_class_areas_old <- sapply(Scenario_names, function(scenario){
+
+  #seperate scenario table
+  Scenario_table <- Mod_trans_area_tables[[scenario]]
+
+  Sim_time_steps <-  c("2025", "2030", "2035", "2040", "2045", "2050", "2055", "2060")
+  area_table <- Mod_area_tables[[scenario]]
+
+  #loop over unique lulc classes
+  lulc_classes <- unique(c(Scenario_table$Initial_class, Scenario_table$Final_class))
+
+  class_areas_2060 <- sapply(unique(c(Scenario_table$Initial_class, Scenario_table$Final_class)), function(lulc){
+    gain_area <- sum(Scenario_table[Scenario_table$Final_class == lulc, Sim_time_steps])
+    loss_area <- sum(Scenario_table[Scenario_table$Initial_class == lulc, Sim_time_steps])
+    area_change = gain_area-loss_area
+    area_2060 <- area_table[area_table$LULC_class == lulc, "2020"]+area_change
+  })
+})
+
+
+
+#check numbers of remaining transitions i.e non-zero transition rates
+#scenario_trans <- lapply(Mod_trans_area_tables, function(x){length(which(x[["2025"]] != 0))})
+#excluded_trans <- unique(unlist(lapply(Mod_trans_area_tables, function(x){x[which(x[["2025"]] == 0),"Trans_name"]})))
 
 #save transition rates tables for each time point for each scenario
-for(scenario in 1:length(Final_trans_rate_tables)){
+for(scenario in 1:length(Mod_trans_rate_tables)){
 
   #seperate table for scenario
-  trans_rate_table <- Final_trans_rate_tables[[scenario]]
+  trans_rate_table <- Mod_trans_rate_tables[[scenario]]
 
   #vector scenario name
-  Scenario_name <- names(Final_trans_rate_tables)[scenario]
+  Scenario_name <- names(Mod_trans_rate_tables)[scenario]
 
   #loop over Simulation_years
   for(i in paste(Sim_years)){
@@ -946,30 +731,27 @@ for(scenario in 1:length(Final_trans_rate_tables)){
   }#close lapply over scenarios
 
 
-#compare old trans rate tables with the new ones
-# old_table_paths <- list.files("Data/Transition_tables/prepared_trans_tables", full.names = TRUE, recursive = TRUE)
-# old_table_paths <- old_table_paths[grep("CALIBRATION", old_table_paths, invert = TRUE)]
-# new_table_paths <- list.files("Data/Transition_tables/prepared_trans_tables_v2", full.names = TRUE, recursive = TRUE)
-#
-# file_names <- sapply(list.files("Data/Transition_tables/prepared_trans_tables_v2", full.names = FALSE, recursive = TRUE), function(x) basename(x))
-# names(old_table_paths) <- file_names
-# names(new_table_paths) <- file_names
-#
-# check_rate_diffs <- lapply(file_names, function(table){
-#
-#   #seperate transition name
-#   exp_table <- read.csv(old_table_paths[[table]])
-#
-#   trans_names <- paste(exp_table[["From."]], exp_table[["To."]], sep = "_")
-#
-#   #load old table
-#   old_rates <- read.csv(old_table_paths[[table]])[["Rate"]]
-#
-#   #load old table
-#   new_rates <- read.csv(new_table_paths[[table]])[["Rate"]]
-#
-#   #difference
-#   diff <- old_rates-new_rates
-#   names(diff) <- trans_names
-#   return(diff)
-# })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
