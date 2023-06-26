@@ -45,9 +45,9 @@ Ref_grid <- raster(Ref_grid_path)
 
 #values for testing purposes
 Simulation_time_step <- 2020
-Simulation_num <- "3"
+Simulation_num <- "1"
 Control_table_path <- Sim_control_path
-File_path_simulated_LULC_maps <- "Results/Dinamica_simulated_LULC/BAU/v1/simulated_LULC_scenario_BAU_simID_v1_year_"
+File_path_simulated_LULC_maps <- "Results/Dinamica_simulated_LULC/BAU/v2/simulated_LULC_scenario_BAU_simID_v2_year_"
 Use_parallel <- "N"
 
 
@@ -124,7 +124,6 @@ names(LULC_labels) <- sapply(LULC_labels, function(x){unique(Aggregation_scheme[
 #(in case not all classes are present anymore during simulation)
 LULC_values_current<- unique(Current_LULC)
 LULC_labels_current <- LULC_labels[LULC_values_current %in% names(LULC_labels)]
-
 
 #layerize data (columns for each LULC class)
 LULC_data <- raster::layerize(Current_LULC)
@@ -281,12 +280,6 @@ Focal_matrices <- unlist(readRDS("Data/Preds/Tools/Neighbourhood_matrices/ALL_ma
 #adjust matrix names
 names(Focal_matrices) <- sapply(names(Focal_matrices), function(x) {split_name <- (str_split(x, "[.]"))[[1]][2]})
 
-#create a folder path using simulation ID and time step
-Dynamic_focal_folder_path <- paste0("Data/Preds/Prepared/Stacks/Simulation/NH_preds", "/", Scenario_ID, "/", Simulation_time_step)
-
-#create directory
-dir.create(paste(wpath, Dynamic_focal_folder_path, sep = "/"), recursive = TRUE)
-
 #Load details of focal layers required for the model set being utilised
 Required_focals_details <- readRDS(list.files("Data/Preds/Tools/Neighbourhood_details_for_dynamic_updating", pattern = Period_tag, full.names = TRUE))
 
@@ -307,9 +300,16 @@ Focal_layer <- focal(x=Active_class_raster_subset, w= Focal_matrices[[Required_f
 
 #create file path for saving this layer
 Focal_name <- paste(Active_class_name, "nhood", Required_focals_details[i,]$matrix_id, sep = "_")
-Nhood_rasters[Focal_name] <- Focal_layer
+Nhood_rasters[[Focal_name]] <- Focal_layer
 
 #steps for saving of rasters if needed
+
+#create a folder path using simulation ID and time step
+#Dynamic_focal_folder_path <- paste0("Data/Preds/Prepared/Stacks/Simulation/NH_preds", "/", Scenario_ID, "/", Simulation_time_step)
+
+#create directory
+#dir.create(paste(wpath, Dynamic_focal_folder_path, sep = "/"), recursive = TRUE)
+
 #Focal_file_name <- paste(Scenario_ID, Simulation_time_step, Required_focals_details[i,]$active_lulc, "nhood", Focal_matrices[Required_focals_details[i,]$matrix_id], sep = "_")
 #Focal_full_path <- paste0(Dynamic_focal_folder_path, "/", Focal_file_name, ".grd") #create full folder path
 #writeRaster(Focal_layer, Focal_full_path ,datatype='INT2U', overwrite=TRUE) #save layer
@@ -373,7 +373,7 @@ rm(LULC_data, SA_pred_stack, Nhood_rasters, Trans_data_stack, xy_coordinates)
 Model_lookup <- xlsx::read.xlsx("Tools/Model_lookup.xlsx", sheetName = Period_tag)
 
 #exclude glacier transition
-Model_lookup <-Model_lookup[Model_lookup$Initial_LULC != "Glacier",]
+#Model_lookup <-Model_lookup[Model_lookup$Initial_LULC != "Glacier",]
 
 #seperate Trans_dataset into complete cases for prediction
 #and NAs ()background values

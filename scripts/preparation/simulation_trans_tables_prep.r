@@ -24,6 +24,10 @@ LULC_years <- gsub(".*?([0-9]+).*", "\\1", list.files("Data/Historic_LULC", full
 #Inherit from master
 #Data_periods <- c("1985_1997", "1997_2009", "2009_2018")
 
+#base folder for creating scenario specific folders
+#inherit from master
+#Trans_rate_table_dir <- "Data/Transition_tables/prepared_trans_tables"
+
 #The model lookup table specifies which transitions are modelled and
 #should be used to subset the transition rates tables
 
@@ -50,12 +54,9 @@ All_time_steps <- seq(min(LULC_years), max(Sim_control_table$Scenario_end.real),
 #use simulation control table to get names of Scenarios
 Scenario_names <- unique(Sim_control_table[["Scenario_ID.string"]])
 
-#base folder for creating scenario specific folders
-base_trans_table_folder <- "Data/Transition_tables/prepared_trans_tables"
-
 #loop over scenario names creating folders for each in base folder
 sapply(Scenario_names, function(x){
-  dir.create(paste0(base_trans_table_folder,"/", x), recursive = TRUE)
+  dir.create(paste0(Trans_rate_table_dir,"/", x), recursive = TRUE)
 })
 
 ### =========================================================================
@@ -247,7 +248,7 @@ Calibration_time_steps <- seq(min(LULC_years), round(as.numeric(max(LULC_years))
 lulcc.savescenariotranstables(Scenario_name = "CALIBRATION",
                               Time_steps = Calibration_time_steps,
                               trans_rate_table = MS_extrap_trans_rates,
-                              Base_folder = base_trans_table_folder,
+                              Base_folder = Trans_rate_table_dir,
                               Periodic_trans_names = Periodic_trans_names)
 
 ### =========================================================================
@@ -313,79 +314,6 @@ for(i in 1:(length(Sim_years)-1)){
 
 #export LULC_proj_area and LULC_net_change to excel
 
-### =========================================================================
-### F- calculate glacial change rates
-### =========================================================================
-
-#The files provided by Farinotti et al. contained the locations
-#of glacier (1) and absence of glacier (0) according to the index of cells in
-#our spatial grid under the different RCPs.
-
-#We need to use these indices of glacier locations to calculate
-#glacial coverage in each time step for each scenario as input
-#for the calculation of modified transition rates.
-
-#Wrangle glacial location data for each RCP
-Glacier_indices <- lapply(list.files("Data/Glacial_change/median_scenarios", full.names = TRUE),function(x) {
-
-  #load
-  Glacier_index <- read.table(file = x, skip = 10,header = TRUE)
-
-  #adjust column names to reflect years
-  colnames(Glacier_index)[2:ncol(Glacier_index)] <- seq(from = 2005, to= 2100, by =5)
-
-  #subset to simulation years
-  Glacier_index_sim <- Glacier_index[,c("ID_loc", Sim_years)]
-  })
-
-#extract RCP designation between other strings
-names(Glacier_indices) <- lapply(list.files("Data/Glacial_change/median_scenarios", full.names = FALSE), function(x) str_match(x, "series_\\s*(.*?)\\s*_median")[,2])
-
-#calculate glacial change area per time step and combine to single DF
-Glacial_change <- rbindlist(lapply(Glacier_indices, function(x){
-
-  #calculate col sums
-  Area_per_year <- colSums(x[,2:ncol(x)])
-
-  #calculate change in area between each time point
-  Areal_change <- data.frame(t(sapply(1:(length(Area_per_year)-1), function(i){
-    chg <- Area_per_year[i] - Area_per_year[i+1]
-  })))
-
-  colnames(Areal_change) <- names(Area_per_year)[2:length(Area_per_year)]
-  return(Areal_change)
-}), idcol = "RCP")
-
-#save a table of glacial change areas with a row for each scenario matched by RCP
-#and at the same time save a table of the glacial indexs for each scenario
-
-#load scenario specifications
-Scenario_specs <- openxlsx::read.xlsx(Scenario_specs_path, sheet = "Predictor_data")
-
-#create a df to capture results
-Scenario_glacial_change <- data.frame(matrix(nrow = length(Scenario_names), ncol = ncol(Glacial_change)))
-names(Scenario_glacial_change) <- c("Scenario", paste(Sim_time_steps))
-
-#create directory for scenario specific indices
-Glacial_scenario_dir <- "Data/Glacial_change/Scenario_indices"
-dir.create(Glacial_scenario_dir)
-
-#loop over scenario names filling df
-for(i in 1:length(Scenario_names)){
-  Scenario <- Scenario_names[i]
-  Scenario_glacial_change[i,"Scenario"] <- Scenario
-  Scenario_RCP <- Scenario_specs[Scenario_specs$Scenario_ID == Scenario, "Climate_RCP"]
-  Scenario_glacial_change[i,2:ncol(Scenario_glacial_change)] <-  Glacial_change[Glacial_change$RCP == Scenario_RCP,2:ncol(Glacial_change)]
-
-  #seperate glacial change index for scenario
-  Scenario_index <- Glacier_indices[[Scenario_RCP]]
-
-  #save scenario specific index
-  saveRDS(Scenario_index, paste0(Glacial_scenario_dir, "/", Scenario, "_glacial_change.rds"))
-  }
-
-#save areal change across scenario's table
-write.xlsx(Scenario_glacial_change, "Tools/Glacial_area_change.xlsx", row.names = FALSE)
 
 ### =========================================================================
 ### F- Scenario modification of LULC coverage and transition areas
@@ -504,7 +432,6 @@ Mod_trans_rates[paste(Sim_time_steps)] <- NA
 Mod_trans_rate_tables <- lapply(Scenario_area_mods$Scenario, function(x) Mod_trans_rates)
 names(Mod_trans_rate_tables) <- unique(Scenario_area_mods$Scenario)
 rm(Mod_trans_rates)
-
 
 Perc_gain_losses <- list()
 Final_trans_areas_check <- list()
@@ -759,7 +686,8 @@ for(Scenario in Scenario_area_mods$Scenario){
 Mismatch_check <- lulcc.projectedclassareasmismatch(Scenario_names = Scenario_names,
                                                          Sim_time_steps = paste(Sim_time_steps),
                                                          Scenario_trans_area_tables = Mod_trans_area_tables,
-                                                         Scenario_class_area_tables = Mod_area_tables)
+                                                         Scenario_class_area_tables = Mod_area_tables,
+                                                          mismatch_thres = 1)
 
 #Loop function using multiple thresholds to see if focusing on the synergistic transitions first helps
 Threshold_iterations <- list()
@@ -823,7 +751,7 @@ Best_results_mismatch_checks <- lapply(unique(Scenario_best_results$Scenario), f
   Sres <- Scenario_best_results[Scenario_best_results$Scenario == x,]
   Scenario_table <- Threshold_iterations[[Sres$Threshold]][["Mismatch_checks"]][[as.numeric(Sres$rep_num)]][[x]]
 })
-names(Best_trans_area_tables) <- Scenario_best_results$Scenario
+names(Best_results_mismatch_checks) <- Scenario_best_results$Scenario
 
 
 #Final check
@@ -838,6 +766,7 @@ print(sapply(Final_mismatch_check, function(x){x[["Total_mismatch_perc"]]}))
 
 #save Final_trans_area_tables
 saveRDS(Best_trans_area_tables, "E:/LULCC_CH/Data/Transition_tables/CURRENT_BEST_AREA_TABLES.rds")
+Best_trans_area_tables <- readRDS("E:/LULCC_CH/Data/Transition_tables/CURRENT_BEST_AREA_TABLES.rds")
 
 ### =========================================================================
 ### H- Use transition areas to calculate Modified transition rates
@@ -937,7 +866,7 @@ for(scenario in 1:length(Final_trans_rate_tables)){
   names(trans_rate_table_subset) <- c("From*", "To*", "Rate")
 
   #vector file path
-  file_name <- paste0(base_trans_table_folder, "/", Scenario_name, "/", Scenario_name, "_trans_table_", i, ".csv")
+  file_name <- paste0(Trans_rate_table_dir, "/", Scenario_name, "/", Scenario_name, "_trans_table_", i, ".csv")
 
   #save
   write_csv(trans_rate_table_subset, file = file_name)
@@ -945,31 +874,3 @@ for(scenario in 1:length(Final_trans_rate_tables)){
 
   }#close lapply over scenarios
 
-
-#compare old trans rate tables with the new ones
-# old_table_paths <- list.files("Data/Transition_tables/prepared_trans_tables", full.names = TRUE, recursive = TRUE)
-# old_table_paths <- old_table_paths[grep("CALIBRATION", old_table_paths, invert = TRUE)]
-# new_table_paths <- list.files("Data/Transition_tables/prepared_trans_tables_v2", full.names = TRUE, recursive = TRUE)
-#
-# file_names <- sapply(list.files("Data/Transition_tables/prepared_trans_tables_v2", full.names = FALSE, recursive = TRUE), function(x) basename(x))
-# names(old_table_paths) <- file_names
-# names(new_table_paths) <- file_names
-#
-# check_rate_diffs <- lapply(file_names, function(table){
-#
-#   #seperate transition name
-#   exp_table <- read.csv(old_table_paths[[table]])
-#
-#   trans_names <- paste(exp_table[["From."]], exp_table[["To."]], sep = "_")
-#
-#   #load old table
-#   old_rates <- read.csv(old_table_paths[[table]])[["Rate"]]
-#
-#   #load old table
-#   new_rates <- read.csv(new_table_paths[[table]])[["Rate"]]
-#
-#   #difference
-#   diff <- old_rates-new_rates
-#   names(diff) <- trans_names
-#   return(diff)
-# })

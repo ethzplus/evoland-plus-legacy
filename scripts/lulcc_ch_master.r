@@ -31,7 +31,7 @@ packs<-c("data.table", "raster", "tidyverse", "SDMTools", "doParallel",
 "gdata", "landscapemetrics", "randomForest", "RRF", "future.callr",
 "ghibli", "ggpattern", "butcher", "ROCR", "ecospat", "caret", "Dinamica",
 "gridExtra", "extrafont", "ggpubr", "ggstatsplot","PMCMRplus", "reshape2",
-"ggsignif", "ggthemes", "ggside", "gridtext", "grid", "slackr", "rstudioapi")
+"ggsignif", "ggthemes", "ggside", "gridtext", "grid", "slackr", "rstudioapi", "landscapemetrics")
 
 #install new packages
 new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]
@@ -45,6 +45,13 @@ invisible(sapply(list.files("Scripts/Functions",
                             pattern = ".R",
                             full.names = TRUE,
                             recursive = TRUE),source))
+
+#TO DO: Check if Dinamica EGO is already installed
+# Diego.installed <- system(comannd = paste('*dinamica7* -v'))==0
+# executable <- "*Dinamica*"
+# test <- system2("where", args = c("-v", executable))
+# print(test)
+
 
 #Install Dinamica EGO using included installer (Windows)
 #create string for installer
@@ -96,7 +103,7 @@ Inclusion_thres <- 0.5
 #vector save path
 Sim_control_path <- "Tools/Simulation_control.csv"
 
-# Simulation_control_table <- data.frame(matrix(ncol = 10, nrow = 0))
+# Simulation_control_table <- data.frame(matrix(ncol = 11, nrow = 0))
 # colnames(Simulation_control_table) <- c("Simulation_num.",
 #                                          "Scenario_ID.string",
 #                                          "Simulation_ID.string",
@@ -106,6 +113,7 @@ Sim_control_path <- "Tools/Simulation_control.csv"
 #                                          "Step_length.real",
 #                                          "Parallel_TPC.string",
 #                                          "Spatial_interventions.string",
+#                                          "Deterministic_trans.string",
 #                                          "Completed.string")
 #
 # #expand vector of scenario names according to number of repetitions and add to table
@@ -121,6 +129,7 @@ Sim_control_path <- "Tools/Simulation_control.csv"
 # Simulation_control_table$Simulation_num. <- seq(1, nrow(Simulation_control_table),1)
 # Simulation_control_table$Parallel_TPC.string <- "N"
 # Simulation_control_table$Spatial_interventions.string <- "Y"
+# Simulation_control_table$Deterministic_trans.string <- "Y"
 # Simulation_control_table$Completed.string <- "N"
 #
 # #save the table
@@ -142,6 +151,7 @@ Model_tool_vars <- list(LULC_aggregation_path = "Tools/LULC_class_aggregation.xl
                           Scenario_specs_path = "Tools/Scenario_specifications.xlsx",
                           Calibration_param_dir = "Data/Allocation_parameters/Calibration",
                           Simulation_param_dir= "Data/Allocation_parameters/Simulation",
+                          Trans_rate_table_dir = "Data/Transition_tables/prepared_trans_tables",
                           Sim_control_path = Sim_control_path, #Path to simulation control table
                           Step_length= Step_length,
                           Scenario_names = Scenario_names,
@@ -168,7 +178,7 @@ Model_tool_vars$Regionalization <- FALSE
 #Create a seperate environment for storing output of sourced scripts
 scripting_env <- new.env()
 
-#send objects to global environment
+#send objects to global and scipting environment
 list2env(Model_tool_vars, .GlobalEnv)
 list2env(Model_tool_vars, scripting_env)
 
@@ -260,18 +270,23 @@ lulcc.finalisemodelspecifications(Model_specs_path = Model_specs_path,
 
 source("Scripts/preparation/Trans_model_finalization.R", local = scripting_env)
 
+### =========================================================================
+### I- Prepare data for deterministic transitions (e.g glacier -> Non-glacier)
+### =========================================================================
+
+source("Scripts/preparation/Deterministic_trans_prep.R", local = scripting_env)
 
 ### =========================================================================
 ### I- Prepare tables of transition rates for scenarios
 ### =========================================================================
 
-source("Scripts/preparation/Scenario_trans_tables_prep.R", local = scripting_env)
+source("Scripts/preparation/Simulation_trans_tables_prep.R", local = scripting_env)
 
 ### =========================================================================
 ### J- Prepare predictor data for scenarios
 ### =========================================================================
 
-source("Scripts/preparation/Scenario_data_prep.R", local = scripting_env)
+source("Scripts/preparation/Simulation_predictor_prep.R", local = scripting_env)
 
 ### =========================================================================
 ### K- Calibrate allocation parameters for Dinamica
@@ -300,56 +315,63 @@ source("Scripts/preparation/Spatial_interventions_prep.R", local = scripting_env
 #Note this path needs to include the working directory because it is used
 #in the windows system command
 Control_table_path <- paste0(getwd(),"/", Sim_control_path)
-Pre_check_result <- lulcc.modelprechecks(Control_table_path)
+Pre_check_result <- lulcc.modelprechecks(Control_table_path, Param_dir = Simulation_param_dir)
 
-#TO DO: change model name to simulation
-#run the Dinamica simulation model
-if(Pre_check_result == TRUE){
+#Run the Dinamica simulation model
+#Fail pre-check condition
+if(Pre_check_result == FALSE){print("Some elements required for modelling are not present/incorrect,
+        consult the pre-check results object")} else if(Pre_check_result == TRUE){
 
-#Read in Model.ego file
-Model_text <- try(readLines("Model/Dinamica_models/LULCC_CH.ego"))
+  #Read in Model.ego file
+  Model_text <- try(readLines("Model/Dinamica_models/LULCC_CH.ego"))
 
-#Replace dummy string for working directory path path
-Model_text <- str_replace(Model_text, "=====WORK_DIR=====", getwd())
+  #Replace dummy string for working directory path path
+  Model_text <- str_replace(Model_text, "=====WORK_DIR=====", getwd())
 
-#Replace dummy string for control table file path
-Model_text <- str_replace(Model_text, "=====TABLE_PATH=====", Control_table_path)
+  #Replace dummy string for control table file path
+  Model_text <- str_replace(Model_text, "=====TABLE_PATH=====", Control_table_path)
 
-#save a temporary copy of the model.ego file to run
-Temp_model_path <- gsub(".ego", paste0("_simulation_", Sys.Date(), ".ego"), "Model/Dinamica_models/LULCC_CH.ego")
-writeLines(Model_text, Temp_model_path)
+  #save a temporary copy of the model.ego file to run
+  Temp_model_path <- gsub(".ego", paste0("_simulation_", Sys.Date(), ".ego"), "Model/Dinamica_models/LULCC_CH.ego")
+  writeLines(Model_text, Temp_model_path)
 
-#Get path for the Dinamica console executable
-#(matching on regex '&' string) to be version agnostic
-DC_path <- list.files("C:/", recursive = TRUE, full.names = TRUE, pattern = ".*DinamicaConsole.*\\.exe")
-DC_path <- gsub('(*/)\\1+', '\\1', DC_path) #remove instances of double "/"
-DC_path <- gsub("/", "\\\\", DC_path) #replace "/" with "\\"
+  #Get path for the Dinamica console executable
+  #(matching on regex '&' string) to be version agnostic
+  DC_path <- suppressWarnings(list.files("C:/", recursive = TRUE, full.names = TRUE, pattern = ".*DinamicaConsole.*\\.exe"))
+  DC_path <- gsub('(*/)\\1+', '\\1', DC_path) #remove instances of double "/"
+  DC_path <- gsub("/", "\\\\", DC_path) #replace "/" with "\\"
 
-#vector a path for saving the output text of this simulation
-#run which indicates any errors
-output_path <- paste0("Results/Simulation_notifications/Simulation_output_", Sys.Date(), ".txt")
+  #vector a path for saving the output text of this simulation
+  #run which indicates any errors
+  output_path <- paste0("Results/Simulation_notifications/Simulation_output_", Sys.Date(), ".txt")
 
-system2(command = paste(DC_path),
-        args = c("-disable-parallel-steps",
-             Temp_model_path),
+  system2(command = paste(DC_path),
+        args = c("-processors 10","-memory-allocation-policy 4", Temp_model_path),
+        #args = c("-disable-parallel-steps",Temp_model_path),
        wait = TRUE,
        stdout= output_path,
        stderr = output_path)
 
-}else{
-  print("Some elements required for modelling are not present/incorrect,
-        consult the pre-check results object")}
+  #because the simulations may fail without the system command returning an error
+  #(if the error occurs in Dinamica) then check the simulation control table to see
+  #if/how many simulations have failed
+  Updated_control_tbl <- read.csv(Control_table_path)
 
+  if(any(Updated_control_tbl$Completed.string == "ERROR")){
+    print(paste(length(which(Updated_control_tbl$Completed.string == "ERROR")), "of", nrow(Updated_control_tbl),
+                 "simulations have failed to run till completion, check simulation output .txt file for details of errors"))
+    #slackr_bot('Simulation has stopped because of error')
+  }else{
+    #Send completion message
+    #slackr_bot('Simulation completed sucessfully')
+    print('All simulations completed sucessfully')
 
-#Check to see if the output.txt file contains the pattern "ERROR"
-#(case sensitive) which indicates that the system command has failed
-#If TRUE then send a message through Slack
-if(grepl("ERROR", paste(readLines(output_path), collapse = "|"), ignore.case = FALSE) == TRUE){
-#slackr_bot('Simulation has stopped because of error')
-}else{
-#Send completion message
-#slackr_bot('Simulation completed sucessfully')
+    #Delete the temporary model file
+    unlink(Temp_model_path)
 
-#Delete the temporary model file
-unlink(Temp_model_path)
-}
+    #clean up log and debug files created by Dinamica as their output
+    #is stored in the .txt file anyway
+    unlink(list.files(pattern = paste0(c("log_","debug_"),collapse="|"), full.names = TRUE))
+
+  }
+} #close if statement running simulation

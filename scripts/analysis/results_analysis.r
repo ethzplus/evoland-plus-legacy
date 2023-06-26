@@ -1,5 +1,5 @@
 #############################################################################
-## Results_analysis:
+## Results_analysis: wrangling/visualisation of simulated LULC maps
 ##
 ## Date: 25-10-2022
 ## Author: Ben Black
@@ -18,7 +18,7 @@ Final_raster_paths <- Final_raster_paths[!grepl(".aux", Final_raster_paths)]
 Final_lulc_stack <- stack(Final_raster_paths)
 names(Final_lulc_stack) <- str_match(Final_raster_paths, paste0(Scenario_names, collapse = "|"))
 
-#get frequency table
+#get frequency tables
 Rast_freq <- freq(Final_lulc_stack, merge=TRUE)
 
 #remove row for NA
@@ -39,3 +39,5 @@ LULC_percs[,Scenario_names] <- apply(LULC_percs[,Scenario_names], c(1,2), functi
 #check expected glacier amount in 2060
 Glacier_index <- readRDS("Data/Glacial_change/Scenario_indices/GR_EX_glacial_change.rds")
 Glacier_ncells_2060 <- length(which(Glacier_index[["2060"]]==1))
+
+

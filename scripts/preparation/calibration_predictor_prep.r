@@ -581,6 +581,7 @@ if(str_contains(Preds_to_prepare$Covariate_ID, "Muni_pop")){
 #read in PX data from html and convert to DF
 px_data <- data.frame(read.px("https://dam-api.bfs.admin.ch/hub/api/dam/assets/23164063/master"))
 
+
 #subset to desired rows based on conditions:
 #Total population on 1st of January;
 #Total populations (Swiss and foreigners)

@@ -4,6 +4,7 @@ format: html
 server: shiny
 execute:
   echo: false
+number-sections: true
 ---
 
 ```{r setup, include= FALSE}
@@ -33,39 +34,68 @@ execute:
 
 ```
 
-````{r include=FALSE}
+```{r include=FALSE}
 # Install packages
 library(shiny)
-````
-
-````{r}
-selectInput("OS", "Operating system:",
-                c("Windows", "GNU/Linux"))
-textOutput("result")
-````
-
-````{r}
-#| context: server
-   output$result <- renderText({
-     paste("You chose:", input$OS)
-   })
-````
-
-
-
+```
 
 ## Install Dinamica EGO
 
 LULCC_CH uses a combination of Rstats and the 3rd party software Dinamica EGO if Dinamica EGO is not installed on your computer it can be installed using the included executables for different operating systems. Select your operating system below and the appropriate installer window will open
 
-```{ojs}
-viewof OS = Inputs.checkbox(["Windows", "GNU/Linux"], {label: "Operating system:"})
+```{r}
+selectInput("OS", "Operating system:",
+                c("-","Windows", "GNU/Linux"))
 ```
 
 ```{r}
-install_path <- paste0(getwd(), "/Model/SetupDinamicaEGO-720.exe")
-install_path <- gsub("/", "\\\\", install_path) #replace "/" with "\\"
+#| context: server
+
+# choose file path for installer
+observe({
+if(input$OS != "-"){
+if(input$OS == "Windows"){
+install_path <- paste0(getwd(), "/Model/SetupDinamicaEGO-720_WIN.exe")
+} else if(input$OS == "GNU/Linux"){
+install_path <- paste0(getwd(), "/Model/SetupDinamicaEGO-720_GNU.exe")
+}
 
 
+install_path <- gsub('/','\\\\',install_path)
+
+# run system command
 system2(command = paste(install_path))
+}
+})
+
+
+```
+
+## Prepare historic land use land cover (LULC) data
+
+```{r}
+actionButton("Prep_LULC", "Prepare LULC data", icon = NULL)
+LULC_prep_complete <- "N"
+textOutput("text")
+```
+
+```{r}
+#| context: server
+
+
+
+#Prepare historic LULC data layers
+observeEvent(input$Prep_LULC, {
+#if(LULC_prep_complete != "Y"){
+source("Scripts/Testing_scripts/test_action_button.R")
+output$text <- renderText(LULC_prep_complete)
+#}
+})
+
+```
+
+## Prepare raster of Swiss Bioregions
+
+```{r}
+# source("Scripts/preparation/Region_prep.R", local = scripting_env)
 ```

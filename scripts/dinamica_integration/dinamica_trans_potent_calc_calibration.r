@@ -44,9 +44,9 @@ Ref_grid <- raster(Ref_grid_path)
 ### =========================================================================
 
 #values for testing purposes
-Simulation_time_step <- 2010
+Simulation_time_step <- 2020
 Simulation_num <- "1"
-Control_table_path <- "Tools/Calibration_control.csv"
+Control_table_path <- "Tools/Simulation_control.csv"
 File_path_simulated_LULC_maps <- "Results/Dinamica_simulated_LULC/CALIBRATION/v1/simulated_LULC_scenario_CALIBRATION_simID_v1_year_"
 Use_parallel <- "N"
 
@@ -319,7 +319,7 @@ rm(Focal_matrices, Focal_layer, Focal_name, Required_focals_details,
 } #close if statement for dynamic predictor prep
 
 ### =========================================================================
-### F- Combine LULC, SA_preds and Nhood_preds and extract to dataframe
+### F- Combine LULC, SA_preds and dynamic preds and extract to dataframe
 ### =========================================================================
 
 #Stack all rasters
@@ -370,6 +370,15 @@ rm(LULC_data, SA_pred_stack, Nhood_rasters, Trans_data_stack, xy_coordinates)
 
 #load model look up
 Model_lookup <- xlsx::read.xlsx("Tools/Model_lookup.xlsx", sheetName = Period_tag)
+
+#if statement to remove transitions if they are being implemented deterministically
+if(grepl("simulation", Model_mode, ignore.case = TRUE) &
+    grepl("Y", Simulation_table$Deterministic_trans.string, ignore.case = TRUE)){
+
+  #remove transitions with initial class == glacier
+  Model_lookup <-Model_lookup[Model_lookup$Initial_LULC != "Glacier",]
+
+  } #close if statement
 
 #seperate Trans_dataset into complete cases for prediction
 #and NAs ()background values

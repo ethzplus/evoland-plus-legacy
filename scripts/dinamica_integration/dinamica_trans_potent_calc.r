@@ -1,5 +1,5 @@
 #############################################################################
-## Dinamica_trans_potent_calc_parallel: Testing parallelization of transition
+## Dinamica_trans_potent_calc: Testing parallelization of transition
 ## potential calculation
 ## Date: 25-02-2022
 ## Author: Ben Black
@@ -136,8 +136,12 @@ SA_pred_stack <- readRDS(list.files("Data/Preds/Prepared/Stacks/Simulation/SA_pr
 } #close simulation if statement
 
 ### =========================================================================
-### E.1- Dynamic predictors: Municipal population
+### E- Generate dynamic predictors
 ### =========================================================================
+
+#-------------------------------------------------------------------------
+# E.1- Dynamic predictors:  Municipal Population
+#-------------------------------------------------------------------------
 
 #for calibration the raster stacks already contain the dynamic predictor layers so there
 #is nothing to be done
@@ -145,166 +149,167 @@ SA_pred_stack <- readRDS(list.files("Data/Preds/Prepared/Stacks/Simulation/SA_pr
 #For simulation mode
 if (grepl("simulation", Model_mode, ignore.case = TRUE)){
 
-#create population data layer
-#subset current LULC to just urban cells
-Urban_rast <- Current_LULC == 10
+  #create population data layer
+  #subset current LULC to just urban cells
+  Urban_rast <- Current_LULC == 10
 
-#load canton shapefile
-Canton_shp <- shapefile("Data/Preds/Raw/CH_geoms/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.shp")
+  #load canton shapefile
+  Canton_shp <- shapefile("Data/Preds/Raw/CH_geoms/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.shp")
 
-#Zonal stats to get urban area per kanton
-Canton_urban_areas <- raster::extract(Urban_rast, Canton_shp, fun=sum, na.rm=TRUE, df=TRUE)
+  #Zonal stats to get urban area per kanton
+  Canton_urban_areas <- raster::extract(Urban_rast, Canton_shp, fun=sum, na.rm=TRUE, df=TRUE)
 
-#append Kanton ID
-Canton_urban_areas$Canton_num <- Canton_shp$KANTONSNUM
+  #append Kanton ID
+  Canton_urban_areas$Canton_num <- Canton_shp$KANTONSNUM
 
-#combine areas for cantons with multiple polygons
-Canton_urban_areas <- Canton_urban_areas %>%
+  #combine areas for cantons with multiple polygons
+  Canton_urban_areas <- Canton_urban_areas %>%
   group_by(Canton_num) %>%
   dplyr::summarise(across(c(layer), sum))
 
-#load the municipality shape file
-Muni_shp <- shapefile("Data/Preds/Raw/CH_geoms/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.shp")
+  #load the municipality shape file
+  Muni_shp <- shapefile("Data/Preds/Raw/CH_geoms/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.shp")
 
-#filter out non-swiss municipalities
-Muni_shp <- Muni_shp[Muni_shp@data$ICC == "CH" & Muni_shp@data$OBJEKTART == "Gemeindegebiet", ]
+  #filter out non-swiss municipalities
+  Muni_shp <- Muni_shp[Muni_shp@data$ICC == "CH" & Muni_shp@data$OBJEKTART == "Gemeindegebiet", ]
 
-#Zonal stats to get number of Urban cells per Municipality polygon
-#sum is used as a function because urban cells = 1 all others = 0
-Muni_urban_areas <- raster::extract(Urban_rast, Muni_shp, fun=sum, na.rm=TRUE, df=TRUE)
+  #Zonal stats to get number of Urban cells per Municipality polygon
+  #sum is used as a function because urban cells = 1 all others = 0
+  Muni_urban_areas <- raster::extract(Urban_rast, Muni_shp, fun=sum, na.rm=TRUE, df=TRUE)
 
-#append Kanton and Municipality IDs
-Muni_urban_areas$Canton_num <- Muni_shp@data[["KANTONSNUM"]]
-Muni_urban_areas$Muni_num <- Muni_shp$BFS_NUMMER
-Muni_urban_areas$Perc_urban <- 0
+  #append Kanton and Municipality IDs
+  Muni_urban_areas$Canton_num <- Muni_shp@data[["KANTONSNUM"]]
+  Muni_urban_areas$Muni_num <- Muni_shp$BFS_NUMMER
+  Muni_urban_areas$Perc_urban <- 0
 
-#loop over kanton numbers and calculate municipality urban areas as a % of canton urban area
-for(i in Canton_urban_areas$Canton_num){
+  #loop over kanton numbers and calculate municipality urban areas as a % of canton urban area
+  for(i in Canton_urban_areas$Canton_num){
 
-#vector kanton urban area
-Can_urban_area <- as.numeric(Canton_urban_areas[Canton_urban_areas$Canton_num == i, "layer"])
+  #vector kanton urban area
+  Can_urban_area <- as.numeric(Canton_urban_areas[Canton_urban_areas$Canton_num == i, "layer"])
 
-#subset municipalities to this canton number
-munis_indices <- which(Muni_urban_areas$Canton_num == i)
+  #subset municipalities to this canton number
+  munis_indices <- which(Muni_urban_areas$Canton_num == i)
 
-#loop over municipalities in the Kanton and calculate their urban areas as a % of the Canton's total
-for(muni in munis_indices){
-Muni_urban_areas$Perc_urban[muni] <- (Muni_urban_areas[muni, "layer"]/Can_urban_area)*100
-  } #close inner loop
-} #close outer loop
+  #loop over municipalities in the Kanton and calculate their urban areas as a % of the Canton's total
+  for(muni in munis_indices){
+  Muni_urban_areas$Perc_urban[muni] <- (Muni_urban_areas[muni, "layer"]/Can_urban_area)*100
+    } #close inner loop
+  } #close outer loop
 
-#estimate % of predicted cantonal population per municipality
-#Load list of cantonal population models
-pop_models <- readRDS("Data/Preds/Tools/Dynamic_pop_models.rds")
+  #estimate % of predicted cantonal population per municipality
+  #Load list of cantonal population models
+  pop_models <- readRDS("Data/Preds/Tools/Dynamic_pop_models.rds")
 
-#add predicted % pop results column
-Muni_urban_areas$Perc_pop <- 0
+  #add predicted % pop results column
+  Muni_urban_areas$Perc_pop <- 0
 
-#estimate % of pop per municipality
-#loop over unique polygon IDs rather than BFS numbers to take into account that
-#multiple polygons have the same BFS number
-for(i in Muni_urban_areas$ID){
+  #estimate % of pop per municipality
+  #loop over unique polygon IDs rather than BFS numbers to take into account that
+  #multiple polygons have the same BFS number
+  for(i in Muni_urban_areas$ID){
 
-#seperate canton specific model
-canton_model <- pop_models[[Muni_urban_areas[Muni_urban_areas$ID == i, "Canton_num"]]]
+  #seperate canton specific model
+  canton_model <- pop_models[[Muni_urban_areas[Muni_urban_areas$ID == i, "Canton_num"]]]
 
-#perform prediction
-Muni_urban_areas$Perc_pop[[i]] <- predict(canton_model, newdata = Muni_urban_areas[Muni_urban_areas$ID == i, ])
-}
+  #perform prediction
+  Muni_urban_areas$Perc_pop[[i]] <- predict(canton_model, newdata = Muni_urban_areas[Muni_urban_areas$ID == i, ])
+  }
 
-#Our scenarios rely on specific population projects from FSO ("Ref", "High", "Low")
-# Identify which population scenario is required according to scenario being simulated
-Scenario_data_table <- openxlsx::read.xlsx("Tools/Scenario_specifications.xlsx", sheet = "Predictor_data")
-Pop_scenario <- Scenario_data_table[Scenario_data_table$Scenario_ID == Scenario_ID, "FSO_pop_scenario"]
+  #Our scenarios rely on specific population projects from FSO ("Ref", "High", "Low")
+  #Identify which population scenario is required according to scenario being simulated
+  Scenario_data_table <- openxlsx::read.xlsx("Tools/Scenario_specifications.xlsx", sheet = "Predictor_data")
+  Pop_scenario <- Scenario_data_table[Scenario_data_table$Scenario_ID == Scenario_ID, "FSO_pop_scenario"]
 
-#load correct sheet of future population predictions according to scenario
-Pop_prediction_table <- openxlsx::read.xlsx("Data/Preds/Tools/Population_projections.xlsx", sheet = Pop_scenario)
+  #load correct sheet of future population predictions according to scenario
+  Pop_prediction_table <- openxlsx::read.xlsx("Data/Preds/Tools/Population_projections.xlsx", sheet = Pop_scenario)
 
-#loop over unique kanton numbers, rescale the predicted population percentages
-#and calculate the estimated population per municipality as a % of the cantonal total
+  #loop over unique kanton numbers, rescale the predicted population percentages
+  #and calculate the estimated population per municipality as a % of the cantonal total
 
-#add results column
-Muni_urban_areas$Pop_est <- 0
+  #add results column
+  Muni_urban_areas$Pop_est <- 0
 
-for(i in unique(Muni_urban_areas$Canton_num)){
+  for(i in unique(Muni_urban_areas$Canton_num)){
 
-#subset to predicted cantonal population percentages
-Canton_dat <- Muni_urban_areas[Muni_urban_areas$Canton_num == i, "Perc_urban"]
+    #subset to predicted cantonal population percentages
+    Canton_dat <- Muni_urban_areas[Muni_urban_areas$Canton_num == i, "Perc_urban"]
 
-#loop over the municipalites re-scaling the values
-Canton_preds_rescaled <- sapply(Canton_dat, function(y) {
-value <- y*1/sum(Canton_dat)
-value[is.na(value)] <- 0 #dividing by Zero introduces NA's so these must be converted back to zero
-return(value)}) #close inner loop
+    #loop over the municipalites re-scaling the values
+    Canton_preds_rescaled <- sapply(Canton_dat, function(y) {
+    value <- y*1/sum(Canton_dat)
+    value[is.na(value)] <- 0 #dividing by Zero introduces NA's so these must be converted back to zero
+    return(value)}) #close inner loop
 
-#get the projected canton population value for this time point
-Canton_pop <- Pop_prediction_table[Pop_prediction_table$Canton_num == i, paste(Simulation_time_step)]
+    #get the projected canton population value for this time point
+    Canton_pop <- Pop_prediction_table[Pop_prediction_table$Canton_num == i, paste(Simulation_time_step)]
 
-#loop over the rescaled values calculating the estimated population
-Muni_indices <- which(Muni_urban_areas$Canton_num == i)
-Muni_urban_areas$Pop_est[Muni_indices] <- sapply(Canton_preds_rescaled, function(x) {
-pop_value <- Canton_pop*x #% already expressed as decimal so no need to /100
-}) #close loop over municipalities
+    #loop over the rescaled values calculating the estimated population
+    Muni_indices <- which(Muni_urban_areas$Canton_num == i)
+    Muni_urban_areas$Pop_est[Muni_indices] <- sapply(Canton_preds_rescaled, function(x) {
+    pop_value <- Canton_pop*x #% already expressed as decimal so no need to /100
+    }) #close loop over municipalities
 
-} #close loop over cantons
+  } #close loop over cantons
 
-#add estimated population to @data table of polygons and then rasterize
-Muni_shp@data$Pop_est <- Muni_urban_areas$Pop_est
-pop_raster <- raster::rasterize(x = Muni_shp, y = Ref_grid, field = "Pop_est", background = NAvalue(Ref_grid))
-names(pop_raster) <- "Muni_pop" #TO DO: THIS MUST BE THE LAYER NAME IN THE CALIBRATION STACKS/MODELS
+  #add estimated population to @data table of polygons and then rasterize
+  Muni_shp@data$Pop_est <- Muni_urban_areas$Pop_est
+  pop_raster <- raster::rasterize(x = Muni_shp, y = Ref_grid, field = "Pop_est", background = NAvalue(Ref_grid))
+  names(pop_raster) <- "Muni_pop" #TO DO: THIS MUST BE THE LAYER NAME IN THE CALIBRATION STACKS/MODELS
 
-#clean up
-rm(Canton_shp, Canton_urban_areas, Can_urban_area, canton_model, Muni_shp,
+  #clean up
+  rm(Canton_shp, Canton_urban_areas, Can_urban_area, canton_model, Muni_shp,
    Muni_urban_areas, munis_indices, pop_models, Pop_prediction_table,
    Urban_rast)
 
-### =========================================================================
-### E.2- Dynamic predictors: Neighbourhood predictors
-### =========================================================================
+#-------------------------------------------------------------------------
+# E.2- Dynamic predictors: Neighbourhood predictors
+#-------------------------------------------------------------------------
 
-#load matrices used to create focal layers
-Focal_matrices <- unlist(readRDS("Data/Preds/Tools/Neighbourhood_matrices/ALL_matrices"), recursive = FALSE)
+  #load matrices used to create focal layers
+  Focal_matrices <- unlist(readRDS("Data/Preds/Tools/Neighbourhood_matrices/ALL_matrices"), recursive = FALSE)
 
-#adjust matrix names
-names(Focal_matrices) <- sapply(names(Focal_matrices), function(x) {split_name <- (str_split(x, "[.]"))[[1]][2]})
+  #adjust matrix names
+  names(Focal_matrices) <- sapply(names(Focal_matrices), function(x) {split_name <- (str_split(x, "[.]"))[[1]][2]})
 
-#create a folder path using simulation ID and time step
-Dynamic_focal_folder_path <- paste0("Data/Preds/Prepared/Stacks/Simulation/NH_preds", "/", Scenario_ID, "/", Simulation_time_step)
+  #Load details of focal layers required for the model set being utilised
+  Required_focals_details <- readRDS(list.files("Data/Preds/Tools/Neighbourhood_details_for_dynamic_updating", pattern = Period_tag, full.names = TRUE))
 
-#create directory
-dir.create(paste(wpath, Dynamic_focal_folder_path, sep = "/"), recursive = TRUE)
+  #Loop over details of focal layers required creating a list of rasters from the current LULC map
+  Nhood_rasters <- list()
+  for(i in 1:nrow(Required_focals_details)){
+    #vector active class names
+    Active_class_name <- Required_focals_details[i,]$active_lulc
 
-#Load details of focal layers required for the model set being utilised
-Required_focals_details <- readRDS(list.files("Data/Preds/Tools/Neighbourhood_details_for_dynamic_updating", pattern = Period_tag, full.names = TRUE))
+    #get pixel values of active LULC class
+    Active_class_value <- as.numeric(names(LULC_labels[LULC_labels == Active_class_name]))
 
-#Loop over details of focal layers required creating a list of rasters from the current LULC map
-Nhood_rasters <- list()
-for(i in 1:nrow(Required_focals_details)){
-#vector active class names
-Active_class_name <- Required_focals_details[i,]$active_lulc
+    #subset LULC raster by all Active_class_value
+    Active_class_raster_subset <- Current_LULC == Active_class_value
 
-#get pixel values of active LULC class
-Active_class_value <- as.numeric(names(LULC_labels[LULC_labels == Active_class_name]))
+    #create focal layer using matrix
+    Focal_layer <- focal(x=Active_class_raster_subset, w= Focal_matrices[[Required_focals_details[i,]$matrix_id]], na.rm=FALSE, pad=TRUE, padValue=0, NAonly=FALSE)
 
-#subset LULC raster by all Active_class_value
-Active_class_raster_subset <- Current_LULC == Active_class_value
+    #create file path for saving this layer
+    Focal_name <- paste(Active_class_name, "nhood", Required_focals_details[i,]$matrix_id, sep = "_")
+    Nhood_rasters[[Focal_name]] <- Focal_layer
 
-#create focal layer using matrix
-Focal_layer <- focal(x=Active_class_raster_subset, w= Focal_matrices[[Required_focals_details[i,]$matrix_id]], na.rm=FALSE, pad=TRUE, padValue=0, NAonly=FALSE)
+    #steps for saving of rasters if needed
+    #create a folder path using simulation ID and time step
+    #Dynamic_focal_folder_path <- paste0("Data/Preds/Prepared/Stacks/Simulation/NH_preds", "/", Scenario_ID, "/", Simulation_time_step)
 
-#create file path for saving this layer
-Focal_name <- paste(Active_class_name, "nhood", Required_focals_details[i,]$matrix_id, sep = "_")
-Nhood_rasters[Focal_name] <- Focal_layer
+    #create directory
+    #dir.create(paste(wpath, Dynamic_focal_folder_path, sep = "/"), recursive = TRUE)
 
-#steps for saving of rasters if needed
-#Focal_file_name <- paste(Scenario_ID, Simulation_time_step, Required_focals_details[i,]$active_lulc, "nhood", Focal_matrices[Required_focals_details[i,]$matrix_id], sep = "_")
-#Focal_full_path <- paste0(Dynamic_focal_folder_path, "/", Focal_file_name, ".grd") #create full folder path
-#writeRaster(Focal_layer, Focal_full_path ,datatype='INT2U', overwrite=TRUE) #save layer
-}
+    #Focal_file_name <- paste(Scenario_ID, Simulation_time_step, Required_focals_details[i,]$active_lulc, "nhood", Focal_matrices[Required_focals_details[i,]$matrix_id], sep = "_")
+    #Focal_full_path <- paste0(Dynamic_focal_folder_path, "/", Focal_file_name, ".grd") #create full folder path
+    #writeRaster(Focal_layer, Focal_full_path ,datatype='INT2U', overwrite=TRUE) #save layer
+    }
 
-rm(Focal_matrices, Focal_layer, Focal_name, Required_focals_details,
+  rm(Focal_matrices, Focal_layer, Focal_name, Required_focals_details,
    Active_class_raster_subset, Active_class_name, Active_class_value)
-} #close if statement for dynamic predictor prep
+
+  } #close if statement for dynamic predictor prep
 
 ### =========================================================================
 ### F- Combine LULC, SA_preds and Nhood_preds and extract to dataframe
@@ -359,8 +364,14 @@ rm(LULC_data, SA_pred_stack, Nhood_rasters, Trans_data_stack, xy_coordinates)
 #load model look up
 Model_lookup <- xlsx::read.xlsx("Tools/Model_lookup.xlsx", sheetName = Period_tag)
 
-#exclude glacier transition
-#Model_lookup <-Model_lookup[Model_lookup$Initial_LULC != "Glacier",]
+#if statement to remove transitions if they are being implemented deterministically
+if(grepl("simulation", Model_mode, ignore.case = TRUE) &
+    grepl("Y", Simulation_table$Deterministic_trans.string, ignore.case = TRUE)){
+
+  #remove transitions with initial class == glacier
+  Model_lookup <-Model_lookup[Model_lookup$Initial_LULC != "Glacier",]
+
+  } #close if statement
 
 #seperate Trans_dataset into complete cases for prediction
 #and NAs ()background values
@@ -512,9 +523,13 @@ Raster_prob_values <- rbind(Prediction_probs, Trans_dataset_na)
 #sort by ID
 Raster_prob_values <- Raster_prob_values[order(Raster_prob_values$ID),]
 
-#set all glacier->static cell values to 0 to begin with:
-#REMOVE THIS LINE ONCE THE TRANSITION HAS BEEN REMOVED
-Raster_prob_values[which(Raster_prob_values$Glacier ==1), "Prob_Static"] <- 0
+#Save one copy of the raster probability values to be used to test
+#spatial interventions, this file will be created during the running of the model
+#to calibrate the Dinamica allocation parameters.
+if(file.exists("Data/Exemplar_data/EXP_raster_prob_values.rds") == FALSE){
+    dir.create("Data/Exemplar_data")
+    saveRDS(Raster_prob_values, "Data/Exemplar_data/EXP_raster_prob_values.rds")
+  }
 
 ### =========================================================================
 ### H- Spatial manipulations of transition probabilities
@@ -524,33 +539,22 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)){
 
   #If statement to implement spatial interventions
   if(Use_interventions == "Y"){
+
+  #load table of scenario interventions
+  Interventions <- openxlsx::read.xlsx(Scenario_specs_path, sheet = "Interventions")
+
   #Use function to perform manipulation of spatial transition probabilities
   #according to scenario-specific interventions
-  Raster_prob_values <- lulcc.spatprobmanipulation(Scenario_ID = Scenario_ID,
-                           Raster_prob_values = Raster_prob_values,
-                           Simulation_time_step = paste(Simulation_time_step))
+  Raster_prob_values <- lulcc.spatprobmanipulation(Interventions = Interventions,
+                                                  Scenario_ID = Scenario_ID,
+                                                  Raster_prob_values = Raster_prob_values,
+                                                  Simulation_time_step = paste(Simulation_time_step))
   } #close if statement for spatial interventions
-
-### =========================================================================
-### I- Implement deterministic glacial changes
-### =========================================================================
-
-
-
-#load scenario specific index of glacial change locations for this time step
-Glacier_index <- readRDS(file = list.files("Data/Glacial_change/Scenario_indices", full.names = TRUE, pattern = Scenario_ID))[,c("ID_loc", paste(Simulation_time_step))]
-
-#because 1's in the glacier_index represent glacial coverage and 0's represent
-#non-glacial subset to 0's only
-Glacier_index <- Glacier_index[Glacier_index[[paste(Simulation_time_step)]]==0,]
-
-#use cell IDs to add 1's to Prob_static column which is the class that glacier transitions too.
-Raster_prob_values[Raster_prob_values$ID %in% Glacier_index$ID_loc,"Prob_Static"] <- 1
 
 } #close simulation if statement
 
 ### =========================================================================
-### J- Final rescaling
+### I- Final rescaling
 ### =========================================================================
 
 #vector row indices with non-zero sums of transition probabilities
@@ -566,7 +570,7 @@ return(value)
 })))
 
 ### =========================================================================
-### K- Save transition rasters
+### J- Save transition rasters
 ### =========================================================================
 
 #subset model_lookup table to unique trans ID

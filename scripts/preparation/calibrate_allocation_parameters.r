@@ -314,7 +314,7 @@ readr::write_csv(Calibration_control_table, "Tools/Calibration_control.csv")
 #Perform pre-check to make sure that all element required for Dinamica modelling
 #are prepared
 Control_table_path <- paste0(getwd(),"/Tools/Calibration_control.csv")
-Pre_check_result <- lulcc.modelprechecks(Control_table_path)
+Pre_check_result <- lulcc.modelprechecks(Control_table_path, Param_dir = Calibration_param_dir)
 
 #run the dinamica model with the calibration table
 if(Pre_check_result == TRUE){

@@ -11,10 +11,11 @@
 #' @export
 #'
 
-lulcc.modelprechecks <- function(Control_table_path){
+lulcc.modelprechecks <- function(Control_table_path, Param_dir){
 
 #For testing purposes
-#Control_table_path <- "Tools/Calibration_control.csv"
+#Control_table_path <- "Tools/Simulation_control.csv"
+#Param_dir <- "Data/Allocation_parameters/Simulation"
 
 #load table
 Simulation_table <- read.csv(Control_table_path)
@@ -38,9 +39,6 @@ model_time_steps <- list( Keys = c(seq(Scenario_start,
                                          Step_length)))
 #Unique scenario names
 Scenario_IDs <- unique(Simulation_table$Scenario_ID.string)
-
-#Specify base folder for tables of allocation parameters
-Params_folder <- "Data/Allocation_parameters"
 
 #create list to catch errors
 Model_pre_checks <- list()
@@ -176,13 +174,14 @@ Model_pre_checks <- list.append(Model_pre_checks,
 
 #gather all required allocation param table file paths
 if(grepl("simulation", Model_mode, ignore.case = TRUE)){
-Params_path <- paste0(Params_folder, "/Simulation/Allocation_param_table_<v1>.csv")
-Param_table_paths <- sapply(model_time_steps$Keys, function(x){
-str_replace(Params_path, "<v1>", paste(x))
+Param_table_paths <- sapply(unique(Simulation_table$Scenario_ID.string), function(ID){
+table_paths <- sapply(model_time_steps$Keys, function(x){
+    str_replace(paste0(Param_dir, "/", ID, "/Allocation_param_table_<v1>.csv"), "<v1>", paste(x))
+})
 })
 } else if(grepl("calibration", Model_mode, ignore.case = TRUE)){
 Param_table_paths <- c(sapply(unique(Simulation_table$Simulation_ID.string), function(Sim_ID){
-Params_path <- paste0(Params_folder, "/Calibration/", Sim_ID, "/Allocation_param_table_<v1>.csv")
+Params_path <- paste0(Param_dir, "/Calibration/", Sim_ID, "/Allocation_param_table_<v1>.csv")
 
 #loop over time steps
 Time_step_paths <- sapply(model_time_steps$Keys, function(x){
@@ -455,6 +454,94 @@ if(all(Simulation_pred_stacks_exist) == FALSE) {
                            see result for details",
                                 Result = Simulation_pred_stacks_exist))}
 }
+
+### =========================================================================
+### I- Check functionality of spatial interventions
+### =========================================================================
+
+if(grepl("simulation", Model_mode, ignore.case = TRUE)){
+
+  #load table of scenario interventions
+  Interventions <- openxlsx::read.xlsx(Scenario_specs_path, sheet = "Interventions")
+
+  #convert Time_step and Target_classes columns back to character vectors
+  Interventions$Time_step <- sapply(Interventions$Time_step, function(x) {
+    x <- str_remove_all(x, " ")
+    rep <- unlist(strsplit(x, ","))
+    },simplify=FALSE)
+
+  Interventions$Target_classes <- sapply(Interventions$Target_classes, function(x) {
+    x <- str_remove_all(x, " ")
+    rep <- unlist(strsplit(x, ","))
+    },simplify=FALSE)
+
+  #remove parameter adjust interventions because they cannot be tested
+  Interventions <- Interventions[Interventions$Intervention_type != "Param_adjust",]
+
+  #Seperate interventions according to those which have temporally dynamic inputs
+  #vs. those that have static inputs
+  Dyn_int <- Interventions[Interventions$Dynamic_input == "Y",]
+  Static_int <- Interventions[Interventions$Dynamic_input == "N",]
+
+  #Load in exemplar dataset to test interventions on
+  #Exemplar dataset is saved during calibration of allocation parameters
+  Raster_prob_values <- readRDS("Data/Exemplar_data/EXP_raster_prob_values.rds")
+
+  #sort by ID
+  Raster_prob_values[order(Raster_prob_values$ID),]
+
+  #loop spatial manipulation function over unique scenarios in static interventions
+  Static_int_tests <- sapply(unique(Static_int$Scenario_ID), function(Scenario_ID){
+
+    #Identify the first time step common across all interventions for the scenarios
+    Common_step <- Reduce(intersect, Static_int[Static_int$Scenario_ID == Scenario_ID, "Time_step"])[1]
+
+    #test interventions and log errors with 'try'
+    test_interventions <- try(lulcc.spatprobmanipulation(Interventions = Static_int,
+                                                         Scenario_ID = Scenario_ID,
+                                                         Raster_prob_values = Raster_prob_values,
+                                                         Simulation_time_step = Common_step),silent = TRUE)
+
+    #check for any errors, if erros are present then return the message
+    #otherwise return TRUE
+    if(class(test_interventions) == "try-error"){return(test_interventions)}else{TRUE}
+    })
+
+
+  #loop function over unique scenarios in dynamic interventions
+  Dynamic_int_tests <- sapply(unique(Dyn_int$Scenario_ID), function(Scenario_ID){
+
+    #Loop over time steps for the Scenario
+    #test interventions and log errors with 'try'
+    Time_step_tests <- sapply(unlist(Dyn_int[Dyn_int$Scenario_ID == Scenario_ID, "Time_step"]), function(Tstep){
+
+      test_interventions <- try(lulcc.spatprobmanipulation(Interventions = Dyn_int,
+                                                        Scenario_ID = Scenario_ID,
+                                                        Raster_prob_values = Raster_prob_values,
+                                                        Simulation_time_step = Tstep),silent = TRUE)
+      #check for any errors, if errors are present then return the message
+      #otherwise return TRUE
+      if(class(test_interventions) == "try-error"){FALSE}else{TRUE}
+    })
+    names(Time_step_tests) <- unlist(Dyn_int[Dyn_int$Scenario_ID == Scenario_ID, "Time_step"])
+
+    return(Time_step_tests)
+    })
+
+  Dynamic_results <- unlist(lapply(seq_len(ncol(Dynamic_int_tests)), function(i) Dynamic_int_tests[,i]))
+
+  #Combine the results of the tests of static/dynamic interventions
+  All_int_tests <- c(Static_int_tests, Dynamic_results)
+
+  #add test result to list
+  if(all(All_int_tests) == FALSE){
+  Model_pre_checks <- list.append(Model_pre_checks,
+                           list(Message = "Some spatial interventions are producing errors, check the names in the result",
+                                Result = list("Static_interventions" = Static_int_tests,
+                                              "Dynamic_interventions" = Dynamic_int_tests)))}
+
+
+} #close if statement
 
 ### =========================================================================
 ### X- Close function

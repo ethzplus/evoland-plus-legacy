@@ -209,8 +209,8 @@ for(scenario in names(old_trans_areas)){
     Final_mismatch_perc <- class_perc_mismatches[names(class_perc_mismatches) == trans_info$Initial_class]
 
 
-    #use thearea of the class with the smallest % mismatch value as the area to allocate
-    if(abs(initial_mismatch_perc) > abs(Final_mismatch_perc)){
+    #use the area of the class with the smallest % mismatch value as the area to allocate
+    if(abs(initial_mismatch_perc) >= abs(Final_mismatch_perc)){
 
       #calculate stepwise change
       stepwise_area <- abs(Final_mismatch_area)/length(Sim_time_steps)

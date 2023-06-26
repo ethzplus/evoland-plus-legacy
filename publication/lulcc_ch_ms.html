@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.330">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Benjamin Black">
+<meta name="author" content="Adrienne Grêt-Regamey">
+<meta name="author" content="Sven-Erik Rabe">
+<meta name="author" content="Paula Mayer">
+<meta name="author" content="Jan Streit">
+<meta name="author" content="Manuel Kurmann">
+<meta name="author" content="Daniel Farinotti">
+<meta name="author" content="Harry Zellokari">
+<meta name="keywords" content="Scenario modelling, Land use change simulation, Cellular Automata">
+
+<title>Simulated Land use and land cover change under scenarios of Ecological Infrastructure development in Switzerland between 2020-2060</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="LULCC_CH_ms_files/libs/clipboard/clipboard.min.js"></script>
+<script src="LULCC_CH_ms_files/libs/quarto-html/quarto.js"></script>
+<script src="LULCC_CH_ms_files/libs/quarto-html/popper.min.js"></script>
+<script src="LULCC_CH_ms_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="LULCC_CH_ms_files/libs/quarto-html/anchor.min.js"></script>
+<link href="LULCC_CH_ms_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="LULCC_CH_ms_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="LULCC_CH_ms_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="LULCC_CH_ms_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="LULCC_CH_ms_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Simulated Land use and land cover change under scenarios of Ecological Infrastructure development in Switzerland between 2020-2060</h1>
+</div>
+
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Authors</div>
+  <div class="quarto-title-meta-heading">Affiliations</div>
+
+    <div class="quarto-title-meta-contents">
+    <p class="author">Benjamin Black </p>
+  </div>
+    <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            ETH Zürich
+          </p>
+      </div>
+      <div class="quarto-title-meta-contents">
+    <p class="author">Adrienne Grêt-Regamey </p>
+  </div>
+    <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            ETH Zürich
+          </p>
+      </div>
+      <div class="quarto-title-meta-contents">
+    <p class="author">Sven-Erik Rabe </p>
+  </div>
+    <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            ETH Zürich
+          </p>
+      </div>
+      <div class="quarto-title-meta-contents">
+    <p class="author">Paula Mayer </p>
+  </div>
+    <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            ETH Zürich
+          </p>
+      </div>
+      <div class="quarto-title-meta-contents">
+    <p class="author">Jan Streit </p>
+  </div>
+    <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            ETH Zürich
+          </p>
+      </div>
+      <div class="quarto-title-meta-contents">
+    <p class="author">Manuel Kurmann </p>
+  </div>
+    <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            ETH Zürich
+          </p>
+      </div>
+      <div class="quarto-title-meta-contents">
+    <p class="author">Daniel Farinotti </p>
+  </div>
+    <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            ETH Zürich
+          </p>
+        <p class="affiliation">
+            Swiss Federal Institute for Forest, Snow and Landscape Research (WSL)
+          </p>
+      </div>
+      <div class="quarto-title-meta-contents">
+    <p class="author">Harry Zellokari </p>
+  </div>
+    <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            ETH Zürich
+          </p>
+        <p class="affiliation">
+            Swiss Federal Institute for Forest, Snow and Landscape Research (WSL)
+          </p>
+        <p class="affiliation">
+            Université libre de Bruxelles
+          </p>
+      </div>
+    </div>
+
+<div class="quarto-title-meta">
+
+
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">Wednesday, May 31, 2023</p>
+    </div>
+  </div>
+
+
+  </div>
+
+<div>
+  <div class="abstract">
+    <div class="abstract-title">Abstract</div>
+    <p>This is the abstract.</p>
+  </div>
+</div>
+
+</header>
+
+<!--#set citation aliases-->
+<section id="sec-introduction" class="level1">
+<h1>Introduction</h1>
+<!-- Institutional goals of EI in Switzerland require scenarios -->
+<p>The mountainous central European country of Switzerland, like the majority of countries globally, exhibits declining biodiversity due to multiple drivers such as urbanization, climatic change and environmentally deleterious agricultural practices. To address biodiversity loss, in 2012, the federal government of Switzerland ratified the Swiss Biodiversity Strategy (SBS). One of the goals of the SBS is the development of Switzerland’s Ecological Infrastructure (EI) as a “network of protected and connected areas that contribute to safeguarding the essential services of ecosystems for society and economy … and form the basis for a rich and resilient biodiversity” . Achieving this goal will require consideration of not just how Switzerland’s EI should be planned under existing conditions but how it’s development in space and time could proceed in concurrence with changes in the boundary conditions of the socio-ecological system within which it is situated.</p>
+<!-- EI scenarios have been developed -->
+<p>In this regard, <span class="citation" data-cites="mayer2023">(<a href="#ref-mayer2023" role="doc-biblioref">Mayer et al., 2023</a>)</span> defined 5 narrative scenarios to frame the development of EI in Switzerland between 2020 and 2060 alongside expected demographic, economic and climatic changes in Switzerland. The scenarios were produced through a participatory process with the aim of envisioning nature-positive outcomes using the IPBES Nature futures framework. As such the scenarios can characterized as both exploratory and normative, encapsulating the development of a “functioning” EI from different perspectives of societal-nature relationships (ibid).</p>
+<p>-<strong>Provide overview of scenario names</strong></p>
+<!-- It is useful to operationalize scenarios with models -->
+<p>However, whilst descriptive scenarios are a useful starting point for planners and decision-makers, their legitimacy can be increased by operationalising the narratives through computer-based simulation modelling so that their spatio-temporal impacts on critical aspects of the study system can be visualized and explored in detail <span class="citation" data-cites="verburg2004">(<a href="#ref-verburg2004" role="doc-biblioref">Verburg et al., 2004</a>)</span>. Such operationalization of scenarios is especially desirable when their realization would likely result in trade-offs that must be negotiated by society. This is pertinent in the case of EI, which, under the definition employed by the SBS, aims to balance both ecosystem service (ES) provision and biodiversity protection, which have often been acknowledged as discordant objectives.</p>
+<!-- Why operationalise EI development with a LULCC model -->
+<p>In terms of operationalizing the specific scenarios of EI development from <span class="citation" data-cites="mayer2023">(<a href="#ref-mayer2023" role="doc-biblioref">Mayer et al., 2023</a>)</span>, the proximal linkages between EI as a ‘network of areas’ at the landscape level in Switzerland and it’s intended outcomes for biodiversity and ES are difficult to model directly. Instead, it is logical to focus on a higher level of abstraction and model an intermediary, or distal, interaction between the physical expression of EI and these outcomes. A common component in the modelling of both measures of biodiversity (e.g species distribution) and ES provision <span class="citation" data-cites="newbold2015 gomes2021">(<a href="#ref-gomes2021" role="doc-biblioref">Gomes et al., 2021</a>; <a href="#ref-newbold2015" role="doc-biblioref">Newbold et al., 2015</a>)</span> is land use and land cover (LULC). Furthermore LULC change (LULCC) trends are also a central theme in the SBS concept of EI as well as the scenario narrative’s of <span class="citation" data-cites="mayer2023">(<a href="#ref-mayer2023" role="doc-biblioref">Mayer et al., 2023</a>)</span>. In particular, the role of protected areas and Other Effective Conservation Measures (OECMs) as components of the EI as well as other EI-relevant LULCC trends such as urban sprawl and the spatial distribution of agricultural production. On this basis, the goal of this research is to operationalize the scenario’s of EI development produced for Switzerland by <span class="citation" data-cites="mayer2023">(<a href="#ref-mayer2023" role="doc-biblioref">Mayer et al., 2023</a>)</span> by simulating their implications for trends in LULCC in Switzerland between 2020 and 2060 using a temporally dynamic Constrained Cellular Automata (CCA) model.</p>
+<!-- What are LULCC-CCAs -->
+<p>CCA models have enjoyed enduring popularity for the modelling of scenarios of LULCC for the last three decades <span class="citation" data-cites="triantakonstantis2012 aburas2016">(<a href="#ref-aburas2016" role="doc-biblioref">Aburas et al., 2016</a>; <a href="#ref-triantakonstantis2012" role="doc-biblioref">Triantakonstantis and Mountrakis, 2012</a>)</span>. LULCC-CCAs treat landscapes as a pixelated grid of cells of individual LULC states with cells changing state over time typically based on two processes. Firstly, the spatial distribution of potential LULCC is determined through calculation of cellular probabilities of change, often referred to as transition potential (TP), to alternate LULC states. The method by which this is achieved, differs between popular LULCC-CAs although it is commonly based on the quantification of correlative relationships with explanatory variables such as biophysical, socio-economic and neighbourhood (focal LULC) predictors using a statistical model <span class="citation" data-cites="garcía-álvarez2018">(<a href="#ref-garcía-álvarez2018" role="doc-biblioref">García-Álvarez, 2018</a>)</span>. Secondly, the amount of cellular LULC changes that occur in a given simulation time step is prescribed by values of transition rates extrapolated from historic LULC data, with an allocation algorithm selecting the required number of cells to change based upon their transition probabilities <!--citation possibly White et al. 1997 -->.</p>
+<!-- Why are LULCC-CCA's popular for scenario simulation -->
+<p>see notes on Miro board with two reasions from</p>
+<!-- How can scenario's be operationalized within LULCC-CCA's -->
+<p>Considering the two processes described above LULCC-CCAs offers several opportunities, or mechanisms, to operationalize aspects of scenarios. Firstly, the data supplied in the form of dynamic variables used to predict cellular TP values can be specific to the different scenario’s being modelled <span class="citation" data-cites="liao2023">(<a href="#ref-liao2023" role="doc-biblioref">Liao et al., 2023</a>)</span>. For example, in scenarios contrasting differential levels of climatic change, the data provided may come from exogenous climatic models of different Relative Concentration Pathways <span class="citation" data-cites="song2019">(<a href="#ref-song2019" role="doc-biblioref">Song et al., 2019</a>)</span>. A second mechanism is to alter predicted cellular TP values according to proscribed criteria, this can be done directly: such as spatially designated land management policies, for example reducing the potential for transition to urban LULC states inside environmental protection areas<span class="citation" data-cites="poelmans2010 gharbia2016 price2017 clerici2019 daneshi2021 peng2021 frank2023">(<a href="#ref-clerici2019" role="doc-biblioref">Clerici et al., 2019</a>; <a href="#ref-daneshi2021" role="doc-biblioref">Daneshi et al., 2021</a>; <a href="#ref-frank2023" role="doc-biblioref">Frank et al., 2023</a>; <a href="#ref-gharbia2016" role="doc-biblioref">Gharbia et al., 2016</a>; <a href="#ref-peng2021" role="doc-biblioref">Peng et al., 2021</a>; <a href="#ref-poelmans2010" role="doc-biblioref">Poelmans and Van Rompaey, 2010</a>; <a href="#ref-price2017" role="doc-biblioref">Price et al., 2017</a>)</span>. Or indirectly by altering the influence of variables within the model used to calculate TPs<span class="citation" data-cites="troupin2016 gago-silva2017">(<a href="#ref-gago-silva2017" role="doc-biblioref">Gago-Silva et al., 2017</a>; <a href="#ref-troupin2016" role="doc-biblioref">Troupin and Carmel, 2016</a>)</span>. Another means is to adjust parameters of the LULCC-CCA’s allocation algorithm, that may for example increase the creation of new patches of LULC class cover relative to the expansion of existing areas <span class="citation" data-cites="prieto-amparán2019">(<a href="#ref-prieto-amparán2019" role="doc-biblioref">Prieto-Amparán et al., 2019</a>)</span>. Finally, the influence of different scenarios can be incorporated through specification of the transitions rates <span class="citation" data-cites="shrestha2018 cheng2020 schirpke2020 peng2021 kiziridis2023 molinero-parejo2023">(<a href="#ref-cheng2020" role="doc-biblioref">Cheng et al., 2020</a>; <a href="#ref-kiziridis2023" role="doc-biblioref">Kiziridis et al., 2023</a>; <a href="#ref-molinero-parejo2023" role="doc-biblioref">Molinero-Parejo et al., 2023</a>; <a href="#ref-peng2021" role="doc-biblioref">Peng et al., 2021</a>; <a href="#ref-schirpke2020" role="doc-biblioref">Schirpke et al., 2020</a>; <a href="#ref-shrestha2018" role="doc-biblioref">Shrestha et al., 2018</a>)</span>.</p>
+<p>The influence of these mechanisms within a generalized schematic of an LULCC-CCA model are highlighted visually in <a href="#fig-process">Figure&nbsp;1</a> below. Many LULCC-CCA scenario simulation studies utilize a combination of these mechanisms, however it is rare that they are all implemented in a detailed fashion.</p>
+<!-- Lead into statement of aims -->
+<p>-short repetition of aim?</p>
+</section>
+<section id="methods" class="level1">
+<h1>Methods</h1>
+<section id="model-overview" class="level2">
+<h2 class="anchored" data-anchor-id="model-overview">Model overview</h2>
+<p>To perform scenario-based simulation of future LULCC in Switzerland between 2020 and 2060 we created a constrained cellular automata (CCA) model combining the statistical programming software R (4.2.2)<span class="citation" data-cites="rcoreteam2022">(<a href="#ref-rcoreteam2022" role="doc-biblioref">R core team, 2022</a>)</span> with the environment modelling software Dinamica EGO (7.2.0)<span class="citation" data-cites="soares-filho2009">(<a href="#ref-soares-filho2009" role="doc-biblioref">Soares-Filho et al., 2009</a>)</span>. In the interest of open science the CCA model along with the research data and results has been made available alongside this manuscript (URL)</p>
+<p><a href="#fig-process">Figure&nbsp;1</a> highlights the primary processes taking place within the LULCC-CCA model, the details of each these processes are summarized in the subsequent sections although for brevity some material has been presented as appendices.</p>
+<div id="fig-process" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="figures_tables/Fig1.jpg" class="img-fluid figure-img" width="600"></p>
+<p></p><figcaption class="figure-caption">Figure&nbsp;1: Flowchart showing the primary processes and inputs in the LULCC-CCA model</figcaption><p></p>
+</figure>
+</div>
+</section>
+<section id="land-use-land-cover-transition-identification" class="level2">
+<h2 class="anchored" data-anchor-id="land-use-land-cover-transition-identification">Land use land cover transition identification</h2>
+<p>The process of identifying LULC transitions, i.e.&nbsp;pixel changes from an initial specific LULC class to a different final LULC class, was based upon a preceding study by <span class="citation" data-cites="black_re-considering_2023">(<a href="#ref-black_re-considering_2023" role="doc-biblioref">Black et al., 2023</a>)</span>. We utilized classified LULC datasets for four time periods from the Swiss area statistics : 1981-1985; 1992-1997; 2004-2009; 2013-2018 (Note that date range is the extent of the data-collection flying period, and in fact each product represents a single LULC map). The LULC data is originally presented as point data generated from aerial photography, however for the purpose of modelling all maps were converted to 100m resolution rasters. Given that transitions are identified between two time points having four historic LULC maps meant that we had three LULC transition periods, with which to calibrate our model, which will henceforth be referred to using the latter year of the flying period as: 1985-1997; 1997-2009; and 2009-2018 respectively. Following <span class="citation" data-cites="black_re-considering_2023">(<a href="#ref-black_re-considering_2023" role="doc-biblioref">Black et al., 2023</a>)</span> we aggregated the original 72 LULC classes in the data to 10 classes: Alpine pastures; Closed forest; Glacier; Grassland; Intensive agriculture; Open Forest; Shrubland; Permanent crops; Settlement/urban/amenities; Static (see <a href="#sec-LULC_aggregation_app">5</a> for a table of class aggregations).</p>
+<p>Instances of LULC transitions were identified by overlaying the maps for each transition period and extracting pixels on the basis of their specific changes in LULC classes between their initial class (start map) and final class (end map). With 10 aggregated classes this gives the potential for 100 possible class-class transitions which is unfeasible for modelling. Thus, as per <span class="citation" data-cites="black_re-considering_2023">(<a href="#ref-black_re-considering_2023" role="doc-biblioref">Black et al., 2023</a>)</span>, we filtered to viable LULC transitions for each period by first excluding illogical transitions (e.g from static to other classes) as well as applying a threshold to remove transitions that led to an a change in less than 0.5% of the total area of the initial class.</p>
+<p>The instances of LULC transitions were then combined with instances of non-transitions (i.e.&nbsp;pixels with the same initial class but a different final class), coded as 1’s and 0’s respectively, to give seperate datasets for each transition. These transition datasets were first identified using the entire LULC map region (i.e the extent of Switzerland). However, to better reflect the potential for localized differences in LULCC processes the datasets were sub divided according to the six biogeographical regions of Switzerland <span class="citation" data-cites="gonseth2001">(<a href="#ref-gonseth2001" role="doc-biblioref">Gonseth et al., 2001</a>)</span>. A table listing the transitions identified for the calibration periods is included as <a href="#sec-transitions_app">6</a> .</p>
+</section>
+<section id="sec-trans_model_method" class="level2">
+<h2 class="anchored" data-anchor-id="sec-trans_model_method">Transition potential model calibration</h2>
+<p>The process of creating the statistical models to be used to iteratively predict cellular TP within the LULCC-CCA was refined from that of <span class="citation" data-cites="black_re-considering_2023">(<a href="#ref-black_re-considering_2023" role="doc-biblioref">Black et al., 2023</a>)</span>. The predictors chosen for the modelling were grouped into categories related to land suitability and accessibility as well as neighbourhood predictors capturing the influence of the LULC class of the surrounding cells. The details of the suitability and accessibility predictors are provided in <a href="#tbl-preds">Table&nbsp;1</a> below.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="tbl-preds" class="anchored">
+<table class="table table-sm table-striped small">
+<caption>Table&nbsp;1: Predictor data used in statistical models of transition potential.</caption>
+<colgroup>
+<col style="width: 45%">
+<col style="width: 45%">
+<col style="width: 10%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Variable name</th>
+<th style="text-align: left;">Data source/s</th>
+<th style="text-align: left;">Temporality</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Distance to roads</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Static</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Continentality</td>
+<td style="text-align: left;"><span class="citation" data-cites="descombes2020">(<a href="#ref-descombes2020" role="doc-biblioref">Descombes et al., 2020</a>)</span></td>
+<td style="text-align: left;">Static</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Light</td>
+<td style="text-align: left;"><span class="citation" data-cites="descombes2020">(<a href="#ref-descombes2020" role="doc-biblioref">Descombes et al., 2020</a>)</span></td>
+<td style="text-align: left;">Static</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Soil pH</td>
+<td style="text-align: left;"><span class="citation" data-cites="descombes2020">(<a href="#ref-descombes2020" role="doc-biblioref">Descombes et al., 2020</a>)</span></td>
+<td style="text-align: left;">Static</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Soil nutrients</td>
+<td style="text-align: left;"><span class="citation" data-cites="descombes2020">(<a href="#ref-descombes2020" role="doc-biblioref">Descombes et al., 2020</a>)</span></td>
+<td style="text-align: left;">Static</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Soil moisture</td>
+<td style="text-align: left;"><span class="citation" data-cites="descombes2020">(<a href="#ref-descombes2020" role="doc-biblioref">Descombes et al., 2020</a>)</span></td>
+<td style="text-align: left;">Static</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Soil moisture variability</td>
+<td style="text-align: left;"><span class="citation" data-cites="descombes2020">(<a href="#ref-descombes2020" role="doc-biblioref">Descombes et al., 2020</a>)</span></td>
+<td style="text-align: left;">Static</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Soil aeration</td>
+<td style="text-align: left;"><span class="citation" data-cites="descombes2020">(<a href="#ref-descombes2020" role="doc-biblioref">Descombes et al., 2020</a>)</span></td>
+<td style="text-align: left;">Static</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Soil humus</td>
+<td style="text-align: left;"><span class="citation" data-cites="descombes2020">(<a href="#ref-descombes2020" role="doc-biblioref">Descombes et al., 2020</a>)</span></td>
+<td style="text-align: left;">Static</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Mean elevation</td>
+<td style="text-align: left;"><span class="citation" data-cites="wiederkehr2013">(<a href="#ref-wiederkehr2013" role="doc-biblioref">Wiederkehr and Möri, 2013</a>)</span></td>
+<td style="text-align: left;">Static</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Aspect</td>
+<td style="text-align: left;"><span class="citation" data-cites="wiederkehr2013">(<a href="#ref-wiederkehr2013" role="doc-biblioref">Wiederkehr and Möri, 2013</a>)</span></td>
+<td style="text-align: left;">Static</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Slope</td>
+<td style="text-align: left;"><span class="citation" data-cites="wiederkehr2013">(<a href="#ref-wiederkehr2013" role="doc-biblioref">Wiederkehr and Möri, 2013</a>)</span></td>
+<td style="text-align: left;">Static</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Hillshade</td>
+<td style="text-align: left;"><span class="citation" data-cites="wiederkehr2013">(<a href="#ref-wiederkehr2013" role="doc-biblioref">Wiederkehr and Möri, 2013</a>)</span></td>
+<td style="text-align: left;">Static</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Noise pollution index</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Static</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Distance to lakes (mean minimum dist to all lakes of different categories)</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Static</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Distance to river (mean minimum distance (agg. From 25m data to rivers of all Strahler classes)</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Static</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Average annual mean air temperature</td>
+<td style="text-align: left;"><span class="citation" data-cites="broennimann2018">(<a href="#ref-broennimann2018" role="doc-biblioref">Broennimann, 2018</a>)</span></td>
+<td style="text-align: left;">Dynamic</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Average annual precipitation</td>
+<td style="text-align: left;"><span class="citation" data-cites="broennimann2018">(<a href="#ref-broennimann2018" role="doc-biblioref">Broennimann, 2018</a>)</span></td>
+<td style="text-align: left;">Dynamic</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Average growing degree days heat sum above 0°C</td>
+<td style="text-align: left;"><span class="citation" data-cites="broennimann2018">(<a href="#ref-broennimann2018" role="doc-biblioref">Broennimann, 2018</a>)</span></td>
+<td style="text-align: left;">Dynamic</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Average growing degree days heat sum above 3°C</td>
+<td style="text-align: left;"><span class="citation" data-cites="broennimann2018">(<a href="#ref-broennimann2018" role="doc-biblioref">Broennimann, 2018</a>)</span></td>
+<td style="text-align: left;">Dynamic</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Average growing degree days heat sum above 5°C</td>
+<td style="text-align: left;"><span class="citation" data-cites="broennimann2018">(<a href="#ref-broennimann2018" role="doc-biblioref">Broennimann, 2018</a>)</span></td>
+<td style="text-align: left;">Dynamic</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Population per municipality</td>
+<td style="text-align: left;">; </td>
+<td style="text-align: left;">Dynamic</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Average annual change in no. of Full Time Equivalent (FTE) employees in the primary sector per labour market region</td>
+<td style="text-align: left;">; ; </td>
+<td style="text-align: left;">Dynamic</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Average annual change in no. of FTE employees in the secondary sector per labour market region</td>
+<td style="text-align: left;">; ; </td>
+<td style="text-align: left;">Dynamic</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Average annual change in no. of FTE employees in the tertiary sector per labour market region</td>
+<td style="text-align: left;">; ; </td>
+<td style="text-align: left;">Dynamic</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>-approach refined from previous paper</p>
+<p>-predictor filtering applied</p>
+<p>-seperate models fitted for each calibration period</p>
+<p>The accuracy of the statistical models used for transition potential prediction was assesed independently of the CCA model, using hold-out validation with multiple performance metrics, in a process that <span class="citation" data-cites="black_re-considering_2023">(<a href="#ref-black_re-considering_2023" role="doc-biblioref">Black et al., 2023</a>)</span> refer to as stage 1 validation.</p>
+<p>These models are used for prediction</p>
+<p>-The exception is glacier transition</p>
+</section>
+<section id="cellular-automata-parameter-calibration" class="level2">
+<h2 class="anchored" data-anchor-id="cellular-automata-parameter-calibration">Cellular automata parameter calibration</h2>
+<p>Dinamica EGO uses a combination of two algorithms for allocating cellular LULC transitions, Patcher and Expander, which represent the processes of the creation of new patches of LULC classes and the expansion of existing patches respectively<span class="citation" data-cites="soares-filho2009">(<a href="#ref-soares-filho2009" role="doc-biblioref">Soares-Filho et al., 2009</a>)</span>. These algorithms require the calibration of 5 parameters for every transition: Mean patch size, Patch size variance, Patch isometry, and the relative % of transitions to be allocated by each algorithm (i.e % by patcher, % by expander). To calibrate these parameters we first used the historic LULC maps from the calibration periods to estimate parameter values using the R package SDMtools , which were then refined using brute force simulation. This involved applying a random permutation (from normal distribution with mean = 0 and sd = 0.05 effectively 5% bounding) to each transition parameter value for 100 repetitions to produce candidate sets of parameters values. These candidate sets were then tested by using them in the Dinamica EGO model to simulate LULCC between 2010 and 2020 (i.e covering the final calibration period) using a 5 year time step. The results of these simulations were used to identify the candidate set of parameter values that displayed the greatest value of the minimum similarity score produced by Dinamica EGO’s “fuzzy reciprocal similarity” map comparison method <span class="citation" data-cites="soares-filho2009 soares-filho2013">(<a href="#ref-soares-filho2013" role="doc-biblioref">Soares-Filho et al., 2013</a>; <a href="#ref-soares-filho2009" role="doc-biblioref">Soares-Filho et al., 2009</a>)</span>. This set of parameter values was used as the basis for all future simulations with some scenarios involving deliberate modifications of values (<a href="#sec-manipulation">2.5.2</a>).</p>
+</section>
+<section id="scenario-operationalisation" class="level2">
+<h2 class="anchored" data-anchor-id="scenario-operationalisation">Scenario operationalisation</h2>
+<section id="sec-trans_rates_method" class="level3">
+<h3 class="anchored" data-anchor-id="sec-trans_rates_method">Transition rates</h3>
+<p>The cellular transition allocation process in Dinamica EGO is constrained by input in the form of rates of transitions (the % of the initial class area to be converted) for each time step in the simulation. To establish transition rates for each of our 5 future scenario’s we iterated between quantitative estimation and expert elicitation.</p>
+<p>Initially, transition rates were calculated for each of the calibration time periods before being extrapolated (linear models) over 5 year time steps between 2020 and 2060. These extrapolated transitions rates were dubbed the reference rates and were applied to the values of LULC class extents in the final calibration year (2018) to estimate reference class areas for 2060.</p>
+<p>These reference class areas were used as a prompt in discussions with experts involved in the scenario creation process to code whether statements within the scenario’s were perceived as likely to lead to an increase or decrease in the areas of certain LULC classes relative to the reference areas. Experts were encouraged to focus only on the direct impacts of statements and not potential indirect impacts, i.e statements referencing change in agriculture practices were linked to agricultural LULC classes only and the potential for subsequent impacts on forestry were only considered in corresponding statements. Importantly, experts were able to allocate different magnitudes of impact on LULC classes due to individual statements. This was realized in a simplistic manner through the allocation of a desired number of either pluses and minuses, each representing an equally weighted percentage change to the class area, which were summed for each class across all statements to give overall percentage impacts of the scenario on class areas. This process was first employed for the BAU scenario with the percentage class impacts used to modify the reference 2060 class areas to give projected 2060 class areas. THis was then repeated for the remaining scenarios (EI-NAT, EI-CUL, EI-SOC and GR-EX) however their areas were derived relative to the BAU rather than the reference areas. This is an important distinction as the scenarios are intended to represent deliberate changes to the status-quo represented by the BAU narrative.</p>
+<p>Finally, it was necessary to dis-aggregate the projected class areas for each scenario back to areas and then rates for each transition. Given that it is possible to either increase or decrease the rates of transitions that result in the expansion of LULC class area simultaneous to altering transitions that result in class area contraction, this process of dis-aggregation represented an optimization problem. Our method to address this was to perform a first pass over the LULC classes and allocate areas to relevant transitions with respect to the proportion of area expansion vs.&nbsp;contraction exhibited by the LULC class in the calibration periods. In the case that there were multiple transitions contributing to either class expansion or contraction then the values were ascribed based on the relative contributions of each transition to historic class change rates. This gave us an approximation of the transition areal changes for each scenario across all time steps with further manual changes made in order to reduce the discrepancy between the sum of these and the expert projected class areas for 2060.</p>
+</section>
+<section id="sec-manipulation" class="level3">
+<h3 class="anchored" data-anchor-id="sec-manipulation">Manipulation of transition potential and allocation parameters</h3>
+<p>From the scenarios details <span class="citation" data-cites="mayer2023">(<a href="#ref-mayer2023" role="doc-biblioref">Mayer et al., 2023</a>)</span> we extracted statements, grouped according to drivers, that pertain to spatialized differences in the locations LULCC processes . From these statements we derived 8 corresponding spatial intervention mechanisms which were applied across the scenarios to give a total of 19 interventions. The majority of the interventions functioned by directly alterating cellular transition probabilities during the simulation time. , however one intervention instead involved alteration of the Dinamica EGO allocation parameters. The details of these spatial interventions are lengthy and as such are presented in <a href="#sec-manipulation_details_app">7</a>.</p>
+</section>
+<section id="preparation-of-dynamic-predictors" class="level3">
+<h3 class="anchored" data-anchor-id="preparation-of-dynamic-predictors">Preparation of dynamic predictors</h3>
+<p>For future data for the predictors of average increase in full time equivalents per labour market region we utilised the future economic sector projections produced by <span class="citation" data-cites="cretegny2020">(<a href="#ref-cretegny2020" role="doc-biblioref">Cretegny and Müller, 2020</a>)</span>.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="tbl-scenario_specs" class="anchored">
+<table class="table table-sm table-striped small">
+<caption>Table&nbsp;2: Variants of dynamic predictor data utilised for LULCC scenarios.</caption>
+<colgroup>
+<col style="width: 6%">
+<col style="width: 34%">
+<col style="width: 38%">
+<col style="width: 19%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">LULCC Scenario</th>
+<th style="text-align: left;">Population growth scenario</th>
+<th style="text-align: left;">Economic scenario<span class="citation" data-cites="cretegny2020">(<a href="#ref-cretegny2020" role="doc-biblioref">Cretegny and Müller, 2020</a>)</span></th>
+<th style="text-align: left;">Climate change scenarios<span class="citation" data-cites="broennimann2018">(<a href="#ref-broennimann2018" role="doc-biblioref">Broennimann, 2018</a>)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">BAU</td>
+<td style="text-align: left;">Reference</td>
+<td style="text-align: left;">Reference - Central</td>
+<td style="text-align: left;">RCP45</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">EI-NAT</td>
+<td style="text-align: left;">Low</td>
+<td style="text-align: left;">Ecological awareness - Urban densification</td>
+<td style="text-align: left;">RCP26</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">EI-CUL</td>
+<td style="text-align: left;">Reference</td>
+<td style="text-align: left;">Ecological awareness- Central</td>
+<td style="text-align: left;">RCP26</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">EI-SOC</td>
+<td style="text-align: left;">Reference</td>
+<td style="text-align: left;">Combined technological accelaration and Ecological awareness - Urban densification</td>
+<td style="text-align: left;">RCP45</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">GR-EX</td>
+<td style="text-align: left;">High</td>
+<td style="text-align: left;">Reference - Peri-Urbanisation</td>
+<td style="text-align: left;">RCP85</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="simulation-and-validation" class="level2">
+<h2 class="anchored" data-anchor-id="simulation-and-validation">Simulation and validation</h2>
+</section>
+</section>
+<section id="results" class="level1">
+<h1>Results</h1>
+<section id="scenario-simulation-maps" class="level2">
+<h2 class="anchored" data-anchor-id="scenario-simulation-maps">Scenario simulation maps</h2>
+</section>
+<section id="landscape-patterns" class="level2">
+<h2 class="anchored" data-anchor-id="landscape-patterns">Landscape patterns</h2>
+</section>
+<section id="expert-validation" class="level2">
+<h2 class="anchored" data-anchor-id="expert-validation">Expert validation</h2>
+<p>-Maps of all time points between 2020-2060 included with research data</p>
+</section>
+</section>
+<section id="discussion" class="level1">
+<h1>Discussion</h1>
+<p>-Difficulty in deriving rates of transitions for multiple scenarios</p>
+</section>
+<section id="acknowledgements" class="level1 unnumbered">
+<h1 class="unnumbered">Acknowledgements</h1>
+<p>We gratefully acknowledge financial support from the Swiss Federal Office for the Environment(FOEN) under the project “ValPar.CH: Values of the ecological infrastructure in Swiss parks” of the Action Plan of the Swiss Biodiversity Strategy.</p>
+<div style="page-break-after: always;"></div>
+</section>
+<section id="references" class="level1 unnumbered">
+<h1 class="unnumbered">References</h1>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-aburas2016" class="csl-entry" role="listitem">
+Aburas, M.M., Ho, Y.M., Ramli, M.F., Ash’aari, Z.H., 2016. The simulation and prediction of spatio-temporal urban growth trends using cellular automata models: A review. International Journal of Applied Earth Observation and Geoinformation 52, 380–389. <a href="https://doi.org/10.1016/j.jag.2016.07.007">https://doi.org/10.1016/j.jag.2016.07.007</a>
+</div>
+<div id="ref-black_re-considering_2023" class="csl-entry" role="listitem">
+Black, B., Strien, M.J.V., Adde, A., Grêt-Regamey, A., 2023. Re-considering the status quo: Improving calibration of land use change models through validation of transition potential predictions. Environmental Modelling &amp; Software 159, 105574. https://doi.org/<a href="https://doi.org/10.1016/j.envsoft.2022.105574">https://doi.org/10.1016/j.envsoft.2022.105574</a>
+</div>
+<div id="ref-broennimann2018" class="csl-entry" role="listitem">
+Broennimann, O., 2018. <a href="https://www.unil.ch/files/live/sites/ecospat/files/shared/PDF_site/chclim25.pdf">CHclim25: A high spatial and temporal resolution climate dataset for switzerland</a>. University of Lausanne, Switzerland.
+</div>
+<div id="ref-cheng2020" class="csl-entry" role="listitem">
+Cheng, L., Liu, M., Zhan, J., 2020. Land use scenario simulation of mountainous districts based on Dinamica EGO model. Journal of Mountain Science 17, 289–303. <a href="https://doi.org/10.1007/s11629-019-5491-y">https://doi.org/10.1007/s11629-019-5491-y</a>
+</div>
+<div id="ref-clerici2019" class="csl-entry" role="listitem">
+Clerici, N., Cote-Navarro, F., Escobedo, F.J., Rubiano, K., Villegas, J.C., 2019. Spatio-temporal and cumulative effects of land use-land cover and climate change on two ecosystem services in the Colombian Andes. Science of The Total Environment 685, 1181–1192. <a href="https://doi.org/10.1016/j.scitotenv.2019.06.275">https://doi.org/10.1016/j.scitotenv.2019.06.275</a>
+</div>
+<div id="ref-cretegny2020" class="csl-entry" role="listitem">
+Cretegny, L., Müller, A., 2020. <a href="https://www.bk.admin.ch/dam/bk/de/dokumente/strategische-fuehrungsunterstuetzung/Wirtschaftsszenarien/branchenszenarien-2017-bis-2060.pdf.download.pdf/Branchenszenarien%202017%20bis%202060.pdf">Scénarios par branche 2060 et leur régionalisation</a>.
+</div>
+<div id="ref-daneshi2021" class="csl-entry" role="listitem">
+Daneshi, A., Brouwer, R., Najafinejad, A., Panahi, M., Zarandian, A., Maghsood, F.F., 2021. Modelling the impacts of climate and land use change on water security in a semi-arid forested watershed using InVEST. Journal of Hydrology 593, 125621. <a href="https://doi.org/10.1016/j.jhydrol.2020.125621">https://doi.org/10.1016/j.jhydrol.2020.125621</a>
+</div>
+<div id="ref-descombes2020" class="csl-entry" role="listitem">
+Descombes, P., Walthert, L., Baltensweiler, A., Meuli, R.G., Karger, D.N., Ginzler, C., Zurell, D., Zimmermann, N.E., 2020. Spatial modelling of ecological indicator values improves predictions of plant distributions in complex landscapes. Ecography 43, 1448–1463. https://doi.org/<a href="https://doi.org/10.1111/ecog.05117">https://doi.org/10.1111/ecog.05117</a>
+</div>
+<div id="ref-frank2023" class="csl-entry" role="listitem">
+Frank, F., Volante, J., Calamari, N., Peri, P.L., González Chávez, B., García Martínez, P., Mosciaro, M.J., Martín, G., Benito Amaro, I., Guerrero, I.P., Casellas, K., Zuliani, M., Sirimarco, X., Gaitán, J., Cristeche, E., Barral, M.P., Villarino, S., Zelarayan, A.L., Monjeau, A., 2023. A multi-model approach to explore sustainable food and land use pathways for Argentina. Sustainability Science 18, 347–369. <a href="https://doi.org/10.1007/s11625-022-01245-5">https://doi.org/10.1007/s11625-022-01245-5</a>
+</div>
+<div id="ref-gago-silva2017" class="csl-entry" role="listitem">
+Gago-Silva, A., Ray, N., Lehmann, A., 2017. Spatial Dynamic Modelling of Future Scenarios of Land Use Change in Vaud and Valais, Western Switzerland. ISPRS International Journal of Geo-Information 6, 115. <a href="https://doi.org/10.3390/ijgi6040115">https://doi.org/10.3390/ijgi6040115</a>
+</div>
+<div id="ref-garcía-álvarez2018" class="csl-entry" role="listitem">
+García-Álvarez, D., 2018. The Influence of Scale in LULC Modeling. A Comparison Between Two Different LULC Maps (SIOSE and CORINE), in: Camacho Olmedo, M.T., Paegelow, M., Mas, J.-F., Escobar, F. (Eds.), Lecture Notes in Geoinformation and Cartography. Springer International Publishing, Cham, pp. 187–213. <a href="https://doi.org/10.1007/978-3-319-60801-3_10">https://doi.org/10.1007/978-3-319-60801-3_10</a>
+</div>
+<div id="ref-gharbia2016" class="csl-entry" role="listitem">
+Gharbia, S.S., Alfatah, S.A., Gill, L., Johnston, P., Pilla, F., 2016. Land use scenarios and projections simulation using an integrated GIS cellular automata algorithms. Modeling Earth Systems and Environment 2, 151. <a href="https://doi.org/10.1007/s40808-016-0210-y">https://doi.org/10.1007/s40808-016-0210-y</a>
+</div>
+<div id="ref-gomes2021" class="csl-entry" role="listitem">
+Gomes, E., Inácio, M., Bogdzevič, K., Kalinauskas, M., Karnauskaitė, D., Pereira, P., 2021. Future scenarios impact on land use change and habitat quality in Lithuania. Environmental Research 197, 111101. <a href="https://doi.org/10.1016/j.envres.2021.111101">https://doi.org/10.1016/j.envres.2021.111101</a>
+</div>
+<div id="ref-gonseth2001" class="csl-entry" role="listitem">
+Gonseth, Y., Wohlgemuth, T., Sansonnens, B., Buttler, A., 2001. <a href="https://www.bafu.admin.ch/bafu/de/home/themen/thema-landschaft/landschaft--publikationen/publikationen-landschaft/die-biogeographischen-regionen-der-schweiz.html">Die biogeographischen Regionen der Schweiz</a>.
+</div>
+<div id="ref-kiziridis2023" class="csl-entry" role="listitem">
+Kiziridis, D., Mastrogianni, A., Pleniou, M., Tsiftsis, S., Xystrakis, F., Tsiripidis, I., 2023. Simulating future land use and cover of a mediterranean mountainous area: The effect of socioeconomic demands and climatic changes. Land 12, 253. <a href="https://doi.org/10.3390/land12010253">https://doi.org/10.3390/land12010253</a>
+</div>
+<div id="ref-lehtomäki2013" class="csl-entry" role="listitem">
+Lehtomäki, J., Moilanen, A., 2013. Methods and workflow for spatial conservation prioritization using Zonation. Environmental Modelling &amp; Software 47, 128–137. <a href="https://doi.org/10.1016/j.envsoft.2013.05.001">https://doi.org/10.1016/j.envsoft.2013.05.001</a>
+</div>
+<div id="ref-liao2023" class="csl-entry" role="listitem">
+Liao, J., Tang, L., Shao, G., 2023. Coupling Random Forest, Allometric Scaling, and Cellular Automata to Predict the Evolution of LULC under Various Shared Socioeconomic Pathways. Remote Sensing 15, 2142. <a href="https://doi.org/10.3390/rs15082142">https://doi.org/10.3390/rs15082142</a>
+</div>
+<div id="ref-mayer2023" class="csl-entry" role="listitem">
+Mayer, P., Rabe, S.-E., Gret-Regamey, A., 2023. Operationalizing the nature futures framework for ecological infrastructure.
+</div>
+<div id="ref-molinero-parejo2023" class="csl-entry" role="listitem">
+Molinero-Parejo, R., Aguilera-Benavente, F., Gómez-Delgado, M., Shurupov, N., 2023. Combining a land parcel cellular automata (LP-CA) model with participatory approaches in the simulation of disruptive future scenarios of urban land use change. Computers, Environment and Urban Systems 99, 101895. <a href="https://doi.org/10.1016/j.compenvurbsys.2022.101895">https://doi.org/10.1016/j.compenvurbsys.2022.101895</a>
+</div>
+<div id="ref-newbold2015" class="csl-entry" role="listitem">
+Newbold, T., Hudson, L.N., Hill, S.L.L., Contu, S., Lysenko, I., Senior, R.A., Börger, L., Bennett, D.J., Choimes, A., Collen, B., Day, J., De Palma, A., Díaz, S., Echeverria-Londoño, S., Edgar, M.J., Feldman, A., Garon, M., Harrison, M.L.K., Alhusseini, T., Ingram, D.J., Itescu, Y., Kattge, J., Kemp, V., Kirkpatrick, L., Kleyer, M., Correia, D.L.P., Martin, C.D., Meiri, S., Novosolov, M., Pan, Y., Phillips, H.R.P., Purves, D.W., Robinson, A., Simpson, J., Tuck, S.L., Weiher, E., White, H.J., Ewers, R.M., Mace, G.M., Scharlemann, J.P.W., Purvis, A., 2015. Global effects of land use on local terrestrial biodiversity. Nature 520, 45–50. <a href="https://doi.org/10.1038/nature14324">https://doi.org/10.1038/nature14324</a>
+</div>
+<div id="ref-peng2021" class="csl-entry" role="listitem">
+Peng, K., Jiang, W., Ling, Z., Hou, P., Deng, Y., 2021. Evaluating the potential impacts of land use changes on ecosystem service value under multiple scenarios in support of SDG reporting: A case study of the Wuhan urban agglomeration. Journal of Cleaner Production 307, 127321. <a href="https://doi.org/10.1016/j.jclepro.2021.127321">https://doi.org/10.1016/j.jclepro.2021.127321</a>
+</div>
+<div id="ref-poelmans2010" class="csl-entry" role="listitem">
+Poelmans, L., Van Rompaey, A., 2010. Complexity and performance of urban expansion models. Computers, Environment and Urban Systems 34, 17–27. <a href="https://doi.org/10.1016/j.compenvurbsys.2009.06.001">https://doi.org/10.1016/j.compenvurbsys.2009.06.001</a>
+</div>
+<div id="ref-price2017" class="csl-entry" role="listitem">
+Price, B., Kaim, D., Szwagrzyk, M., Ostapowicz, K., Kolecka, N., Schmatz, D.R., Wypych, A., Kozak, J., 2017. Legacies, socio-economic and biophysical processes and drivers: the case of future forest cover expansion in the Polish Carpathians and Swiss Alps. Regional Environmental Change 17, 2279–2291. <a href="https://doi.org/10.1007/s10113-016-1079-z">https://doi.org/10.1007/s10113-016-1079-z</a>
+</div>
+<div id="ref-prieto-amparán2019" class="csl-entry" role="listitem">
+Prieto-Amparán, J.A., Villarreal-Guerrero, F., Martínez-Salvador, M., Manjarrez-Domínguez, C., Vázquez-Quintero, G., Pinedo-Alvarez, A., 2019. Spatial near future modeling of land use and land cover changes in the temperate forests of Mexico. PeerJ 7, e6617. <a href="https://doi.org/10.7717/peerj.6617">https://doi.org/10.7717/peerj.6617</a>
+</div>
+<div id="ref-rcoreteam2022" class="csl-entry" role="listitem">
+R core team, 2022. <a href="https://www.R-project.org/.">R: A language and environment for statistical computing.</a> R Foundation for Statistical Computing, Vienna, Austria.
+</div>
+<div id="ref-schirpke2020" class="csl-entry" role="listitem">
+Schirpke, U., Tscholl, S., Tasser, E., 2020. Spatio-temporal changes in ecosystem service values: Effects of land-use changes from past to future (1860<span></span>2100). Journal of Environmental Management 272, 111068. <a href="https://doi.org/10.1016/j.jenvman.2020.111068">https://doi.org/10.1016/j.jenvman.2020.111068</a>
+</div>
+<div id="ref-shrestha2018" class="csl-entry" role="listitem">
+Shrestha, S., Bhatta, B., Shrestha, M., Shrestha, P.K., 2018. Integrated assessment of the climate and landuse change impact on hydrology and water quality in the Songkhram River Basin, Thailand. Science of The Total Environment 643, 1610–1622. <a href="https://doi.org/10.1016/j.scitotenv.2018.06.306">https://doi.org/10.1016/j.scitotenv.2018.06.306</a>
+</div>
+<div id="ref-soares-filho2013" class="csl-entry" role="listitem">
+Soares-Filho, B., Rodrigues, H., Follador, M., 2013. A hybrid analytical-heuristic method for calibrating land-use change models. Environmental Modelling &amp; Software 43, 80–87. <a href="https://doi.org/10.1016/j.envsoft.2013.01.010">https://doi.org/10.1016/j.envsoft.2013.01.010</a>
+</div>
+<div id="ref-soares-filho2009" class="csl-entry" role="listitem">
+Soares-Filho, B.S., Rodrigues, H.O., Costa, W., 2009. Modeling environmental dynamics with dinamica EGO. Centro de Sensoriamento Remoto. Universidade Federal de Minas Gerais. Belo Horizonte, Minas Gerais 115.
+</div>
+<div id="ref-song2019" class="csl-entry" role="listitem">
+Song, X.-D., Yang, J.-Y., Zhao, M.-S., Zhang, G.-L., Liu, F., Wu, H.-Y., 2019. Heuristic cellular automaton model for simulating soil organic carbon under land use and climate change: A case study in eastern China. Agriculture, Ecosystems &amp; Environment 269, 156–166. <a href="https://doi.org/10.1016/j.agee.2018.09.034">https://doi.org/10.1016/j.agee.2018.09.034</a>
+</div>
+<div id="ref-triantakonstantis2012" class="csl-entry" role="listitem">
+Triantakonstantis, D., Mountrakis, G., 2012. Urban growth prediction: A review of computational models and human perceptions. Journal of Geographic Information System 04, 555–587. <a href="https://doi.org/10.4236/jgis.2012.46060">https://doi.org/10.4236/jgis.2012.46060</a>
+</div>
+<div id="ref-troupin2016" class="csl-entry" role="listitem">
+Troupin, D., Carmel, Y., 2016. Landscape patterns of development under two alternative scenarios: Implications for conservation. Land Use Policy 54, 221–234. <a href="https://doi.org/10.1016/j.landusepol.2016.02.008">https://doi.org/10.1016/j.landusepol.2016.02.008</a>
+</div>
+<div id="ref-verburg2004" class="csl-entry" role="listitem">
+Verburg, P.H., Schot, P.P., Dijst, M.J., Veldkamp, A., 2004. Land use change modelling: current practice and research priorities. GeoJournal 61, 309–324. <a href="https://doi.org/10.1007/s10708-004-4946-y">https://doi.org/10.1007/s10708-004-4946-y</a>
+</div>
+<div id="ref-wiederkehr2013" class="csl-entry" role="listitem">
+Wiederkehr, M., Möri, A., 2013. Swissalti3D : A new tool for geological mapping. <a href="https://doi.org/10.5169/SEALS-391140">https://doi.org/10.5169/SEALS-391140</a>
+</div>
+</div>
+<div style="page-break-after: always;"></div>
+</section>
+
+
+
+
+<div id="quarto-appendix" class="default"><section id="sec-LULC_aggregation_app" class="level1 appendix"><h2 class="anchored quarto-appendix-heading">Details of land use and land cover aggregation</h2><div class="quarto-appendix-contents">
+
+<div class="cell">
+<div class="cell-output-display">
+<div id="tbl-LULC_agg" class="anchored">
+<table class="table table-sm table-striped small">
+<caption>Table&nbsp;3: Aggregation of the Swiss area statistics land use land cover (LULC) classes.</caption>
+<colgroup>
+<col style="width: 6%">
+<col style="width: 93%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Aggregated LULC class</th>
+<th style="text-align: left;">Area statistics LULC classes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Alpine pastures</td>
+<td style="text-align: left;">Favorable alpine pastures, Brush alpine pastures, Rocky alpine pastures, Sheep pastures</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Closed forest</td>
+<td style="text-align: left;">Normal dense forest, Forest strips, Afforestations, Felling areas, Brush forest</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Glacier</td>
+<td style="text-align: left;">Glaciers, perpetual snow</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Grassland or meadows</td>
+<td style="text-align: left;">Meadows, Farm pastures, Brush meadows and farm pastures, Alpine meadows</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Intensive agriculture</td>
+<td style="text-align: left;">Arable land</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Open Forest</td>
+<td style="text-align: left;">Damaged forest areas, Open forest (on agricultural areas), Open forest (on unproductive areas), Groves, hedges, Clusters of trees (on agricultural areas), Clusters of trees (on unproductive areas)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Overgrown/shrubland/unproductive vegetation</td>
+<td style="text-align: left;">Scrub vegetation, Unproductive grass und shrubs</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Permanent crops</td>
+<td style="text-align: left;">Intensive orchards, Field fruit trees, Vineyards, Horticulture</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Settlement/urban/amenities</td>
+<td style="text-align: left;">Industrial and commercial buildings, Surroundings of industrial and commercial buildings, One- and two-family houses, Surroundings of one- and two-family houses, Terraced houses, Surroundings of terraced houses, Blocks of flats, Surroundings of blocks of flats, Public buildings, Surroundings of public buildings, Agricultural buildings, Surroundings of agricultural buildings, Unspecified buildings, Surroundings of unspecified buildings, Parking areas, Construction sites, Unexploited urban areas, Public parks, Sports facilities, Golf courses, Camping areas, Garden allotments, Cemeteries</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Static class</td>
+<td style="text-align: left;">Motorways, Green motorway environs, Roads and paths, Green road environs, Sealed railway areas, Green railway environs, Airports, Airfields, green airport environs, Energy supply plants, Waste water treatment plants, Other supply or waste treatment plants, Dumps, Quarries, mines, Lakes, Rivers, Flood protection structures, Avalanche and rockfall barriers, Wetlands, Alpine sports facilities, Rocks, Screes, sand, Landscape interventions</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div></section><section id="sec-transitions_app" class="level1 appendix"><h2 class="anchored quarto-appendix-heading">Land use and land cover transitions identified</h2><div class="quarto-appendix-contents">
+
+<div id="tbl-trans_details" class="cell tbl-parent quarto-layout-panel anchored" data-tbl-cap="Aggregation of the Swiss area statistics land use land cover (LULC) classes.">
+
+</div>
+</div></section><section id="sec-manipulation_details_app" class="level1 appendix"><h2 class="anchored quarto-appendix-heading">Details of manipulation of transition potential and allocation parameters</h2><div class="quarto-appendix-contents">
+
+<div class="cell">
+<div class="cell-output-display">
+<div id="tbl-Spat_ints" class="anchored">
+<table class="table table-sm table-striped small">
+<caption>Table&nbsp;4: Details of interventions to spatially manipulate cellular transition proabilities</caption>
+<colgroup>
+<col style="width: 7%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Scenario</th>
+<th style="text-align: left;">Scenario statement<span class="citation" data-cites="mayer2023">(<a href="#ref-mayer2023" role="doc-biblioref">Mayer et al., 2023</a>)</span></th>
+<th style="text-align: left;">Spatial zoning</th>
+<th style="text-align: left;">LULC class target</th>
+<th style="text-align: left;">Intervention ID</th>
+<th style="text-align: left;">Mechanism overview</th>
+<th style="text-align: left;">Mechanism detailed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">EI-SOC</td>
+<td style="text-align: left;">“Land management is spatially zoned: areas for agriculture, residence, recreation, biodiversity promotion are spatially strongly separated.”</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">Urban; Int_Ag; Open_Forest; Grassland; Perm_Crops, Alp_Past</td>
+<td style="text-align: left;">spatial zoning</td>
+<td style="text-align: left;">alter values of allocation parameter (patcher vs.&nbsp;Expander)</td>
+<td style="text-align: left;">Alter values of allocation parameters : Increase % of transitions with expander (incurring decrease in patcher %)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">EI-NAT</td>
+<td style="text-align: left;">“strong limitation of settlement growth and land fragmentation”</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">Urban; Static</td>
+<td style="text-align: left;">spatial zoning</td>
+<td style="text-align: left;">alter values of allocation parameter (patcher vs.&nbsp;Expander)</td>
+<td style="text-align: left;">Alter values of allocation parameters : Increase % of transitions with expander (incurring decrease in patcher %)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">EI-SOC</td>
+<td style="text-align: left;">“PAs are expanded and newly established (17% of Swiss land area protected by 2030, 22% by 2060); Site selection for new PAs prioritizing ecosystems important for NCP provision; site-specific management under IUCN categories II or IV”</td>
+<td style="text-align: left;">Spatial prioritization map produced with the conservation prioritization software Zonation <span class="citation" data-cites="lehtomäki2013">(<a href="#ref-lehtomäki2013" role="doc-biblioref">Lehtomäki and Moilanen, 2013</a>)</span> using modelled spatial data for 7 NCPs: nutrient retention; recreation; landscape suitability for pollination; pest control; hazard regulation; carbon storage in vegetation; air quality regulation.</td>
+<td style="text-align: left;">Urban, Int_AG, Perm_crops</td>
+<td style="text-align: left;">Protection</td>
+<td style="text-align: left;">Reduction of probability of transition to non-natural land classes inside PAs</td>
+<td style="text-align: left;">Reduction of probability of transition to Urban, Int_AG or Perm_crops to 0 inside PAs</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">EI-CUL</td>
+<td style="text-align: left;">“PAs are expanded and newly established (17% of Swiss land area protected by 2030, 25% by 2060);Site selection for new PAs prioritizing species and landscape elements important for local communities and cultural heritage; Site-specific management under IUCN categories V or VI”</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">Urban, Int_AG, Perm_crops</td>
+<td style="text-align: left;">Protection</td>
+<td style="text-align: left;">Reduction of probability of transition to non-natural land classes inside PAs</td>
+<td style="text-align: left;">If the % difference between the means of the 90th percentile data points inside vs.&nbsp;outside the protected areas is negative then decrease the probabilities to the target classes of the data points inside the protected by the % difference value otherwise if it is positive then increase the probabilities to the target classes of the data points outside the protected areas by the % difference value.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">EI-NAT</td>
+<td style="text-align: left;">“PAs are expanded and newly established (20% of Swiss land area protected by 2030, 30% by 2060); Site selection for new PAs prioritizing species and habitats important for biodiversity, ecosystem processes and functions; site-specific management under IUCN category Ia or IV”</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">Urban, Int_AG, Perm_crops</td>
+<td style="text-align: left;">Protection</td>
+<td style="text-align: left;">Reduction of probability of transition to non-natural land classes inside PAs</td>
+<td style="text-align: left;">Reduction of probability of transition to Urban, Int_AG or Perm_crops to 0 inside PAs</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">EI-CUL</td>
+<td style="text-align: left;">“No further urban sprawl”</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">Urban</td>
+<td style="text-align: left;">Urban densification</td>
+<td style="text-align: left;">probability of Urban transitions increased inside building zones (using all classes in the building zones)</td>
+<td style="text-align: left;">Increase probability to urban of cells inside building zone to 100%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">EI-NAT</td>
+<td style="text-align: left;">“No further urban sprawl.”</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">Urban</td>
+<td style="text-align: left;">Urban densification</td>
+<td style="text-align: left;">probability of Urban transitions increased inside building zones (using all classes in the building zones)</td>
+<td style="text-align: left;">Increase probability to urban of cells inside building zone to 100%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">EI-SOC</td>
+<td style="text-align: left;">“No further urban sprawl.”</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">Urban</td>
+<td style="text-align: left;">Urban densification</td>
+<td style="text-align: left;">probability of Urban transitions increased inside building zones (using all classes in the building zones)</td>
+<td style="text-align: left;">Increase probability to urban of cells inside building zone to 100%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">GR-EX</td>
+<td style="text-align: left;">“Increase in buildings outside the construction zone;Industrial areas develop in an uncoordinated manner.”</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">Urban</td>
+<td style="text-align: left;">Urban sprawl</td>
+<td style="text-align: left;">Minor increase in probability of cells to urban outside the building zones</td>
+<td style="text-align: left;">If the % difference between the means of the 90th percentile data points outside vs.&nbsp;inside the building zones is positive then increase the probabilities to urban of the data points outside the building zones by the % difference value otherwise if it is negative then decrease the probabilities to urban of the data points inside the building zones by the % difference value.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">EI-NAT</td>
+<td style="text-align: left;">“Development of small towns in mountain areas with spatial restrictions for settlement development.”</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">Urban</td>
+<td style="text-align: left;">Mountain development</td>
+<td style="text-align: left;">Use Typology of municipalities with 25 categories to identify cells and increase probability to urban</td>
+<td style="text-align: left;">If the % difference between the means of the 90th percentile data points outside vs.&nbsp;inside the mountainous municipalities is positive then increase the probability of instances above the 90th percentile for the pixels inside the mountainous municipalities by the % difference value. Else if the % difference is negative then decrease the probability of the instances above the 90th percentile outside the municipalities by the % difference value.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">EI-SOC</td>
+<td style="text-align: left;">“Development of small towns in mountain areas with spatial restrictions for settlement development.”</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">Urban</td>
+<td style="text-align: left;">Mountain development</td>
+<td style="text-align: left;">Use Typology of municipalities with 25 categories to identify cells and increase probability to urban</td>
+<td style="text-align: left;">If the % difference between the means of the 90th percentile data points outside vs.&nbsp;inside the mountainous municipalities is positive then increase the probability of instances above the 90th percentile for the pixels inside the mountainous municipalities by the % difference value. Else if the % difference is negative then decrease the probability of the instances above the 90th percentile outside the municipalities by the % difference value.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">BAU</td>
+<td style="text-align: left;">“Abandonment of settlements in remote rural areas.”</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">Urban</td>
+<td style="text-align: left;">Urban migration</td>
+<td style="text-align: left;">Use Typology of municipalities with 25 categories to identify cells and decrease probability to urban</td>
+<td style="text-align: left;">If the % difference between the means of the 90th percentile data points outside vs.&nbsp;the 80th percentile data points inside the remote rural municipalities is positive then increase the probability of instances above the 90th percentile for the outside pixels by the % difference value. Else if the % difference is negative then decrease the probability of the instances above the 90th percentile inside the remote rural municipalities by the % difference value.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">EI-NAT</td>
+<td style="text-align: left;">“Abandonment of settlements in remote rural areas.”</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">Urban</td>
+<td style="text-align: left;">Urban migration</td>
+<td style="text-align: left;">Use Typology of municipalities with 25 categories to identify cells and decrease probability to urban</td>
+<td style="text-align: left;">If the % difference between the means of the 90th percentile data points outside vs.&nbsp;the 80th percentile data points inside the remote rural municipalities is positive then increase the probability of instances above the 90th percentile for the outside pixels by the % difference value. Else if the % difference is negative then decrease the probability of the instances above the 90th percentile inside the remote rural municipalities by the % difference value.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">EI-SOC</td>
+<td style="text-align: left;">“Abandonment of settlements in remote rural areas.”</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">Urban</td>
+<td style="text-align: left;">Urban migration</td>
+<td style="text-align: left;">Use Typology of municipalities with 25 categories to identify cells and decrease probability to urban</td>
+<td style="text-align: left;">If the % difference between the means of the 90th percentile data points outside vs.&nbsp;the 80th percentile data points inside the remote rural municipalities is positive then increase the probability of instances above the 90th percentile for the outside pixels by the % difference value. Else if the % difference is negative then decrease the probability of the instances above the 90th percentile inside the remote rural municipalities by the % difference value.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">EI-CUL</td>
+<td style="text-align: left;">“Revival of settlements in remote rural areas”</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">Urban</td>
+<td style="text-align: left;">Rural migration</td>
+<td style="text-align: left;">Use Typology of municipalities with 25 categories to identify cells and increase probability to urban</td>
+<td style="text-align: left;">If the % difference between the means of the 90th percentile data points outside vs.&nbsp;inside the remote rural municipalities is positive then increase the probability of instances above the 90th percentile for the pixels inside the remote rural municipalities by the % difference value. Else if the % difference is negative then decrease the probability of the instances above the 90th percentile outside the municipalities by the % difference value.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">EI-SOC</td>
+<td style="text-align: left;">“Abandonment of poorly accessible marginal land”</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">Alp_Past</td>
+<td style="text-align: left;">Agri abandonment</td>
+<td style="text-align: left;">Increase in probability of transition of marginal agricultural land to non-agricultural classes</td>
+<td style="text-align: left;">Identify marginal agricultural land using an index (0-1) of slope, distance to roads, inverse distance to building zones and elevation (Müller 2022). Select upper quartile of most marginal pixels and then select 90th percentile of pixels according to probability and increase probability to transition from Agriculture to non-agricultural classes. Simultaneously select pixels below upper quartile of marginality and then select 90th percentile of pixels according to probability and decrease probability to transition from Agriculture to non-agricultural classes.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">BAU</td>
+<td style="text-align: left;">“Abandonment of poorly accessible marginal land”</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">Alp_Past</td>
+<td style="text-align: left;">Agri abandonment</td>
+<td style="text-align: left;">Increase in probability of transition of marginal agricultural land to non-agricultural classes</td>
+<td style="text-align: left;">Identify marginal agricultural land using an index (0-1) of slope, distance to roads, inverse distance to building zones and elevation (Müller 2022). Select upper quartile of most marginal pixels and then select 90th percentile of pixels according to probability and increase probability to transition from Agriculture to non-agricultural classes. Simultaneously select pixels below upper quartile of marginality and then select 90th percentile of pixels according to probability and decrease probability to transition from Agriculture to non-agricultural classes.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">EI-NAT</td>
+<td style="text-align: left;">“Abandonment of poorly accessible marginal land”</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">Alp_Past</td>
+<td style="text-align: left;">Agri abandonment</td>
+<td style="text-align: left;">Increase in probability of transition of marginal agricultural land to non-agricultural classes</td>
+<td style="text-align: left;">Identify marginal agricultural land using an index (0-1) of slope, distance to roads, inverse distance to building zones and elevation (Müller 2022). Select upper quartile of most marginal pixels and then select 90th percentile of pixels according to probability and increase probability to transition from Agriculture to non-agricultural classes. Simultaneously select pixels below upper quartile of marginality and then select 90th percentile of pixels according to probability and decrease probability to transition from Agriculture to non-agricultural classes.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">EI-CUL</td>
+<td style="text-align: left;">“Extensive cultivation of poorly accessible marginal land”</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">Alp_Past</td>
+<td style="text-align: left;">Agri maintenance</td>
+<td style="text-align: left;">decrease in probability of marginal agricultural land transitioning to other classes</td>
+<td style="text-align: left;">Identify marginal agricultural land using an index (0-1) of slope, distance to roads, inverse distance to building zones and elevation (Müller 2022). Select 90th percentile of most marginal pixels and then select 95th percentile of pixels according to probability and decrease probability to transition from Agriculture by 5%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div></section><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{black2023,
+  author = {Black, Benjamin and Grêt-Regamey, Adrienne and Rabe,
+    Sven-Erik and Mayer, Paula and Streit, Jan and Kurmann, Manuel and
+    Farinotti, Daniel and Zellokari, Harry},
+  title = {Simulated {Land} Use and Land Cover Change Under Scenarios of
+    {Ecological} {Infrastructure} Development in {Switzerland} Between
+    2020-2060},
+  date = {2023-05-31},
+  langid = {en},
+  abstract = {This is the abstract.}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-black2023" class="csl-entry quarto-appendix-citeas" role="listitem">
+Black, Benjamin, Adrienne Grêt-Regamey, Sven-Erik Rabe, Paula Mayer, Jan
+Streit, Manuel Kurmann, Daniel Farinotti, and Harry Zellokari. 2023.
+<span>“Simulated Land Use and Land Cover Change Under Scenarios of
+Ecological Infrastructure Development in Switzerland Between
+2020-2060.”</span> May 31, 2023.
+</div></div></section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button,
+        { trigger: "manual",
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config);
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

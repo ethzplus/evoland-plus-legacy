@@ -62,7 +62,7 @@ rm(AS_table)
 create.reproject.save.raster <- function(table_for_period, raster_name){
  sp::coordinates(table_for_period) <- ~E+N
  gridded(table_for_period) <- TRUE
- Raster_for_period <- raster(table_for_period, values= TRUE)
+ Raster_for_period <- raster(table_for_period, values=TRUE)
  projection(Raster_for_period) <- prj_95 # define current projection
  cropped_raster_for_period <- terra::crop(Raster_for_period, Ref_grid)
  reprojected_raster_for_period <- projectRaster(cropped_raster_for_period, Ref_grid, method = 'ngb') # project them to new coordinate reference system
@@ -103,7 +103,6 @@ Reclassified_rasters <- lapply(NOAS04_periods_rasters, function(x) reclassify(x,
 names(Reclassified_rasters) <- c("LULC_1985_agg", "LULC_1997_agg", "LULC_2009_agg", "LULC_2018_agg")
 
 #add raster attribute table (rat)
-
 LULC_IDs <- unique(Aggregation_scheme$Aggregated_ID)
 names(LULC_IDs) <- sapply(LULC_IDs, function(x){unique(Aggregation_scheme[Aggregation_scheme$Aggregated_ID == x, "Class_abbreviation"])})
 LULC_IDs <- sort(LULC_IDs)
