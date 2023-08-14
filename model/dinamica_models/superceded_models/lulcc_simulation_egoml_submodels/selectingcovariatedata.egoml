@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<script>
+    <property key="dff.charset" value="windows-1252" />
+    <property key="dff.date" value="2022-Feb-23 15:24:24" />
+    <property key="dff.version" value="6.1.0.20220118" />
+    <property key="submodel.group" value="Submodels" />
+    <property key="submodel.name" value="SelectingCovariateData" />
+    <functor name="RealValue">
+        <property key="dff.functor.alias" value="Constant" />
+        <property key="dff.functor.comment" value="This is linked to the step value which represents the scenario number" />
+        <property key="submodel.in.constant.advanced" value="yes" />
+        <property key="submodel.in.constant.description" value="This is linked to the step value which represents the scenario number" />
+        <property key="submodel.in.constant.name" value="constant" />
+        <property key="submodel.in.constant.optional" value="yes" />
+        <property key="submodel.in.constant.order" value="1" />
+        <outputport name="object" id="v1" />
+    </functor>
+    <functor name="RealValue">
+        <property key="dff.functor.alias" value="Constant 1" />
+        <property key="dff.functor.comment" value="This simulates LULCC for the number of temporal iterations specificied" />
+        <property key="submodel.in.constant.advanced" value="no" />
+        <property key="submodel.in.constant.description" value="This simulates LULCC for the number of temporal iterations specificied" />
+        <property key="submodel.in.constant.name" value="constant1" />
+        <property key="submodel.in.constant.optional" value="yes" />
+        <property key="submodel.in.constant.order" value="2" />
+        <outputport name="object" id="v2" />
+    </functor>
+    <functor name="LoadTable">
+        <property key="dff.functor.alias" value="loadTable897" />
+        <inputport name="filename" peerid="v3" />
+        <inputport name="uniqueIdKeyColumnCreation">.ifNecessary</inputport>
+        <inputport name="suffixDigits">0</inputport>
+        <inputport name="step">.none</inputport>
+        <inputport name="workdir">.none</inputport>
+    </functor>
+    <containerfunctor name="IfThen">
+        <property key="dff.functor.alias" value="ifThen808" />
+        <property key="dff.functor.comment" value="If the connect &apos;calculate value&apos; returns true then this functor is activated" />
+        <inputport name="condition" peerid="v4" />
+        <inputport name="sequenceInput">.none</inputport>
+        <containerfunctor name="SelectTableFilename">
+            <property key="dff.container.collapsed" value="no" />
+            <property key="dff.functor.alias" value="selectTableFilename805" />
+            <property key="dff.functor.comment" value="This uses the value of the temporal iteration provided by the &apos;for each&apos; container to select the table of covariate values for this time point under Scenario 1" />
+            <inputport name="step" peerid="v2" />
+            <outputport name="tableFilename" id="v3" />
+            <functor name="NumberTableFilename">
+                <property key="dff.functor.alias" value="numberTableFilename806" />
+                <inputport name="filenameNumber">1</inputport>
+            </functor>
+            <functor name="NumberTableFilename">
+                <property key="dff.functor.alias" value="numberTableFilename896" />
+                <inputport name="filenameNumber">2</inputport>
+            </functor>
+        </containerfunctor>
+    </containerfunctor>
+    <containerfunctor name="CalculateValue">
+        <property key="dff.container.collapsed" value="no" />
+        <property key="dff.functor.alias" value="calculateValue809" />
+        <property key="dff.functor.comment" value="Each calculate value functor is returning a TRUE value for only 1 specific scenario number and FALSE for the rest&#x0A;&#x0A;For example this is set to return TRUE for Scenario number 1" />
+        <inputport name="defaultValue" peerid="v1" />
+        <outputport name="result" id="v4" />
+        <functor name="NumberValue">
+            <property key="dff.functor.alias" value="numberValue810" />
+            <inputport name="valueNumber">1</inputport>
+        </functor>
+    </containerfunctor>
+    <containerfunctor name="CalculateValue">
+        <property key="dff.container.collapsed" value="no" />
+        <property key="dff.functor.alias" value="calculateValue878" />
+        <property key="dff.functor.comment" value="Scenario 2" />
+        <inputport name="defaultValue" peerid="v1" />
+        <outputport name="result" id="v5" />
+        <functor name="NumberValue">
+            <property key="dff.functor.alias" value="numberValue879" />
+            <inputport name="valueNumber">1</inputport>
+        </functor>
+    </containerfunctor>
+    <containerfunctor name="CalculateValue">
+        <property key="dff.container.collapsed" value="no" />
+        <property key="dff.functor.alias" value="calculateValue880" />
+        <property key="dff.functor.comment" value="Scenario 3" />
+        <inputport name="defaultValue" peerid="v1" />
+        <outputport name="result" id="v6" />
+        <functor name="NumberValue">
+            <property key="dff.functor.alias" value="numberValue881" />
+            <inputport name="valueNumber">1</inputport>
+        </functor>
+    </containerfunctor>
+    <containerfunctor name="CalculateValue">
+        <property key="dff.container.collapsed" value="no" />
+        <property key="dff.functor.alias" value="calculateValue882" />
+        <property key="dff.functor.comment" value="Scenario 4" />
+        <inputport name="defaultValue" peerid="v1" />
+        <outputport name="result" id="v7" />
+        <functor name="NumberValue">
+            <property key="dff.functor.alias" value="numberValue883" />
+            <inputport name="valueNumber">1</inputport>
+        </functor>
+    </containerfunctor>
+    <containerfunctor name="IfThen">
+        <property key="dff.functor.alias" value="ifThen887" />
+        <inputport name="condition" peerid="v5" />
+        <inputport name="sequenceInput">.none</inputport>
+        <containerfunctor name="SelectTableFilename">
+            <property key="dff.container.collapsed" value="no" />
+            <property key="dff.functor.alias" value="selectTableFilename890" />
+            <property key="dff.functor.comment" value="This uses the value of the temporal iteration provided by the &apos;for each&apos; container to select the table of covariate values for this time point under Scenario 2" />
+            <inputport name="step" peerid="v2" />
+            <functor name="NumberTableFilename">
+                <property key="dff.functor.alias" value="numberTableFilename891" />
+                <inputport name="filenameNumber">1</inputport>
+            </functor>
+        </containerfunctor>
+    </containerfunctor>
+    <containerfunctor name="IfThen">
+        <property key="dff.functor.alias" value="ifThen888" />
+        <inputport name="condition" peerid="v6" />
+        <inputport name="sequenceInput">.none</inputport>
+        <containerfunctor name="SelectTableFilename">
+            <property key="dff.container.collapsed" value="no" />
+            <property key="dff.functor.alias" value="selectTableFilename892" />
+            <property key="dff.functor.comment" value="This uses the value of the temporal iteration provided by the &apos;for each&apos; container to select the table of covariate values for this time point under Scenario 3" />
+            <inputport name="step" peerid="v2" />
+            <functor name="NumberTableFilename">
+                <property key="dff.functor.alias" value="numberTableFilename893" />
+                <inputport name="filenameNumber">1</inputport>
+            </functor>
+        </containerfunctor>
+    </containerfunctor>
+    <containerfunctor name="IfThen">
+        <property key="dff.functor.alias" value="ifThen889" />
+        <inputport name="condition" peerid="v7" />
+        <inputport name="sequenceInput">.none</inputport>
+        <containerfunctor name="SelectTableFilename">
+            <property key="dff.container.collapsed" value="no" />
+            <property key="dff.functor.alias" value="selectTableFilename894" />
+            <property key="dff.functor.comment" value="This uses the value of the temporal iteration provided by the &apos;for each&apos; container to select the table of covariate values for this time point under Scenario 4" />
+            <inputport name="step" peerid="v2" />
+            <functor name="NumberTableFilename">
+                <property key="dff.functor.alias" value="numberTableFilename895" />
+                <inputport name="filenameNumber">1</inputport>
+            </functor>
+        </containerfunctor>
+    </containerfunctor>
+</script>

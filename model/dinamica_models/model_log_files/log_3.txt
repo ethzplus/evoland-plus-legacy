@@ -1,0 +1,227 @@
+[@3 INFO] "LoadCategoricalMap" ran successfully (elapsed 0.11 s).
+[@3 INFO] Running "MuxCategoricalMap" ...
+[@3 INFO] "MuxCategoricalMap" ran successfully (elapsed 2.5e-05 s).
+[@3 INFO] Running "CreateString" ...
+[@3 INFO] "CreateString" ran successfully (elapsed 2.5e-05 s).
+[@3 INFO] Running "LoadTable" ...
+[@3 INFO] Loading table "[E:/LULCC_CH]/Data/Allocation_parameters/Calibration/v1/Allocation_param_table_2010.csv" ...
+[@3 INFO] "LoadTable" ran successfully (elapsed 0.0029 s).
+[@3 INFO] Running "CalculateRExpression" ...
+[@3 INFO] "CalculateRExpression" ran successfully (elapsed 0.47 s).
+[@3 INFO] Running "ExtractStructTable" ...
+[@3 INFO] "ExtractStructTable" ran successfully (elapsed 9.2e-06 s).
+[@3 INFO] Running "ExtractStructTable" ...
+[@3 INFO] "ExtractStructTable" ran successfully (elapsed 3.1e-06 s).
+[@3 INFO] Running "CalculateRExpression" ...
+[1;32m[@3] R execution output:[0m
+[1;32m[@3] [1] "package 'tibble' was built under R version 4.2.3"
+[1] "package 'testthat' was built under R version 4.2.3"
+[1] "package 'parallelly' was built under R version 4.2.3"
+[0m
+[1;31m[@3 ERROR] R error output:[0m
+[1;31m[@3 ERROR] Loading required package: foreach
+Loading required package: data.table
+Loading required package: raster
+Loading required package: sp
+Loading required package: tidyverse
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.0     ✔ readr     2.1.4
+✔ forcats   1.0.0     ✔ stringr   1.5.0
+✔ ggplot2   3.4.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.2     ✔ tidyr     1.3.0
+✔ purrr     1.0.1
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ purrr::accumulate()  masks foreach::accumulate()
+✖ dplyr::between()     masks data.table::between()
+✖ tidyr::extract()     masks raster::extract()
+✖ dplyr::filter()      masks stats::filter()
+✖ dplyr::first()       masks data.table::first()
+✖ lubridate::hour()    masks data.table::hour()
+✖ lubridate::isoweek() masks data.table::isoweek()
+✖ dplyr::lag()         masks stats::lag()
+✖ dplyr::last()        masks data.table::last()
+✖ lubridate::mday()    masks data.table::mday()
+✖ lubridate::minute()  masks data.table::minute()
+✖ lubridate::month()   masks data.table::month()
+✖ lubridate::quarter() masks data.table::quarter()
+✖ lubridate::second()  masks data.table::second()
+✖ dplyr::select()      masks raster::select()
+✖ purrr::transpose()   masks data.table::transpose()
+✖ lubridate::wday()    masks data.table::wday()
+✖ lubridate::week()    masks data.table::week()
+✖ purrr::when()        masks foreach::when()
+✖ lubridate::yday()    masks data.table::yday()
+✖ lubridate::year()    masks data.table::year()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+Loading required package: testthat
+
+Attaching package: 'testthat'
+
+The following object is masked from 'package:dplyr':
+
+    matches
+
+The following object is masked from 'package:purrr':
+
+    is_null
+
+The following objects are masked from 'package:readr':
+
+    edition_get, local_edition
+
+The following object is masked from 'package:tidyr':
+
+    matches
+
+Loading required package: sjmisc
+
+Attaching package: 'sjmisc'
+
+The following object is masked from 'package:purrr':
+
+    is_empty
+
+The following object is masked from 'package:tidyr':
+
+    replace_na
+
+The following object is masked from 'package:tibble':
+
+    add_case
+
+The following object is masked from 'package:raster':
+
+    trim
+
+Loading required package: tictoc
+
+Attaching package: 'tictoc'
+
+The following object is masked from 'package:raster':
+
+    shift
+
+The following object is masked from 'package:data.table':
+
+    shift
+
+Loading required package: doParallel
+Loading required package: iterators
+Loading required package: parallel
+Loading required package: callr
+Loading required package: lulcc
+Loading required package: pbapply
+Loading required package: xlsx
+Loading required package: randomForest
+randomForest 4.7-1.1
+Type rfNews() to see new features/changes/bug fixes.
+
+Attaching package: 'randomForest'
+
+The following object is masked from 'package:dplyr':
+
+    combine
+
+The following object is masked from 'package:ggplot2':
+
+    margin
+
+Loading required package: Dinamica
+Loading required package: future
+
+Attaching package: 'future'
+
+The following object is masked from 'package:callr':
+
+    run
+
+Loading required package: future.apply
+Loading required package: parallelly
+Loading required package: future.callr
+Loading required package: readxl
+[0m
+[@3 INFO] "CalculateRExpression" ran successfully (elapsed 6.3 s).
+[@3 INFO] Running "ExtractStructString" ...
+[@3 INFO] "ExtractStructString" ran successfully (elapsed 1.2e-05 s).
+[@3 INFO] Running "CreateCubeOfProbabilityMaps" ...
+[@3 INFO] "LoadCategoricalMap" ran successfully (elapsed 0.058 s).
+[@3 INFO]
+===[ Running step for element 2015 ]===
+
+[@3 INFO] Running "Step" ...
+[@3 INFO] "Step" ran successfully (elapsed 1.4e-05 s).
+[@3 INFO] Running "CalculateRExpression" ...
+[1;32m[@3] R execution output:[0m
+[1;32m[@3] [1] "package 'tibble' was built under R version 4.2.3"
+[0m
+[1;31m[@3 ERROR] R error output:[0m
+[1;31m[@3 ERROR] Loading required package: data.table
+Loading required package: raster
+Loading required package: sp
+Loading required package: tidyverse
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.0     ✔ readr     2.1.4
+✔ forcats   1.0.0     ✔ stringr   1.5.0
+✔ ggplot2   3.4.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.2     ✔ tidyr     1.3.0
+✔ purrr     1.0.1
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::between()     masks data.table::between()
+✖ tidyr::extract()     masks raster::extract()
+✖ dplyr::filter()      masks stats::filter()
+✖ dplyr::first()       masks data.table::first()
+✖ lubridate::hour()    masks data.table::hour()
+✖ lubridate::isoweek() masks data.table::isoweek()
+✖ dplyr::lag()         masks stats::lag()
+✖ dplyr::last()        masks data.table::last()
+✖ lubridate::mday()    masks data.table::mday()
+✖ lubridate::minute()  masks data.table::minute()
+✖ lubridate::month()   masks data.table::month()
+✖ lubridate::quarter() masks data.table::quarter()
+✖ lubridate::second()  masks data.table::second()
+✖ dplyr::select()      masks raster::select()
+✖ purrr::transpose()   masks data.table::transpose()
+✖ lubridate::wday()    masks data.table::wday()
+✖ lubridate::week()    masks data.table::week()
+✖ lubridate::yday()    masks data.table::yday()
+✖ lubridate::year()    masks data.table::year()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+Loading required package: xlsx
+Loading required package: Dinamica
+Loading required package: readxl
+Rows: 21 Columns: 3
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+dbl (3): From*, To*, Rate
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+[0m
+[@3 INFO] "CalculateRExpression" ran successfully (elapsed 5.8 s).
+[@3 INFO] Running "ExtractStructTable" ...
+[@3 INFO] "ExtractStructTable" ran successfully (elapsed 1.6e-05 s).
+[@3 INFO] Running "LoadCategoricalMap" ...
+[@3 INFO] Loading map "[E:/LULCC_CH]/Results/Dinamica_simulated_LULC/CALIBRATION/v1/simulated_LULC_scenario_CALIBRATION_simID_v1_year_2010.tif" ...
+[@3 INFO] "LoadCategoricalMap" ran successfully (elapsed 0.066 s).
+[@3 INFO] "ForEach" ran successfully (elapsed 1e+02 s).
+[@3 INFO] Running "CalculateRExpression" ...
+[1;32m[@3] R execution output:[0m
+[1;32m[@3] [1] "'E:\\LULCC_CH\\Results\\Validation\\v1' already exists"
+[0m
+[@3 INFO] "CalculateRExpression" ran successfully (elapsed 0.56 s).
+[@3 INFO] Running "ExtractStructString" ...
+[@3 INFO] "ExtractStructString" ran successfully (elapsed 1e-05 s).
+[@3 INFO] Running "ExtractStructNumber" ...
+[@3 INFO] "ExtractStructNumber" ran successfully (elapsed 4.3e-06 s).
+[@3 INFO] Running "ExtractStructString" ...
+[@3 INFO] "ExtractStructString" ran successfully (elapsed 3.4e-06 s).
+[@3 INFO] Running "ExtractStructString" ...
+[@3 INFO] "ExtractStructString" ran successfully (elapsed 3.2e-06 s).
+[@3 INFO] Running "ExtractStructString" ...
+[@3 INFO] "ExtractStructString" ran successfully (elapsed 3.2e-06 s).
+[@3 INFO] Running "IfThen" ...
+[@3 INFO] Running "LoadCategoricalMap" ...
+[@3 INFO] Loading map "[E:/LULCC_CH]/Data/Historic_LULC/LULC_2018_agg.grd" ...
+[@3 INFO] "LoadCategoricalMap" ran successfully (elapsed 0.058 s).
+[@3 INFO] Running "LoadCategoricalMap" ...
+[@3 INFO] Loading map "[E:/LULCC_CH]/Results/Dinamica_simulated_LULC/CALIBRATION/v1/simulated_LULC_scenario_CALIBRATION_simID_v1_year_2020.tif" ...

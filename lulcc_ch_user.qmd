@@ -1,0 +1,101 @@
+---
+title: "LULCC_CH land use change model for Switzerland"
+format: html
+server: shiny
+execute:
+  echo: false
+number-sections: true
+---
+
+```{r setup, include= FALSE}
+# Install packages
+#install Dinamica seperately
+
+#install.packages("Model/dinamica_1.0.4.tar.gz", repos=NULL, type="source")
+
+# packs <- c("data.table","stringi","stringr", "raster", "tidyverse", #"testthat",
+#            "sjmisc", "tictoc", "readxl", "parallel", "terra", "gridExtra",
+#            "extrafont", "purrr", "rlist", "glmnet", "gam", "mgcv",
+#            "randomForest", "RRF", "lightgbm", "ranger", "maxnet", "ROCR",
+#            "ecospat","caret", "ggpubr", "rstatix", "ggstatsplot", "tibble",
+#            "car", "tidyr", "PMCMRplus", "reshape2", "ggsignif", "ggthemes",
+#            "ggside", "ghibli", "gridtext", "grid", "tidyverse", "openxlsx",
+#            "ggpattern", "Dinamica", "slackr", "rstudioapi")
+#
+# new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]
+#
+# if (length(new.packs)) install.packages(new.packs)
+#
+# # Load required packages
+# invisible(lapply(packs, require, character.only = TRUE))
+#
+# # Source custom functions
+# invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = #TRUE, recursive = TRUE), source))
+
+```
+
+```{r include=FALSE}
+# Install packages
+library(shiny)
+```
+
+## Install Dinamica EGO
+
+LULCC_CH uses a combination of Rstats and the 3rd party software Dinamica EGO if Dinamica EGO is not installed on your computer it can be installed using the included executables for different operating systems. Select your operating system below and the appropriate installer window will open
+
+```{r}
+selectInput("OS", "Operating system:",
+                c("-","Windows", "GNU/Linux"))
+```
+
+```{r}
+#| context: server
+
+# choose file path for installer
+observe({
+if(input$OS != "-"){
+if(input$OS == "Windows"){
+install_path <- paste0(getwd(), "/Model/SetupDinamicaEGO-720_WIN.exe")
+} else if(input$OS == "GNU/Linux"){
+install_path <- paste0(getwd(), "/Model/SetupDinamicaEGO-720_GNU.exe")
+}
+
+
+install_path <- gsub('/','\\\\',install_path)
+
+# run system command
+system2(command = paste(install_path))
+}
+})
+
+
+```
+
+## Prepare historic land use land cover (LULC) data
+
+```{r}
+actionButton("Prep_LULC", "Prepare LULC data", icon = NULL)
+LULC_prep_complete <- "N"
+textOutput("text")
+```
+
+```{r}
+#| context: server
+
+
+
+#Prepare historic LULC data layers
+observeEvent(input$Prep_LULC, {
+#if(LULC_prep_complete != "Y"){
+source("Scripts/Testing_scripts/test_action_button.R")
+output$text <- renderText(LULC_prep_complete)
+#}
+})
+
+```
+
+## Prepare raster of Swiss Bioregions
+
+```{r}
+# source("Scripts/preparation/Region_prep.R", local = scripting_env)
+```
