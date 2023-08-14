@@ -4,7 +4,6 @@
 .RData
 .Ruserdata
 Gdrive_api_auth.json
-
 #specific folders to ignore
 /Data
 /Model/guidebook_dinamica_5
@@ -18,5 +17,4 @@ Gdrive_api_auth.json
 /publication/test/nul
 /publication/LULCC_CH_ms_temp/nul
 /Model/SetupDinamicaEGO-720_WIN.exe
-
 
