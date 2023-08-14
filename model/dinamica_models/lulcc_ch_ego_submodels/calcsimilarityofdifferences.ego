@@ -6,7 +6,7 @@
 @submodel.group = Validation
 @notes = See the help for a detailed description of this method.
 @showproperties = yes
-@date = 2023-Jun-20 10:17:39
+@date = 2023-Jul-20 18:14:37
 @version = 7.2.0.20221230
 Script {{
     // Initial map.
@@ -30,25 +30,13 @@ Script {{
     @submodel.in.constant.title = Observed Map
     observedMap := CategoricalMap .UNBOUND;
 
-    //
-    // ===
-    // Calculate map of simulated changes.
-    simulatedChanges := CalculateCategoricalMap {
-        expression = [
-            if i1 = i2 then
-                null
-            else
-                i2
-        ],
-        cellType = .int32,
-        nullValue = .default,
-        resultIsSparse = .no,
-        resultFormat = .none
-    } {{
-        NumberMap initialMap 1;
-
-        NumberMap simulatedMap 2;
-    }};
+    // Attenuation factor of the exponential decay function.
+    @submodel.in.constant.advanced = yes
+    @submodel.in.constant.description = Attenuation factor of the exponential decay function.
+    @submodel.in.constant.optional = yes
+    @submodel.in.constant.order = 6
+    @submodel.in.constant.title = Exponential Decay Divisor
+    exponentialDecayDivisor := RealValue 2;
 
     // If true, print the value of the mean similarities on the application console.
     @alias = print similarities?
@@ -66,21 +54,6 @@ Script {{
     @submodel.in.constant.order = 3
     @submodel.in.constant.title = Use Exponential Decay
     useExponentialDecay := BooleanValue .yes;
-
-    // Attenuation factor of the exponential decay function.
-    @submodel.in.constant.advanced = yes
-    @submodel.in.constant.description = Attenuation factor of the exponential decay function.
-    @submodel.in.constant.optional = yes
-    @submodel.in.constant.order = 6
-    @submodel.in.constant.title = Exponential Decay Divisor
-    exponentialDecayDivisor := RealValue 2;
-
-    // Only odd numbers are accepted.
-    @submodel.in.constant.description = Only odd numbers are accepted.
-    @submodel.in.constant.optional = yes
-    @submodel.in.constant.order = 4
-    @submodel.in.constant.title = Window Size
-    windowSize := PositiveIntegerValue 11;
 
     //
     // ===
@@ -101,6 +74,33 @@ Script {{
 
         NumberMap observedMap 2;
     }};
+
+    //
+    // ===
+    // Calculate map of simulated changes.
+    simulatedChanges := CalculateCategoricalMap {
+        expression = [
+            if i1 = i2 then
+                null
+            else
+                i2
+        ],
+        cellType = .int32,
+        nullValue = .default,
+        resultIsSparse = .no,
+        resultFormat = .none
+    } {{
+        NumberMap initialMap 1;
+
+        NumberMap simulatedMap 2;
+    }};
+
+    // Only odd numbers are accepted.
+    @submodel.in.constant.description = Only odd numbers are accepted.
+    @submodel.in.constant.optional = yes
+    @submodel.in.constant.order = 4
+    @submodel.in.constant.title = Window Size
+    windowSize := PositiveIntegerValue 11;
 
     LogPolicy .result printSimilarities {{
         @alias = similarities
@@ -135,13 +135,13 @@ Script {{
             NumberValue secondMean 2;
         }};
 
+        _ := IfThen is1StSimilarityLessThan2NdSimilarity .none {{
+            firstSimilarityMap := Map firstSimilarity;
+        }};
+
         @collapsed = no
         _ := IfNotThen is1StSimilarityLessThan2NdSimilarity .none {{
             secondSimilarityMap := Map secondSimilarity;
-        }};
-
-        _ := IfThen is1StSimilarityLessThan2NdSimilarity .none {{
-            firstSimilarityMap := Map firstSimilarity;
         }};
 
         minimumSimilarityMap := MapJunction firstSimilarityMap secondSimilarityMap;

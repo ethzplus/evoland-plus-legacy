@@ -142,7 +142,8 @@ write_csv(perchange_for_period_multistep, paste0(trans_rates_dir,"/Calibration_"
 }
 
 #Run function
-Transition_matrices_by_period <- mapply(lulcc.periodictransmatrices, Raster_combo = LULC_change_periods,
+Transition_matrices_by_period <- mapply(lulcc.periodictransmatrices,
+                                        Raster_combo = LULC_change_periods,
                                         period_name = names(LULC_change_periods),
                                         MoreArgs = list(Raster_stack = LULC_rasters,
                                                         Step_length = Step_length),

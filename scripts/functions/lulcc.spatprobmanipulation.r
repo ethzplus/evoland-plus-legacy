@@ -747,7 +747,7 @@ lulcc.spatprobmanipulation <- function(Interventions,
   Raster_prob_values[,names(Prob_df)] <- Prob_df
 
   #subset to only the prediction and spatial info cols
-  Raster_prob_values <- Raster_prob_values[,c("ID", "x", "y", Pred_prob_columns)]
+  #Raster_prob_values <- Raster_prob_values[,c("ID", "x", "y", Pred_prob_columns)]
   } #close if statement
 
 return(Raster_prob_values)

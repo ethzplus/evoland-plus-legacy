@@ -142,6 +142,12 @@ Sim_control_path <- "Tools/Simulation_control.csv"
 #TO DO: Document how users should set up the various 'tools' tables that control
 #the creation of transition datasets and the tp models.
 
+#Get the file path of the Dinamica console executable
+# DC_path <- list.files("C:/", recursive = TRUE, full.names = TRUE, pattern = ".*DinamicaConsole.*\\.exe")
+# DC_path <- gsub('(*/)\\1+', '\\1', DC_path) #remove instances of double "/"
+# DC_path <- gsub("/", "\\\\", DC_path) #replace "/" with "\\"
+DC_path <- "C:\\Program Files\\Dinamica EGO 7\\DinamicaConsole7.exe"
+
 #list objects required for modelling
 Model_tool_vars <- list(LULC_aggregation_path = "Tools/LULC_class_aggregation.xlsx",#Path to LULC class aggregation table
                           Model_specs_path = "Tools/model_specs.xlsx", #Path to model specifications table
@@ -155,7 +161,8 @@ Model_tool_vars <- list(LULC_aggregation_path = "Tools/LULC_class_aggregation.xl
                           Sim_control_path = Sim_control_path, #Path to simulation control table
                           Step_length= Step_length,
                           Scenario_names = Scenario_names,
-                          Inclusion_thres = Inclusion_thres) #Path to grid to standardise spatial data
+                          Inclusion_thres = Inclusion_thres,
+                          DC_path = DC_path) #Path to grid to standardise spatial data
 
 #Import model specifications table
 model_specs <- read_excel(Model_tool_vars$Model_specs_path)
@@ -173,7 +180,7 @@ Model_tool_vars$Regionalization <- FALSE
 }
 
 #save the list of model tools to be used during simulations
-#saveRDS(Model_tool_vars, "Tools/Model_tool_vars.rds")
+saveRDS(Model_tool_vars, "Tools/Model_tool_vars.rds")
 
 #Create a seperate environment for storing output of sourced scripts
 scripting_env <- new.env()
@@ -203,10 +210,10 @@ list2env(Model_tool_vars, scripting_env)
 ### =========================================================================
 
 #Prepare LULC data layers
-source("Scripts/preparation/LULC_data_prep.R", local = scripting_env)
+source("Scripts/Preparation/LULC_data_prep.R", local = scripting_env)
 
 #Prepare raster of Swiss Bioregions
-source("Scripts/preparation/Region_prep.R", local = scripting_env)
+source("Scripts/Preparation/Region_prep.R", local = scripting_env)
 
 ### =========================================================================
 ### B- Prepare predictor data
@@ -217,25 +224,25 @@ source("Scripts/preparation/Region_prep.R", local = scripting_env)
 #when data layers are created
 
 #Prepare suitability and accessibility predictors
-source("Scripts/preparation/Calibration_predictor_prep.R", local = scripting_env)
+source("Scripts/Preparation/Calibration_predictor_prep.R", local = scripting_env)
 
 ### =========================================================================
 ### C- Identify LULC transitions and create transition datasets
 ### =========================================================================
 
-source("Scripts/preparation/Transition_identification.R", local = scripting_env)
+source("Scripts/Preparation/Transition_identification.R", local = scripting_env)
 
 ### =========================================================================
 ### D- Create transition datasets
 ### =========================================================================
 
-source("Scripts/preparation/Transition_dataset_prep.R", local = scripting_env)
+source("Scripts/Preparation/Transition_dataset_prep.R", local = scripting_env)
 
 ### =========================================================================
 ### E- Predictor variable selection on LULCC transition datasets
 ### =========================================================================
 
-source("Scripts/preparation/Transition_feature_selection.R", local = scripting_env)
+source("Scripts/Preparation/Transition_feature_selection.R", local = scripting_env)
 
 ### =========================================================================
 ### F- Statistical modelling of LULCC transition datasets
@@ -243,7 +250,7 @@ source("Scripts/preparation/Transition_feature_selection.R", local = scripting_e
 
 #TO DO: USER CREATE TABLE OF MODEL SPECIFCATIONS AND PARAM GRID TO BE TESTED
 
-source("Scripts/preparation/Trans_modelling.R", local = scripting_env)
+source("Scripts/Preparation/Trans_modelling.R", local = scripting_env)
 
 ### =========================================================================
 ### G- Summarizing model validation results
@@ -252,7 +259,7 @@ source("Scripts/preparation/Trans_modelling.R", local = scripting_env)
 #The results comparing the performance of different transition model
 #specifications require manual interpretation as the choice of optimal model
 #must balance numerous aspects: accuracy, overfitting, computation time etc.
-source("Scripts/preparation/Transition_model_evaluation.R", local = scripting_env)
+source("Scripts/Preparation/Transition_model_evaluation.R", local = scripting_env)
 
 #Enter choice of optimal model specifcations
 #Model_type <- "rf"
@@ -268,25 +275,25 @@ lulcc.finalisemodelspecifications(Model_specs_path = Model_specs_path,
 ### H- Re-fitting optimal model specifications on full data
 ### =========================================================================
 
-source("Scripts/preparation/Trans_model_finalization.R", local = scripting_env)
+source("Scripts/Preparation/Trans_model_finalization.R", local = scripting_env)
 
 ### =========================================================================
 ### I- Prepare data for deterministic transitions (e.g glacier -> Non-glacier)
 ### =========================================================================
 
-source("Scripts/preparation/Deterministic_trans_prep.R", local = scripting_env)
+source("Scripts/Preparation/Deterministic_trans_prep.R", local = scripting_env)
 
 ### =========================================================================
 ### I- Prepare tables of transition rates for scenarios
 ### =========================================================================
 
-source("Scripts/preparation/Simulation_trans_tables_prep.R", local = scripting_env)
+source("Scripts/Preparation/Simulation_trans_tables_prep.R", local = scripting_env)
 
 ### =========================================================================
 ### J- Prepare predictor data for scenarios
 ### =========================================================================
 
-source("Scripts/preparation/Simulation_predictor_prep.R", local = scripting_env)
+source("Scripts/Preparation/Simulation_predictor_prep.R", local = scripting_env)
 
 ### =========================================================================
 ### K- Calibrate allocation parameters for Dinamica
@@ -298,23 +305,25 @@ source("Scripts/preparation/Simulation_predictor_prep.R", local = scripting_env)
 #3. Identify best performing parameter sets and save copies of tables
 #to be used in scenario simulations
 
-source("Scripts/preparation/Calibrate_allocation_parameters.R", local = scripting_env)
+source("Scripts/Preparation/Calibrate_allocation_parameters.R", local = scripting_env)
 
 ### =========================================================================
 ### L- Prepare scenario specific spatial interventions
 ### =========================================================================
 
-source("Scripts/preparation/Spatial_interventions_prep.R", local = scripting_env)
+source("Scripts/Preparation/Spatial_interventions_prep.R", local = scripting_env)
 
 ### =========================================================================
 ### M- Run Dinamica simulations over scenarios
 ### =========================================================================
 
-#Perform pre-check to make sure that all element required for Dinamica modelling
-#are prepared
+
 #Note this path needs to include the working directory because it is used
 #in the windows system command
 Control_table_path <- paste0(getwd(),"/", Sim_control_path)
+
+#Perform pre-checks to make sure that all element required for Dinamica modelling
+#are prepared
 Pre_check_result <- lulcc.modelprechecks(Control_table_path, Param_dir = Simulation_param_dir)
 
 #Run the Dinamica simulation model
@@ -332,22 +341,18 @@ if(Pre_check_result == FALSE){print("Some elements required for modelling are no
   Model_text <- str_replace(Model_text, "=====TABLE_PATH=====", Control_table_path)
 
   #save a temporary copy of the model.ego file to run
+  print('Creating a copy of the Dinamica model using the current control table')
   Temp_model_path <- gsub(".ego", paste0("_simulation_", Sys.Date(), ".ego"), "Model/Dinamica_models/LULCC_CH.ego")
   writeLines(Model_text, Temp_model_path)
-
-  #Get path for the Dinamica console executable
-  #(matching on regex '&' string) to be version agnostic
-  DC_path <- suppressWarnings(list.files("C:/", recursive = TRUE, full.names = TRUE, pattern = ".*DinamicaConsole.*\\.exe"))
-  DC_path <- gsub('(*/)\\1+', '\\1', DC_path) #remove instances of double "/"
-  DC_path <- gsub("/", "\\\\", DC_path) #replace "/" with "\\"
 
   #vector a path for saving the output text of this simulation
   #run which indicates any errors
   output_path <- paste0("Results/Simulation_notifications/Simulation_output_", Sys.Date(), ".txt")
 
+  print('Starting to run model with Dinamica EGO')
   system2(command = paste(DC_path),
-        args = c("-processors 10","-memory-allocation-policy 4", Temp_model_path),
-        #args = c("-disable-parallel-steps",Temp_model_path),
+        #args = c("-processors 10","-memory-allocation-policy 4", Temp_model_path),
+        args = c("-disable-parallel-steps",Temp_model_path),
        wait = TRUE,
        stdout= output_path,
        stderr = output_path)
@@ -367,11 +372,11 @@ if(Pre_check_result == FALSE){print("Some elements required for modelling are no
     print('All simulations completed sucessfully')
 
     #Delete the temporary model file
-    unlink(Temp_model_path)
+    #unlink(Temp_model_path)
 
     #clean up log and debug files created by Dinamica as their output
     #is stored in the .txt file anyway
-    unlink(list.files(pattern = paste0(c("log_","debug_"),collapse="|"), full.names = TRUE))
+    #unlink(list.files(pattern = paste0(c("log_","debug_"),collapse="|"), full.names = TRUE))
 
   }
 } #close if statement running simulation

@@ -113,6 +113,7 @@ save_raster_path <- paste0(simulated_LULC_file_path, Scenario_start, ".tif")
 #to copy the start map because one will exist but this still needs to be checked
 
 if(Scenario_start <= 2020){
+
   #Identify start year
   LULC_start_year <- Obs_LULC_years[base::which.min(abs(Obs_LULC_years - Scenario_start))]
 

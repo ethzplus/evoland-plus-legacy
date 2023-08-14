@@ -7,7 +7,7 @@ Script {{
     @alias = Simulation control
     _ := Group .none {{
         @alias = Specify control table file path: Table consisting of columns specifying the simulations to be performed (e.g. scenarios, length, versions etc.)
-        specifyControlTableFilePathTableConsistingOfColumnsSpecifyingTheSimulationsToBePerformedEGScenariosLengthVersionsEtc := String $"(=====TABLE_PATH=====)";
+        specifyControlTableFilePathTableConsistingOfColumnsSpecifyingTheSimulationsToBePerformedEGScenariosLengthVersionsEtc := String $"(E:/LULCC_CH/Tools/Simulation_control.csv)";
 
         @collapsed = no
         @alias = Subset control table to only simulations yet to be completed (i.e. modelled)
@@ -15,7 +15,7 @@ Script {{
             NumberString specifyControlTableFilePathTableConsistingOfColumnsSpecifyingTheSimulationsToBePerformedEGScenariosLengthVersionsEtc 1;
         }};
 
-        specifyWorkingDirectoryFromR := String $"(=====WORK_DIR=====)";
+        specifyWorkingDirectoryFromR := String $"(E:/LULCC_CH)";
 
         @viewer.table = yes
         subsettedControlTable := ExtractStructTable subsetControlTableToOnlySimulationsYetToBeCompletedIEModelled $"(Remaining_simulations)";

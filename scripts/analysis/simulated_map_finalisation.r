@@ -1,10 +1,28 @@
-
-#code for side by side raster leaflet maps
-#https://stackoverflow.com/questions/71669825/leaflet-side-by-side-for-2-raster-images-in-r
+#############################################################################
+## Simulated_map_finalisation: Finalise Dinamica simulated LULC maps
+## adding in water bodies
+##
+## Date: 25-10-2022
+## Author: Ben Black
+#############################################################################
 
 #remotes::install_github("rstudio/leaflet", ref="joe/feature/raster-options")
 
-packs <- c("raster", "leaflet", "leaflet.extras2", "rcartocolor", "htmlwidgets", "leaflet.opacity", "readxl")
+#vector other required packages
+packs<-c("data.table", "raster", "tidyverse", "SDMTools", "doParallel",
+"sf", "tiff", "igraph", "readr", "foreach", "testthat",
+"sjmisc", "tictoc", "parallel", "terra", "pbapply", "rgdal",
+"rgeos", "bfsMaps", "rjstat", "future.apply", "future", "stringr",
+"stringi", "readxl", "rlist", "rstatix", "openxlsx", "pxR", "zen4R",
+"rvest", "viridis", "sp", "jsonlite", "httr", "xlsx", "callr",
+"gdata", "landscapemetrics", "randomForest", "RRF", "future.callr",
+"ghibli", "ggpattern", "butcher", "ROCR", "ecospat", "caret", "Dinamica",
+"gridExtra", "extrafont", "ggpubr", "ggstatsplot","PMCMRplus", "reshape2",
+"ggsignif", "ggthemes", "ggside", "gridtext", "grid", "slackr", "rstudioapi",
+"landscapemetrics", "plotly", "networkD3", "ggalluvial", "ggthemes", "patchwork",
+"extrafont", "tmap", "leaflet", "leaflet.extras", "leaflet.extras2",
+"rcartocolor", "htmlwidgets", "leaflet.opacity", "leaflet.providers",
+"leafem", "mapview", "webshot2", "magick", "png")
 
 #install new packages
 new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]
@@ -13,61 +31,17 @@ if (length(new.packs)) install.packages(new.packs)
 # Load required packages
 invisible(lapply(packs, require, character.only = TRUE))
 
+list2env(readRDS("Tools/Model_tool_vars.rds"), .GlobalEnv)
+
 ProjCH <- "+proj=somerc +init=epsg:2056"
 
 Final_map_dir <- "Results/Finalised_LULC_maps"
 dir.create(Final_map_dir)
-LULC_table_dir <- "C:/Users/bblack/polybox/LULC_validation_data/LULC_tables/Switzerland"
-Validation_CH_maps_dir <- "C:/Users/bblack/polybox/LULC_validation_data/LULC_maps/Switzerland"
+Web_table_dir <- "C:/Users/bblack/polybox/LULC_validation_data/LULC_tables/Switzerland"
+Web_maps_dir <- "C:/Users/bblack/polybox/LULC_validation_data/LULC_maps/Switzerland"
 
 #load aggregation scheme
 Aggregation_scheme <- read_excel(LULC_aggregation_path)
-
-### =========================================================================
-### A- Example leaflet slider map
-### =========================================================================
-
-#create test rasters
-r1 <- r2 <- r3 <- r4 <- raster(system.file("external/test.grd", package = "raster"))
-
-#create test color palettes
-pal1 <- colorNumeric(carto_pal(name = "OrYel"),
-                     values(r1), na.color = "transparent")
-pal2 <- colorNumeric(carto_pal(name = "OrYel"),
-                     values(r2), na.color = "transparent")
-pal3 <- colorNumeric(carto_pal(name = "BluYl"),
-                     values(r3), na.color = "transparent")
-pal4 <- colorNumeric(carto_pal(name = "BluYl"),
-                     values(r4), na.color = "transparent")
-
-#use group option for rasters layers to assign the 2 time point rasters for each scenario into different groups
-#that can be selected.
-#TO DO: find instructions for adding labels to either side of the slider.
-#set base map etc.
-leaflet() |>
-  addMapPane("right", zIndex = 0) |>
-  addMapPane("left",  zIndex = 0) |>
-  addTiles(group = "base", layerId = "baseid1", options = pathOptions(pane = "right")) |>
-  addTiles(group = "base", layerId = "baseid2", options = pathOptions(pane = "left")) |>
-  addRasterImage(x = r1, colors = pal1, options = leafletOptions(pane = "right"), group = "r10") |>
-  addRasterImage(x = r2, colors = pal2, options = leafletOptions(pane = "left"), group = "r10") |>
-  addRasterImage(x = r3, colors = pal3, options = leafletOptions(pane = "right"), group = "r20") |>
-  addRasterImage(x = r4, colors = pal4, options = leafletOptions(pane = "left"), group = "r20") |>
-  leaflet.extras::addResetMapButton() |>
-  # Add an inset minimap
-  addMiniMap(
-    position = "topright",
-    tiles = providers$Esri.WorldStreetMap,
-    toggleDisplay = TRUE,
-    minimized = FALSE
-    ) |>
-  addLayersControl(overlayGroups = c("r10", "r20")) |>
-  addSidebyside(layerId = "sidecontrols",
-                rightId = "baseid1",
-                leftId  = "baseid2") |>
-   addControl("2020", position = "bottomleft")|>
-   addControl("2060", position = "bottomright")
-
 
 ### =========================================================================
 ### B- Finalising simulated LULC maps
@@ -181,9 +155,9 @@ lapply(names(Scenario_lulc_paths), function(Scenario_ID){
     rast_tbl[rast_tbl$value ==21, "class_name"] <- "River"
 
     #save updated raster and table of frequency values
-    write.csv(rast_tbl, paste0(LULC_table_dir, "/", str_replace(basename(x), ".tif", ".csv")), row.names = FALSE)
+    write.csv(rast_tbl, paste0(Web_table_dir, "/", str_replace(basename(x), ".tif", ".csv")), row.names = FALSE)
     writeRaster(Sim_rast, paste0(Final_map_dir, "/", basename(x)), overwrite=TRUE)
-    writeRaster(Sim_rast, paste0(Validation_CH_maps_dir, "/", basename(x)), overwrite=TRUE)
+    writeRaster(Sim_rast, paste0(Web_maps_dir, "/", basename(x)), overwrite=TRUE)
     }) # close inner loop over time point layers
 
   }) #close outer loop over scenarios
@@ -192,83 +166,83 @@ lapply(names(Scenario_lulc_paths), function(Scenario_ID){
 ### C- Regionalising LULC maps for expert validation
 ### =========================================================================
 
-#Urban focus area: Canton Zurich
-Cantons <- vect("Data/Preds/Raw/CH_geoms/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.shp")
-crs(Cantons) <- ProjCH
-
-#subset to Zurich
-ZH_shp <- Cantons[Cantons$NAME == "Zürich", ]
-
-#Rural focus area
-Muni_type_rast <- rast("Data/Spat_prob_perturb_layers/Municipality_typology/Muni_type_raster.grd")
-crs(Muni_type_rast) <- ProjCH
-
-#seperate raster attribute table
-Muni_rat <- levels(Muni_type_rast)[[1]]
-
-#get values for rural municipalities
-Rural_muni_values <- Muni_rat[Muni_rat$type %in% c(
-"Rural_agricultural_municipality_in_a_central_location"
-,"Rural_industrial_municipality_in_a_central_location",
-"Tertiary_rural_municipality_in_a_central_location"
-),"ID"]
-
-#subset raster to only these municipalities
-Rural_rast <- ifel(Muni_type_rast %in% Rural_muni_values, 1, NA)
-
-#Mountainous focus area
-Mount_muni_values <- c(334)
-Mount_rast <- ifel(Muni_type_rast %in% Mount_muni_values, 1, NA)
-plot(Mount_rast)
-
-#create a list of layers to mask with named for each region
-Regions <- list(Urban = ZH_shp,
-                Rural = Rural_rast,
-                Mountain = Mount_rast)
-
-#list files from Final dir
-Validation_maps_dir <- "C:/Users/bblack/polybox/LULC_validation_data/LULC_maps"
-Validation_tbl_dir <- "C:/Users/bblack/polybox/LULC_validation_data/LULC_tables"
-
-#create directories for each region in both base dirs
-lapply(names(Regions), function(x){
-  dir.create(paste0(Validation_maps_dir, "/", x), recursive = TRUE)
-  dir.create(paste0(Validation_tbl_dir, "/", x), recursive = TRUE)
-})
-
-#Get Swiss wide LULC map paths
-LULC_paths <- list.files(paste0(Validation_maps_dir, "/Switzerland"), full.names = TRUE)
-
-#loop over LULC maps subsetting to regions and saving maps and tables
-lapply(LULC_paths, function(x){
-
-  #load LULC layer
-  LULC <- rast(x)
-
-  #inner loop over regions
-  lapply(1:length(Regions), function(Reg_num){
-
-    #mask LULC by region
-    LULC_region <- terra::mask(LULC, Regions[[Reg_num]])
-    # plot(LULC_region)
-    # browser()
-    #produce frequency table from masked region
-    rast_tbl <- freq(LULC_region)
-    rast_tbl$layer <- NULL
-    rast_tbl$class_name <- c(unlist(sapply(rast_tbl$value, function(y) unique(unlist(Aggregation_scheme[Aggregation_scheme$Aggregated_ID == y, "Aggregated_class"])),simplify = TRUE)), "Lake", "River")
-    rast_tbl[rast_tbl$value ==20, "class_name"] <- "Lake"
-    rast_tbl[rast_tbl$value ==21, "class_name"] <- "River"
-
-    #save updated raster and table of frequency values
-    write.csv(rast_tbl, paste0(Validation_tbl_dir, "/", names(Regions)[[Reg_num]], "/", paste0(tools::file_path_sans_ext(basename(x)), "_",names(Regions)[[Reg_num]], ".csv")), row.names = FALSE)
-    writeRaster(LULC_region, paste0(Validation_maps_dir, "/", names(Regions)[[Reg_num]], "/", paste0(tools::file_path_sans_ext(basename(x)), "_",names(Regions)[[Reg_num]], ".tif")), overwrite=TRUE)
-
-  }) #close loop over regions
-
-})
+# #Urban focus area: Canton Zurich
+# Cantons <- vect("Data/Preds/Raw/CH_geoms/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.shp")
+# crs(Cantons) <- ProjCH
+#
+# #subset to Zurich
+# ZH_shp <- Cantons[Cantons$NAME == "Zürich", ]
+#
+# #Rural focus area
+# Muni_type_rast <- rast("Data/Spat_prob_perturb_layers/Municipality_typology/Muni_type_raster.grd")
+# crs(Muni_type_rast) <- ProjCH
+#
+# #seperate raster attribute table
+# Muni_rat <- levels(Muni_type_rast)[[1]]
+#
+# #get values for rural municipalities
+# Rural_muni_values <- Muni_rat[Muni_rat$type %in% c(
+# "Rural_agricultural_municipality_in_a_central_location"
+# ,"Rural_industrial_municipality_in_a_central_location",
+# "Tertiary_rural_municipality_in_a_central_location"
+# ),"ID"]
+#
+# #subset raster to only these municipalities
+# Rural_rast <- ifel(Muni_type_rast %in% Rural_muni_values, 1, NA)
+#
+# #Mountainous focus area
+# Mount_muni_values <- c(334)
+# Mount_rast <- ifel(Muni_type_rast %in% Mount_muni_values, 1, NA)
+# plot(Mount_rast)
+#
+# #create a list of layers to mask with named for each region
+# Regions <- list(Urban = ZH_shp,
+#                 Rural = Rural_rast,
+#                 Mountain = Mount_rast)
+#
+# #list files from Final dir
+# Validation_maps_dir <- "C:/Users/bblack/polybox/LULC_validation_data/LULC_maps"
+# Validation_tbl_dir <- "C:/Users/bblack/polybox/LULC_validation_data/LULC_tables"
+#
+# #create directories for each region in both base dirs
+# lapply(names(Regions), function(x){
+#   dir.create(paste0(Validation_maps_dir, "/", x), recursive = TRUE)
+#   dir.create(paste0(Validation_tbl_dir, "/", x), recursive = TRUE)
+# })
+#
+# #Get Swiss wide LULC map paths
+# LULC_paths <- list.files(paste0(Validation_maps_dir, "/Switzerland"), full.names = TRUE)
+#
+# #loop over LULC maps subsetting to regions and saving maps and tables
+# lapply(LULC_paths, function(x){
+#
+#   #load LULC layer
+#   LULC <- rast(x)
+#
+#   #inner loop over regions
+#   lapply(1:length(Regions), function(Reg_num){
+#
+#     #mask LULC by region
+#     LULC_region <- terra::mask(LULC, Regions[[Reg_num]])
+#     # plot(LULC_region)
+#     # browser()
+#     #produce frequency table from masked region
+#     rast_tbl <- freq(LULC_region)
+#     rast_tbl$layer <- NULL
+#     rast_tbl$class_name <- c(unlist(sapply(rast_tbl$value, function(y) unique(unlist(Aggregation_scheme[Aggregation_scheme$Aggregated_ID == y, "Aggregated_class"])),simplify = TRUE)), "Lake", "River")
+#     rast_tbl[rast_tbl$value ==20, "class_name"] <- "Lake"
+#     rast_tbl[rast_tbl$value ==21, "class_name"] <- "River"
+#
+#     #save updated raster and table of frequency values
+#     write.csv(rast_tbl, paste0(Validation_tbl_dir, "/", names(Regions)[[Reg_num]], "/", paste0(tools::file_path_sans_ext(basename(x)), "_",names(Regions)[[Reg_num]], ".csv")), row.names = FALSE)
+#     writeRaster(LULC_region, paste0(Validation_maps_dir, "/", names(Regions)[[Reg_num]], "/", paste0(tools::file_path_sans_ext(basename(x)), "_",names(Regions)[[Reg_num]], ".tif")), overwrite=TRUE)
+#
+#   }) #close loop over regions
+#
+# })
 
 ### =========================================================================
-### D- slider maps of scenario results
+### D- Leaflet time-slider map of scenario results
 ### =========================================================================
 
 #load an exempler layer to produce a raster attribute table from
@@ -302,9 +276,9 @@ Final_lulc_maps <- lapply(Scenarios, function(x) {
 })
 names(Final_lulc_maps) <- Scenarios
 
-carto_pal(name = "Antique")
 #colour palette
-pal <- colorFactor(c("#BB0011", #Urban
+pal <- colorFactor(c(
+"#BB0011", #Urban
 "#DDDDDD", #static
 "#668822", #Open forest
 "#117733", #closed forest

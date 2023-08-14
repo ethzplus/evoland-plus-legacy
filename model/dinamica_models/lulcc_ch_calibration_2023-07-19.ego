@@ -1,5 +1,5 @@
 @charset = UTF-8
-@date = 2023-Jul-20 18:14:37
+@date = 2023-Jul-19 16:58:41
 @version = 7.2.0.20221230
 @submodel.import = CreateCubeOfProbabilityMaps { { \"transitionMatrix\" : Table, \"inputFolder\" : Folder } { } { \"probabilityMapsRasterCube\" : Map } }; AllocateTransitions { { \"lanscape\" : CategoricalMap, \"probabilities\" : Map, \"transitionMatrix\" : TransitionMatrix, \"percentOfTransitionsByExpansion\" : PercentMatrix, \"patchExpansionParameters\" : TransitionFunctionParameterMatrix, \"patchGenerationParameters\" : TransitionFunctionParameterMatrix } { \"printTransitionInfo\" : BooleanValue } { \"resultingLanscape\" : CategoricalMap } }; CalcSimilarityOfDifferences { { \"initialMap\" : CategoricalMap, \"observedMap\" : CategoricalMap, \"simulatedMap\" : CategoricalMap } { \"useExponentialDecay\" : BooleanValue, \"windowSize\" : PositiveIntegerValue, \"printSimilarities\" : BooleanValue, \"exponentialDecayDivisor\" : RealValue } { \"similarityMap\" : Map, \"similarity\" : RealValue } }
 Script {{
@@ -7,7 +7,7 @@ Script {{
     @alias = Simulation control
     _ := Group .none {{
         @alias = Specify control table file path: Table consisting of columns specifying the simulations to be performed (e.g. scenarios, length, versions etc.)
-        specifyControlTableFilePathTableConsistingOfColumnsSpecifyingTheSimulationsToBePerformedEGScenariosLengthVersionsEtc := String $"(=====TABLE_PATH=====)";
+        specifyControlTableFilePathTableConsistingOfColumnsSpecifyingTheSimulationsToBePerformedEGScenariosLengthVersionsEtc := String $"(E:/LULCC_CH/Tools/Calibration_control.csv)";
 
         @collapsed = no
         @alias = Subset control table to only simulations yet to be completed (i.e. modelled)
@@ -15,7 +15,7 @@ Script {{
             NumberString specifyControlTableFilePathTableConsistingOfColumnsSpecifyingTheSimulationsToBePerformedEGScenariosLengthVersionsEtc 1;
         }};
 
-        specifyWorkingDirectoryFromR := String $"(=====WORK_DIR=====)";
+        specifyWorkingDirectoryFromR := String $"(E:/LULCC_CH)";
 
         @viewer.table = yes
         subsettedControlTable := ExtractStructTable subsetControlTableToOnlySimulationsYetToBeCompletedIEModelled $"(Remaining_simulations)";
@@ -58,23 +58,23 @@ Script {{
                         NumberValue simulationNumber 1;
                     }};
 
-                    @viewer.lookupTable = yes
-                    receiveTableOfTimeStepsDefiningLengthOfSimulation := ExtractStructLookupTable initializeCurrentSimulation $"(simulation_time_steps)";
-
-                    @viewer.string = yes
-                    receiveInitialLulcFilePath := ExtractStructString initializeCurrentSimulation $"(initial_lulc_path)";
-
-                    @viewer.string = yes
-                    receiveFolderPathForTablesOfAllocationAlgorithmParameters := ExtractStructString initializeCurrentSimulation $"(Allocation_params_folder_path)";
+                    receiveModelMode := ExtractStructString initializeCurrentSimulation $"(Model_mode)";
 
                     stepLength := ExtractStructNumber initializeCurrentSimulation $"(Step_length)";
+
+                    @viewer.lookupTable = yes
+                    receiveTableOfTimeStepsDefiningLengthOfSimulation := ExtractStructLookupTable initializeCurrentSimulation $"(simulation_time_steps)";
 
                     @viewer.string = yes
                     receiveFilePathForSimulatedLulcMaps := ExtractStructString initializeCurrentSimulation $"(sim_lulc_folder_path)";
 
                     receiveSimulationId := ExtractStructString initializeCurrentSimulation $"(Sim_id)";
 
-                    receiveModelMode := ExtractStructString initializeCurrentSimulation $"(Model_mode)";
+                    @viewer.string = yes
+                    receiveFolderPathForTablesOfAllocationAlgorithmParameters := ExtractStructString initializeCurrentSimulation $"(Allocation_params_folder_path)";
+
+                    @viewer.string = yes
+                    receiveInitialLulcFilePath := ExtractStructString initializeCurrentSimulation $"(initial_lulc_path)";
                 }};
 
                 @collapsed = no
@@ -119,38 +119,6 @@ Script {{
                     @viewer.map = yes
                     updatedLulcMap := MuxCategoricalMap loadInitialLulcMap loadUpdatedLulcMap;
 
-                    @alias = Load allocation parameters
-                    _ := Group .none {{
-                        @collapsed = no
-                        @viewer.result = yes
-                        modifyFilePathForAllocationParametersTableForTimeStep := CreateString receiveFolderPathForTablesOfAllocationAlgorithmParameters {{
-                            @alias = Time step
-                            NumberValue timeStep 1;
-                        }};
-
-                        @viewer.table = yes
-                        loadTableOfAllocationParameters := LoadTable {
-                            filename = modifyFilePathForAllocationParametersTableForTimeStep,
-                            uniqueIdKeyColumnCreation = .ifNecessary,
-                            suffixDigits = 0,
-                            step = step0,
-                            workdir = workdir
-                        };
-
-                        @collapsed = no
-                        @viewer.result = yes
-                        splitParamTable := CalculateRExpression "I1JlY2VpdmUgcGFyYW1ldGVyIHRhYmxlClBhcmFtX3RhYmxlIDwtIHQxCgojc3Vic2V0IHRvIGNvbHVtbnMgcmVxdWlyZWQgZm9yICVleHBhbmRlciBpbnB1dApFeHBhbmRlcl90YWJsZSA8LSBQYXJhbV90YWJsZVssIGMoIkZyb20iLCAiVG8iLCAiUGVyY19leHBhbmRlciIpXQoKI3N1YnNldCB0byBjb2x1bW5zIHJlcXVpcmVkIGZvciBwYXRjaCBnZW5lcmF0aW9uIGlucHV0ClBhdGNoX3RhYmxlIDwtIFBhcmFtX3RhYmxlWywhKGNvbG5hbWVzKFBhcmFtX3RhYmxlKSAlaW4lIGMoIlBlcmNfZXhwYW5kZXIiLCAiUGVyY19wYXRjaGVyIikpXQoKI091dHB1dCAlIEV4cGFuc2lvbiB0YWJsZQojKE5vdGUgdGhlICcsMicgcGFyYW1ldGVyIGlzIG5lY2Vzc2FyeSBmb3IgRGluYW1pY2EgdG8gcmVnaXN0ZXIgdGhhdCB0aGUgdGFibGUgaGFzIDIga2V5IGNvbHVtbnMgKEZyb20gYW5kIFRvKSkKb3V0cHV0VGFibGUoIkV4cGFuZGVyX3RhYmxlIiwgRXhwYW5kZXJfdGFibGUsIDIpCm91dHB1dFRhYmxlKCJQYXRjaF90YWJsZSIsIFBhdGNoX3RhYmxlLCAyKQo=" .no {{
-                            NumberTable loadTableOfAllocationParameters 1;
-                        }};
-
-                        @viewer.table = yes
-                        patchRelatedParams := ExtractStructTable splitParamTable $"(Patch_table)";
-
-                        @alias = % expansion table
-                        @viewer.table = yes
-                        expansionTable := ExtractStructTable splitParamTable $"(Expander_table)";
-                    }};
-
                     @collapsed = no
                     @alias = Transition potential calculation
                     _ := Group .none {{
@@ -181,6 +149,38 @@ Script {{
 
                         @viewer.probabilityMapsRasterCube = yes
                         createCubeOfProbabilityMaps2989 := CreateCubeOfProbabilityMaps transitionRatesTable folderPathForProbabilityMaps;
+                    }};
+
+                    @alias = Load allocation parameters
+                    _ := Group .none {{
+                        @collapsed = no
+                        @viewer.result = yes
+                        modifyFilePathForAllocationParametersTableForTimeStep := CreateString receiveFolderPathForTablesOfAllocationAlgorithmParameters {{
+                            @alias = Time step
+                            NumberValue timeStep 1;
+                        }};
+
+                        @viewer.table = yes
+                        loadTableOfAllocationParameters := LoadTable {
+                            filename = modifyFilePathForAllocationParametersTableForTimeStep,
+                            uniqueIdKeyColumnCreation = .ifNecessary,
+                            suffixDigits = 0,
+                            step = step0,
+                            workdir = workdir
+                        };
+
+                        @collapsed = no
+                        @viewer.result = yes
+                        splitParamTable := CalculateRExpression "I1JlY2VpdmUgcGFyYW1ldGVyIHRhYmxlClBhcmFtX3RhYmxlIDwtIHQxCgojc3Vic2V0IHRvIGNvbHVtbnMgcmVxdWlyZWQgZm9yICVleHBhbmRlciBpbnB1dApFeHBhbmRlcl90YWJsZSA8LSBQYXJhbV90YWJsZVssIGMoIkZyb20iLCAiVG8iLCAiUGVyY19leHBhbmRlciIpXQoKI3N1YnNldCB0byBjb2x1bW5zIHJlcXVpcmVkIGZvciBwYXRjaCBnZW5lcmF0aW9uIGlucHV0ClBhdGNoX3RhYmxlIDwtIFBhcmFtX3RhYmxlWywhKGNvbG5hbWVzKFBhcmFtX3RhYmxlKSAlaW4lIGMoIlBlcmNfZXhwYW5kZXIiLCAiUGVyY19wYXRjaGVyIikpXQoKI091dHB1dCAlIEV4cGFuc2lvbiB0YWJsZQojKE5vdGUgdGhlICcsMicgcGFyYW1ldGVyIGlzIG5lY2Vzc2FyeSBmb3IgRGluYW1pY2EgdG8gcmVnaXN0ZXIgdGhhdCB0aGUgdGFibGUgaGFzIDIga2V5IGNvbHVtbnMgKEZyb20gYW5kIFRvKSkKb3V0cHV0VGFibGUoIkV4cGFuZGVyX3RhYmxlIiwgRXhwYW5kZXJfdGFibGUsIDIpCm91dHB1dFRhYmxlKCJQYXRjaF90YWJsZSIsIFBhdGNoX3RhYmxlLCAyKQo=" .no {{
+                            NumberTable loadTableOfAllocationParameters 1;
+                        }};
+
+                        @viewer.table = yes
+                        patchRelatedParams := ExtractStructTable splitParamTable $"(Patch_table)";
+
+                        @alias = % expansion table
+                        @viewer.table = yes
+                        expansionTable := ExtractStructTable splitParamTable $"(Expander_table)";
                     }};
 
                     @alias = Transition allocation
@@ -287,18 +287,18 @@ Script {{
                         NumberTable receiveTableOfTimeStepsDefiningLengthOfSimulation 1;
                     }};
 
-                    receiveValidationMapSavePath := ExtractStructString calculateRexpression2508 $"(Val_map_path)";
-
-                    @viewer.string = yes
-                    receiveFilePathOfObservedLulcMapForLastYearOfSimulation := ExtractStructString calculateRexpression2508 $"(Obs_LULC_path)";
-
                     // returning 0 does not initiate validation, returning 1 does
                     @viewer.number = yes
                     ifThenCondition := ExtractStructNumber calculateRexpression2508 $"(Use_validation)";
 
+                    receiveValidationResultSavePath := ExtractStructString calculateRexpression2508 $"(Val_result_path)";
+
+                    receiveValidationMapSavePath := ExtractStructString calculateRexpression2508 $"(Val_map_path)";
+
                     receiveFilePathOfSimulatedLulcMap := ExtractStructString calculateRexpression2508 $"(Sim_LULC_path)";
 
-                    receiveValidationResultSavePath := ExtractStructString calculateRexpression2508 $"(Val_result_path)";
+                    @viewer.string = yes
+                    receiveFilePathOfObservedLulcMapForLastYearOfSimulation := ExtractStructString calculateRexpression2508 $"(Obs_LULC_path)";
 
                     _ := IfThen ifThenCondition .none {{
                         loadSimulatedLulcMap := LoadCategoricalMap {
@@ -310,8 +310,9 @@ Script {{
                             workdir = workdir
                         };
 
-                        loadObservedLulcMapForFinalYearOfSimulation := LoadCategoricalMap {
-                            filename = receiveFilePathOfObservedLulcMapForLastYearOfSimulation,
+                        @alias = Load Initial Lulc Map
+                        loadInitialLulcMap0 := LoadCategoricalMap {
+                            filename = receiveInitialLulcFilePath,
                             nullValue = .none,
                             storageMode = .default,
                             suffixDigits = 0,
@@ -319,9 +320,8 @@ Script {{
                             workdir = workdir
                         };
 
-                        @alias = Load Initial Lulc Map
-                        loadInitialLulcMap0 := LoadCategoricalMap {
-                            filename = receiveInitialLulcFilePath,
+                        loadObservedLulcMapForFinalYearOfSimulation := LoadCategoricalMap {
+                            filename = receiveFilePathOfObservedLulcMapForLastYearOfSimulation,
                             nullValue = .none,
                             storageMode = .default,
                             suffixDigits = 0,

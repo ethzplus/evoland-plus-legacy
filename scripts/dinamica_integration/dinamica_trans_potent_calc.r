@@ -104,18 +104,15 @@ Current_LULC <- raster(current_LULC_path)
 
 #load aggregation scheme
 Aggregation_scheme <- read_excel(LULC_aggregation_path)
-LULC_labels <- unique(Aggregation_scheme$Class_abbreviation)
-names(LULC_labels) <- sapply(LULC_labels, function(x){unique(Aggregation_scheme[Aggregation_scheme$Class_abbreviation == x, "Aggregated_ID" ])})
 
-#vector LULC values that are present in the current map and get the class names
-#(in case not all classes are present anymore during simulation)
-LULC_values_current<- unique(Current_LULC)
-LULC_labels_current <- LULC_labels[LULC_values_current %in% names(LULC_labels)]
-
+LULC_rat <- Aggregation_scheme%>% distinct(Aggregated_ID, .keep_all=TRUE)
+LULC_rat <- LULC_rat[, c("Class_abbreviation", "Aggregated_ID")]
 
 #layerize data (columns for each LULC class)
 LULC_data <- raster::layerize(Current_LULC)
-names(LULC_data) <- LULC_labels_current
+names(LULC_data) <- sapply(str_remove_all(names(LULC_data), "X"), function(y) {
+  LULC_rat[LULC_rat$Aggregated_ID == y, "Class_abbreviation"]
+})
 
 ### =========================================================================
 ### D- Load Suitability and Accessibility predictors and attach to LULC data
@@ -278,11 +275,12 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)){
   #Loop over details of focal layers required creating a list of rasters from the current LULC map
   Nhood_rasters <- list()
   for(i in 1:nrow(Required_focals_details)){
+
     #vector active class names
     Active_class_name <- Required_focals_details[i,]$active_lulc
 
     #get pixel values of active LULC class
-    Active_class_value <- as.numeric(names(LULC_labels[LULC_labels == Active_class_name]))
+    Active_class_value <- unlist(LULC_rat[LULC_rat$Class_abbreviation == Active_class_name, "Aggregated_ID"])
 
     #subset LULC raster by all Active_class_value
     Active_class_raster_subset <- Current_LULC == Active_class_value
@@ -338,7 +336,8 @@ names(Trans_data_stack) <- c(names(LULC_data), names(SA_pred_stack@layers), name
 Trans_dataset <- raster::as.data.frame(Trans_data_stack)
 
 #add ID column to dataset
-Trans_dataset$ID <- seq.int(nrow(Trans_dataset))
+#Trans_dataset$ID <- seq.int(nrow(Trans_dataset))
+Trans_dataset$ID <- row.names(Trans_dataset)
 
 #Get XY coordinates of cells
 xy_coordinates <- coordinates(Trans_data_stack)
@@ -377,21 +376,18 @@ if(grepl("simulation", Model_mode, ignore.case = TRUE) &
 #and NAs ()background values
 Trans_dataset_complete <- Trans_dataset %>%
   filter(complete.cases(.))
+row.names(Trans_dataset_complete) <- Trans_dataset_complete$ID
 
 Trans_dataset_na <- Trans_dataset %>%
   filter(!complete.cases(.))
-Trans_dataset_na <- Trans_dataset_na[, c("x", "y", "ID")]
+Trans_dataset_na <- Trans_dataset_na[, c("ID", "x", "y")]
+row.names(Trans_dataset_na) <- Trans_dataset_na$ID
 
 rm(Trans_dataset)
 
-#saveRDS(Trans_dataset_na, "Data/Spat_prob_perturb_layers/EXP_trans_dataset_NA_values.rds")
-# Data_indices_nonNA <- Trans_dataset_complete[, c("ID", "x", "y")]
-#write.csv(Data_indices_nonNA, "Data/Data_indices_nonNA.csv", row.names = FALSE)
-#write.table(Data_indices_nonNA, "Data/Data_indices_nonNA.txt", row.names = FALSE)
-# writeRaster(Ref_grid, "Data/Ref_grid.tif")
-
 #seperate ID, x/y and Initial_LULC cols to append results to
 Prediction_probs <- Trans_dataset_complete[, c("ID", "x", "y", unique(Model_lookup$Initial_LULC), "Static")]
+row.names(Prediction_probs) <- Prediction_probs$ID
 
 #add cols to both the complete and NA data to capture predict probabilities to each class
 Final_LULC_classes <- unique(Model_lookup$Final_LULC)
@@ -485,10 +481,14 @@ prob_predicts <- as.data.frame(predict(Fitted_model, pred_data, type="prob"))
 names(prob_predicts)[[2]] <- paste0("Prob_", Final_LULC)
 
 #bind to ID
-predict_ID <- cbind(ID = pred_data[, c("ID")], prob_predicts[paste0("Prob_", Final_LULC)])
+#predict_ID <- cbind(ID = pred_data[, c("ID")], prob_predicts[paste0("Prob_", Final_LULC)])
 
 #append the predictions at the correct rows in the results df
-Prediction_probs[which(Prediction_probs$ID %in% predict_ID$ID), paste0("Prob_", Final_LULC)] <- predict_ID[paste0("Prob_", Final_LULC)]
+#Prediction_probs[which(Prediction_probs$ID %in% predict_ID$ID), paste0("Prob_", Final_LULC)] <- predict_ID[paste0("Prob_", Final_LULC)]
+
+#alternative method of replacing prob prediction values
+Prediction_probs[row.names(prob_predicts),paste0("Prob_", Final_LULC)] <- prob_predicts[paste0("Prob_", Final_LULC)]
+
 } #close loop over Models
 Non_par_end <- Sys.time()
 Non_par_time <- Non_par_end - Non_par_start #sequential time = 2.937131 mins
@@ -521,7 +521,7 @@ Trans_dataset_na[setdiff(names(Prediction_probs), names(Trans_dataset_na))] <- N
 Raster_prob_values <- rbind(Prediction_probs, Trans_dataset_na)
 
 #sort by ID
-Raster_prob_values <- Raster_prob_values[order(Raster_prob_values$ID),]
+Raster_prob_values <- Raster_prob_values[order(as.numeric(row.names(Raster_prob_values))), ]
 
 #Save one copy of the raster probability values to be used to test
 #spatial interventions, this file will be created during the running of the model
@@ -578,15 +578,25 @@ Unique_trans <- Model_lookup[!duplicated(Model_lookup$Trans_ID), ]
 
 #Loop over unique trans using details to subset data and save Rasters
 for(i in 1:nrow(Unique_trans)){
+
 Trans_ID <- Unique_trans[i, "Trans_ID"]
 Final_LULC <- Unique_trans[i, "Final_LULC"]
 Initial_LULC <- Unique_trans[i, "Initial_LULC"]
 
-#subset data
-Trans_raster_values <- Raster_prob_values[,c("x", "y", paste0("Prob_", Final_LULC))]
+#get indices of rows for cells of initial class
+Initial_indices <- na.omit(Raster_prob_values[Raster_prob_values[Initial_LULC] == 1,"ID"])
+
+#get indices of non_class cells
+non_initial_indices <- na.omit(Raster_prob_values[Raster_prob_values[Initial_LULC] == 0,"ID"])
+
+#seperate Final class column
+Trans_raster_values <- Raster_prob_values[, c("ID", "x", "y", paste0("Prob_", Final_LULC))]
+
+#replace values of non-class cells with 0
+Trans_raster_values[non_initial_indices, paste0("Prob_", Final_LULC)] <- 0
 
 #rasterize and save using Initial and Final class names
-Prob_raster <- rasterFromXYZ(Trans_raster_values, crs = crs(Current_LULC))
+Prob_raster <- rasterFromXYZ(Trans_raster_values[,c("x", "y", paste0("Prob_", Final_LULC))], crs = crs(Current_LULC))
 
 #vector file path for saving probability maps
 prob_map_path <- paste0(prob_map_folder, "/", Trans_ID, "_probability_", Initial_LULC, "_to_", Final_LULC, ".tif")
@@ -597,6 +607,4 @@ writeRaster(Prob_raster, prob_map_path, overwrite=T)
 #Return the probability map folder path as a string to
 #Dinamica to indicate completion
 #Note strings must be vectorized for 'outputString to work
-
 outputString("probmap_folder_path", prob_map_folder)
-

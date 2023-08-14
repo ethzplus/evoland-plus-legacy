@@ -32,7 +32,7 @@ list2env(readRDS("Tools/Model_tool_vars.rds"), .GlobalEnv)
 ### =========================================================================
 
 #values for testing purposes
-# Simulation_year <- "2025"
+# Simulation_year <- "2010"
 # Simulation_num <- "1"
 
 #Receive current simulation time
@@ -42,7 +42,8 @@ Simulation_year <- v1
 Simulation_num <- v2
 
 #load table of simulations
-Simulation_table <- read.csv(Sim_control_path)[Simulation_num,]
+Control_table_path <- s2
+Simulation_table <- read.csv(Control_table_path)[Simulation_num,]
 
 #Vector name of Scenario to be tested as string or numeric (i.e. "BAU" etc.)
 Scenario_ID <- Simulation_table$Scenario_ID.string

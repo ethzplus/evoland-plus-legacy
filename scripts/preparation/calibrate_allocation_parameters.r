@@ -185,16 +185,18 @@ Allocation_params_by_period <- mapply(lulcc.periodicparametercalculation, Raster
 #so they are converted in this loop
 
 #First create a lookup table to control looping over the simulations
-Calibration_control_table <- data.frame(matrix(ncol = 9, nrow = 0))
+Calibration_control_table <- data.frame(matrix(ncol = 11, nrow = 0))
 colnames(Calibration_control_table) <- c("Simulation_num.",
-                                         "Scenario_ID.string",
-                                         "Simulation_ID.string",
-                                         "Model_mode.string",
-                                         "Scenario_start.real",
-                                         "Scenario_end.real",
-                                         "Step_length.real",
-                                         "Parallel_TPC.string",
-                                         "Completed.string")
+                                          "Scenario_ID.string",
+                                          "Simulation_ID.string",
+                                          "Model_mode.string",
+                                          "Scenario_start.real",
+                                          "Scenario_end.real",
+                                          "Step_length.real",
+                                          "Parallel_TPC.string",
+                                          "Spatial_interventions.string",
+                                          "Deterministic_trans.string",
+                                          "Completed.string")
 
 #reload allocation parameter tables
 Allocation_params_by_period <- lapply(list.files("Data/Allocation_parameters/Calibration/Periodic", full.names = TRUE), read.csv)
@@ -303,6 +305,8 @@ Calibration_control_table$Step_length.real <- Step_length
 Calibration_control_table$Model_mode.string <- "Calibration"
 Calibration_control_table$Parallel_TPC.string <- "N"
 Calibration_control_table$Completed.string <- "N"
+Calibration_control_table$Spatial_interventions.string <- "N"
+Calibration_control_table$Deterministic_trans.string <- "N"
 
 #save table
 readr::write_csv(Calibration_control_table, "Tools/Calibration_control.csv")
@@ -328,56 +332,49 @@ Model_text <- str_replace(Model_text, "=====WORK_DIR=====", getwd())
 #Replace dummy string for control table file path
 Model_text <- str_replace(Model_text, "=====TABLE_PATH=====", Control_table_path)
 
+print('Creating a copy of the Dinamica model using the current control table')
 #save a temporary copy of the model.ego file to run
 Temp_model_path <- gsub(".ego", paste0("_calibration_", Sys.Date(), ".ego"), "Model/Dinamica_models/LULCC_CH.ego")
 writeLines(Model_text, Temp_model_path)
-
-#Get path for the Dinamica console executable
-#(matching on regex '&' string) to be version agnostic
-DC_path <- list.files("C:/", recursive = TRUE, full.names = TRUE, pattern = ".*DinamicaConsole.*\\.exe")
-DC_path <- gsub('(*/)\\1+', '\\1', DC_path) #remove instances of double "/"
-DC_path <- gsub("/", "\\\\", DC_path) #replace "/" with "\\"
 
 #vector a path for saving the output text of this simulation
 #run which indicates any errors
 output_path <- paste0("Results/Simulation_notifications/calibration_output_", Sys.Date(), ".txt")
 
-#Dinamica produces it only output 'log' and debug' files which contain the same
-#information but split into chunks, these are automatically saved in the working
-#dir but to avoid clutter we can set an environmental variable to save them elsewhere
-
-#create a temporary dir for storing the Dinamica output files
-#tmpdir <- tempdir()
-#env_dir <- paste0("DINAMICA_EGO_7_LOG_PATH=", tmpdir)
-
+print('Starting to run model with Dinamica EGO')
 #Use a system command to run the Dinamica model
 system2(command = paste(DC_path),
-        args = c("-disable-parallel-steps",
-             Temp_model_path),
-       #env = c(env_dir),
-       wait = TRUE,
-       stdout= output_path,
-       stderr = output_path)
+        #args = c("-processors 10","-memory-allocation-policy 1", Temp_model_path),
+        args = c("-disable-parallel-steps",Temp_model_path),
+        wait = TRUE,
+        stdout= output_path,
+        stderr = output_path)
 
+#because the simulations may fail without the system command returning an error
+  #(if the error occurs in Dinamica) then check the simulation control table to see
+  #if/how many simulations have failed
+  Updated_control_tbl <- read.csv(Control_table_path)
+
+  if(any(Updated_control_tbl$Completed.string == "ERROR")){
+    print(paste(length(which(Updated_control_tbl$Completed.string == "ERROR")), "of", nrow(Updated_control_tbl),
+                 "simulations have failed to run till completion, check simulation output .txt file for details of errors"))
+    #slackr_bot('Simulation has stopped because of error')
+  }else{
+    #Send completion message
+    #slackr_bot('Simulation completed sucessfully')
+    print('All simulations completed sucessfully')
+
+    #Delete the temporary model file
+    #unlink(Temp_model_path)
+
+    #clean up log and debug files created by Dinamica as their output
+    #is stored in the .txt file anyway
+    unlink(list.files(pattern = paste0(c("log_","debug_"),collapse="|"), full.names = TRUE))
+
+  }
 }else{
   print("Some elements required for modelling are not present/incorrect,
         consult the pre-check results object")}
-
-#Check to see if the output.txt file contains the pattern "ERROR"
-#(case sensitive) which indicates that the system command has failed
-#If TRUE then send a message through Slack
-if(grepl("ERROR", paste(readLines(output_path), collapse = "|"), ignore.case = FALSE) == TRUE){
-slackr_bot('Modelling has stopped because of error')
-}else{
-#Send completion message
-slackr_bot('Modelling completed sucessfully')
-
-#Delete the temporary model file
-unlink(Temp_model_path)
-
-#Delete the temporary dir of Dinamica log/debug files
-unlink(tmpdir)
-}
 
 ### =========================================================================
 ### E- Evaluate calibration, selecting best parameter set

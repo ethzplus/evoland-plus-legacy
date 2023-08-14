@@ -181,7 +181,7 @@ table_paths <- sapply(model_time_steps$Keys, function(x){
 })
 } else if(grepl("calibration", Model_mode, ignore.case = TRUE)){
 Param_table_paths <- c(sapply(unique(Simulation_table$Simulation_ID.string), function(Sim_ID){
-Params_path <- paste0(Param_dir, "/Calibration/", Sim_ID, "/Allocation_param_table_<v1>.csv")
+Params_path <- paste0(Param_dir, "/", Sim_ID, "/Allocation_param_table_<v1>.csv")
 
 #loop over time steps
 Time_step_paths <- sapply(model_time_steps$Keys, function(x){
