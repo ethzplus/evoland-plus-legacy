@@ -1,0 +1,579 @@
+---
+title: "Broadening the horizon in land use change modelling: Normative scenarios for nature positive futures"
+
+author:
+  - name: Benjamin Black
+    email: bblack@ethz.ch
+    affiliations:
+        - id: ETH_PLUS
+          name: ETH Zürich
+          department: Planning of Landscape and Urban Systems (PLUS) Institut für Raum- und Landschaftsentwicklung (IRL)
+          address: HIL H 52.1, Stefano-Franscini-Platz 5
+          city: Zürich
+          postal-code: 8093
+    attributes:
+        corresponding: true
+
+  - name: Antoine Adde
+    email: antoine.adde@unil.ch
+    affiliations:
+      - id: UNIL_IESD
+        name: University of Lausanne
+        department: Institute of Earth Surface Dynamics, Faculty of Geosciences and Environment
+        city: Lausanne
+        postal-code: 1015
+
+  - name: Olivier Broennimann
+    email: olivier.broennimann@unil.ch
+    affiliations:
+      - ref: UNIL_IESD
+      - id: UNIL_DEE
+        name: University of Lausanne
+        department: Dept of Ecology and Evolution
+        city: Lausanne
+        postal-code: 1015
+
+  - name: Daniel Farinotti
+    email: daniel.farinotti@ethz.ch
+    affiliations:
+      - id: ETH_VAW
+        name: ETH Zürich
+        department: Laboratory of Hydraulics, Hydrology and Glaciology (VAW)
+        address: HIA C 58, Hönggerbergring 26
+        city: Zürich
+        postal-code: 8093
+      - id: WSL
+        name: Swiss Federal Institute for Forest, Snow and Landscape Research (WSL)
+        address: Zürcherstrasse 111
+        city: Birmensdorf
+        postal-code: 8903
+
+  - name: Antoine Guisan
+    email: antoine.guisan@unil.ch
+    affiliations:
+      - ref: UNIL_IESD
+      - ref: UNIL_DEE
+
+  - name: Nathan Külling
+    email: Nathan.Kuelling@unige.ch
+    affiliations:
+      -id: UNIGE
+      name: University of Geneva
+      department: EnviroSPACE Laboratory, Institute for Environmental Sciences
+      address: Bd. Carl-Vogt 66
+      city: Geneva
+      postal-code: 1205
+
+  - name: Manuel Kurmann
+    email: mankurma@student.ethz.ch
+    affiliations:
+      - ref: ETH_PLUS
+
+  - name: Caroline Martin
+    email: caroline.martin@unil.ch
+    affiliations:
+    -ref: UNIL_IESD
+
+  - name: Paula Mayer
+    email: Mayerpa@student.ethz.ch
+    affiliations:
+        - ref: ETH_PLUS
+
+  - name: Sven-Erik Rabe
+    email: rabes@ethz.ch
+    affiliations:
+        - ref: ETH_PLUS
+
+  - name: Jan Streit
+    email: streitj@ethz.ch
+    affiliations:
+        - ref: ETH_PLUS
+
+  - name: Harry Zekollari
+    email: zekollari@vaw.baug.ethz.ch
+    affiliations:
+      - ref: ETH_VAW
+      - ref: WSL
+      - id: BRUX
+        name: Université libre de Bruxelles
+        department: Laboratoire de Glaciologie
+        address: ULB CP 160/03, 50 Avenue F.D. Roosevelt
+        city: Brussels
+        postal-code: B-1050
+
+  - name: Adrienne  Grêt-Regamey
+    email: gret@ethz.ch
+    affiliations:
+        - ref: ETH_PLUS
+
+abstract: |
+  This is the abstract.
+
+keywords:
+  - Scenario modelling
+  - Land use change simulation
+  - Cellular Automata
+
+date: last-modified
+
+bibliography: bibliography.bib
+
+citation: true
+  #type: article-journal
+  #container-title: "In prep"
+  #doi: "10.23915/reprodocs.00010"
+  #url: https://example.com/summarizing-output
+linenumbers: false
+numbersections: true
+project:
+  execute-dir: project
+form:
+crossref:
+  fig-title: Figure
+  fig-prefix: Figure
+  fig-labels: arabic
+  appendix-title: "Appendix:"
+  appendix-delim: ":"
+  sec-prefix: ""
+header-includes:
+- \usepackage{pdflscape}
+- \usepackage{threeparttable}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+- \usepackage{typearea}
+- \usepackage[titletoc,toc,title,page]{appendix}
+format:
+  elsevier-pdf:
+    echo: false
+    citeproc: false
+    filters:
+      - "_extensions/andrewheiss/wordcount/citeproc.lua"
+      - "_extensions/andrewheiss/wordcount/wordcount.lua"
+    fig-format: png
+    journal:
+      formatting: preprint
+      layout: onecolumn
+      cite-style: authoryear
+      highlights:
+        - Highlight 1
+        - Highlight 2
+        - Highlight 3
+execute:
+  cache: true
+---
+
+::: hidden
+```{=tex}
+\def\fillandplacepagenumber{%
+ \par\pagestyle{empty}%
+ \vbox to 0pt{\vss}\vfill
+ \vbox to 0pt{\baselineskip0pt
+   \hbox to\linewidth{\hss}%
+   \baselineskip\footskip
+   \hbox to\linewidth{%
+     \hfil\thepage\hfil}\vss}}
+```
+:::
+
+```{r setup, include=FALSE}
+#| cache: false
+
+options(tinytex.install_packages = FALSE)
+
+#load packages
+packs<-c("data.table", "raster", "tidyverse", "sf", "tiff", "ggthemes", "here", "dplyr", "readr","terra","stringr","ggthemes","patchwork","stringi","readxl","gridExtra","rstudioapi","landscapemetrics", "plotly", "networkD3", "ggalluvial","extrafont", "leaflet", "leaflet.extras", "leaflet.extras2",
+"rcartocolor", "htmlwidgets", "leafem", "mapview", "webshot2", "png", "ggpubr", "chromote", "figpatch", "grid", "ghibli")
+
+# Load required packages
+invisible(lapply(packs, require, character.only = TRUE))
+
+```
+
+```{r Table_figure_prep, include=FALSE}
+#| cache: false
+
+#source the script that prepares all the figures and tables
+source("LULCC_CH_plot_tbl_prep.R")
+
+```
+
+<!-- set citation aliases-->
+
+```{=tex}
+\defcitealias{swiss_federal_office_for_statistics_sfso_typology_2023}{SFSO, 2023}
+\defcitealias{swissfederalofficeforstatistics2022a}{SFSO, 2022a}
+\defcitealias{swissfederalofficeforstatistics2022b}{SFSO, 2022b}
+\defcitealias{swissfederalofficeforstatistics2020}{SFSO, 2020}
+\defcitealias{swissfederalofficeforstatistics2016}{SFSO, 2016}
+\defcitealias{swissfederalofficeforstatistics2014a}{SFSO, 2014a}
+\defcitealias{swissfederalofficeforstatistics2014b}{SFSO, 2014b}
+\defcitealias{swissfederalofficeforstatistics2013}{SFSO, 2013}
+\defcitealias{sfso2021}{SFSO, 2021}
+\defcitealias{swissfederalofficeoftopography2022}{Swisstopo, 2022}
+\defcitealias{swissfederalofficeoftopography2011}{Swisstopo, 2011}
+\defcitealias{swissfederalofficeoftopography2007}{Swisstopo, 2007}
+\defcitealias{federalofficefortheenvironment2009}{FOEN, 2009}
+\defcitealias{federalofficefortheenvironment2012}{FOEN, 2012}
+\defcitealias{foen_2017}{FOEN, 2017}
+\defcitealias{federalofficefortheenvironment2023}{FOEN, 2023}
+\defcitealias{ARE_2022}{ARE, 2023}
+```
+# Introduction {#sec-introduction}
+
+In recent decades, research envisioning future scenarios for the combined natural and human environments, upon which society depends, has been dominated by pessimistic, often dystopian, predictions [@hjerpe2009; @robbins2013; @bennett2016; @whyte2018]. While it is arguable that such negative outlooks are justified in the face of the increasing severity of global environmental degradation in the 21st century, at the same time they offer little input in terms of developing solutions to achieve more positive outcomes for nature and society [@mcphearson2016].
+
+In response to this, there has been a growing recognition of the importance of positive scenarios that incorporate a plurality of normative goals for the future and attempt to encapsulate possibilities for transformative change [@nassauer2004; @bennett2016; @mcphearson2016; @luederitz2017; @iwaniec2020]. The rationale is that such positive scenarios not only offer explicit input for decision makers but if they are derived through an inclusive, participatory, process they have the potential to foster a wider public will to action [@mcphearson2016; @lavorel2019]. In order to mainstream the development of normative socio-environmental scenarios several frameworks have been proposed such as the Sustainable Future Scenarios (SFS) framework [@iwaniec2020] as well as the Intergovernmental Science-Policy Platform on Biodiversity and Ecosystem Services Nature Futures Framework (IPBES-NFF: @pereira2020). The IPBES-NFF in particular has already been applied in several examples to produce scenario narratives and visions [@lembi2020; @kuiper2022; @duran2023; @mayer2023]. However, whilst qualitative scenario descriptions are a useful starting point, to progress towards the implementation of the changes they describe narratives should ideally be distilled into evidence based goals and targets [@mcphearson2016].
+
+In this regard, operationalizing scenarios through quantitative simulation modelling to explore the spatial temporal impacts on critical aspects of the study system is often highly useful [@verburg2004; @verburg2006]. The goal of modelling in this context should not be to provide an absolute representation of the scenarios but rather it should be part of an iterative process of scenario refinement whereby the models and their outputs act as "boundary objects" [@castella2014; @verburg2019] to foster discussions with stakeholders. Two important aspects that simulation modelling can help elucidate is the coherency of scenarios [@volkery2008] as well as the balance between their perceived desirability and plausibility [@iwaniec2020]. This is of particular importance for normative scenarios which, by virtue of striving for desirable outcomes, often necessitate radical changes from the status quo and hence may be considered to lack plausibilty as compared to exploratory scenarios that simply extrapolate current trends [@wiek2014]. Furthermore, simulation modelling is also important in the case of scenarios that would likely result in trade-offs that must be negotiated by society [@rounsevell2012; @mcphearson2016].
+
+The modelling of land use and and cover change (LULCC) is a field in which there has been a extensive history of future scenario simulation research, likely because of the long acknowledged contribution of anthropogenic LULCC as a driver of intersecting global environmental challenges [@ojima1994; @mahmood2014; @molotoks2021]. Nevertheless, within this domain most studies have focused on exploratory scenarios with limited attention paid to the normativity of both their framing and outcomes [@verburg2019]. Although in recent years there have been some attempts to shift towards this with @murray-rust2013; @wolff2018; @wu2019; @schirpke2020; @peng2021; all including scenarios positing environmentally positive outcomes although none of which were presented as explicitly normative i.e they were not created through a participatory process involving discussion as to the desirability of the outcomes. @verkerk2018 do deliberately explore scenario normativity but here the authors evaluate normative visions against modeled scenarios from another source in an *ex post* fashion. Perhaps, the most comprehensive study engaging with normative scenario creation with subsequent quantitative LULCC modelling is that of @vannier2019 who demonstrated a participatory approach to integrate regional and local scale socio-economic, climate and ecological dynamics. The fact that there are so few examples of the application of co-constructed normative scenarios, given the increasing frequency of studies published over the last decade [@tong2020], shows that there is a clear need to broaden the within future LULCC modelling to incorporate a greater diversity of perspectives beyond the focus on the extrapolation of current trends.
+
+Within the broader field of LULCC modelling, Constrained Cellular Automata (CCA) are a class of models that have have enjoyed enduring popularity for scenario simulation [@triantakonstantis2012; @aburas2016; @brown2022]. @thompson2020 ascribe this popularity to the fact that CCAs represent LULCC as a phenomenon rather than as a process, i,e they abstract the actions of the actors involved, which can make them easier to explain to non-experts. In addition, they offer a relatively extensible framework, as demonstrated by the diverse features that have incorporated in recent years such as; integration with other model types [@he2005], uncertainty quantification methods [@salap-ayça2018], and 3D dynamics[@qian2020]. Although, at the highest level of abstraction LULCC-CCAs treat landscapes as a pixelated grid of cells of individual LULC states with cells changing state over time typically through the combination of two mechanisms. Firstly, the spatial distribution of potential LULCC is determined through calculation of cellular probabilities of change, often referred to as transition potential (TP), to alternate LULC states [@white1997]. The method by which this is achieved, differs between popular LULCC-CAs, although it is commonly based on the quantification of correlative relationships with explanatory variables such as biophysical, socio-economic and neighbourhood (focal LULC) predictors using a statistical model [@tobler1979; @garcía-álvarez2018; @ren2019]. Secondly, the amount of cellular LULC changes that occur in a given simulation time step is prescribed by values of transition rates extrapolated from historic LULC data, with a model specific allocation algorithm selecting the required number of cells to change based upon their transition probabilities [@mas2018].
+
+The two general mechanisms of LULCC-CCAs offers several opportunities to instantiate aspects of scenarios. Firstly, the data supplied to predict cellular TP values can be both specific to the different scenario's being modelled as well as dynamic over the simulation time steps [@liao2023]. For example, in scenarios contrasting differential levels of climatic change, the data provided may come from exogenous climatic models of different Relative Concentration Pathways (RCPs) [@song2019]. A second method is to alter predicted cellular TP values according to proscribed criteria, this can be done directly: such as spatially designated land management policies, for example reducing the potential for transition to urban LULC states inside environmental protection areas [@poelmans2010; @gharbia2016; @price2017; @clerici2019; @daneshi2021; @peng2021; @frank2023]. Or indirectly by altering the influence of variables within the statistical model used to calculate TPs [@troupin2016; @gago-silva2017]. Another means is to adjust parameters of the LULCC-CCA's allocation algorithm, that may for example increase the creation of new patches of LULC class cover relative to the expansion of existing areas [@prieto-amparán2019]. Finally, scenarios can be instantiated through individual specification of the transitions rates determining the quantities of LULCC [@shrestha2018; @cheng2020; @schirpke2020; @peng2021; @kiziridis2023; @molinero-parejo2023].
+
+Despite these multiple means of operationalizing different facets of scenarios in LULCC-CCAs, @brown2022 note that most studies typically explore only a small subset of scenario components. Possible reasons for this could be a lack of future projected data for the scenario drivers or that the scenarios themselves are not developed in such a manner as to incorporate enough detail for substantial exploration. This, in turn, is perhaps a contributing factor to explain the relative lack of normative scenarios in LULCC modelling as it is comparatively easier to specify exploratory scenarios that simply extrapolate existing trends.
+
+With this in mind, the goal of this research is to demonstrate an approach to modelling normative, nature positive, scenarios of landscape change using an LULCC-CCA model that substantively operationalizes scenario components. The approach involves three key processes illustrated in @fig-workflow: First, expert participation is used to translate scenario narratives into quantitative LULCC model inputs. The scenarios are then simulated using a comprehensive LULCC-CCA model incorporating dynamic data to represent variations in future climatic, economic, and demographic trends; multi-region modelling of LULC transitions combining both statistical and process-based modelling; and mechanisms to realize the effect of spatial policies such as the expansion of nature conservation areas. Finally the results of the simulation modelling are instrumentalized, using an interactive web platform, as a means not only to improve the modelling itself but also to prompt discussion around the scenario narratives between experts and stakeholders. We demonstrate this approach through a case study for the country of Switzerland by simulating five scenarios framing the development of a national Ecological Infrastructure between 2020-2060, recently elaborated by @mayer2023.
+
+```{=tex}
+\newpage
+\blandscape
+```
+::: column-page
+![Figure showing the three stages of the approach used to model normative future scenarios of landscape change for Switzerland](figures_tables/graphical_abstract_landscape.png){#fig-workflow width="1200"}
+:::
+
+```{=tex}
+\elandscape
+\newpage
+```
+# Methods
+
+## Overview of scenarios
+
+To address nationally declining biodiversity, in 2012, the federal government of Switzerland ratified the Swiss Biodiversity Strategy (SBS)\citepalias{federalofficefortheenvironment2012}. One of the goals of the SBS is the development of Switzerland's Ecological Infrastructure (EI) as a "network of protected and connected areas that contribute to safeguarding the essential services of ecosystems for society and economy ... and form the basis for a rich and resilient biodiversity". To contribute towards the implementation of this goal, @mayer2023 defined 5 narrative scenarios to frame the development of EI in Switzerland between 2020 and 2060 alongside expected demographic, economic and climatic changes in Switzerland. The scenarios were produced through a participatory process with the aim of envisioning nature-positive outcomes using the IPBES Nature futures framework [@pereira2020; @duran2023]. As such 3 of the scenarios are explicitly normative and encapsulate the development of EI from different perspectives of societal-nature relationships, which are reflected in their names: EI for Nature (EI-NAT); EI for Society (EI-SOC); EI as Culture (EI-CUL)[@mayer2023]. The remaining 2 scenarios are exploratory and are meant to serve as a contrast to the others, these are Business-as-Usual (BAU) and Growth and Extinction (GR-EX) which represents a worst case environmental scenario where existing trends in negative drivers are amplified even existing measures to mitigate negative environmental trends are rolled back.
+
+## Model overview
+
+To perform scenario-based simulation of future LULCC in Switzerland between 2020 and 2060 we created a constrained cellular automata (CCA) model combining the statistical programming software R (4.2.2)[@rcoreteam2022] with the environment modelling software Dinamica EGO (7.2.0)[@soares-filho2009]. In the interest of open science the CCA model along with the research data and results has been made available alongside this manuscript (**Provide URLs once completed**). @fig-workflow includes a simplified overview of the processes taking place within the LULCC-CCA model however for more details please see @fig-process. The details of these processes are summarized in the subsequent sections although for brevity some material has been presented as appendices.
+
+## Land use land cover transition identification {#sec-trans_identification}
+
+The process of identifying LULC transitions, i.e. pixel changes from an initial specific LULC class to a different final LULC class, was based upon a preceding study by @black_re-considering_2023. We utilized classified LULC datasets for four time periods from the Swiss area statistics \citepalias{sfso2021}: 1981-1985; 1992-1997; 2004-2009; 2013-2018 (Note that date range is the extent of the data-collection flying period, and each product actually represents a single LULC map). The LULC data is originally presented as point data generated from aerial photography, however for the purpose of modelling all maps were converted to 100m resolution rasters. Given that transitions are identified between two time points having four historic LULC maps meant that we had three LULC transition periods, with which to calibrate our model, which will henceforth be referred to using the latter year of the flying period as: 1985-1997; 1997-2009; and 2009-2018 respectively. Following @black_re-considering_2023 we aggregated the original 72 LULC classes in the data to 10 classes: Alpine pastures; Closed forest; Glacier; Grassland; Intensive agriculture; Open Forest; Shrubland; Permanent crops; Settlement/urban/amenities; Static (see @sec-LULC_aggregation_app for a table of class aggregations).
+
+Instances of LULC transitions were identified by overlaying the maps for each transition period and extracting pixels on the basis of their specific changes in LULC classes between their initial class (start map) and final class (end map). With 10 aggregated classes this gives the potential for 100 possible class-class transitions which would be unfeasible for modelling. Thus, as per @black_re-considering_2023, we filtered to viable LULC transitions for each period by first excluding illogical transitions (e.g from static to other classes) as well as applying a threshold to remove transitions that led to an a change in less than 0.5% of the total area of the initial class.
+
+The instances of LULC transitions were then combined with instances of non-transitions (i.e. pixels with the same initial class but a different final class), to give seperate datasets for each transition. To better reflect the potential for localized differences in LULCC processes the datasets were sub divided according to the six biogeographical regions of Switzerland [@gonseth2001]. Notably, not all transitions occurred in all regions (for example, because some regions contained no glacial area) or across all time periods. A table detailing the transitions identified for each of the calibration periods is included as @sec-transitions_app.
+
+## Transition potential prediction {#sec-trans_model_method}
+
+The process of creating the statistical models to be used to iteratively predict cellular TP within the LULCC-CCA was refined from that of @black_re-considering_2023. The predictors chosen for the modelling were grouped into categories related to land suitability and accessibility as well as neighbourhood predictors capturing the influence of the LULC composition around focal cells on the phenomenon of LULC transitions. The details of the suitability and accessibility predictors are provided in @tbl-preds below.
+
+```{r}
+#| label: tbl-preds
+#| tbl-cap: Predictor data used in statistical models of transition potential.
+#| tbl-colwidths: [45,45,10]
+
+#load table
+Preds <- read_xlsx(here("publication/figures_tables/Predictors.xlsx"))
+
+#output as markdown table with Knitr::kable
+knitr::kable(Preds)
+```
+
+The approach for the preparation of neighbourhood predictors was also adopted from @black_re-considering_2023. In summary, 5 LULC classes were selected as active classes and a set of 25 Pythagorean matrices of varying size (9--121 cells) with randomized central values and decay rates were applied as focal moving windows over the LULC layers, masked for these classes, for each calibration period. This resulted in a total of 125 neighbourhood predictor layers at 100m resolution for each period.
+
+In order to increase the efficiency of TP prediction within the LULCC-CCA simulations a two-step predictor variable selection approach was applied to derive parsimonious predictor sets for each regionalized transition dataset. This approach involved pairwise correlation based filtering using univariate regression models followed by model embedded filtering using the Guided Regularized Random Forests algorithm [@adde2023a; @black_re-considering_2023].
+
+Following predictor variable selection, the Random Forests (RF) algorithm [@breiman2001] was used to create TP models for each regionalized transition dataset using the *randomForest* R package [@cutler2022]. The accuracy of the RF TP models was assessed independently of the CCA model, using hold-out validation (70:30 training and test set splits using proportional random sampling without replacement) with multiple performance metrics, in a process that @black_re-considering_2023 refer to as stage 1 validation. This allowed for hyper-parameter tuning to derive the optimal RF specification, which was found to be 500 tree forests under the default classification settings for minimum size of terminal nodes ('nodesize') and number of variables sampled at each split ('mtry') with tree-level proportional sampling used to mitigate class imbalance [@black_re-considering_2023]. The final RF TP models, re-trained using the full datasets, were incorporated in the LULCC-CCA with the corresponding TP model from each calibration period used for parameter calibration (@sec-CA_calibration) and the models from the most recent period (2009-2018) used for future simulation steps (@sec-simulation_specs).
+
+The exception with regards to TP prediction was the transition from the glacier class to the static class. Instead of using an RF model this transition was realized using spatially explicit predictions of future glacier evolution by @zekollari2019 (for details see @sec-glacier_app) were implemented deterministically in each simulation step following the TP prediction and allocation of the other transitions.
+
+## Cellular automata parameter calibration {#sec-CA_calibration}
+
+Dinamica EGO uses a combination of two algorithms for allocating cellular LULC transitions, Patcher and Expander, which represent the processes of the creation of new patches of LULC classes and the expansion of existing patches respectively [@soares-filho2009]. These algorithms require the calibration of 5 parameters for every transition: Mean patch size, Patch size variance, Patch isometry, and the relative % of transitions to be allocated by each algorithm (i.e % by patcher, % by expander). To calibrate these parameters we first used the historic LULC maps from the calibration periods to estimate parameter values using the R package *SDMtools* [@vanderwal2014], which were then refined using brute force simulation. This involved applying a random permutation (from normal distribution with 5% bounding) to each transition parameter value for 100 repetitions to produce candidate sets of parameters values. These candidate sets were then tested using the Dinamica EGO model to simulate LULCC between 2010 and 2020 (i.e covering the final calibration period) using a 5 year time step. The results of these simulations were used to identify the candidate set of parameter values that displayed the greatest value of the minimum similarity score produced by Dinamica EGO's "fuzzy reciprocal similarity" map comparison method [@soares-filho2009; @soares-filho2013]. This set of parameter values was used as the basis for all future simulations with some scenarios involving deliberate modifications of values (@sec-manipulation).
+
+## Scenario operationalization
+
+### Simulation specifications {#sec-simulation_specs}
+
+Given the computation required for seperate regionalized TP prediction of `r length(unique(paste0(unlist(Trans_tbl_wide[Trans_tbl_wide$Period == "2009_2018", "From"]), "_", unlist(Trans_tbl_wide[Trans_tbl_wide$Period == "2009_2018", "To"]))))` LULC transitions as well as 'on the fly' creation of dynamic predictors the decision was made to use 5 year time steps to simulate LULCC for each of the 5 scenarios between 2020-2060. This resulted in 8 simulated LULC maps for each scenario.
+
+### Transition rates {#sec-trans_rates_method}
+
+The cellular transition allocation process in Dinamica EGO is constrained by input in the form of rates of transitions (the % of the initial class area to be converted) for each time step in the simulation. To establish transition rates for each of our 5 future scenario's we iterated between quantitative estimation and expert elicitation.
+
+Initially, transition rates were calculated for each of the calibration time periods before being extrapolated (linear models) over 5 year time steps between 2020 and 2060. These extrapolated transitions rates were dubbed the reference rates and were applied to the values of LULC class extents in the final calibration year (2018) to estimate reference class areas for 2060.
+
+These reference class areas were used as a prompt in discussions with experts involved in the scenario creation process to code whether statements within the scenario's were perceived as likely to lead to an increase or decrease in the areas of certain LULC classes relative to the reference areas. Experts were encouraged to focus only on the direct impacts of statements and not potential indirect impacts, i.e statements referencing change in agriculture practices were linked to agricultural LULC classes only and the potential for subsequent impacts on forestry were only considered in corresponding statements. Importantly, experts were able to allocate different magnitudes of impact on LULC classes due to individual statements. This was realized in a simplistic manner through the allocation of a desired number of either pluses and minuses, each representing an equally weighted percentage change to the class area, which were summed for each class across all statements to give overall percentage impacts of the scenario on class areas. This process was first employed for the BAU scenario with the percentage class impacts used to modify the reference 2060 class areas to give projected 2060 class areas. This was then repeated for the remaining scenarios (EI-NAT, EI-CUL, EI-SOC and GR-EX) however their areas were derived relative to the BAU rather than the reference areas. This is an important distinction as the scenarios are intended to represent deliberate changes to the status-quo represented by the BAU narrative.
+
+Finally, it was necessary to dis-aggregate the projected class areas for each scenario back to areas and then rates for each transition. Given that it is possible to either increase or decrease the rates of transitions that result in the expansion of LULC class area simultaneous to altering transitions that result in class area contraction, this process of dis-aggregation represented an optimization problem. Our method to address this was to perform a first pass over the LULC classes and allocate areas to relevant transitions with respect to the proportion of area expansion vs. contraction exhibited by the LULC class in the calibration periods. In the case that there were multiple transitions contributing to either class expansion or contraction then the values were ascribed based on the relative contributions of each transition to historic class change rates. This gave us an approximation of the transition areal changes for each scenario across all time steps with further manual changes made in order to reduce the discrepancy between the sum of these and the expert projected class areas for 2060.
+
+### Manipulation of transition potential and allocation parameters {#sec-manipulation}
+
+From the scenarios details [@mayer2023] we extracted statements, grouped according to drivers, that pertain to spatialized differences in the locations of LULCC processes. From these statements we derived 8 corresponding spatial intervention mechanisms which were applied across the scenarios to give a total of `r nrow(Spat_ints)` interventions. The majority of the interventions functioned by directly altering cellular transition probabilities during the simulation time. , however one intervention instead involved alteration of the Dinamica EGO allocation parameters. The details of these spatial interventions are lengthy and as such are presented in @sec-manipulation_details_app.
+
+### Preparation of dynamic predictors {#sec-future_preds}
+
+Temporally dynamic future data was produced for several of the variables (see @tbl-preds) used in cellular TP prediction in the simulation time steps. The majority of the sources of future data utilized for these variables themselves presented multiple alternatives scenarios and as such it was necessary to match these to our 5 scenarios, the details of which are presented in @tbl-scenario_specs.
+
+For the variables of average annual change in full time equivalents per labour market region in each economic sector (primary, secondary and tertiary) we used the future economic sector projections produced by @cretegny2020. This data is presented at an annual level and thus it was aggregated to average annual change for each simulation time point based on the preceding 5 years, i.e. for 2030, average annual change was calculated between 2025-2030. Future climatic data utilized the same source as the historic data [@broennimann2018] with additional work performed to produce data aligning with the simulation time points.
+
+The variable of population per municipality was produced from the Swiss future population growth scenarios 20-2050 \citepalias{swissfederalofficeforstatistics2020}. However, this data is non-spatial and only produced at the cantonal level and as such it was necessary to incorporate a process to make extrapolations at the municipal level. This involved fitting linear regression models for each canton of the relationship between the % of the cantonal population per municipality (dependent variable) and the % of cantonal urban area per municipality using data from the final year of the calibration period (2018). These models were then used to iteratively predict the % of cantonal population for each municipality in each simulation time step using the municipal % of cantonal urban area calculated from the LULC map of the preceding time step. The predicted % of cantonal population values were then used to divide the figure of cantonal population to give an estimated value of Municipal population.
+
+Additionally, the focal LULC neighbourhood predictors were also produced iteratively during each time time step using the same approach as the historic variants with the simulated LULC map from the previous simulation time step as input.
+
+```{r}
+#| label: tbl-scenario_specs
+#| tbl-cap: Variants of dynamic predictor data utilised for LULCC scenarios.
+#| tbl-colwidths: [20,25,30,25]
+
+#load table
+scenario_specs <- read_xlsx(here("Tools/Scenario_specifications.xlsx"), sheet = "Predictor_data")
+
+#replace '_' in scenario_names
+scenario_specs$Scenario_ID <- str_replace_all(string = scenario_specs$Scenario_ID, pattern = "_", "-")
+
+#replace 'Ref' with reference in population scenario names
+scenario_specs$FSO_pop_scenario <- str_replace_all(string = scenario_specs$FSO_pop_scenario, pattern = "Ref", "Reference")
+
+#load Economic scenario names
+Econ_names <- list("Ref_Central" = "Reference - Central",
+"Ecolo_Urban" = "Ecological awareness - Urban densification",
+"Ecolo_Central" = "Ecological awareness- Central",
+"Combined_Urban" = "Combined technological accelaration and Ecological awareness - Urban densification",
+"Ref_Peri_urban" = "Reference - Peri-Urbanisation")
+
+#replace abbreviated Econ scenario names
+scenario_specs$Econ_scenario <- str_replace_all(string = scenario_specs$Econ_scenario, pattern = names(Econ_names), unlist(Econ_names))
+
+#clean column names
+colnames(scenario_specs) <- c("LULCC scenario", "Population growth scenario \\citepalias{swissfederalofficeforstatistics2020}", "Economic scenario [@cretegny2020]", "Climate change scenarios [@broennimann2018]")
+
+#output as markdown table with Knitr::kable
+knitr::kable(scenario_specs, align=rep('c', ncol(scenario_specs)), format = "markdown")
+#%>% column_spec(1, width = )
+
+
+```
+
+## Simulation evaluation {#sec-simulation_feedback}
+
+Given that it is impossible to empirically validate future simulations [@vanvliet2016], we opted for two approaches to qualitatively evaluate the results. Firstly, a selection of landscape pattern metrics were calculated using the R package *landscapemetrics* [@landscapemetrics]. Given that, the scenarios involved deliberate modification of the landscape composition (in terms of varying proportions of LULC class areas @sec-trans_rates_method ) as well as dynamics of change (@sec-manipulation), we calculated both landscape and class level aggregation metrics including: Effective Mesh Size [@jaeger2000]; Patch Cohesion Index [@schumaker1996] and Contagion Index [@riitters1996] .
+
+Secondly, we collected expert feedback on the simulated LULC outputs from the participants who were involved in the scenario creation. To facilitate this we created a webpage where invited participants could interactively view the simulated maps, in addition to info-graphics summarizing the LULCC trends, with the option to view multiple scenario outputs alongside each other. Participants were then provided the opportunity to provide qualitative feedback based on a series of open-ended questions framing key aspects of each scenario.
+
+# Results and Discussion
+
+## Scenario simulation maps {#sec-simulation_maps}
+
+@fig-maps_plots shows the maps of simulated LULC in Switerzerland in 2060 under all 5 scenarios alongside pie charts the % coverage of each LULC class as well as bar charts showing the % difference in LULC class area between 2020 and 2060. Given the large scale of the study region it is difficult to highlight clear visual trends and as such readers are urged to explore the interactive versions of the maps using the web platform devised for feedback: <https://valpar.ch/land-use-change-scenarios/>.
+
+From the bar charts the most pronounced differences between the scenarios are in the LULC classes: 'Settlement/urban/amenities' and 'Glacier'. In the case of the former, the exploratory scenarios, BAU and GR-EX exhibited substantially greater % differences (`r as.character(Scenario_area_chg_tbls[["BAU"]] %>%  filter(LULC_class == "Settlement/urban/amenities") %>%  select(clean_lab))` and `r as.character(Scenario_area_chg_tbls[["GR_EX"]] %>% filter(LULC_class == "Settlement/urban/amenities") %>%  select(clean_lab))` respectively) than the normative scenarios (EI-NAT: `r as.character(Scenario_area_chg_tbls[["EI_NAT"]] %>%  filter(LULC_class == "Settlement/urban/amenities") %>%  select(clean_lab))`, EI-SOC: `r as.character(Scenario_area_chg_tbls[["EI_SOC"]] %>%  filter(LULC_class == "Settlement/urban/amenities") %>%  select(clean_lab))`, EI-CUL: `r as.character(Scenario_area_chg_tbls[["EI_CUL"]] %>%  filter(LULC_class == "Settlement/urban/amenities")  %>% select(clean_lab))`). This is not unexpected as urban development was a strong theme within the scenario narratives and was one of the classes which experts specified the greatest divergence from extrapolated historic rates of change. Although, it is important to consider that, from the perspective of total land area in Switzerland, these changes are still relatively small, for example the difference between the scenarios of greatest urban expansion (GR-EX) vs. smallest (EI-CUL) equates to a difference of `r round(as.numeric(Scenario_perc_area_tbls[["GR_EX"]] %>%  filter(LULC_class == "Settlement/urban/amenities") %>%  select(class_perc)- Scenario_perc_area_tbls[["EI_CUL"]] %>%  filter(LULC_class == "Settlement/urban/amenities") %>% select(class_perc)),2)`% in total urban area. As for the % difference in Glacial area, this is relatively high across all scenarios with some displaying identical values (BAU and EI-SOC, EI-CUL and EI-NAT). This is due to the fact that this process was modelled according to the climate change RCPs (@sec-trans_model_method) which were non-unique between scenarios (@tbl-scenario_specs). Another similarity between the scenarios is that all exhibit increase in the area of the Closed forest class. Again this result is unsurprising, as this is a trend identified by previous LULCC studies in Switzerland [@gago-silva2017; @gerecke2019] and none of the scenario narratives specified a divergence from the current status-quo of a national policy of conservative forest management.
+
+![Maps of simulated LULC in Switerland in 2060 under each scenario with accompanying pie charts the % coverage of each LULC class as well as bar charts showing the % difference in LULC class area between 2020 and 2060.](figures_tables/Combined_final_maps_pie_bars_portrait.png){#fig-maps_plots fig-align="center"}
+
+In addition to highlighting the differences in class area changes under each scenario it is also useful to highlight the variation in the rates of transitions that determine these changes. In this regard, @fig-sankey shows the proportions of LULC class transitions between the 2020 and 2060 maps under all scenarios. It is important to note that the reason that the proportions of LULC classes differ for each in scenario in 2020 is because the figure deliberately excludes quantities of class persistence (i..e the proportion of each LULC class which did not undergo transition) in order to better visualize the transitions. Thus the sizes of the bars for each class in 2020 indicate the area of the class that transitioned relative to the total area of transitions under each scenario, with the semi-transparent flow lines representing the proportion of this area allocated to each transition.
+
+One clear difference in the EI-NAT scenario is that the proportions of transitions from Alpines pastures are more evenly distributed compared to the other 4 scenarios, particularly with respect to the transition to the Overgrown/shrubland/unproductive vegetation class. A similar trend is visible in the GR-EX scenario with respect to the transitions from Open forest which show a much more even split in terms of the proportions transitioning to Closed forests vs. Grassland or meadows, whereas the other scenarios show a very strong weighting in favor of the former class. A difference between the exploratory (BAU and GR-EX) vs. the normative scenarios (EI-NAT, EI-CUL, EI-SOC) is that the former exhibit a substantially greater proportion of the transitions from Grassland or meadows being to Settlement/urban/amenities.
+
+![Sankey diagrams showing proportions of LULC class transitions between 2020 and 2060 under all scenarios (Note: for visual clarity instances of persistence, i.e. cells not undergoing change, were removed.)](figures_tables/Combined_sankey_start_end_without_persistence_portrait.png){#fig-sankey fig-align="center"}
+
+## Realization of scenario elements {#sec-spat_trends_results}
+
+Given that spatially specific trends in LULCC were a key component of the scenario narratives which were deliberately operationalized through spatial interventions within the modelling (@sec-manipulation) it is important to analyse whether the simulation results reflect these trends.
+
+![Plots of differences in landscape metric values between scenarios at both the landscape and class scale: Patch cohesion index (landscape: A, class: B); Effective mesh size (landscape: C, class: D); and Contagion (E) index.](figures_tables/Combined_lsm_plots_portrait.png){#fig-LSMs fig-align="center"}
+
+Both the EI-SOC and EI-NAT scenarios emphasized themes of spatial separation of land use areas and the avoidance of landscape fragmentation (@tbl-Spat_ints) whereas GR-EX indicated "uncoordinated" landscape management [@mayer2023]. To demonstrate these phenomenon @fig-LSMs shows the values of 3 different landscape aggregation metrics: Patch Cohesion Index; Effective Mesh Size; and Contagion Index, with the former two calculated at both class and landscape level (not possible for Contagion index). These metrics use slightly different methods to capture the degree to which LULC classes are aggregated across a given landscape and are complementary in the sense that higher values correspond to greater aggregation and hence lower fragmentation. @fig-LSMs does show that the results for the EI-NAT and EI-SOC do exhibit less landscape fragmentation than the EI-CUL and GR-EX scenarios displaying the greatest values across all 3 metrics (@fig-LSMs: A, C, E). Vice versa, GR-EX exhibits the most landscape fragmentation (corresponding to low metric values) which is in accordance with the scenario narrative. The result that the BAU scenario also presents low levels of landscape fragmentation comparable to EI-NAT and EI-SOC is somewhat surprising as it did not involve similar interventions intended to induce this effect. However, examining the class level values of the metrics it is clear that the landscape level values for BAU are being driven primarily by high values for the settlement/urban/amenities class in the case of the Patch Cohesion Index (@fig-LSMs B) and Closed forest for Effective Mesh Size (@fig-LSMs D). Although, the high BAU Patch Cohesion Index value for the settlement/urban/amenities class may be something of an artefact given that this scenario exhibited substantially greater increase in the area of this class making it more likely that patches of greater size would be formed. This points to a limitation in the use of landscape pattern metrics at the spatial scale of whole landscapes for comparing scenarios with different LULCC rates.
+
+Moving beyond the landscape scale, the scenarios also contained statements related to regionalized LULCC trends, for example urban development in mountain and remote rural areas as well as the expansion of Protected Areas (PAs) (@sec-manipulation_details_app). To assess the implementation of these trends @tbl-regional_analysis presents measures of LULC change in these regions (defined in @tbl-Spat_ints). Firstly, 'relative urban change' corresponds to the % area change in the settlement/urban/amenities class between 2020-2060 in the region relative to the change in the whole study area, to account for differences in overall change rates between scenarios. Whereas 'change in urban patches' equates to the % difference in the number of patches of settlement/urban/amenities class in 2060 vs. 2020. Finally, 'change in natural LULC class cohesion' was calculated as the mean difference in the Patch cohesion index [@schumaker1996] value between 2020-2060 in PAs for the natural/sem-natural LULC classes (Open Forest, Closed forest, Grassland or meadows, Overgrown/shrubland/unproductive vegetation, Alpine pastures, and Intensive agriculture).
+
+\renewcommand{\arraystretch}{1.5}
+
+```{r}
+#| label: tbl-regional_analysis
+#| tbl-cap: "Measures of LULC change trends in spatial regions across scenarios"
+
+library(kableExtra)
+#stop kableExtra automatically setting the output format of all kable objects to 'html' which means that markdown syntax is not rendered correctly
+
+options(kableExtra.auto_format = FALSE)
+
+kableExtra::kable(Region_tbl[,2:ncol(Region_tbl)], align=rep('c', ncol(Region_tbl)-1),
+      booktabs = T,
+      format = "latex"
+      ,escape = TRUE
+      ) |>
+  kable_styling(full_width = FALSE)|>
+  column_spec(1, width = "13em")|>
+  kableExtra::group_rows(group_label = "Region", index = c(
+    "Building zones" = sum(Region_tbl[["Region"]] == "Building zones"),
+    "Rural municipalities" = sum(Region_tbl[["Region"]] == "Rural municipalities"),
+    "Mountainous municipalities" = sum(Region_tbl[["Region"]] == "Mountainous municipalities"),
+    "Protected areas"= sum(Region_tbl[["Region"]] == "Protected areas")),
+    escape = TRUE,
+    latex_gap_space = "0.1em")%>%
+  footnote(general = "There are no spatial trend values for BAU and GR-EX under protected areas because neither scenario involved interventions in this region and hence the PA maps from the other scenarios were retrospectively applied for comparison.",
+           symbol = c('% area change in settlement/urban/amenities class between 2020-2060 in region  relative to the change in the entire study area;',
+                      '% difference in the number of patches of settlement/urban/amenities class in 2060 vs. 2020',
+                      'Mean difference in cohesion index value between 2020-2060 in region for LULC classes: Open Forest, Closed forest, Grassland or meadows, Overgrown/shrubland/unproductive vegetation, Alpine pastures, and Intensive agriculture'),
+           threeparttable = TRUE,
+           footnote_as_chunk = TRUE,
+           symbol_title = "Symbols: ")
+#threeparttable argument ensures footnote width corresponds to table width
+```
+
+\renewcommand{\arraystretch}{1}
+
+The 3 normative scenarios all contained the statement "No further urban sprawl" which is juxtaposed by the statement "Increase in buildings outside the construction zone, Industrial areas develop in an uncoordinated manner." in the GR-EX scenario. Whilst these statements are subjective, @tbl-regional_analysis shows that the interventions intended to operationalize them had the intended effect as the normative scenarios show a substantially greater value of relative urban change inside the current designated building zones [@ARE_2022] than both the BAU and GR-EX scenarios.
+
+Furthermore, EI-CUL specified a trend of "Revival of settlements in remote rural areas". Looking at the relative urban change value alone would suggest that this does not appear to have been realized as EI-CUL exhibited the smallest increase in comparison to the other scenarios. However, the value of change in urban patches provides evidence to the contrary. Whilst all scenarios indicated a negative value of change in urban patches (i.e. fewer patches in 2060 than in 2020), this is somewhat misleading given that some patches in the 2060 map will be new and others will represent the amalgamation of multiple patches from 2020. On this basis, the fact that EI-CUL exhibits a greater (absolute) decrease in patch number, alongside a similar value of urban area change, relative to the other scenarios indicates that a greater proportion of the patches in 2060 should be new patches which would correspond with the trend in the scenario. Similarly, EI-NAT and EI-SOC both included the statement: "Development of small towns in mountain areas". Although, both of the measures in @tbl-regional_analysis imply that this has not been realized as the values of relative urban change and change in urban patches for these scenarios are both lower than for EI-CUL.
+
+The trend of the expansion of PAs was implemented differently under each normative scenario according to the details in the narratives regarding their extent, siting and proposed management (@sec-PA_process). To analyse the effectiveness of the implementation of PA expansion it makes sense to compare against the BAU or GR-EX scenarios as neither involved changes in PAs. As such, the relative urban change and change in natural LULC class cohesion values for the explorative scenarios in @tbl-regional_analysis are different with respect to each of the normative scenarios because each used different future PA areas. The results show that in each of the normative scenarios the implementations of the expansion of PAs led to substantially lower values of relative urban change than the BAU and GR-EX scenarios. Given that the locations for PA expansion were based upon priority areas for biodiversity (EI-NAT), the provision of ecosystem services (EI-SOC) and cultural heritage (EI-CUL) (@sec-PA_process) it is a positive result that these regions show lower increases in urban area which would likely negatively impact these features. It is somewhat surprising that the PA intervention under the EI-SOC scenario resulted in a relative urban change value considerably lower than the other scenarios (`r Region_tbl[Region_tbl$Region == "Protected areas" & Region_tbl$'Spatial trend in region' == "Relative % urban area change under scenario", "EI-SOC"]` vs. EI-NAT:`r Region_tbl[Region_tbl$Region == "Protected areas" & Region_tbl$'Spatial trend in region' == "Relative % urban area change under scenario", "EI-NAT"]`, EI-CUL:`r Region_tbl[Region_tbl$Region == "Protected areas" & Region_tbl$'Spatial trend in region' == "Relative % urban area change under scenario", "EI-CUL"]`). A possible reason for this is that the PA areas chosen for EI-SOC are synergistic with other interventions affecting urban development or that they cover a greater proportion of land inherently unsuitable for urbanization as compared to the PAs under the other scenarios. Similarly, it is also positive that the 3 normative scenarios all exhibited higher values of change in natural LULC class cohesion inside their respective PAs than when the same measure was calculated for these areas under the explorative scenarios. This corresponds to a greater increase in the connectivity, ergo lower fragmentation, of the natural and semi-natural LULC classes inside the PAs which would likely be beneficial in terms of the continued maintenance of biodiversity and ecosystem services.
+
+## Expert feedback
+
+**Depending on how useful the results of the feedback prove to be, either I would use a sub-section to discuss them or they could be implemented alongside the relevant results in the preceding sections.**
+
+## Limitations and future directions {#sec-limitations}
+
+As per any model-based scenario simulation research it is pertinent to highlight the most salient limitations and assumptions in each step of the research process: from operationalising the scenarios into model inputs, to those inherent in the model, and finally in interpreting the outputs. With respect to the scenario quantification, the biggest difficulty was in deriving the future rates of LULC transitions under the different scenarios. Due to the relatively large number of transitions involved, in order to not overwhelm participants, it was necessary to narrow the scope of the expert elicitation to focus on overall LULC class changes (@sec-trans_rates_method) under the scenarios. Whilst this achieved the intended purpose, when it came to dis-aggregating these inputs back to individual transition rates it was necessary to rely upon historic proportions of transition occurrence which were perhaps not reflective of future developments. This challenge has been well acknowledged by other studies [@mallampalli2016; @karner2019] and an alternative technical approach is to instead estimate transition rates from additional sub-models mechanistic or sectoral models [@luo2022]. However, this is not applicable for all LULC classes (e.g. shrubland) and of course it isolates stakeholders from the process. In this regard, a possible compromise could have been to implement such an approach in a limited fashion to serve as an additional point of reference to support the expert elicitation process. Another limitation was that the transition rates were not regionally differentiated as per the transition potential predictions. The decision was made to fore-go this in the LULCC-CCA as it would have further complicated the already demanding process of expert elicitation.
+
+In terms of limitations in the LULCC-CCA model, while we were capable of representing numerous predictor variables in a temporally-dynamic manner it was still necessary to rely on static variables in some cases. For example, the distance to roads variable used data of existing road networks which are of course likely to evolve in the future but predicting this would not have been feasible in the scope of the study. In addition to this, the statistical models used for predicting cellular transition potential are themselves stationary (i.e. the relationships they encapsulate are fixed over the course of the simulation) and as demonstrated by @black_re-considering_2023, the performance of these models can vary substantially between different transitions. It was for this reason, that we chose to incorporate a process-based model to predict the transition from the Glacier class, as given the small number of historic data points, the fitted Random Forests model offered particularly weak performance. It would be possible to incorporate alternative modelling approaches for other transitions, e.g. forest growth, however doing so makes the model structure and process more complicated and less interpretable.
+
+A broader critique of LULCC-CCA models is that it they do not typically engage with various sources of uncertainty in simulations [@tong2020]. In the case of this study, uncertainty could be incorporated through performing repeated simulations under each scenario including perturbations, in terms of the quantity, temporality and intensity, of the transition rates and spatial interventions as well as the addition of other system 'shocks' (e.g extreme climatic events affecting land cover). This would result in a spread of future LULCC projections, which ,when presented as temporal pathways [@verkerk2018], is useful in communicating the implications of uncertainty to stakeholders.Such analysis could be made more effective by representing the simulation results using additional, more objective, output measures. This is because the multi-faceted nature of LULCC makes it difficult to communicate unified results to stakeholders and we observed that even landscape metrics intended to summarize trends must be interpreted with caution when comparing between scenarios with different rates of change (@sec-spat_trends_results). Given that the concept of EI as defined by the SBS is centered around the maintenance of biodiversity and ecosystem service provision then outputs encapsulating these would be a logical choice to further this research, especially as LULC is commonly a factor underpinning their quantification [@burkhard2009; @newbold2015; @gerecke2019; @gomes2021]. Providing such objective, comparable outputs would allow for more in depth discussions with stakeholders surrounding the desirability of the scenarios. This is especially salient given that the 3 normative scenarios all present different visions of the EI and in practical terms it's implementation will involve contentious decisions and require cross-sectoral collaboration to achieve [@wicki].
+
+# Conclusions
+
+The simulation of 5 scenarios framing the development of Switzerland's EI in terms of it's impact on future LULCC, will hopefully provide useful insights to policy and decision makers at different scales as they proceed it's planning in line with the national agenda. However, above and beyond the results of the case study, this research has sought to demonstrate a replicable approach to operationalising and modelling normative scenarios of landscape change. While the modelling technique employed (constrained cellular automata) is not novel, the extent to which the different aspects of scenarios were realized represents an important contribution to the field. Notably, this included: expert participation in deriving model inputs, the linkage of local and global scale phenomena (For example, dynamic impact of global climatic change alongside the preservation of land based upon perceived cultural importance), and the combination of machine learning and process based models for multi-regional spatial prediction of LULCC. Furthermore, the fact that the model and data has been made publicly available brings much needed transparency and allows others to build upon the methodology in line with the suggested future research directions. Finally, this study has demonstrated the importance of communicating the results of simulation modelling to foster discussions with relevant stakeholders to not only improve the coherency and plausibility of the scenarios, but also providing motivation to engage actors in turning narratives into implementation.
+
+# Acknowledgements {.unnumbered}
+
+We gratefully acknowledge financial support from the Swiss Federal Office for the Environment(FOEN) under the project "ValPar.CH: Values of the ecological infrastructure in Swiss parks" of the Action Plan of the Swiss Biodiversity Strategy.
+
+\newpage
+
+# References {.unnumbered}
+
+::: {#refs}
+:::
+
+\newpage
+
+```{=tex}
+\appendix
+\renewcommand{\thesection}{\Alph{section}}
+\setcounter{section}{0}
+\counterwithin{figure}{section}
+\counterwithin{table}{section}
+\begin{appendices}
+```
+# Primary processes and inputs in the LULCC-CCA model {#sec-LULC_modelprocesses_app .appendix}
+
+![Flowchart showing the primary processes and inputs in the LULCC-CCA model](figures_tables/Fig1.jpg){#fig-process fig-align="left" width="450"}
+
+\newpage
+
+# Details of land use and land cover aggregation {#sec-LULC_aggregation_app .appendix}
+
+```{r}
+#| label: tbl-LULC_agg
+#| tbl-cap: Aggregation of the Swiss area statistics land use land cover (LULC) classes.
+#| tbl-colwidths: [50,50]
+
+
+LULC_agg_summary <- LULC_agg %>%
+  group_by(Aggregated_class) %>%
+  summarise(test = toString(NOAS04_class_ENG)) %>%
+  ungroup()
+
+colnames(LULC_agg_summary) <- c("Aggregated LULC class", "Area statistics LULC classes")
+
+#output as markdown table with Knitr::kable
+knitr::kable(LULC_agg_summary, align=rep('c', ncol(LULC_agg_summary)))
+
+```
+
+\newpage
+
+# Land use and land cover transitions identified {#sec-transitions_app .appendix}
+
+```{r, message=FALSE, warning = FALSE}
+#| label: tbl-trans_details
+#| tbl-cap: Land use land cover class-class transitions.
+
+library(kableExtra)
+#stop kableExtra automatically setting the output format of all kable objects to 'html' which means that markdown syntax is not rendered correctly
+options(kableExtra.auto_format = FALSE)
+
+
+kable(Trans_tbl_wide[,2:ncol(Trans_tbl_wide)], align=rep('c', ncol(Trans_tbl_wide)-1),
+      booktabs = T,
+      format = "latex",
+      escape = FALSE,
+      col.names = c("Initial LULC class", "Final LULC class", paste(unique(Trans_datasets_tbl$Region)))) |>
+  kable_styling(latex_options = c("scale_down", "HOLD_position")) |>
+group_rows(group_label = "Period", index = c(
+  "1985-1997" = sum(Trans_tbl_wide$Period == "1985_1997"),
+  "1997-2009" = sum(Trans_tbl_wide$Period == "1997_2009"),
+  "2009-2018" = sum(Trans_tbl_wide$Period == "2009_2018")))
+
+```
+
+\newpage
+
+# Details of glacier transition modelling {#sec-glacier_app .appendix}
+
+@zekollari2019 used high-resolution regional climate model (RCM) simulations from the EURO-CORDEX ensemble [@jacob2014] to force a regional-scale glacier evolution model, resulting in Swiss-wide projections of 21st century glacier changes at the level of individual glaciers. We evaluated these spatially distributed simulations of glacier changes at intervals of 5 years to match the simulation time steps, and aggregated them according to the RCP specific to each of the EI scenarios (see @tbl-scenario_specs). Subsequently the results were projected to the study domain by using a nearest neighbour scheme to determine whether a given location was glacier covered or ice free at each time step according to a given RCM. We then stratified these results by the respective RCP and computed the median glacier evolution. More specifically, we considered cells to be ice free at a given time step if 50% or more of the RCM simulations under the RCP predicted the glacier to have retreated from that location. For RCP 2.6, 4.5 and 8.5, this median evolution was based on a set of 9, 17 and 21 RCM simulations, respectively.
+
+\newpage
+
+# Details of manipulation of transition potential and allocation parameters {#sec-manipulation_details_app .appendix}
+
+@tbl-Spat_ints contains statements regarding spatial changes processes in each of the scenarios and details the mechanisms by which these were instantiated as spatial interventions in the simulation modelling. The interventions surrounding the expansion of PAs were particularly detailed and hence detailed explanations are provided in the subsequent section.
+
+## Identifying areas for protected area expansion {#sec-PA_process}
+
+First, we identified which categories of Protected Areas (PAs) in Switzerland included in the calculation of national PA coverage estimates. Then we combined aggregated geodata for these PA categories [@rey_2023] with data of Cantonal PAs provided directly by the Swiss Federal Office for the Environment (FOEN) and data of biodiversity promotion areas on Agricultural land (reference). In the process we removing any overlap between the data sources.
+
+Calculating the additional PA areal coverage required to meet the targets in the scenarios requires an estimate of current PA coverage. Given that published estimates of PA coverage in Switzerland differ \[reference BAFU doc and protected planet?\] we opted to calculate a value directly from the spatial data. We trialled methods of areal calculation using both raster and vector data sources with the latter producing a figure closer to published estimates. Using the current coverage we calculated the additional coverage area required under to meet the targets under each scenario as follows: EI-SOC 4.13%, EI-CUL 7.13% and EI-NAT 12.13%.
+
+To select the locations to fulfill the additional area requirements we used modifications of the same approach for each of the 3 normative scenarios. This employed a spatial conservation prioritization map produced with the software Zonation [@lehtomäki2013] with different maps used for the EI-SOC scenario vs. the EI-NAT and EI-CUL according to their respective objectives (@tbl-Spat_ints). The EI-NAT scenarios states that PA expansion should prioritize "species and habitats important for biodiversity, ecosystem processes and functions"[@mayer2023]. As such we utilized a prioritization map produced from maps of the predicted occurrence for 7000 species in Switzerland produced by researchers at the University of Lausanne using a state of the art species distribution modelling tool: N-SDM [@adde2023b]. First, we excluded existing settlement areas, roads and railways according to the SwissTLM dataset \citepalias{swissfederalofficeoftopography2011}. Then we identified patches of high priority values in the map using the 'get_patches' function of the *landscapemetrics* R package [@landscapemetrics], and simultaneously calculating the median of cell priority values for each patch. As part of this process we removed patches that consisted of two raster cells or less (approx. 2 hectare) as it was reasoned that new PAs would be unlikely to be designated at this size. Following this, we used a solver function to identify possible combinations of patches whose combined total area equated to the additional area of PAs required under the scenario. This function was specificed to return an upper limit of 10,000 solutions although in each case this was not exceed. We then identified the set of patches that gave the highest priority by ranking all of the solutions according to their values of average median patch priority. Given that the scenarios specify that PA expansion occurs over time it was necessary to separate the final set of priority patches into separate maps to be used in each simulation time step. This was done by first ranking the patches according to highest median priority values and then dividing the number of patches by the number of simulation time steps to give an index of patches to be added in each step. This meant that the 2020 map started with only the existing PAs with each subsequent map containing all of the PAs of the preceding time steps plus the new patches to added in that step.
+
+The EI-CUL scenario utilized the same prioritization map as EI-NAT however the patches were first filtered on the basis of a minimum distance to an area of the federal inventory of landscapes and natural monuments of natural importance (BLN) \citepalias{foen_2017}. Whereas the EI-SOC scenario the spatial prioritization map was instead produced using modelled spatial data for the provision of 7 Nature's Contributions to People (NCPs: otherwise referred to as ecosystem services) produced by the from the University of Geneva [**Nathan citation**]. These included: nutrient retention; recreation; landscape suitability for pollination; pest control; hazard regulation; carbon storage in vegetation; air quality regulation. Otherwise the process of ranking patches and separating the PA maps for the suimulation time points under EI-CUL and EI-SOC followed the same procedure as the EI-NAT scenario albeit using the different area expansion targets.
+
+```{=tex}
+\newpage
+\blandscape
+```
+```{r, message=FALSE, warning = FALSE}
+#| label: tbl-Spat_ints
+#| tbl-cap: Details of interventions to spatially manipulate cellular transition proabilities
+#| tbl-colwidths: [5,20,20,10,10,10,25]
+
+library(knitr)
+
+#replace '_' in scenario_names
+Spat_ints$Scenario <- str_replace_all(string = Spat_ints$Scenario, pattern = "_", "-")
+
+#replace '_' in Intervention IDs
+Spat_ints$Intervention_ID <- str_replace_all(string = Spat_ints$Intervention_ID, pattern = "_", " ")
+
+#clean LULC class names
+
+#clean column names
+colnames(Spat_ints) <- str_replace_all(string = colnames(Spat_ints), pattern = "_", " ")
+
+#output as markdown table with Knitr::kable
+kable(Spat_ints, align=rep('c', ncol(Spat_ints)), format = "markdown") |> kable_styling(font_size = 4)
+```
+
+```{=tex}
+\elandscape
+\newpage
+```
+```{=tex}
+\end{appendices}
+```
