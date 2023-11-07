@@ -1,11 +1,20 @@
+# IDE files
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
-.gitignore
-Gdrive_api_auth.json
+.idea
 
-#specific folders to ignore
+# Temporary files
+.gitignore
+.owncloudsync.log
+.sync_journal.db*
+
+# Configuration files
+Gdrive_api_auth.json
+.dinamica_ego_7.conf
+
+# Specific folders to ignore
 /Data
 /Model/guidebook_dinamica_5
 /Model/Useful_submodels
