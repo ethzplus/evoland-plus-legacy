@@ -20,6 +20,8 @@ Gdrive_api_auth.json
 /Model/Useful_submodels
 /Model/Dinamica_models/Model_backup
 /Model/Dinamica_models/Model_testing
+/Model/Dinamica_models/LULCC_CH-*.ego
+/Model/Dinamica_models/LULCC_CH-*_ego_Submodels/
 /Model/SetupDinamicaEGO-720.exe
 /Results
 /PopulationModel_ValPar

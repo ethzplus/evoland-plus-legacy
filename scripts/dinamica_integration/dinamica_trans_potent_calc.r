@@ -1,8 +1,8 @@
 #############################################################################
 ## Dinamica_trans_potent_calc: Prediction of cellular transition potential
 ## using fitted statistical models and optional implementation of spatial interventions
-## Date: 25-02-2022
-## Author: Ben Black
+## Date: 25-02-2022, 09-11-2023
+## Author: Ben Black, Carlson Büth
 #############################################################################
 
 ### =========================================================================
@@ -76,7 +76,7 @@ Use_parallel <- Simulation_table$Parallel_TPC.string
 Use_interventions <- Simulation_table$Spatial_interventions.string
 
 #check normalisation of transition probabilities
-Check_normalisation <- TRUE
+Check_normalisation <- FALSE
 
 cat(paste0("Starting transition potential calculation for ", Model_mode, ": ",
            Simulation_ID, ", with scenario: ", Scenario_ID,
@@ -446,12 +446,14 @@ cat(paste0("Use parallel processing: ", Use_parallel, "\n"))
 
 #load model look up
 Model_lookup <- xlsx::read.xlsx("Tools/Model_lookup.xlsx", sheetName = Period_tag)
+cat(" - Loaded model lookup table \n")
 
 #if statement to remove transitions if they are being implemented deterministically
 if (grepl("simulation", Model_mode, ignore.case = TRUE) &
   grepl("Y", Simulation_table$Deterministic_trans.string, ignore.case = TRUE)) {
 
   #remove transitions with initial class == glacier
+  cat(" - Removing transitions with initial class == glacier \n")
   Model_lookup <- Model_lookup[Model_lookup$Initial_LULC != "Glacier",]
 
 } #close if statement
@@ -479,6 +481,8 @@ for (i in Final_LULC_classes) {
   Prediction_probs[[paste0("Prob_", i)]] <- 0
   Trans_dataset_na[[paste0("Prob_", i)]] <- NA
 }
+
+cat(" - Created dataframe for storing prediction probabilities \n")
 
 if (Use_parallel == "Y") {
 
@@ -550,9 +554,9 @@ if (Use_parallel == "Y") {
     Final_LULC <- Model_lookup[i, "Final_LULC"]
     Initial_LULC <- Model_lookup[i, "Initial_LULC"]
 
-    #print status message
-    cat(paste0(" - predicting probabilities for transitions from ", Initial_LULC,
-               " to ", Final_LULC, " within region: ", Region, "\n"))
+    # detailed status message
+    # cat(paste0(" - predicting probabilities for transitions from ", Initial_LULC,
+    #            " to ", Final_LULC, " within region: ", Region, "\n"))
 
     #load model
     Fitted_model <- readRDS(Model_lookup[i, "File_path"])
@@ -675,7 +679,7 @@ Unique_trans <- Model_lookup[!duplicated(Model_lookup$Trans_ID),]
 for (i in 1:nrow(Unique_trans)) {
 
   Trans_ID <- Unique_trans[i, "Trans_ID"]
-  cat(print0(" - Preparing layer ", Trans_ID, "\n"))
+  cat(paste0(" - Preparing layer ", Trans_ID, "\n"))
   Final_LULC <- Unique_trans[i, "Final_LULC"]
   Initial_LULC <- Unique_trans[i, "Initial_LULC"]
 
@@ -692,15 +696,23 @@ for (i in 1:nrow(Unique_trans)) {
   #replace values of non-class cells with 0
   Trans_raster_values[non_initial_indices, paste0("Prob_", Final_LULC)] <- 0
 
-  #check that are values are in [0, 1[ - otherwise warn
   if (Check_normalisation) {
-    if (all(with(
-      Trans_raster_values,
-      Trans_raster_values >= 0,
-      Trans_raster_values < 1
-    )) == FALSE) {
-      # raise warning
-      warning("Raster warning have not been properly normalised to [0, 1[.")
+    #check that are Prob_ values are in [0, 1[ - otherwise warn
+    for (col_name in paste0("Prob_", Final_LULC)) {
+      col <- Trans_raster_values[, col_name]
+      breaking <- FALSE
+      if (any(col[is.finite(col)] < 0 | col[is.finite(col)] >= 1)) {
+        # Raise warning for values outside [0, 1)
+        warning("Raster warning: Probabilities (excluding NAs) are not in [0, 1[.")
+        breaking <- TRUE
+      } else if (any(is.na(col))) {
+        # Raise warning for NAs
+        warning("Raster warning: Probabilities contain NA values.")
+        breaking <- TRUE
+      }
+      if (breaking) {
+        break  # Stop checking further columns
+      }
     }
   }
 
@@ -708,9 +720,6 @@ for (i in 1:nrow(Unique_trans)) {
   Prob_raster <- rasterFromXYZ(
     Trans_raster_values[, c("x", "y", paste0("Prob_", Final_LULC))], crs = crs(Current_LULC)
   )
-
-  cat("Frequency of probabilities: \n")
-  cat(raster::freq(Prob_raster, digits = 2))
 
   #vector file path for saving probability maps
   prob_map_path <- paste0(prob_map_folder, "/", Trans_ID, "_probability_", Initial_LULC, "_to_", Final_LULC, ".tif")
