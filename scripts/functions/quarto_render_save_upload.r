@@ -18,6 +18,9 @@
 #' @export
 #'
 
+Quarto_path <-
+
+
 Quarto_render_save_upload <- function(Quarto_path, File_ext, Trackdown_auth_path){
 
 #vector output path

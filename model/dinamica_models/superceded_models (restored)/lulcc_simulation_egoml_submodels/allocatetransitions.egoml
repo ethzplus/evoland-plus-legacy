@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <script>
-    <property key="dff.charset" value="UTF-8" />
-    <property key="dff.date" value="2023-Nov-13 11:48:06" />
-    <property key="dff.version" value="7.2.0.20221230" />
+    <property key="dff.charset" value="ISO-8859-1" />
+    <property key="dff.date" value="2022-Feb-23 15:24:24" />
+    <property key="dff.version" value="6.1.0.20220118" />
     <property key="metadata.author" value="Dinamica Team" />
     <property key="metadata.organization" value="CSR / UFMG" />
     <property key="metadata.showproperties" value="yes" />
@@ -11,38 +11,38 @@
     <property key="submodel.largeicon" value="iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAFFUlEQVR42r2XWVBbVRjHedBH9cVWX8NSFCg3AX1VpzrOqFNnOuo44ozjOr6oT1XaClZBslEoAdpStlhCICwWatmXJCA7wQBhCUuAgEBBtHUdn/z7ffcE2nCB0YfwzfwnyV2+3+/cc3IyCQsLC7vPlBRbm5cUh9w3DifMYiazKWEP8IGl0njMFRzD3OXI0IYYzGIms1ngYbaauXIMh1XMYiazWeAof5jOi5RPWm7+A1tzaMK9uZgVEDi6IzCVKwRutP+JRsdfIQn35mKWQmDSJATanL/A3nM7JOHeXMwKFqAF4ckRAt19q+gbXA9JuDcXs3KTdgmMZwsB15AP7pHFkIR7czFLITCWFSHmxz0F77g3JOHeXMxSCIxeEAILnhEsTY2GJNybi1kKgZFMIbA524Wt+Z6QhHtzMStIgHcll1EItPYCHQP/L50U+5BI5wHXcW95nRErb7fAsEEItA8Djh/+e5yj9EpP9qLpBVTXJItj7r2v5d5czFIIDOmEQBvdbB+neOimCRF+Lx/bFSedaxpYQfbFE9DpYmEpS4Kt6hO0DW+I+3Zdz725mKUQGNAGBPhGL9A1DxSVJaOy6iO0uhbhmBXH7dMizjmg3tkLY+YTMBjUFA1KS1+F1fo2KiveQ8ugB46Zu9dzuDcXsxQC/RkBAQJ1+YHiihTotI+jpOQUyi1JqG3IRof3dzgWxXlbiw26jGgZbDQmyq8FBS+hguBW6zvyPS39djiXCE5ff/u86M3FLIVAb7oQ6FghuC0Fenqk3DQ//zm5aXn5W/T6Pm72NqO4+rwsZzQkyHCRBJhMT8Fm+xBm8+sk8yKys55EUeXncNIG2EnSrQtCgFkKgZ40IVBQcQ56bazccLt5ZeUHNKp3ZZGiwpMkFx903kDRGxKh0ydAq9Mgg6PV4GuthLS0KFyxnEb7Mq2XgACzFALdXwmBtLTI4OaBuWWJ4uJT0OvVO+cYqtUnoignQU5doRrN5uPor4qBtyEKC86n8YfPgI3VTni2aOqWhQCzFAJdXwqB9PToex4rCyTQNDxPa+EVGS6PlqIluMWUgLFraixUx2O5LgZrN1XYcH2MrQUrvLfuoH8daKD5v06Lt45SI3ZimRUs8GYcnOf3FtiWkEPvdQzO1sBVpIbXImHWdhy+mkgsD53F6t+AewOomiQYpZby7dTd2DxCgFnMDBJwfLG/wM4jp5QRfKJEwlRZPGYqYuG7roZ/thH+32gB02itYwQa3zuWwD7ALIVAR4rqQAEefQaN3nVVwuQ1CV6CzzedhH/Nj2ma31oaXRntduXu/WN2CQFmBQnk04f2c0qB7fnmx87w5ksaTH3DcAnzVdHw3QEWKcWDFPodMA8fnKsDQoBZ+bsF2s4KgTQSkKGUbPo2lGdq0GJSw8MjN0uYtkqYq5GwVB+LHx0vw7fxK6Y36RHTb0JBH1BIkKJ9cqlHCDBLIdB6Rgjkp0ehxqiG0yhhMCserrx4uAnu2YZXS1isl7DSpMZ6exx+6tZgyd8D323a4WjXK+wH8rqByz3K5DiFALMUAs3JQsCR+gi601X4PkOF/gsqDOeq4C4Ix4Q5HF5rOHy14fDfCMdacwQ27RHYcqrws/1RrIymwkvfgMlbwHe0HgwdgLEzOBltQoBZCoGmM5GH9seEWco1kBqHxs8i0fipKrQhBrPuFThifO0xFx84zJiSYja3BR6kxFGeoTx7SDlBkSgPhQX+IrPEkYDRYYXh9/8LP5mktQmnjoAAAAAASUVORK5CYII=" />
     <property key="submodel.name" value="AllocateTransitions" />
     <property key="submodel.smallicon" value="iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABuklEQVR42qWT3UuTYRiH92d0VOwFsdDIzYOOrY5EPBkeFXTUgfg3dJDmu49UfLdsiWtJbq4URMTh/MCNlh8o+3RzJY7FykLzLyjo6n4SJNx7MNcNFw/Pw/27Hp4bHsvY/RtVo8fKqOPapVAZlbUYPRqNlspalE1VJPqT2divulC9qlT2XBBPHpPcOqkL1VsjKGaKlPKlulC9NYJs6it72aMLfKOQP6GYP6WQO/67V+eqt0awuguJrDxFWE+fkcjB3PIG/nEHsWSReObsfGWHWsHK/m9eBHsJR3pZ2i3w/jNMznrQ9WZ8vg7CoQcsrEWIl6W3ZCIY9nXh1FuYmOhmOvyQMX8nurMV3WXH5bmN4b2HMWzj3Zu7bHw3EQz0N+F22/F67xB45WDQ2caUYWN7soXqoo0f6T4qn0KkKofEymaCgWY8nnZcInkqt269vMVB+DpfPvSRkxvfyuCn87IKUxkTwRMR6CLwP7Oz+ryNj6GbVBKPSEs4IAMOyOCCsr4WxrdNBPOPr7A5aCVlWCkENcozGkfRq5wm7RxUS0T3YWgdRuLgXvtH8N9/weVoWm70N6qsRUoT2htE+wOBWtkns6speAAAAABJRU5ErkJggg==" />
-    <functor name="CategoricalMap">
-        <property key="dff.functor.alias" value="Landscape" />
-        <property key="dff.functor.comment" value="The landscape map." />
-        <property key="submodel.in.constant.advanced" value="no" />
-        <property key="submodel.in.constant.description" value="The initial landscape map." />
-        <property key="submodel.in.constant.name" value="lanscape" />
-        <property key="submodel.in.constant.optional" value="no" />
-        <property key="submodel.in.constant.order" value="1" />
-        <outputport name="object" id="v1" />
-    </functor>
-    <functor name="PercentMatrix">
-        <property key="dff.functor.alias" value="Percent Of Transitions By Expansion" />
-        <property key="dff.functor.comment" value="This matriz defines the percentage of total transitions performed by expansion of existent patches (using Expander operator). The complement of this matrix defines the percentage of transitions performed by generation of new patches (using Patcher operator)." />
-        <property key="submodel.in.constant.advanced" value="no" />
-        <property key="submodel.in.constant.description" value="This matriz defines the percentage of total transitions performed by expansion of existent patches (using Expander operator). The complement of this matrix defines the percentage of transitions performed by generation of new patches (using Patcher operator)." />
-        <property key="submodel.in.constant.name" value="percentOfTransitionsByExpansion" />
-        <property key="submodel.in.constant.optional" value="no" />
-        <property key="submodel.in.constant.order" value="4" />
-        <outputport name="object" id="v2" />
-    </functor>
     <functor name="TransitionMatrix">
-        <property key="dff.functor.alias" value="Transition Matrix" />
+        <property key="dff.functor.alias" value="transition matrix" />
         <property key="dff.functor.comment" value="The transition matrix defining net transition rates." />
         <property key="submodel.in.constant.advanced" value="no" />
         <property key="submodel.in.constant.description" value="The matriz defining the net rate of each transition." />
         <property key="submodel.in.constant.name" value="transitionMatrix" />
         <property key="submodel.in.constant.optional" value="no" />
         <property key="submodel.in.constant.order" value="3" />
+        <outputport name="object" id="v1" />
+    </functor>
+    <functor name="CategoricalMap">
+        <property key="dff.functor.alias" value="landscape" />
+        <property key="dff.functor.comment" value="The landscape map." />
+        <property key="submodel.in.constant.advanced" value="no" />
+        <property key="submodel.in.constant.description" value="The initial landscape map." />
+        <property key="submodel.in.constant.name" value="lanscape" />
+        <property key="submodel.in.constant.optional" value="no" />
+        <property key="submodel.in.constant.order" value="1" />
+        <outputport name="object" id="v2" />
+    </functor>
+    <functor name="Map">
+        <property key="dff.functor.alias" value="probabilities" />
+        <property key="dff.functor.comment" value="The probability map." />
+        <property key="submodel.in.constant.advanced" value="no" />
+        <property key="submodel.in.constant.description" value="The map defining the probability of occurrence of each transition." />
+        <property key="submodel.in.constant.name" value="probabilities" />
+        <property key="submodel.in.constant.optional" value="no" />
+        <property key="submodel.in.constant.order" value="2" />
         <outputport name="object" id="v3" />
     </functor>
     <functor name="TransitionFunctionParameterMatrix">
-        <property key="dff.functor.alias" value="Patch Expansion Parameters" />
+        <property key="dff.functor.alias" value="patch expansion parameters" />
         <property key="dff.functor.comment" value="The parameters used to expand existent patches. The parameters are used by Expander operator." />
         <property key="submodel.in.constant.advanced" value="no" />
         <property key="submodel.in.constant.description" value="The parameters used to expand existent patches. The parameters are used by Expander operator." />
@@ -51,15 +51,33 @@
         <property key="submodel.in.constant.order" value="5" />
         <outputport name="object" id="v4" />
     </functor>
+    <functor name="CategoricalMap">
+        <property key="dff.functor.alias" value="resulting landscape" />
+        <property key="dff.functor.comment" value="The landscape map resulting from the transition allocation." />
+        <property key="submodel.out.object.description" value="The resulting landscape map." />
+        <property key="submodel.out.object.name" value="resultingLanscape" />
+        <property key="submodel.out.object.order" value="1" />
+        <inputport name="constant" peerid="v12" />
+    </functor>
+    <functor name="PercentMatrix">
+        <property key="dff.functor.alias" value="percent of transitions by expansion" />
+        <property key="dff.functor.comment" value="This matriz defines the percentage of total transitions performed by expansion of existent patches (using Expander operator). The complement of this matrix defines the percentage of transitions performed by generation of new patches (using Patcher operator)." />
+        <property key="submodel.in.constant.advanced" value="no" />
+        <property key="submodel.in.constant.description" value="This matriz defines the percentage of total transitions performed by expansion of existent patches (using Expander operator). The complement of this matrix defines the percentage of transitions performed by generation of new patches (using Patcher operator)." />
+        <property key="submodel.in.constant.name" value="percentOfTransitionsByExpansion" />
+        <property key="submodel.in.constant.optional" value="no" />
+        <property key="submodel.in.constant.order" value="4" />
+        <outputport name="object" id="v5" />
+    </functor>
     <functor name="TransitionFunctionParameterMatrix">
-        <property key="dff.functor.alias" value="Patch Generation Parameters" />
+        <property key="dff.functor.alias" value="patch generation parameters" />
         <property key="dff.functor.comment" value="The parameters used to generate new patches. These parameters are used by Patcher operator." />
         <property key="submodel.in.constant.advanced" value="no" />
         <property key="submodel.in.constant.description" value="The parameters used to generate new patches. These parameters are used by Patcher operator." />
         <property key="submodel.in.constant.name" value="patchGenerationParameters" />
         <property key="submodel.in.constant.optional" value="no" />
         <property key="submodel.in.constant.order" value="6" />
-        <outputport name="object" id="v5" />
+        <outputport name="object" id="v6" />
     </functor>
     <functor name="BooleanValue">
         <property key="dff.functor.alias" value="print transition info?" />
@@ -69,100 +87,72 @@
         <property key="submodel.in.constant.name" value="printTransitionInfo" />
         <property key="submodel.in.constant.optional" value="yes" />
         <property key="submodel.in.constant.order" value="7" />
-        <inputport name="constant">.yes</inputport>
-        <outputport name="object" id="v6" />
-    </functor>
-    <functor name="Map">
-        <property key="dff.functor.alias" value="Probabilities" />
-        <property key="dff.functor.comment" value="The probability map." />
-        <property key="submodel.in.constant.advanced" value="no" />
-        <property key="submodel.in.constant.description" value="The map defining the probability of occurrence of each transition." />
-        <property key="submodel.in.constant.name" value="probabilities" />
-        <property key="submodel.in.constant.optional" value="no" />
-        <property key="submodel.in.constant.order" value="2" />
+        <inputport name="constant">.no</inputport>
         <outputport name="object" id="v7" />
     </functor>
-    <functor name="CategoricalMap">
-        <property key="dff.functor.alias" value="resulting landscape" />
-        <property key="dff.functor.comment" value="The landscape map resulting from the transition allocation." />
-        <property key="submodel.out.object.description" value="The resulting landscape map." />
-        <property key="submodel.out.object.name" value="resultingLanscape" />
-        <property key="submodel.out.object.order" value="1" />
-        <inputport name="constant" peerid="v15" />
-    </functor>
-    <functor name="SaveMap">
-        <property key="dff.functor.alias" value="saveMap3684" />
-        <inputport name="map" peerid="v7" />
-        <inputport name="filename">&quot;../../../test_prob_map.tif&quot;</inputport>
-        <inputport name="suffixDigits">2</inputport>
-        <inputport name="step">.none</inputport>
-        <inputport name="useCompression">.yes</inputport>
-        <inputport name="workdir">.none</inputport>
-        <inputport name="ignoreCostlySparseCategories">.yes</inputport>
-    </functor>
     <containerfunctor name="Group">
         <property key="dff.container.collapsed" value="no" />
-        <property key="dff.functor.alias" value="group478" />
-        <property key="dff.functor.comment" value="Calculate the quantity of changes to be executed." />
-        <inputport name="sequenceInput">.none</inputport>
-        <functor name="CalcChangeMatrix">
-            <property key="dff.functor.alias" value="Transition Rates" />
-            <inputport name="landscape" peerid="v1" />
-            <inputport name="transitionMatrix" peerid="v3" />
-            <outputport name="changes" id="v8" />
-        </functor>
-        <functor name="ModulateChangeMatrix">
-            <property key="dff.functor.alias" value="split transition rates" />
-            <inputport name="changes" peerid="v8" />
-            <inputport name="modulationRates" peerid="v2" />
-            <outputport name="modulatedChanges" id="v9" />
-            <outputport name="complementaryChanges" id="v10" />
-        </functor>
-    </containerfunctor>
-    <containerfunctor name="Group">
-        <property key="dff.container.collapsed" value="no" />
-        <property key="dff.functor.alias" value="group481" />
+        <property key="dff.functor.alias" value="group690" />
         <property key="dff.functor.comment" value="Execute the transition functions." />
         <inputport name="sequenceInput">.none</inputport>
         <functor name="AddChangeMatrix">
-            <property key="dff.functor.alias" value="Combined Transition Rates" />
-            <inputport name="addend1" peerid="v10" />
-            <inputport name="addend2" peerid="v14" />
-            <outputport name="sum" id="v11" />
+            <property key="dff.functor.alias" value="combined transition rates" />
+            <inputport name="addend1" peerid="v15" />
+            <inputport name="addend2" peerid="v11" />
+            <outputport name="sum" id="v8" />
         </functor>
         <containerfunctor name="LogPolicy">
-            <property key="dff.functor.alias" value="logPolicy482" />
+            <property key="dff.functor.alias" value="logPolicy4028" />
             <inputport name="maximumLogLevel">.info</inputport>
-            <inputport name="forceSpecifiedLogLevel" peerid="v6" />
+            <inputport name="forceSpecifiedLogLevel" peerid="v7" />
             <functor name="Expander">
                 <property key="dff.functor.alias" value="landscape expander" />
-                <inputport name="landscape" peerid="v1" />
-                <inputport name="probabilities" peerid="v7" />
-                <inputport name="changes" peerid="v9" />
+                <inputport name="landscape" peerid="v2" />
+                <inputport name="probabilities" peerid="v3" />
+                <inputport name="changes" peerid="v14" />
                 <inputport name="transitionParameters" peerid="v4" />
                 <inputport name="neighborWindowLines">3</inputport>
                 <inputport name="neighborWindowColumns">3</inputport>
                 <inputport name="pruneFactor">10</inputport>
-                <outputport name="changedLandscape" id="v12" />
-                <outputport name="corrodedProbabilities" id="v13" />
-                <outputport name="remainingChanges" id="v14" />
+                <outputport name="changedLandscape" id="v9" />
+                <outputport name="corrodedProbabilities" id="v10" />
+                <outputport name="remainingChanges" id="v11" />
             </functor>
         </containerfunctor>
         <containerfunctor name="LogPolicy">
-            <property key="dff.functor.alias" value="logPolicy485" />
+            <property key="dff.functor.alias" value="logPolicy4029" />
             <inputport name="maximumLogLevel">.info</inputport>
-            <inputport name="forceSpecifiedLogLevel" peerid="v6" />
+            <inputport name="forceSpecifiedLogLevel" peerid="v7" />
             <functor name="Patcher">
-                <property key="dff.functor.alias" value="Landscape Patcher" />
-                <inputport name="landscape" peerid="v12" />
-                <inputport name="probabilities" peerid="v13" />
-                <inputport name="changes" peerid="v11" />
-                <inputport name="transitionParameters" peerid="v5" />
+                <property key="dff.functor.alias" value="landscape patcher" />
+                <inputport name="landscape" peerid="v9" />
+                <inputport name="probabilities" peerid="v10" />
+                <inputport name="changes" peerid="v8" />
+                <inputport name="transitionParameters" peerid="v6" />
                 <inputport name="neighborWindowLines">3</inputport>
                 <inputport name="neighborWindowColumns">3</inputport>
                 <inputport name="pruneFactor">10</inputport>
-                <outputport name="changedLandscape" id="v15" />
+                <outputport name="changedLandscape" id="v12" />
             </functor>
         </containerfunctor>
+    </containerfunctor>
+    <containerfunctor name="Group">
+        <property key="dff.container.collapsed" value="no" />
+        <property key="dff.functor.alias" value="group694" />
+        <property key="dff.functor.comment" value="Calculate the quantity of changes to be executed." />
+        <inputport name="sequenceInput">.none</inputport>
+        <functor name="CalcChangeMatrix">
+            <property key="dff.functor.alias" value="transition rates" />
+            <inputport name="landscape" peerid="v2" />
+            <inputport name="transitionMatrix" peerid="v1" />
+            <outputport name="changes" id="v13" />
+        </functor>
+        <functor name="ModulateChangeMatrix">
+            <property key="dff.functor.alias" value="split transition rates" />
+            <inputport name="changes" peerid="v13" />
+            <inputport name="modulationRates" peerid="v5" />
+            <outputport name="modulatedChanges" id="v14" />
+            <outputport name="complementaryChanges" id="v15" />
+        </functor>
     </containerfunctor>
 </script>

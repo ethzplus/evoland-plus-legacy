@@ -31,7 +31,7 @@ packs<-c("data.table", "raster", "tidyverse", "SDMTools", "doParallel",
 "gdata", "landscapemetrics", "randomForest", "RRF", "future.callr",
 "ghibli", "ggpattern", "butcher", "ROCR", "ecospat", "caret", "Dinamica",
 "gridExtra", "extrafont", "ggpubr", "ggstatsplot","PMCMRplus", "reshape2",
-"ggsignif", "ggthemes", "ggside", "gridtext", "grid", "slackr", "rstudioapi", "landscapemetrics")
+"ggsignif", "ggthemes", "ggside", "gridtext", "grid", "rstudioapi", "landscapemetrics")
 
 #install new packages
 new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]
@@ -52,7 +52,7 @@ invisible(sapply(list.files("Scripts/Functions",
 # test <- system2("where", args = c("-v", executable))
 # print(test)
 
-
+#TO DO: change so that the executable is downloaded from the Dinamica website
 #Install Dinamica EGO using included installer (Windows)
 #create string for installer
 #install_path <- paste0(getwd(), "/Model/SetupDinamicaEGO-720.exe")
@@ -100,9 +100,14 @@ Inclusion_thres <- 0.5
 ### Simulation control table prep
 ### =========================================================================
 
+#The simulation control table provides the macro-level specifications of the
+#simulations to be completed by Dinamica: e.g simulation names, arbitrary IDs,
+#durations, time step, parallelisation etc.
+
 #vector save path
 Sim_control_path <- "Tools/Simulation_control.csv"
 
+#Create dataframe and set column names
 # Simulation_control_table <- data.frame(matrix(ncol = 11, nrow = 0))
 # colnames(Simulation_control_table) <- c("Simulation_num.",
 #                                          "Scenario_ID.string",
@@ -139,14 +144,17 @@ Sim_control_path <- "Tools/Simulation_control.csv"
 ### Modelling set-up
 ### =========================================================================
 
-#TO DO: Document how users should set up the various 'tools' tables that control
-#the creation of transition datasets and the tp models.
-
 #Get the file path of the Dinamica console executable
 # DC_path <- list.files("C:/", recursive = TRUE, full.names = TRUE, pattern = ".*DinamicaConsole.*\\.exe")
 # DC_path <- gsub('(*/)\\1+', '\\1', DC_path) #remove instances of double "/"
 # DC_path <- gsub("/", "\\\\", DC_path) #replace "/" with "\\"
+
+#For testing purposes
 DC_path <- "C:\\Program Files\\Dinamica EGO 7\\DinamicaConsole7.exe"
+
+#create directory to store simulation logs
+Sim_log_dir <- "Results/Simulation_notifications"
+dir.create(Sim_log_dir)
 
 #list objects required for modelling
 Model_tool_vars <- list(LULC_aggregation_path = "Tools/LULC_class_aggregation.xlsx",#Path to LULC class aggregation table
@@ -159,6 +167,7 @@ Model_tool_vars <- list(LULC_aggregation_path = "Tools/LULC_class_aggregation.xl
                           Simulation_param_dir= "Data/Allocation_parameters/Simulation",
                           Trans_rate_table_dir = "Data/Transition_tables/prepared_trans_tables",
                           Sim_control_path = Sim_control_path, #Path to simulation control table
+                          Sim_log_dir = Sim_log_dir,
                           Step_length= Step_length,
                           Scenario_names = Scenario_names,
                           Inclusion_thres = Inclusion_thres,
@@ -189,21 +198,96 @@ scripting_env <- new.env()
 list2env(Model_tool_vars, .GlobalEnv)
 list2env(Model_tool_vars, scripting_env)
 
-#Because the simulations take a long time to complete it can be useful to have R
-#send a message to Slack if the run has been completed successfully
-#To do this user must set up the 'slackr' package according to the vignette:
-#vignette('webhook-setup', package = 'slackr')
+### =========================================================================
+### Download research data
+### =========================================================================
 
-#Create config file (only needs to be done once)
-# create_config_file(token = 'xapp-1-A049C8Z8ALW-4318425761910-7988238c82da2316a2c87bee2ad1962d6e42792243edd7517b12cce53a73056f',
-#   incoming_webhook_url = 'https://hooks.slack.com/services/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',
-#   channel = '#general',
-#   username = 'slackr',
-#   icon_emoji = 'tada')
+#Data that is not created programmatically has been provided as a Zenodo record.
+#under the following DOI and URL
+Zenodo_record_doi <- "10.5281/zenodo.8263509"
 
-#Connect to Slack
-#slackr_setup(channel = '#general',
-#             incoming_webhook_url = 'https://hooks.slack.com/services/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')
+#This can be downloaded using the Zenodo API service.
+
+#Connect to Zenodo API service
+zenodo <- ZenodoManager$new()
+
+#Get record info
+#TO DO: won't work until record is made open access
+rec <- zenodo$getRecordByDOI(Zenodo_record_doi)
+files <- rec$listFiles(pretty = TRUE)
+
+#increase timeout limit for downloading folder
+options(timeout=60000000)
+
+#create a temporary directory to store the zipped folder
+tmpdir <- tempdir()
+
+#Download to tmpdir
+#Option 1: using the download link in the Zenodo record object
+#rec$downloadFiles(path = tmpdir)
+
+#Option 2: using R's download.file function
+download.file(url = files$download,
+              destfile = paste0(tmpdir, "/", files$filename),
+              mode = "wb",
+              quiet = FALSE)
+
+#WARNING: unzipping the folder programatically can be temperamental for various
+#reasons. As such, you may need to navigate to the tmpdir and manually unzip
+#the folder there using the standard process for your operating system.
+
+#Option 1: Custom function for unzipping large files using system2 command
+decompress_file <- function(directory, file, .file_cache = FALSE) {
+
+    if (.file_cache == TRUE) {
+       print("decompression skipped")
+    } else {
+
+      # Set working directory for decompression
+      # simplifies unzip directory location behavior
+      wd <- getwd()
+      setwd(directory)
+
+      # Run decompression
+      decompression <-
+        system2("unzip",
+                args = c("-o", # include override flag
+                         file),
+                stdout = TRUE)
+
+      # uncomment to delete archive once decompressed
+      # file.remove(file)
+
+      # Reset working directory
+      setwd(wd); rm(wd)
+
+      # Test for success criteria
+      # change the search depending on
+      # your implementation
+      if (grepl("Warning message", tail(decompression, 1))) {
+        print(decompression)
+      }
+    }
+}
+
+#Applying custom function
+decompress_file(tmpdir, file = paste0(tmpdir, "\\", files$filename), .file_cache = FALSE)
+
+#Option 2: using r utils::unzip
+unzip(paste0(tmpdir, "/", files$filename), exdir = str_remove(paste0(tmpdir, "/", files$filename), ".zip"))
+
+#Unpack various files and dirs to different locations
+#within the project dir
+
+#Move the raw data dir:
+raw_data_path <- str_replace(paste0(tmpdir, "/", files$filename), ".zip", "/Data/Raw")
+file.copy(raw_data_path, "Data/Preds", recursive=TRUE)
+
+#Moving the spatial reference grid
+raw_data_path <- str_replace(paste0(tmpdir, "/", files$filename), ".zip", "/Data/Raw")
+
+#remove the zipped folder in temp dir
+unlink(paste0(tmpdir, "/", files$filename))
 
 ### =========================================================================
 ### A- Prepare LULC/region data
@@ -318,6 +402,7 @@ source("Scripts/Preparation/Spatial_interventions_prep.R", local = scripting_env
 ### =========================================================================
 
 
+
 #Note this path needs to include the working directory because it is used
 #in the windows system command
 Control_table_path <- paste0(getwd(),"/", Sim_control_path)
@@ -347,7 +432,7 @@ if(Pre_check_result == FALSE){print("Some elements required for modelling are no
 
   #vector a path for saving the output text of this simulation
   #run which indicates any errors
-  output_path <- paste0("Results/Simulation_notifications/Simulation_output_", Sys.Date(), ".txt")
+  output_path <- paste0(Sim_log_dir, "/Simulation_output_", Sys.Date(), ".txt")
 
   print('Starting to run model with Dinamica EGO')
   system2(command = paste(DC_path),
@@ -365,10 +450,8 @@ if(Pre_check_result == FALSE){print("Some elements required for modelling are no
   if(any(Updated_control_tbl$Completed.string == "ERROR")){
     print(paste(length(which(Updated_control_tbl$Completed.string == "ERROR")), "of", nrow(Updated_control_tbl),
                  "simulations have failed to run till completion, check simulation output .txt file for details of errors"))
-    #slackr_bot('Simulation has stopped because of error')
   }else{
     #Send completion message
-    #slackr_bot('Simulation completed sucessfully')
     print('All simulations completed sucessfully')
 
     #Delete the temporary model file

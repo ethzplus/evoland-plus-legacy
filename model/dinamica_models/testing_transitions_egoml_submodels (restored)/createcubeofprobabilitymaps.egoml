@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <script>
     <property key="dff.charset" value="UTF-8" />
-    <property key="dff.date" value="2023-Nov-13 11:48:06" />
+    <property key="dff.date" value="2023-Jul-17 17:53:43" />
     <property key="dff.version" value="7.2.0.20221230" />
     <property key="submodel.description" value="Stack various probabilities maps into a map cube renaming each one according to the transitions present in the transition matrix. Probability maps must be ordered using a prefix like 1_ , e.g 1_filename.tif according to the number of the row of the respective transition.&#x0A;&#x0A;The map cube is used as input for both patcher and expander operators" />
     <property key="submodel.group" value="Map Algebra" />

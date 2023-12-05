@@ -1,131 +1,145 @@
-[@2 INFO] Running "Expander" ...
-[1;32m[@2] [0m
-[1;32m[@2] Expected Transitions:[0m
-[1;32m[@2]  From \ To |        10         11         12         13         14         15         16         17         18         19 [0m
-[1;32m[@2] --------------------------------------------------------------------------------------------------------------------------[0m
-[1;32m[@2]         10 |      XXXX        497         --         --         --         --         --         --         --         -- [0m
-[1;32m[@2]         11 |        --       XXXX         --         --         --         --         --         --         --         -- [0m
-[1;32m[@2]         12 |        --         --       XXXX      13940         --         --       1070       1517         --         -- [0m
-[1;32m[@2]         13 |        --         --       5703       XXXX         --         --         --         --         --         -- [0m
-[1;32m[@2]         14 |        --         --       2362       3227       XXXX         --        550         --         --         -- [0m
-[1;32m[@2]         15 |      2018         --         --         --         --       XXXX         --       6417        457         -- [0m
-[1;32m[@2]         16 |        --         --       1625         --       2740         --       XXXX         --         --         -- [0m
-[1;32m[@2]         17 |      3590         --        806         --         --       4234         --       XXXX        560         -- [0m
-[1;32m[@2]         18 |       859         --         --         --         --        610         --       2189       XXXX         -- [0m
-[1;32m[@2]         19 |        --       5226         --         --         --         --         --         --         --       XXXX [0m
-[1;32m[@2] [0m
-[1;32m[@2] [0m
-[1;32m[@2] Remaining Transitions:[0m
-[1;32m[@2]  From \ To |        10         11         12         13         14         15         16         17         18         19 [0m
-[1;32m[@2] --------------------------------------------------------------------------------------------------------------------------[0m
-[1;32m[@2]         10 |      XXXX          0         --         --         --         --         --         --         --         -- [0m
-[1;32m[@2]         11 |        --       XXXX         --         --         --         --         --         --         --         -- [0m
-[1;32m[@2]         12 |        --         --       XXXX          0         --         --          0          0         --         -- [0m
-[1;32m[@2]         13 |        --         --          0       XXXX         --         --         --         --         --         -- [0m
-[1;32m[@2]         14 |        --         --          0          0       XXXX         --          0         --         --         -- [0m
-[1;32m[@2]         15 |         0         --         --         --         --       XXXX         --          0          0         -- [0m
-[1;32m[@2]         16 |        --         --          0         --          0         --       XXXX         --         --         -- [0m
-[1;32m[@2]         17 |         0         --          0         --         --          0         --       XXXX          0         -- [0m
-[1;32m[@2]         18 |         0         --         --         --         --          0         --          0       XXXX         -- [0m
-[1;32m[@2]         19 |        --          0         --         --         --         --         --         --         --       XXXX [0m
-[1;32m[@2] [0m
-[@2 INFO] "Expander" ran successfully (elapsed 2.9 s).
-[@2 INFO] Running "Patcher" ...
-[1;32m[@2] [0m
-[1;32m[@2] Expected Transitions:[0m
-[1;32m[@2]  From \ To |        10         11         12         13         14         15         16         17         18         19 [0m
-[1;32m[@2] --------------------------------------------------------------------------------------------------------------------------[0m
-[1;32m[@2]         10 |      XXXX        210         --         --         --         --         --         --         --         -- [0m
-[1;32m[@2]         11 |        --       XXXX         --         --         --         --         --         --         --         -- [0m
-[1;32m[@2]         12 |        --         --       XXXX       1062         --         --        130        152         --         -- [0m
-[1;32m[@2]         13 |        --         --       4710       XXXX         --         --         --         --         --         -- [0m
-[1;32m[@2]         14 |        --         --       1136        503       XXXX         --         84         --         --         -- [0m
-[1;32m[@2]         15 |       478         --         --         --         --       XXXX         --       1738        465         -- [0m
-[1;32m[@2]         16 |        --         --        746         --        667         --       XXXX         --         --         -- [0m
-[1;32m[@2]         17 |       872         --       1162         --         --        762         --       XXXX        672         -- [0m
-[1;32m[@2]         18 |       139         --         --         --         --         91         --        241       XXXX         -- [0m
-[1;32m[@2]         19 |        --        379         --         --         --         --         --         --         --       XXXX [0m
-[1;32m[@2] [0m
-[1;32m[@2] [0m
-[1;32m[@2] Remaining Transitions:[0m
-[1;32m[@2]  From \ To |        10         11         12         13         14         15         16         17         18         19 [0m
-[1;32m[@2] --------------------------------------------------------------------------------------------------------------------------[0m
-[1;32m[@2]         10 |      XXXX          0         --         --         --         --         --         --         --         -- [0m
-[1;32m[@2]         11 |        --       XXXX         --         --         --         --         --         --         --         -- [0m
-[1;32m[@2]         12 |        --         --       XXXX          0         --         --          0          0         --         -- [0m
-[1;32m[@2]         13 |        --         --          0       XXXX         --         --         --         --         --         -- [0m
-[1;32m[@2]         14 |        --         --          0          0       XXXX         --          0         --         --         -- [0m
-[1;32m[@2]         15 |         0         --         --         --         --       XXXX         --          0          0         -- [0m
-[1;32m[@2]         16 |        --         --          0         --          0         --       XXXX         --         --         -- [0m
-[1;32m[@2]         17 |         0         --          0         --         --          0         --       XXXX          0         -- [0m
-[1;32m[@2]         18 |         0         --         --         --         --          0         --          0       XXXX         -- [0m
-[1;32m[@2]         19 |        --          0         --         --         --         --         --         --         --       XXXX [0m
-[1;32m[@2] [0m
-[@2 INFO] "Patcher" ran successfully (elapsed 0.86 s).
-[@2 INFO] "AllocateTransitions" ran successfully (elapsed 3.9 s).
-[@2 INFO] Running "ExtractStructString" ...
-[@2 INFO] "ExtractStructString" ran successfully (elapsed 1.2e-05 s).
-[@2 INFO] Running "SaveMap" ...
-[@2 INFO] Saving map "[E:/LULCC_CH]/Results/Dinamica_simulated_LULC/CALIBRATION/v1/simulated_LULC_scenario_CALIBRATION_simID_v1_year_2015.tif" ...
-[@2 INFO] "SaveMap" ran successfully (elapsed 0.073 s).
-[@2 INFO] Running "ExtractStructString" ...
-[@2 INFO] "ExtractStructString" ran successfully (elapsed 1.5e-05 s).
+[@2 INFO] Running "CalculateRExpression" ...
+[1;31m[@2 ERROR] "CalculateRExpression": Error caught in R execution: 'LULCC_START_ROW and LULCC_END_ROW must be set. Got LULCC_START_ROW = '' and LULCC_END_ROW = '''.[0m
+[1;31m[@2 ERROR] "Group": Contained "CalculateRExpression" (alias "Subset control table to only simulations yet to be completed (i.e. modelled)") found an error: Error caught in R execution: 'LULCC_START_ROW and LULCC_END_ROW must be set. Got LULCC_START_ROW = '' and LULCC_END_ROW = '''.[0m
+[1;31m[@2 ERROR] Model script: Contained "Group" (alias "Simulation control") found an error: Error caught in R execution: 'LULCC_START_ROW and LULCC_END_ROW must be set. Got LULCC_START_ROW = '' and LULCC_END_ROW = '''.[0m
+[@2 INFO] Running "CalculateRExpression" ...
+[@2 INFO] "CalculateRExpression" ran successfully (elapsed 0.6 s).
+[@2 INFO] Running "ExtractStructTable" ...
+[@2 INFO] "ExtractStructTable" ran successfully (elapsed 2.3e-05 s).
+[@2 INFO] Running "ForEach" ...
+[@2 INFO]
+===[ Running step for element 1 ]===
+
+[@2 INFO] Running "Step" ...
+[@2 INFO] "Step" ran successfully (elapsed 2.6e-05 s).
+[@2 INFO] Running "Workdir" ...
+[1;31m[@2 ERROR] "ForEach": Execution cancelled.[0m
+[1;31m[@2 ERROR] Model script: Execution cancelled.[0m
+[@2 INFO] Running "CalculateRExpression" ...
+[@2 INFO] "CalculateRExpression" ran successfully (elapsed 0.59 s).
+[@2 INFO] Running "ExtractStructTable" ...
+[@2 INFO] "ExtractStructTable" ran successfully (elapsed 1.6e-05 s).
+[@2 INFO] Running "ForEach" ...
+[@2 INFO]
+===[ Running step for element 3 ]===
+
+[@2 INFO] Running "Step" ...
+[@2 INFO] "Step" ran successfully (elapsed 3e-06 s).
+[@2 INFO] Running "Workdir" ...
+[@2 INFO] Running "SkipOnError" ...
 [@2 INFO] Running "CalculateRExpression" ...
 [1;32m[@2] R execution output:[0m
-[1;32m[@2] [1] "package 'tibble' was built under R version 4.2.3"
-[1] "cannot open file 'E:/LULCC_CH': Permission denied"
+[1;32m[@2] [1] "package 'data.table' was built under R version 4.2.3"
+[1] "package 'stringi' was built under R version 4.2.3"
+[1] "package 'stringr' was built under R version 4.2.3"
+[1] "package 'plyr' was built under R version 4.2.3"
+[1] "package 'readxl' was built under R version 4.2.3"
+[1] "package 'ggpubr' was built under R version 4.2.3"
+[1] "package 'ggplot2' was built under R version 4.2.3"
+[1] "package 'tidyverse' was built under R version 4.2.3"
+[1] "package 'tibble' was built under R version 4.2.3"
+[1] "package 'tidyr' was built under R version 4.2.3"
+[1] "package 'readr' was built under R version 4.2.3"
+[1] "package 'purrr' was built under R version 4.2.3"
+[1] "package 'dplyr' was built under R version 4.2.3"
+[1] "package 'forcats' was built under R version 4.2.3"
+[1] "package 'lubridate' was built under R version 4.2.3"
+[1] "package 'rstatix' was built under R version 4.2.3"
+[1] "package 'raster' was built under R version 4.2.3"
+[1] "package 'sp' was built under R version 4.2.3"
+[1] "package 'openxlsx' was built under R version 4.2.3"
 [0m
 [1;31m[@2 ERROR] R error output:[0m
 [1;31m[@2 ERROR] Loading required package: data.table
-Loading required package: raster
-Loading required package: sp
+Loading required package: stringi
+Loading required package: stringr
+Loading required package: plyr
+Loading required package: readxl
+Loading required package: ggpubr
+Loading required package: ggplot2
+
+Attaching package: 'ggpubr'
+
+The following object is masked from 'package:plyr':
+
+    mutate
+
+Loading required package: rlist
 Loading required package: tidyverse
 ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-✔ dplyr     1.1.0     ✔ readr     2.1.4
-✔ forcats   1.0.0     ✔ stringr   1.5.0
-✔ ggplot2   3.4.1     ✔ tibble    3.2.1
-✔ lubridate 1.9.2     ✔ tidyr     1.3.0
-✔ purrr     1.0.1
+✔ dplyr     1.1.4     ✔ readr     2.1.4
+✔ forcats   1.0.0     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.0
+✔ purrr     1.0.2
 ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::arrange()     masks plyr::arrange()
 ✖ dplyr::between()     masks data.table::between()
-✖ tidyr::extract()     masks raster::extract()
+✖ purrr::compact()     masks plyr::compact()
+✖ dplyr::count()       masks plyr::count()
+✖ dplyr::desc()        masks plyr::desc()
+✖ dplyr::failwith()    masks plyr::failwith()
 ✖ dplyr::filter()      masks stats::filter()
 ✖ dplyr::first()       masks data.table::first()
 ✖ lubridate::hour()    masks data.table::hour()
+✖ dplyr::id()          masks plyr::id()
 ✖ lubridate::isoweek() masks data.table::isoweek()
 ✖ dplyr::lag()         masks stats::lag()
 ✖ dplyr::last()        masks data.table::last()
 ✖ lubridate::mday()    masks data.table::mday()
 ✖ lubridate::minute()  masks data.table::minute()
 ✖ lubridate::month()   masks data.table::month()
+✖ dplyr::mutate()      masks ggpubr::mutate(), plyr::mutate()
 ✖ lubridate::quarter() masks data.table::quarter()
+✖ dplyr::rename()      masks plyr::rename()
 ✖ lubridate::second()  masks data.table::second()
-✖ dplyr::select()      masks raster::select()
+✖ dplyr::summarise()   masks plyr::summarise()
+✖ dplyr::summarize()   masks plyr::summarize()
 ✖ purrr::transpose()   masks data.table::transpose()
 ✖ lubridate::wday()    masks data.table::wday()
 ✖ lubridate::week()    masks data.table::week()
 ✖ lubridate::yday()    masks data.table::yday()
 ✖ lubridate::year()    masks data.table::year()
 ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
-Loading required package: xlsx
+Loading required package: rstatix
+
+Attaching package: 'rstatix'
+
+The following objects are masked from 'package:plyr':
+
+    desc, mutate
+
+The following object is masked from 'package:stats':
+
+    filter
+
 Loading required package: Dinamica
-Loading required package: readxl
+Loading required package: raster
+Loading required package: sp
+
+Attaching package: 'raster'
+
+The following object is masked from 'package:rstatix':
+
+    select
+
+The following object is masked from 'package:dplyr':
+
+    select
+
+Loading required package: openxlsx
 [0m
-[1;31m[@2 ERROR] "CalculateRExpression": Error caught in R execution: 'cannot open the connection'.[0m
-[1;31m[@2 ERROR] E:/LULCC_CH/Model/Dinamica_models/LULCC_CH_calibration_2023-07-19.ego(line 233, column 53): "Group": Contained "CalculateRExpression" (alias "Deterministic Transitions") found an error:
-  Error caught in R execution: 'cannot open the connection'.
-                          deterministicTransitions := CalculateRExpression "IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMKIyMgRGluYW1pY2FfZGV0ZXJtaW5pc3RpY190cmFuczogSW1wbGVtZW50IGRldGVybWluaXN0aWMgdHJhbnNpdGlvbnMgCiMjIGZvbGxvd2luZyBzdGF0aXN0aWNhbCB0cmFuc2l0aW9uIHBvdGVudGlhbCBkdXJpbmcgZHVyaW5nIHNpbXVsYXRpb24gc3RlcAojIyBEYXRlOiAwMy0wNS0yMDIzCiMjIEF1dGhvcjogQmVuIEJsYWNrCiMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjCgojIyMgPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQojIyMgQS0gUHJlcGFyYXRpb24KIyMjID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KCiNyZWNlaXZlIHdvcmtpbmcgZGlyZWN0b3J5CndwYXRoIDwtIHMyCiN3cGF0aCA8LSBnZXR3ZCgpCnNldHdkKHdwYXRoKQoKI1ZlY3RvciBwYWNrYWdlcyBmb3IgbG9hZGluZwpwYWNrczwtYygiZGF0YS50YWJsZSIsICJyYXN0ZXIiLCAidGlkeXZlcnNlIiwic3RyaW5nciIsICJyZWFkciIsICJ4bHN4IiwKICAgICAgICAgIkRpbmFtaWNhIiwgInJlYWR4bCIpCgpuZXcucGFja3M8LXBhY2tzWyEocGFja3MgJWluJSBpbnN0YWxsZWQucGFja2FnZXMoKVssIlBhY2thZ2UiXSldCmlmKGxlbmd0aChuZXcucGFja3MpKSBpbnN0YWxsLnBhY2thZ2VzKG5ldy5wYWNrcykKCiMgTG9hZCByZXF1aXJlZCBwYWNrYWdlcwppbnZpc2libGUobGFwcGx5KHBhY2tzLCByZXF1aXJlLCBjaGFyYWN0ZXIub25seSA9IFRSVUUpKQoKI3NlbmQgbW9kZWwgdG9vbCB2YXJzIHRvIGdsb2JhbCBlbnZpcm9ubWVudApsaXN0MmVudihyZWFkUkRTKCJUb29scy9Nb2RlbF90b29sX3ZhcnMucmRzIiksIC5HbG9iYWxFbnYpCgojIyMgPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQojIyMgQi0gUmVjZWl2ZSBpbmZvcm1hdGlvbiBmcm9tIERpbmFtaWNhCiMjIyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CgojdmFsdWVzIGZvciB0ZXN0aW5nIHB1cnBvc2VzCiMgU2ltdWxhdGVkX2x1bGNfeWVhciA8LSAiMjAyNSIKIyBTaW11bGF0aW9uX251bSA8LSAiMSIKIyBGaWxlX3BhdGhfc2ltdWxhdGVkX0xVTENfbWFwcyA8LSAiUmVzdWx0cy9EaW5hbWljYV9zaW11bGF0ZWRfTFVMQy9CQVUvdjEvc2ltdWxhdGVkX0xVTENfc2NlbmFyaW9fQkFVX3NpbUlEX3YxX3llYXJfMjAyNS50aWYiCgojUmVjZWl2ZSBjdXJyZW50IHNpbXVsYXRpb24gdGltZQpTaW11bGF0ZWRfbHVsY195ZWFyIDwtIHMzCgojc2ltdWxhdGlvbiBudW1iZXIgYmVpbmcgcGVyZm9ybWVkClNpbXVsYXRpb25fbnVtIDwtIHYyCgojbG9hZCB0YWJsZSBvZiBzaW11bGF0aW9ucwpDb250cm9sX3RhYmxlX3BhdGggPC0gczQKU2ltdWxhdGlvbl90YWJsZSA8LSByZWFkLmNzdihDb250cm9sX3RhYmxlX3BhdGgpW1NpbXVsYXRpb25fbnVtLF0KCiNWZWN0b3IgbmFtZSBvZiBTY2VuYXJpbyB0byBiZSB0ZXN0ZWQgYXMgc3RyaW5nIG9yIG51bWVyaWMgKGkuZS4gIkJBVSIgZXRjLikgClNjZW5hcmlvX0lEIDwtIFNpbXVsYXRpb25fdGFibGUkU2NlbmFyaW9fSUQuc3RyaW5nCgojVmVjdG9yIElEIGZvciB0aGlzIHJ1biBvZiB0aGUgc2NlbmFyaW8gKGUuZyBWMSkKU2ltdWxhdGlvbl9JRCA8LSBTaW11bGF0aW9uX3RhYmxlJFNpbXVsYXRpb25fSUQuc3RyaW5nCgojRGVmaW5lIG1vZGVsX21vZGU6IENhbGlicmF0aW9uIG9yIFNpbXVsYXRpb24KTW9kZWxfbW9kZSA8LSBTaW11bGF0aW9uX3RhYmxlJE1vZGVsX21vZGUuc3RyaW5nCgojUmVjZWl2ZSBmaWxlIHBhdGggZm9yIGxvYWRpbmcgc2ltdWxhdGVkIExVTEMgbWFwcwpGaWxlX3BhdGhfc2ltdWxhdGVkX0xVTENfbWFwcyA8LSBzMQoKI3RlbXAgcGF0aCBmb3IgdGVzdGluZwojVXBkYXRlZF9MVUxDX3BhdGggPC0gc3RyX3JlcGxhY2UoRmlsZV9wYXRoX3NpbXVsYXRlZF9MVUxDX21hcHMsICIudGlmIiwgIl9EVHVwZGF0ZS50aWYiKQoKI2lmIHRoZSBtb2RlbCBpcyBpbiBzaW11bGF0aW9uIG1vZGUgYW5kIHRoZSB2YWx1ZSBpbiB0aGUgZGV0ZXJtaW5pc3RpYyAKI3RyYW5zaXRpb25zIGNvbHVtbiBvZiB0aGUgY29udHJvbCB0YWJsZSBpcyBub3QgIk4iIHRoZW4gdXBkYXRlIHRoZSBjdXJyZW50IAojc2ltdWxhdGVkIExVTEMgbWFwIHdpdGggdGhlIGRldGVybWluaXN0aWMgdHJhbnNpdGlvbnMKaWYoZ3JlcGwoInNpbXVsYXRpb24iLCBNb2RlbF9tb2RlLCBpZ25vcmUuY2FzZSA9IFRSVUUpICYKICAgIGdyZXBsKCJZIiwgU2ltdWxhdGlvbl90YWJsZSREZXRlcm1pbmlzdGljX3RyYW5zLnN0cmluZywgaWdub3JlLmNhc2UgPSBUUlVFKSl7CiAgCiAgICAjTG9hZCBzaW11bGF0ZWQgTFVMQyBtYXAgZm9yIHRpbWUgc3RlcAogICAgQ3VycmVudF9sdWxjIDwtIHJhc3RlcihGaWxlX3BhdGhfc2ltdWxhdGVkX0xVTENfbWFwcykKICAgIAogICAgI2NvbnZlcnQgcmFzdGVyIHRvIGRhdGFmcmFtZQogICAgTFVMQ19kYXQgPC0gcmFzdGVyOjphcy5kYXRhLmZyYW1lKEN1cnJlbnRfbHVsYykKICAgIAogICAgI2dldCBuYW1lIG9mIGZpcnN0IGNvbHVtbgogICAgVmFsdWVfY29sIDwtIGNvbG5hbWVzKExVTENfZGF0KVsxXQoKICAgICNhZGQgSUQgY29sdW1uIHRvIGRhdGFzZXQKICAgIExVTENfZGF0JElEIDwtIHNlcS5pbnQobnJvdyhMVUxDX2RhdCkpCgogICAgI0dldCBYWSBjb29yZGluYXRlcyBvZiBjZWxscwogICAgeHlfY29vcmRpbmF0ZXMgPC0gY29vcmRpbmF0ZXMoQ3VycmVudF9sdWxjKSAKCiAgICAjY2JpbmQgWFkgY29vcmRpbmF0ZXMgdG8gZGF0YWZyYW1lIGFuZCBzZXBlcmF0ZSByb3dzIHdoZXJlIGFsbCB2YWx1ZXMgPSBOQQogICAgTFVMQ19kYXQgPC0gY2JpbmQoTFVMQ19kYXQsIHh5X2Nvb3JkaW5hdGVzKQogIAogICAgI2xvYWQgc2NlbmFyaW8gc3BlY2lmaWMgZ2xhY2llciBpbmRleAogICAgR2xhY2llcl9pbmRleCA8LSByZWFkUkRTKGZpbGUgPSBsaXN0LmZpbGVzKCJEYXRhL0dsYWNpYWxfY2hhbmdlL1NjZW5hcmlvX2luZGljZXMiLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZnVsbC5uYW1lcyA9IFRSVUUsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBwYXR0ZXJuID0gU2NlbmFyaW9fSUQpKVssYygiSURfbG9jIiwgcGFzdGUoU2ltdWxhdGVkX2x1bGNfeWVhcikpXQoKICAgICNzZXBlcmF0ZSB2ZWN0b3Igb2YgY2VsbCBJRHMgZm9yIGdsYWNpZXIgYW5kIG5vbi1nbGFjZXIgY2VsbHMKICAgIE5vbl9nbGFjaWVyX0lEcyA8LSBHbGFjaWVyX2luZGV4W0dsYWNpZXJfaW5kZXhbW3Bhc3RlKFNpbXVsYXRlZF9sdWxjX3llYXIpXV09PTAsICJJRF9sb2MiXQogICAgR2xhY2llcl9JRHMgPC0gR2xhY2llcl9pbmRleFtHbGFjaWVyX2luZGV4W1twYXN0ZShTaW11bGF0ZWRfbHVsY195ZWFyKV1dPT0xLCAiSURfbG9jIl0gCiAgICAKICAgICNyZXBsYWNlIHRoZSAxJ3MgYW5kIDAncyB3aXRoIHRoZSBjb3JyZWN0IExVTEMgCiAgICBMVUxDX2RhdFtMVUxDX2RhdCRJRCAlaW4lIE5vbl9nbGFjaWVyX0lEcywgVmFsdWVfY29sXSA8LSAxMQogICAgTFVMQ19kYXRbTFVMQ19kYXQkSUQgJWluJSBHbGFjaWVyX0lEcywgVmFsdWVfY29sXSA8LSAxOQogICAgICAKICAgICNjb252ZXJ0IGJhY2sgdG8gcmFzdGVyCiAgICBVcGRhdGVkX3Jhc3RlciA8LSByYXN0ZXJGcm9tWFlaKExVTENfZGF0WyxjKCJ4IiwgInkiLCBWYWx1ZV9jb2wpXSkgCiAgCiAgICAjc2F2ZSB1cGRhdGVkIExVTEMgcmFzdGVyCiAgICB3cml0ZVJhc3RlcihVcGRhdGVkX3Jhc3RlciwgRmlsZV9wYXRoX3NpbXVsYXRlZF9MVUxDX21hcHMsIG92ZXJ3cml0ZSA9IFRSVUUsIGRhdGF0eXBlID0iSU5UMVUiKQogIH0KCiNzZW5kIGZpbGUgcGF0aCB0byBkaW5hbWljYQpvdXRwdXRTdHJpbmcoInVwZGF0ZWRfbHVsY19tYXBfcGF0aCIsIEZpbGVfcGF0aF9zaW11bGF0ZWRfTFVMQ19tYXBzKQ==" .no {{
-                                                      ^[0m
-[1;31m[@2 ERROR] E:/LULCC_CH/Model/Dinamica_models/LULCC_CH_calibration_2023-07-19.ego(line 231, column 26): "ForEach": Contained "Group" (alias "Implement deterministic transitions") found an error:
-  Error caught in R execution: 'cannot open the connection'.
-                      _ := Group .none {{
-                           ^[0m
-[@2 INFO] Trapping and ignoring error: Exception: Error caught in R execution: 'cannot open the connection'.
-[@2 INFO] "SkipOnError" ran successfully (elapsed 68 s).
+[@2 INFO] "CalculateRExpression" ran successfully (elapsed 7 s).
+[@2 INFO] Running "ExtractStructString" ...
+[@2 INFO] "ExtractStructString" ran successfully (elapsed 1.3e-05 s).
+[@2 INFO] Running "ExtractStructLookupTable" ...
+[@2 INFO] "ExtractStructLookupTable" ran successfully (elapsed 8.8e-06 s).
+[@2 INFO] Running "ExtractStructNumber" ...
+[@2 INFO] "ExtractStructNumber" ran successfully (elapsed 4.5e-06 s).
+[@2 INFO] Running "ExtractStructString" ...
+[@2 INFO] "ExtractStructString" ran successfully (elapsed 3e-06 s).
+[@2 INFO] Running "ExtractStructString" ...
+[@2 INFO] "ExtractStructString" ran successfully (elapsed 1.7e-05 s).
+[@2 INFO] "SkipOnError" ran successfully (elapsed 24 s).
 [1;31m[@2 ERROR] "Workdir": Execution cancelled.[0m
 [1;31m[@2 ERROR] "ForEach": Execution cancelled.[0m
 [1;31m[@2 ERROR] Model script: Execution cancelled.[0m
-[@2 INFO] "CreateCubeOfProbabilityMaps" ran successfully (elapsed 5.4 s).
-[@2 INFO] Running "CalculateRExpression" ...
-[@2 INFO] "CalculateRExpression" ran successfully (elapsed 0.44 s).
-[@2 INFO] Running "AllocateTransitions" ...

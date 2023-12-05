@@ -1,3 +1,150 @@
-[@1 INFO] "LoadCategoricalMap" ran successfully (elapsed 0.11 s).
-[@1 INFO] Running "LoadCategoricalMap" ...
-[@1 INFO] Loading map "[E:/LULCC_CH]/Results/Dinamica_simulated_LULC/CALIBRATION/v1/simulated_LULC_scenario_CALIBRATION_simID_v1_year_2010.tif" ...
+[@1 INFO] "LoadCategoricalMap" ran successfully (elapsed 0.074 s).
+[@1 INFO] Running "MuxCategoricalMap" ...
+[@1 INFO] "MuxCategoricalMap" ran successfully (elapsed 3.7e-05 s).
+[@1 INFO] Running "CreateString" ...
+[@1 INFO] "CreateString" ran successfully (elapsed 2.8e-05 s).
+[@1 INFO] Running "LoadTable" ...
+[@1 INFO] Loading table "[E:/LULCC_CH]/Data/Allocation_parameters/Simulation/BAU/Allocation_param_table_2020.csv" ...
+[@1 INFO] "LoadTable" ran successfully (elapsed 0.048 s).
+[@1 INFO] Running "CalculateRExpression" ...
+[@1 INFO] "CalculateRExpression" ran successfully (elapsed 0.72 s).
+[@1 INFO] Running "ExtractStructTable" ...
+[@1 INFO] "ExtractStructTable" ran successfully (elapsed 1.9e-05 s).
+[@1 INFO] Running "ExtractStructTable" ...
+[@1 INFO] "ExtractStructTable" ran successfully (elapsed 6.5e-06 s).
+[@1 INFO] Running "CalculateRExpression" ...
+[1;31m[@1 ERROR] "CalculateRExpression": Execution cancelled.[0m
+[1;31m[@1 ERROR] "Group": Execution cancelled.[0m
+[1;31m[@1 ERROR] "ForEach": Execution cancelled.[0m
+[1;31m[@1 ERROR] "SkipOnError": Execution cancelled.[0m
+[1;31m[@1 ERROR] "Workdir": Execution cancelled.[0m
+[1;31m[@1 ERROR] "ForEach": Execution cancelled.[0m
+[1;31m[@1 ERROR] Model script: Execution cancelled.[0m
+[@1 INFO] Running "CalculateRExpression" ...
+[@1 INFO] "CalculateRExpression" ran successfully (elapsed 0.5 s).
+[@1 INFO] Running "ExtractStructTable" ...
+[@1 INFO] "ExtractStructTable" ran successfully (elapsed 1.9e-05 s).
+[@1 INFO] Running "ForEach" ...
+[@1 INFO]
+===[ Running step for element 4 ]===
+
+[@1 INFO] Running "Step" ...
+[@1 INFO] "Step" ran successfully (elapsed 4.1e-05 s).
+[@1 INFO] Running "Workdir" ...
+[@1 INFO] Running "SkipOnError" ...
+[@1 INFO] Running "CalculateRExpression" ...
+[1;32m[@1] R execution output:[0m
+[1;32m[@1] [1] "package 'data.table' was built under R version 4.2.3"
+[1] "package 'stringi' was built under R version 4.2.3"
+[1] "package 'stringr' was built under R version 4.2.3"
+[1] "package 'plyr' was built under R version 4.2.3"
+[1] "package 'readxl' was built under R version 4.2.3"
+[1] "package 'ggpubr' was built under R version 4.2.3"
+[1] "package 'ggplot2' was built under R version 4.2.3"
+[1] "package 'tidyverse' was built under R version 4.2.3"
+[1] "package 'tibble' was built under R version 4.2.3"
+[1] "package 'tidyr' was built under R version 4.2.3"
+[1] "package 'readr' was built under R version 4.2.3"
+[1] "package 'purrr' was built under R version 4.2.3"
+[1] "package 'dplyr' was built under R version 4.2.3"
+[1] "package 'forcats' was built under R version 4.2.3"
+[1] "package 'lubridate' was built under R version 4.2.3"
+[1] "package 'rstatix' was built under R version 4.2.3"
+[1] "package 'raster' was built under R version 4.2.3"
+[1] "package 'sp' was built under R version 4.2.3"
+[1] "package 'openxlsx' was built under R version 4.2.3"
+[0m
+[1;31m[@1 ERROR] R error output:[0m
+[1;31m[@1 ERROR] Loading required package: data.table
+Loading required package: stringi
+Loading required package: stringr
+Loading required package: plyr
+Loading required package: readxl
+Loading required package: ggpubr
+Loading required package: ggplot2
+
+Attaching package: 'ggpubr'
+
+The following object is masked from 'package:plyr':
+
+    mutate
+
+Loading required package: rlist
+Loading required package: tidyverse
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.4
+✔ forcats   1.0.0     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.0
+✔ purrr     1.0.2
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::arrange()     masks plyr::arrange()
+✖ dplyr::between()     masks data.table::between()
+✖ purrr::compact()     masks plyr::compact()
+✖ dplyr::count()       masks plyr::count()
+✖ dplyr::desc()        masks plyr::desc()
+✖ dplyr::failwith()    masks plyr::failwith()
+✖ dplyr::filter()      masks stats::filter()
+✖ dplyr::first()       masks data.table::first()
+✖ lubridate::hour()    masks data.table::hour()
+✖ dplyr::id()          masks plyr::id()
+✖ lubridate::isoweek() masks data.table::isoweek()
+✖ dplyr::lag()         masks stats::lag()
+✖ dplyr::last()        masks data.table::last()
+✖ lubridate::mday()    masks data.table::mday()
+✖ lubridate::minute()  masks data.table::minute()
+✖ lubridate::month()   masks data.table::month()
+✖ dplyr::mutate()      masks ggpubr::mutate(), plyr::mutate()
+✖ lubridate::quarter() masks data.table::quarter()
+✖ dplyr::rename()      masks plyr::rename()
+✖ lubridate::second()  masks data.table::second()
+✖ dplyr::summarise()   masks plyr::summarise()
+✖ dplyr::summarize()   masks plyr::summarize()
+✖ purrr::transpose()   masks data.table::transpose()
+✖ lubridate::wday()    masks data.table::wday()
+✖ lubridate::week()    masks data.table::week()
+✖ lubridate::yday()    masks data.table::yday()
+✖ lubridate::year()    masks data.table::year()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+Loading required package: rstatix
+
+Attaching package: 'rstatix'
+
+The following objects are masked from 'package:plyr':
+
+    desc, mutate
+
+The following object is masked from 'package:stats':
+
+    filter
+
+Loading required package: Dinamica
+Loading required package: raster
+Loading required package: sp
+
+Attaching package: 'raster'
+
+The following object is masked from 'package:rstatix':
+
+    select
+
+The following object is masked from 'package:dplyr':
+
+    select
+
+Loading required package: openxlsx
+[0m
+[@1 INFO] "CalculateRExpression" ran successfully (elapsed 6.4 s).
+[@1 INFO] Running "ExtractStructString" ...
+[@1 INFO] "ExtractStructString" ran successfully (elapsed 9.6e-06 s).
+[@1 INFO] Running "ExtractStructLookupTable" ...
+[@1 INFO] "ExtractStructLookupTable" ran successfully (elapsed 7e-06 s).
+[@1 INFO] Running "ExtractStructNumber" ...
+[@1 INFO] "ExtractStructNumber" ran successfully (elapsed 3.9e-06 s).
+[@1 INFO] Running "ExtractStructString" ...
+[@1 INFO] "ExtractStructString" ran successfully (elapsed 2.2e-06 s).
+[@1 INFO] Running "ExtractStructString" ...
+[@1 INFO] "ExtractStructString" ran successfully (elapsed 1.7e-05 s).
+[@1 INFO] "SkipOnError" ran successfully (elapsed 71 s).
+[1;31m[@1 ERROR] "Workdir": Execution cancelled.[0m
+[1;31m[@1 ERROR] "ForEach": Execution cancelled.[0m
+[1;31m[@1 ERROR] Model script: Execution cancelled.[0m

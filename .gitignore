@@ -15,8 +15,9 @@ Gdrive_api_auth.json
 /Results
 /PopulationModel_ValPar
 /Scenario_trans_rates
-/publication/test/nul
-/publication/LULCC_CH_ms_temp/nul
+/publication
 /Model/SetupDinamicaEGO-720_WIN.exe
-
+/LULCC_CH_user_files
+debug_[0-9].txt
+log_[0-9].txt
 
