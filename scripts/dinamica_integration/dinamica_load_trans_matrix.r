@@ -9,17 +9,15 @@
 ### A- Preparation
 ### =========================================================================
 
-#receive working directory
-wpath <- s1
 #wpath <- getwd()
 setwd(wpath)
 
 #Vector packages for loading
-packs<-c("data.table", "raster", "tidyverse","stringr", "readr", "xlsx",
-         "Dinamica", "readxl")
+packs <- c("data.table", "raster", "tidyverse", "stringr", "readr", "xlsx",
+           "Dinamica", "readxl")
 
-new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
-if(length(new.packs)) install.packages(new.packs)
+new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]
+if (length(new.packs)) install.packages(new.packs)
 
 # Load required packages
 invisible(lapply(packs, require, character.only = TRUE))
@@ -27,22 +25,7 @@ invisible(lapply(packs, require, character.only = TRUE))
 #send model tool vars to global environment
 list2env(readRDS("Tools/Model_tool_vars.rds"), .GlobalEnv)
 
-### =========================================================================
-### B- Receive information from Dinamica
-### =========================================================================
-
-#values for testing purposes
-# Simulation_year <- "2010"
-# Simulation_num <- "1"
-
-#Receive current simulation time
-Simulation_year <- v1
-
-#simulation number being performed
-Simulation_num <- v2
-
 #load table of simulations
-Control_table_path <- s2
 Simulation_table <- read.csv(Control_table_path)[Simulation_num,]
 
 #Vector name of Scenario to be tested as string or numeric (i.e. "BAU" etc.)
@@ -55,7 +38,7 @@ Simulation_ID <- Simulation_table$Simulation_ID.string
 Model_mode <- Simulation_table$Model_mode.string
 
 ### =========================================================================
-### B- Load Transition rate table and
+### B- Load Transition rate table and update to reflect any deterministic transitions
 ### =========================================================================
 
 #use scenario ID to grab folder path of scenario specific transition tables
@@ -68,13 +51,10 @@ Scenario_trans_table_file <- paste0(Scenario_trans_table_dir, "/", Scenario_ID, 
 Trans_table <- read_csv(Scenario_trans_table_file)
 
 #if statement to remove transitions if they are being implemented deterministicly
-if(grepl("simulation", Model_mode, ignore.case = TRUE) &
-    grepl("Y", Simulation_table$Deterministic_trans.string, ignore.case = TRUE)){
+if (grepl("simulation", Model_mode, ignore.case = TRUE) &
+  grepl("Y", Simulation_table$Deterministic_trans.string, ignore.case = TRUE)) {
 
   #remove transitions with initial class == glacier
   Trans_table <- Trans_table[Trans_table$`From*` != 19,]
 
 } #close if statement
-
-#Output table to Dinamica
-outputTable("Trans_rate_table", Trans_table)

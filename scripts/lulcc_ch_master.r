@@ -163,7 +163,6 @@ Model_tool_vars <- list(LULC_aggregation_path = "Tools/LULC_class_aggregation.xl
                         Param_grid_path = "Tools/param-grid.xlsx", #Path to model hyper parameter grids
                         Pred_table_path = "Tools/Predictor_table.xlsx", #Path to predictor table
                         Ref_grid_path = "Data/Ref_grid.gri",
-                        Scenario_specs_path = "Tools/Scenario_specifications.xlsx",
                         Calibration_param_dir = "Data/Allocation_parameters/Calibration",
                         Simulation_param_dir = "Data/Allocation_parameters/Simulation",
                         Trans_rate_table_dir = "Data/Transition_tables/prepared_trans_tables",

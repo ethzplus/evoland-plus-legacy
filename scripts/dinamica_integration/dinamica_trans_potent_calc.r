@@ -6,19 +6,51 @@
 #############################################################################
 
 ### =========================================================================
+### Receive Dinamica inputs
+### =========================================================================
+
+#receive control table path
+Control_table_path <- s1
+
+#Receive folder path for loading simulated LULC maps
+File_path_simulated_LULC_maps <- s2
+
+#receive working directory path
+wpath <- s3
+
+#Receive current simulation time
+Simulation_time_step <- v1
+
+#simulation number being performed
+Simulation_num <- v2
+
+### =========================================================================
+### Source R script
+### =========================================================================
+
+source("Scripts/Dinamica_integration/Dinamica_trans_potent_calc.R",
+       echo = TRUE,
+       verbose = TRUE)
+
+### =========================================================================
+### Send Dinamica outputs
+### =========================================================================
+
+outputString("probmap_folder_path", prob_map_folder)
+
+### =========================================================================
 ### A- Preparation
 ### =========================================================================
 
 #values for testing purposes
-# s3 <- "C:/Users/bblack/switchdrive/C.3_Modelling/LULCC_CH_HPC"
-# v1 <- 2020
-# v2 <- "1"
-# s1 <- "Tools/Simulation_control.csv"
-# s2 <- "Results/Dinamica_simulated_LULC/BAU/v6/simulated_LULC_scenario_BAU_simID_v6_year_"
+# wpath <- "C:/Users/bblack/switchdrive/C.3_Modelling/LULCC_CH_HPC"
+# Control_table_path <- "Tools/Simulation_control.csv"
+# File_path_simulated_LULC_maps <- "Results/Dinamica_simulated_LULC/BAU/v6/simulated_LULC_scenario_BAU_simID_v6_year_"
 # Model_mode <- "calibration"
+# Simulation_time_step <- 2020
+# Simulation_num <- "1"
 
-#receive working directory
-wpath <- s3
+#set working directory
 setwd(wpath)
 cat(paste0("Current working directory: ", getwd(), "\n"))
 
@@ -43,25 +75,17 @@ list2env(readRDS("Tools/Model_tool_vars.rds"), .GlobalEnv)
 #Load in the grid file we are using for spatial extent and CRS
 Ref_grid <- raster(Ref_grid_path)
 
-### =========================================================================
-### B- Receive information from Dinamica
-### =========================================================================
-
-#Receive current simulation time
-Simulation_time_step <- v1
-
-#simulation number being performed
-Simulation_num <- v2
-
 #load table of simulations
-Control_table_path <- s1
 Simulation_table <- read.csv(Control_table_path)[Simulation_num,]
-
-#Receive folder path for loading simulated LULC maps
-File_path_simulated_LULC_maps <- s2
 
 #Vector name of Scenario to be tested as string or numeric (i.e. "BAU" etc.)
 Scenario_ID <- Simulation_table$Scenario_ID.string
+
+#Vector name of climate scenario
+Climate_ID <- Simulation_table$Climate_ID.string
+
+#EI_intervention_ID
+EI_intervention_ID <- Simulation_table$EI_intervention_ID.string
 
 #Vector an ID for this run of the scenario (e.g V1)
 Simulation_ID <- Simulation_table$Simulation_ID.string
@@ -731,4 +755,3 @@ for (i in 1:nrow(Unique_trans)) {
 #Dinamica to indicate completion
 #Note strings must be vectorized for 'outputString to work
 cat(paste0("Probability maps saved to: ", prob_map_folder, " (class: ", class(prob_map_folder), ") \n"))
-outputString("probmap_folder_path", prob_map_folder)

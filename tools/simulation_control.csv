@@ -1,6 +1,6 @@
-Simulation_num.,Scenario_ID.string,Simulation_ID.string,Model_mode.string,Scenario_start.real,Scenario_end.real,Step_length.real,Parallel_TPC.string,Spatial_interventions.string,Completed.string,Deterministic_trans.string
-1,BAU,v6,Simulation,2020,2060,5,N,Y,N,Y
-2,EI_NAT,v6,Simulation,2020,2060,5,N,Y,N,Y
-3,EI_CUL,v6,Simulation,2020,2060,5,N,Y,N,Y
-4,EI_SOC,v6,Simulation,2020,2060,5,N,Y,N,Y
-5,GR_EX,v6,Simulation,2020,2060,5,N,Y,N,Y
+Simulation_num.,Scenario_ID.string,Simulation_ID.string,Model_mode.string,Scenario_start.real,Scenario_end.real,Step_length.real,Parallel_TPC.string,Pop_scenario,Econ_scenario,Climate_scenario,Spatial_interventions.string,,Deterministic_trans.string,Completed.string
+1,BAU,v6_ID1,Simulation,2020,2060,5,N,,,,Y,N,Y,
+2,EI_NAT,v6_ID2,Simulation,2020,2060,5,N,,,,Y,N,Y,
+3,EI_CUL,v6_ID3,Simulation,2020,2060,5,N,,,,Y,N,Y,
+4,EI_SOC,v6_ID4,Simulation,2020,2060,5,N,,,,Y,N,Y,
+5,GR_EX,v6_ID5,Simulation,2020,2060,5,N,,,,Y,N,Y,
