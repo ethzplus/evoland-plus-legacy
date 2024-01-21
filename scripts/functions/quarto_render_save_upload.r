@@ -18,9 +18,6 @@
 #' @export
 #'
 
-Quarto_path <-
-
-
 Quarto_render_save_upload <- function(Quarto_path, File_ext, Trackdown_auth_path){
 
 #vector output path
@@ -44,7 +41,6 @@ if(grepl("Error : A file with this name already exists in GoogleDrive", file_exi
 }
 
 #test
-#Quarto_render_save_upload(Quarto_path = "publication/LULCC_CH_ms.qmd",
-#                          Trackdown_auth_path = "Gdrive_api_auth.json",
-#                          File_ext = "pdf")
+# Quarto_render_save_upload(Quarto_path = "publication/LULCC_CH_ms.qmd",
+#                           File_ext = "pdf")
 
