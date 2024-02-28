@@ -21,9 +21,6 @@ if (length(new.packs)) install.packages(new.packs)
 # Load required packages
 invisible(lapply(packs, require, character.only = TRUE))
 
-#send model tool vars to global environment
-list2env(readRDS("Tools/Model_tool_vars.rds"), .GlobalEnv)
-
 #load table of simulations
 Simulation_table <- read.csv(Control_table_path)[Simulation_num,]
 
@@ -35,6 +32,10 @@ Simulation_ID <- Simulation_table$Simulation_ID.string
 
 #Define model_mode: Calibration or Simulation
 Model_mode <- Simulation_table$Model_mode.string
+
+#load the ref_grid to use the crs
+ref_grid <- raster(Ref_grid_path)
+
 
 ### =========================================================================
 ### B- Implement deterministic glacial transitions
@@ -80,6 +81,11 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE) &
   #convert back to raster
   Updated_raster <- rasterFromXYZ(LULC_dat[, c("x", "y", Value_col)])
 
+  #add the project CRS
+  crs(Updated_raster) <- crs(ref_grid)
+
   #save updated LULC raster
   writeRaster(Updated_raster, File_path_simulated_LULC_maps, overwrite = TRUE, datatype = "INT1U")
 }
+
+

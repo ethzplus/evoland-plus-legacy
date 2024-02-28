@@ -10,3 +10,5 @@ Simulated_lulc_year <- paste((Time_step + Step_length))
 
 #paste together and include '.tif' as the file type
 Final_lULC_path <- paste0(LULC_base_path, Simulated_lulc_year, ".tif")
+
+

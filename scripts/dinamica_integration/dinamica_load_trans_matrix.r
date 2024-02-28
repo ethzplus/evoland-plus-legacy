@@ -9,8 +9,8 @@
 ### A- Preparation
 ### =========================================================================
 
-#wpath <- getwd()
-setwd(wpath)
+# #wpath <- getwd()
+# setwd(wpath)
 
 #Vector packages for loading
 packs <- c("data.table", "raster", "tidyverse", "stringr", "readr", "xlsx",
@@ -21,9 +21,6 @@ if (length(new.packs)) install.packages(new.packs)
 
 # Load required packages
 invisible(lapply(packs, require, character.only = TRUE))
-
-#send model tool vars to global environment
-list2env(readRDS("Tools/Model_tool_vars.rds"), .GlobalEnv)
 
 #load table of simulations
 Simulation_table <- read.csv(Control_table_path)[Simulation_num,]

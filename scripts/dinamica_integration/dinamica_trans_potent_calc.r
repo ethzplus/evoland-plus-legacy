@@ -6,52 +6,15 @@
 #############################################################################
 
 ### =========================================================================
-### Receive Dinamica inputs
-### =========================================================================
-
-#receive control table path
-Control_table_path <- s1
-
-#Receive folder path for loading simulated LULC maps
-File_path_simulated_LULC_maps <- s2
-
-#receive working directory path
-wpath <- s3
-
-#Receive current simulation time
-Simulation_time_step <- v1
-
-#simulation number being performed
-Simulation_num <- v2
-
-### =========================================================================
-### Source R script
-### =========================================================================
-
-source("Scripts/Dinamica_integration/Dinamica_trans_potent_calc.R",
-       echo = TRUE,
-       verbose = TRUE)
-
-### =========================================================================
-### Send Dinamica outputs
-### =========================================================================
-
-outputString("probmap_folder_path", prob_map_folder)
-
-### =========================================================================
 ### A- Preparation
 ### =========================================================================
 
-#values for testing purposes
-# wpath <- "C:/Users/bblack/switchdrive/C.3_Modelling/LULCC_CH_HPC"
-# Control_table_path <- "Tools/Simulation_control.csv"
-# File_path_simulated_LULC_maps <- "Results/Dinamica_simulated_LULC/BAU/v6/simulated_LULC_scenario_BAU_simID_v6_year_"
-# Model_mode <- "calibration"
+# #values for testing purposes
+# wpath <- "E:/LULCC_CH_Ensemble"
 # Simulation_time_step <- 2020
 # Simulation_num <- "1"
 
 #set working directory
-setwd(wpath)
 cat(paste0("Current working directory: ", getwd(), "\n"))
 
 #Vector packages for loading
@@ -69,25 +32,31 @@ invisible(lapply(packs, require, character.only = TRUE))
 #load function for spatial transition probability manipulation
 invisible(source("Scripts/Functions/lulcc.spatprobmanipulation.R"))
 
-#send model tool vars to global environment
-list2env(readRDS("Tools/Model_tool_vars.rds"), .GlobalEnv)
+#load function for ei interventions
+invisible(source("Scripts/Functions/lulcc.eiintervention.R"))
 
 #Load in the grid file we are using for spatial extent and CRS
 Ref_grid <- raster(Ref_grid_path)
 
-#load table of simulations
-Simulation_table <- read.csv(Control_table_path)[Simulation_num,]
+#load table of simulations subsetting to current simulation
+Simulation_table <- read.csv(Sim_control_path)[Simulation_num,]
 
 #Vector name of Scenario to be tested as string or numeric (i.e. "BAU" etc.)
 Scenario_ID <- Simulation_table$Scenario_ID.string
 
 #Vector name of climate scenario
-Climate_ID <- Simulation_table$Climate_ID.string
+Climate_ID <- Simulation_table$Climate_scenario.string
+
+#Vector name of Economic scenario
+Econ_ID <- Simulation_table$Econ_scenario.string
+
+#Vector name of Population scenario
+Pop_ID <- Simulation_table$Pop_scenario.string
 
 #EI_intervention_ID
-EI_intervention_ID <- Simulation_table$EI_intervention_ID.string
+EI_ID <- Simulation_table$EI_ID.string
 
-#Vector an ID for this run of the scenario (e.g V1)
+#Vector ID for this run of the scenario (e.g V1)
 Simulation_ID <- Simulation_table$Simulation_ID.string
 
 #Define model_mode: Calibration or Simulation
@@ -98,6 +67,9 @@ Use_parallel <- Simulation_table$Parallel_TPC.string
 
 #implement spatial interventions
 Use_interventions <- Simulation_table$Spatial_interventions.string
+
+#implement EI interventions
+Use_EI_interventions <- Simulation_table$EI_interventions.string
 
 #check normalisation of transition probabilities
 Check_normalisation <- FALSE
@@ -110,7 +82,7 @@ cat(paste0(" - loading maps from: ", File_path_simulated_LULC_maps, "\n"))
 #Convert model mode into a string of the dates calibration period being used
 #this makes it easier to load files because they use this nomenclature
 
-Calibration_periods <- unique(readxl::read_excel(Model_specs_path)[["Data_period_name"]])
+Calibration_periods <- unique(read.csv(Model_specs_path)[["Data_period_name"]])
 
 Calibration_dates <- lapply(Calibration_periods, function(period) {
   dates <- as.numeric(str_split(period, "_")[[1]])
@@ -131,14 +103,14 @@ Period_tag <- if (grepl("calibration", Model_mode, ignore.case = TRUE)) {
 #and when the model is in simulation mode
 
 #create folder for saving prediction probability maps
-prob_map_folder <- paste0(wpath, "/Results/Pred_prob_maps/", Scenario_ID, "/", Simulation_ID, "/", Simulation_time_step)
+prob_map_folder <- paste0(wpath, "/Results/Pred_prob_maps/", Simulation_ID, "/", Simulation_time_step)
 suppressWarnings(dir.create(prob_map_folder, recursive = TRUE))
 
 cat(paste0(" - creating directory for saving probability maps: ", prob_map_folder, "\n"))
 
 
 ### =========================================================================
-### C- Retrieve current LULC map and layerize
+### B- Retrieve current LULC map and layerize
 ### =========================================================================
 
 #replace Dinamica escape character in file path with current time step
@@ -162,7 +134,7 @@ names(LULC_data) <- sapply(str_remove_all(names(LULC_data), "X"), function(y) {
 })
 
 ### =========================================================================
-### D- Load Suitability and Accessibility predictors
+### C- Load Suitability and Accessibility predictors
 ### =========================================================================
 
 #use model mode string to select correct folder
@@ -193,17 +165,20 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
   pred_details <- openxlsx::read.xlsx(Pred_table_path, sheet = paste(Simulation_time_step))
 
   #convert scenario column back to character vectors
-  pred_details$Scenario <- sapply(pred_details$Scenario, function(x) unlist(strsplit(x, ",")))
+  pred_details$Scenario_variant <- sapply(pred_details$Scenario_variant, function(x) unlist(strsplit(x, ",")))
 
   #first seperate static variables scenario = "All""
-  preds_static <- pred_details[pred_details$Scenario == "All",]
+  preds_static <- pred_details[pred_details$Scenario_variant == "All",]
 
-  #then those relevant for the scenario, necessary to do it this way
-  #because some rows contain multiple values for scenario
-  preds_scenario <- pred_details[grep(Scenario_ID, pred_details$Scenario),]
+  #then those relevant for the scenario variant
+  #first the climate predictors based on the RCP designation
+  preds_climate <- pred_details[grep(Climate_ID, pred_details$Scenario_variant),]
+
+  #Then the economic predictors
+  preds_economic <- pred_details[grep(Econ_ID, pred_details$Scenario_variant),]
 
   #bind static and scenario specific preds
-  preds_scenario <- rbind(preds_static, preds_scenario)
+  preds_scenario <- rbind(preds_static, preds_climate, preds_economic)
 
   #load layers as raster::stack
   SA_pred_stack <- raster::stack(preds_scenario$Prepared_data_path)
@@ -298,13 +273,8 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
     Muni_urban_areas$Perc_pop[[i]] <- predict(canton_model, newdata = Muni_urban_areas[Muni_urban_areas$ID == i,])
   }
 
-  #Our scenarios rely on specific population projects from FSO ("Ref", "High", "Low")
-  #Identify which population scenario is required according to scenario being simulated
-  Scenario_data_table <- openxlsx::read.xlsx("Tools/Scenario_specifications.xlsx", sheet = "Predictor_data")
-  Pop_scenario <- Scenario_data_table[Scenario_data_table$Scenario_ID == Scenario_ID, "FSO_pop_scenario"]
-
   #load correct sheet of future population predictions according to scenario
-  Pop_prediction_table <- openxlsx::read.xlsx("Data/Preds/Tools/Population_projections.xlsx", sheet = Pop_scenario)
+  Pop_prediction_table <- openxlsx::read.xlsx("Data/Preds/Tools/Population_projections.xlsx", sheet = Pop_ID)
 
   #loop over unique kanton numbers, rescale the predicted population percentages
   #and calculate the estimated population per municipality as a % of the cantonal total
@@ -407,12 +377,10 @@ cat("Stacking LULC, SA_preds and Nhood_preds \n")
 if (grepl("calibration", Model_mode, ignore.case = TRUE)) {
   Trans_data_stack <- stack(LULC_data, SA_pred_stack)
   names(Trans_data_stack) <- c(names(LULC_data), names(SA_pred_stack@layers))
-} #close if statement calibration
-
+} else if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
   #For simulation mode
   #only stack the Nhood_rasters here because otherwise they were not included
   #in the upper stack function
-else if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
 
   #load the raster of Bioregions
   Bioregion_rast <- raster("Data/Bioreg_CH/Bioreg_raster.gri")
@@ -421,9 +389,7 @@ else if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
   cat(" - Stacked all layers \n")
   names(Trans_data_stack) <- c(names(LULC_data), names(SA_pred_stack@layers), names(pop_raster), names(Nhood_rasters), names(Bioregion_rast))
   cat(" - Renamed layers \n")
-} #close simulation if statement
-
-else {
+} else {
   stop("Model mode not recognised!")
 }
 
@@ -640,6 +606,9 @@ Raster_prob_values <- rbind(Prediction_probs, Trans_dataset_na)
 #sort by ID
 Raster_prob_values <- Raster_prob_values[order(as.numeric(row.names(Raster_prob_values))),]
 
+test_set <- Raster_prob_values
+test_2 <- Raster_prob_values
+
 #Save one copy of the raster probability values to be used to test
 #spatial interventions, this file will be created during the running of the model
 #to calibrate the Dinamica allocation parameters.
@@ -649,7 +618,7 @@ Raster_prob_values <- Raster_prob_values[order(as.numeric(row.names(Raster_prob_
 # }
 
 ### =========================================================================
-### H- Spatial manipulations of transition probabilities
+### H- Scenario specific trends spatially manipulating transition probabilities
 ### =========================================================================
 
 if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
@@ -659,39 +628,74 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
 
     cat("Implementing spatial interventions \n")
 
-    #load table of scenario interventions
-    Interventions <- openxlsx::read.xlsx(Scenario_specs_path, sheet = "Interventions")
-
     #Use function to perform manipulation of spatial transition probabilities
     #according to scenario-specific interventions
-    Raster_prob_values <- lulcc.spatprobmanipulation(Interventions = Interventions,
+    Raster_prob_values <- lulcc.spatprobmanipulation(Intervention_table_path = Spat_ints_path,
                                                      Scenario_ID = Scenario_ID,
                                                      Raster_prob_values = Raster_prob_values,
                                                      Simulation_time_step = paste(Simulation_time_step))
+
+
+    ### =========================================================================
+    ### I- Rescale following scenario trends/interventions
+    ### =========================================================================
+
+    cat("Performing re-scaling following scenario interventions \n")
+
+    #vector row indices with non-zero sums of transition probabilities
+    Non_zero_indices <- which(rowSums(Raster_prob_values[, Pred_prob_columns]) > 1)
+
+    #Loop over rows performing re-scaling
+    Raster_prob_values[Non_zero_indices, Pred_prob_columns] <- as.data.frame(t(apply(Raster_prob_values[Non_zero_indices, Pred_prob_columns], MARGIN = 1, FUN = function(x) {
+      sapply(x, function(y) {
+        value <- y * 1 / sum(x)
+        value[is.na(value)] <- 0 #dividing by Zero introduces NA's so these must be converted back to zero
+        return(value)
+      })
+    })))
+
   } #close if statement for spatial interventions
 
+  ### =========================================================================
+  ### J- EI interventions spatially manipulating transition probabilities
+  ### =========================================================================
+
+  #If statement to implement spatial interventions
+  if (Use_EI_interventions == "Y") {
+
+    cat("Implementing EI interventions \n")
+
+    #Use function to perform manipulation of spatial transition probabilities
+    #according to scenario-specific interventions
+    Raster_prob_values <- lulcc.eiintervention(Intervention_table_path = EI_ints_path,
+                                               EI_ID = EI_ID,
+                                               Raster_prob_values = Raster_prob_values,
+                                               Simulation_time_step = paste(Simulation_time_step))
+
+
+    ### =========================================================================
+    ### K- Rescale following EI interventions
+    ### =========================================================================
+
+    cat("Performing additional re-scaling following EI interventions \n")
+
+    #vector row indices with non-zero sums of transition probabilities
+    Non_zero_indices <- which(rowSums(Raster_prob_values[, Pred_prob_columns]) > 1)
+
+    #Loop over rows performing re-scaling
+    Raster_prob_values[Non_zero_indices, Pred_prob_columns] <- as.data.frame(t(apply(Raster_prob_values[Non_zero_indices, Pred_prob_columns], MARGIN = 1, FUN = function(x) {
+      sapply(x, function(y) {
+        value <- y * 1 / sum(x)
+        value[is.na(value)] <- 0 #dividing by Zero introduces NA's so these must be converted back to zero
+        return(value)
+      })
+    })))
+
+  } #close if statement for spatial interventions
 } #close simulation if statement
 
 ### =========================================================================
-### I- Final rescaling
-### =========================================================================
-
-cat("Performing final re-scaling \n")
-
-#vector row indices with non-zero sums of transition probabilities
-Non_zero_indices <- which(rowSums(Raster_prob_values[, Pred_prob_columns]) > 1)
-
-#Loop over rows performing re-scaling
-Raster_prob_values[Non_zero_indices, Pred_prob_columns] <- as.data.frame(t(apply(Raster_prob_values[Non_zero_indices, Pred_prob_columns], MARGIN = 1, FUN = function(x) {
-  sapply(x, function(y) {
-    value <- y * 1 / sum(x)
-    value[is.na(value)] <- 0 #dividing by Zero introduces NA's so these must be converted back to zero
-    return(value)
-  })
-})))
-
-### =========================================================================
-### J- Save transition rasters
+### L- Save transition rasters
 ### =========================================================================
 
 cat("Saving transition rasters \n")
@@ -750,6 +754,11 @@ for (i in 1:nrow(Unique_trans)) {
 
   raster::writeRaster(Prob_raster, prob_map_path, overwrite = T)
 } #close loop over transitions
+
+
+### =========================================================================
+### M- Return output to Dinamica
+### =========================================================================
 
 #Return the probability map folder path as a string to
 #Dinamica to indicate completion
