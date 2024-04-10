@@ -80,7 +80,7 @@ lulcc.eiintervention <- function(Intervention_table_path,
 
         #for the EI Nature and EI society scenarios the management of protected areas is strict and
         #hence probability of target classes is reduced to 0 inside the EI areas
-        if (Scenario_ID == "EI_NAT" || Scenario_ID == "EI_SOC") {
+        if (Scenario_ID == "EINAT" || Scenario_ID == "EISOC") {
 
           #decrease probability to zero
           Intersecting[Intersecting > 0] <- 0
@@ -94,7 +94,7 @@ lulcc.eiintervention <- function(Intervention_table_path,
 
           #for the EI_CUL and BAU scenarios the management of protected areas is less strict and
           #probability is reduced relative the probability of the target class pixels outside the EI areas
-        }else if (Scenario_ID == "EI_CUL" || Scenario_ID == "BAU") {
+        }else if (Scenario_ID == "EICUL" || Scenario_ID == "BAU") {
 
           #identify pixels outside of EI areas
           non_intersecting <- overlay(Prob_raster_stack@layers[[class]], Intervention_rast, fun = function(x, y) {

@@ -14,7 +14,7 @@ Control_table <- read.csv(Control_table_path)
 if (grepl("TRUE", Success, ignore.case = TRUE)) {
   Control_table[Control_table$Simulation_num. == Simulation_num, "Completed.string"] <- "Y"
   cat("Simulation was completed successfully")
-}else {
+} else {
   Control_table[Control_table$Simulation_num. == Simulation_num, "Completed.string"] <- "ERROR"
   cat("Simulation encountered an error")
 }

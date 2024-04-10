@@ -10,6 +10,7 @@
 #' @param Raster_prob_values Dataframe, predicted cellular transitions
 #'                            probabilities with x,y and cell ID cols
 #' @param Simulation_time_step Chr, current simultion time step
+#' @param LULC_rat dataframe, raster attribute table for LULC column
 #'
 #' @author Ben Black
 #' @export
@@ -18,7 +19,8 @@
 lulcc.spatprobmanipulation <- function(Intervention_table_path,
                                        Scenario_ID,
                                        Raster_prob_values,
-                                       Simulation_time_step) {
+                                       Simulation_time_step,
+                                       LULC_rat) {
 
   #vector names of columns of probability predictions (matching on Prob_)
   Pred_prob_columns <- grep("Prob_", names(Raster_prob_values), value = TRUE)
@@ -50,6 +52,9 @@ lulcc.spatprobmanipulation <- function(Intervention_table_path,
 
   #loop over rows
   if (nrow(Current_interventions) != 0) {
+
+    cat(paste0("Preparing to implement: ", nrow(Current_interventions), " according to scenario specifications for this time step \n"))
+
     for (i in nrow(Current_interventions)) {
 
       #vector intervention details for easy reference
@@ -80,6 +85,8 @@ lulcc.spatprobmanipulation <- function(Intervention_table_path,
 
         #replace values in target raster
         Prob_raster_stack@layers[[Target_classes]][ix] <- Intersecting[ix]
+
+        cat("Implemented Urban densification intervention \n")
 
       } #close Urban_densification chunk
 
@@ -164,6 +171,7 @@ lulcc.spatprobmanipulation <- function(Intervention_table_path,
           negative_test <- Prob_raster_stack@layers[[Target_classes]]
         } #close else if statement
 
+        cat("Implemented Urban sprawl intervention \n")
       } #close Urban_sprawl chunk
 
       #--------------------------------------------------------------------------
@@ -253,6 +261,7 @@ lulcc.spatprobmanipulation <- function(Intervention_table_path,
           Prob_raster_stack@layers[[Target_classes]][ix] <- non_intersecting[ix]
         } #close else if statement
 
+        cat("Implemented Urban migration intervention \n")
       } #close Urban_migration chunk
 
       #--------------------------------------------------------------------------
@@ -267,11 +276,11 @@ lulcc.spatprobmanipulation <- function(Intervention_table_path,
         Leg <- Intervention_rast@data@attributes[[1]]
 
         #For this intervention there are two different specs for scenarios
-        #EI_NAT: 314
-        #EI_SOC: 314,334
-        if (Scenario_ID == "EI_NAT") {
+        #EI-NAT: 314
+        #EI-SOC: 314,334
+        if (Scenario_ID == "EINAT") {
           Leg[Leg$ID == 314, "type"] <- 1
-        } else if (Scenario_ID == "EI_SOC") {
+        } else if (Scenario_ID == "EISOC") {
           Leg[Leg$ID %in% c(314, 334), "type"] <- 1
         }
 
@@ -352,6 +361,7 @@ lulcc.spatprobmanipulation <- function(Intervention_table_path,
           Prob_raster_stack@layers[[Target_classes]][ix] <- non_intersecting[ix]
         } #close else if statement
 
+        cat("Implemented Mountain development intervention \n")
       } #close Mountain_development chunk
 
       #--------------------------------------------------------------------------
@@ -442,6 +452,7 @@ lulcc.spatprobmanipulation <- function(Intervention_table_path,
           Prob_raster_stack@layers[[Target_classes]][ix] <- non_intersecting[ix]
         } #close else if statement
 
+        cat("Implemented rural migration intervention \n")
       } #close Rural_migration chunk
 
       #--------------------------------------------------------------------------
@@ -494,9 +505,13 @@ lulcc.spatprobmanipulation <- function(Intervention_table_path,
         Marginality_rast <- calc(stack(Dist2rds, Slope, Elev, Dist2BZ), mean)
 
         #subset the marginality raster to only the pixels of the agricultural
-        #land types (Int_AG, Alp_Past)
-        Agri_rast <- rasterFromXYZ(Raster_prob_values[, c("x", "y", "Alp_Past")])
-        Agri_rast[Agri_rast == 0] <- NA
+        #land types: Alp_Past
+
+        #get class value from LULC_rat
+        Agri_class <- unlist(LULC_rat[LULC_rat$Class_abbreviation == "Alp_Past", "Aggregated_ID"])
+
+        Agri_rast <- rasterFromXYZ(Raster_prob_values[, c("x", "y", "LULC")])
+        Agri_rast[Agri_rast != Agri_class] <- NA
         Agri_marginality <- mask(Marginality_rast, Agri_rast)
 
 
@@ -548,6 +563,7 @@ lulcc.spatprobmanipulation <- function(Intervention_table_path,
 
         } #close loop over target classes
 
+        cat("Implemented agricultural abandonment intervention \n")
       } #close Agri_abandonment chunk
 
       #--------------------------------------------------------------------------
@@ -596,9 +612,12 @@ lulcc.spatprobmanipulation <- function(Intervention_table_path,
         Marginality_rast <- calc(stack(Dist2rds, Slope, Elev, Dist2BZ), mean)
 
         #subset the marginality raster to only the pixels of the agricultural
-        #land types (Int_AG, Alp_Past)
-        Agri_rast <- rasterFromXYZ(Raster_prob_values[, c("x", "y", "Alp_Past")])
-        Agri_rast[Agri_rast == 0] <- NA
+        #land types: Alp_Past
+        #get class value from LULC_rat
+        Agri_class <- unlist(LULC_rat[LULC_rat$Class_abbreviation == "Alp_Past", "Aggregated_ID"])
+
+        Agri_rast <- rasterFromXYZ(Raster_prob_values[, c("x", "y", "LULC")])
+        Agri_rast[Agri_rast != Agri_class] <- NA
         Agri_marginality <- mask(Marginality_rast, Agri_rast)
 
         #calculate the upper quartile value of marginality for the agricultural cells
@@ -634,10 +653,15 @@ lulcc.spatprobmanipulation <- function(Intervention_table_path,
 
         } #close loop over target classes
 
+        cat("Implemented agricultural maintenance intervention \n")
       } #close Agri_maintenance chunk
 
 
     } #close loop over interventions
+
+#--------------------------------------------------------------------------
+# Data tranformation
+#--------------------------------------------------------------------------
 
     #convert raster stack back to dataframe
     Prob_df <- raster::as.data.frame(Prob_raster_stack)
@@ -647,9 +671,9 @@ lulcc.spatprobmanipulation <- function(Intervention_table_path,
 
     #subset to only the prediction and spatial info cols
     #Raster_prob_values <- Raster_prob_values[,c("ID", "x", "y", Pred_prob_columns)]
+
+    cat("Converted probability rasters back to data.frame \n")
   } #close if statement
 
   return(Raster_prob_values)
-}
-
-# close function
+}# close function

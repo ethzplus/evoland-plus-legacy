@@ -107,114 +107,114 @@
 "Large_patches","2035","Lagged","0.3","Preservation","Agri_unproductive",106,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
 "Small_patches","2035","Lagged","0.3","Preservation","Agri_unproductive",107,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
 "Connectivity","2035","Lagged","0.3","Preservation","Agri_unproductive",108,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
-"Large_patches","2020","Steady","0.22","Restoration","Agri_unproductive",109,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Steady","0.22","Restoration","Agri_unproductive",110,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Steady","0.22","Restoration","Agri_unproductive",111,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Steady","0.22","Restoration","Agri_unproductive",112,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Steady","0.22","Restoration","Agri_unproductive",113,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Steady","0.22","Restoration","Agri_unproductive",114,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Steady","0.22","Restoration","Agri_unproductive",115,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Steady","0.22","Restoration","Agri_unproductive",116,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Steady","0.22","Restoration","Agri_unproductive",117,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Steady","0.22","Restoration","Agri_unproductive",118,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Steady","0.22","Restoration","Agri_unproductive",119,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Steady","0.22","Restoration","Agri_unproductive",120,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Rapid","0.22","Restoration","Agri_unproductive",121,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Rapid","0.22","Restoration","Agri_unproductive",122,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Rapid","0.22","Restoration","Agri_unproductive",123,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Rapid","0.22","Restoration","Agri_unproductive",124,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Rapid","0.22","Restoration","Agri_unproductive",125,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Rapid","0.22","Restoration","Agri_unproductive",126,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Rapid","0.22","Restoration","Agri_unproductive",127,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Rapid","0.22","Restoration","Agri_unproductive",128,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Rapid","0.22","Restoration","Agri_unproductive",129,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Rapid","0.22","Restoration","Agri_unproductive",130,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Rapid","0.22","Restoration","Agri_unproductive",131,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Rapid","0.22","Restoration","Agri_unproductive",132,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Lagged","0.22","Restoration","Agri_unproductive",133,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Lagged","0.22","Restoration","Agri_unproductive",134,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Lagged","0.22","Restoration","Agri_unproductive",135,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Lagged","0.22","Restoration","Agri_unproductive",136,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Lagged","0.22","Restoration","Agri_unproductive",137,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Lagged","0.22","Restoration","Agri_unproductive",138,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Lagged","0.22","Restoration","Agri_unproductive",139,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Lagged","0.22","Restoration","Agri_unproductive",140,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Lagged","0.22","Restoration","Agri_unproductive",141,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Lagged","0.22","Restoration","Agri_unproductive",142,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Lagged","0.22","Restoration","Agri_unproductive",143,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Lagged","0.22","Restoration","Agri_unproductive",144,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Steady","0.25","Restoration","Agri_unproductive",145,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Steady","0.25","Restoration","Agri_unproductive",146,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Steady","0.25","Restoration","Agri_unproductive",147,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Steady","0.25","Restoration","Agri_unproductive",148,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Steady","0.25","Restoration","Agri_unproductive",149,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Steady","0.25","Restoration","Agri_unproductive",150,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Steady","0.25","Restoration","Agri_unproductive",151,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Steady","0.25","Restoration","Agri_unproductive",152,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Steady","0.25","Restoration","Agri_unproductive",153,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Steady","0.25","Restoration","Agri_unproductive",154,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Steady","0.25","Restoration","Agri_unproductive",155,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Steady","0.25","Restoration","Agri_unproductive",156,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Rapid","0.25","Restoration","Agri_unproductive",157,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Rapid","0.25","Restoration","Agri_unproductive",158,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Rapid","0.25","Restoration","Agri_unproductive",159,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Rapid","0.25","Restoration","Agri_unproductive",160,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Rapid","0.25","Restoration","Agri_unproductive",161,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Rapid","0.25","Restoration","Agri_unproductive",162,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Rapid","0.25","Restoration","Agri_unproductive",163,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Rapid","0.25","Restoration","Agri_unproductive",164,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Rapid","0.25","Restoration","Agri_unproductive",165,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Rapid","0.25","Restoration","Agri_unproductive",166,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Rapid","0.25","Restoration","Agri_unproductive",167,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Rapid","0.25","Restoration","Agri_unproductive",168,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Lagged","0.25","Restoration","Agri_unproductive",169,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Lagged","0.25","Restoration","Agri_unproductive",170,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Lagged","0.25","Restoration","Agri_unproductive",171,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Lagged","0.25","Restoration","Agri_unproductive",172,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Lagged","0.25","Restoration","Agri_unproductive",173,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Lagged","0.25","Restoration","Agri_unproductive",174,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Lagged","0.25","Restoration","Agri_unproductive",175,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Lagged","0.25","Restoration","Agri_unproductive",176,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Lagged","0.25","Restoration","Agri_unproductive",177,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Lagged","0.25","Restoration","Agri_unproductive",178,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Lagged","0.25","Restoration","Agri_unproductive",179,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Lagged","0.25","Restoration","Agri_unproductive",180,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Steady","0.3","Restoration","Agri_unproductive",181,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Steady","0.3","Restoration","Agri_unproductive",182,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Steady","0.3","Restoration","Agri_unproductive",183,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Steady","0.3","Restoration","Agri_unproductive",184,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Steady","0.3","Restoration","Agri_unproductive",185,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Steady","0.3","Restoration","Agri_unproductive",186,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Steady","0.3","Restoration","Agri_unproductive",187,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Steady","0.3","Restoration","Agri_unproductive",188,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Steady","0.3","Restoration","Agri_unproductive",189,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Steady","0.3","Restoration","Agri_unproductive",190,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Steady","0.3","Restoration","Agri_unproductive",191,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Steady","0.3","Restoration","Agri_unproductive",192,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Rapid","0.3","Restoration","Agri_unproductive",193,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Rapid","0.3","Restoration","Agri_unproductive",194,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Rapid","0.3","Restoration","Agri_unproductive",195,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Rapid","0.3","Restoration","Agri_unproductive",196,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Rapid","0.3","Restoration","Agri_unproductive",197,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Rapid","0.3","Restoration","Agri_unproductive",198,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Rapid","0.3","Restoration","Agri_unproductive",199,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Rapid","0.3","Restoration","Agri_unproductive",200,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Rapid","0.3","Restoration","Agri_unproductive",201,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Rapid","0.3","Restoration","Agri_unproductive",202,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Rapid","0.3","Restoration","Agri_unproductive",203,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Rapid","0.3","Restoration","Agri_unproductive",204,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Lagged","0.3","Restoration","Agri_unproductive",205,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Lagged","0.3","Restoration","Agri_unproductive",206,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Lagged","0.3","Restoration","Agri_unproductive",207,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Lagged","0.3","Restoration","Agri_unproductive",208,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Lagged","0.3","Restoration","Agri_unproductive",209,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Lagged","0.3","Restoration","Agri_unproductive",210,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Lagged","0.3","Restoration","Agri_unproductive",211,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Lagged","0.3","Restoration","Agri_unproductive",212,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Lagged","0.3","Restoration","Agri_unproductive",213,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Lagged","0.3","Restoration","Agri_unproductive",214,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Lagged","0.3","Restoration","Agri_unproductive",215,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Lagged","0.3","Restoration","Agri_unproductive",216,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
+"Large_patches","2020","Steady","0.22","Restoration","Agri_unproductive",109,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Steady","0.22","Restoration","Agri_unproductive",110,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Steady","0.22","Restoration","Agri_unproductive",111,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Steady","0.22","Restoration","Agri_unproductive",112,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Steady","0.22","Restoration","Agri_unproductive",113,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Steady","0.22","Restoration","Agri_unproductive",114,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Steady","0.22","Restoration","Agri_unproductive",115,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Steady","0.22","Restoration","Agri_unproductive",116,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Steady","0.22","Restoration","Agri_unproductive",117,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Steady","0.22","Restoration","Agri_unproductive",118,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Steady","0.22","Restoration","Agri_unproductive",119,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Steady","0.22","Restoration","Agri_unproductive",120,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Rapid","0.22","Restoration","Agri_unproductive",121,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Rapid","0.22","Restoration","Agri_unproductive",122,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Rapid","0.22","Restoration","Agri_unproductive",123,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Rapid","0.22","Restoration","Agri_unproductive",124,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Rapid","0.22","Restoration","Agri_unproductive",125,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Rapid","0.22","Restoration","Agri_unproductive",126,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Rapid","0.22","Restoration","Agri_unproductive",127,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Rapid","0.22","Restoration","Agri_unproductive",128,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Rapid","0.22","Restoration","Agri_unproductive",129,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Rapid","0.22","Restoration","Agri_unproductive",130,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Rapid","0.22","Restoration","Agri_unproductive",131,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Rapid","0.22","Restoration","Agri_unproductive",132,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Lagged","0.22","Restoration","Agri_unproductive",133,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Lagged","0.22","Restoration","Agri_unproductive",134,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Lagged","0.22","Restoration","Agri_unproductive",135,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Lagged","0.22","Restoration","Agri_unproductive",136,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Lagged","0.22","Restoration","Agri_unproductive",137,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Lagged","0.22","Restoration","Agri_unproductive",138,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Lagged","0.22","Restoration","Agri_unproductive",139,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Lagged","0.22","Restoration","Agri_unproductive",140,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Lagged","0.22","Restoration","Agri_unproductive",141,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Lagged","0.22","Restoration","Agri_unproductive",142,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Lagged","0.22","Restoration","Agri_unproductive",143,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Lagged","0.22","Restoration","Agri_unproductive",144,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Steady","0.25","Restoration","Agri_unproductive",145,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Steady","0.25","Restoration","Agri_unproductive",146,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Steady","0.25","Restoration","Agri_unproductive",147,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Steady","0.25","Restoration","Agri_unproductive",148,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Steady","0.25","Restoration","Agri_unproductive",149,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Steady","0.25","Restoration","Agri_unproductive",150,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Steady","0.25","Restoration","Agri_unproductive",151,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Steady","0.25","Restoration","Agri_unproductive",152,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Steady","0.25","Restoration","Agri_unproductive",153,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Steady","0.25","Restoration","Agri_unproductive",154,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Steady","0.25","Restoration","Agri_unproductive",155,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Steady","0.25","Restoration","Agri_unproductive",156,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Rapid","0.25","Restoration","Agri_unproductive",157,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Rapid","0.25","Restoration","Agri_unproductive",158,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Rapid","0.25","Restoration","Agri_unproductive",159,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Rapid","0.25","Restoration","Agri_unproductive",160,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Rapid","0.25","Restoration","Agri_unproductive",161,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Rapid","0.25","Restoration","Agri_unproductive",162,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Rapid","0.25","Restoration","Agri_unproductive",163,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Rapid","0.25","Restoration","Agri_unproductive",164,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Rapid","0.25","Restoration","Agri_unproductive",165,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Rapid","0.25","Restoration","Agri_unproductive",166,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Rapid","0.25","Restoration","Agri_unproductive",167,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Rapid","0.25","Restoration","Agri_unproductive",168,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Lagged","0.25","Restoration","Agri_unproductive",169,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Lagged","0.25","Restoration","Agri_unproductive",170,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Lagged","0.25","Restoration","Agri_unproductive",171,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Lagged","0.25","Restoration","Agri_unproductive",172,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Lagged","0.25","Restoration","Agri_unproductive",173,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Lagged","0.25","Restoration","Agri_unproductive",174,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Lagged","0.25","Restoration","Agri_unproductive",175,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Lagged","0.25","Restoration","Agri_unproductive",176,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Lagged","0.25","Restoration","Agri_unproductive",177,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Lagged","0.25","Restoration","Agri_unproductive",178,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Lagged","0.25","Restoration","Agri_unproductive",179,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Lagged","0.25","Restoration","Agri_unproductive",180,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Steady","0.3","Restoration","Agri_unproductive",181,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Steady","0.3","Restoration","Agri_unproductive",182,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Steady","0.3","Restoration","Agri_unproductive",183,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Steady","0.3","Restoration","Agri_unproductive",184,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Steady","0.3","Restoration","Agri_unproductive",185,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Steady","0.3","Restoration","Agri_unproductive",186,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Steady","0.3","Restoration","Agri_unproductive",187,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Steady","0.3","Restoration","Agri_unproductive",188,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Steady","0.3","Restoration","Agri_unproductive",189,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Steady","0.3","Restoration","Agri_unproductive",190,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Steady","0.3","Restoration","Agri_unproductive",191,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Steady","0.3","Restoration","Agri_unproductive",192,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Rapid","0.3","Restoration","Agri_unproductive",193,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Rapid","0.3","Restoration","Agri_unproductive",194,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Rapid","0.3","Restoration","Agri_unproductive",195,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Rapid","0.3","Restoration","Agri_unproductive",196,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Rapid","0.3","Restoration","Agri_unproductive",197,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Rapid","0.3","Restoration","Agri_unproductive",198,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Rapid","0.3","Restoration","Agri_unproductive",199,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Rapid","0.3","Restoration","Agri_unproductive",200,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Rapid","0.3","Restoration","Agri_unproductive",201,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Rapid","0.3","Restoration","Agri_unproductive",202,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Rapid","0.3","Restoration","Agri_unproductive",203,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Rapid","0.3","Restoration","Agri_unproductive",204,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Lagged","0.3","Restoration","Agri_unproductive",205,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Lagged","0.3","Restoration","Agri_unproductive",206,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Lagged","0.3","Restoration","Agri_unproductive",207,"2060",5,"BAU","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Lagged","0.3","Restoration","Agri_unproductive",208,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Lagged","0.3","Restoration","Agri_unproductive",209,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Lagged","0.3","Restoration","Agri_unproductive",210,"2060",5,"BAU","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Lagged","0.3","Restoration","Agri_unproductive",211,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Lagged","0.3","Restoration","Agri_unproductive",212,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Lagged","0.3","Restoration","Agri_unproductive",213,"2060",5,"BAU","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Lagged","0.3","Restoration","Agri_unproductive",214,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Lagged","0.3","Restoration","Agri_unproductive",215,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Lagged","0.3","Restoration","Agri_unproductive",216,"2060",5,"BAU","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
 "Large_patches","2020","Steady","0.22","Preservation","Biodiversity",217,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
 "Small_patches","2020","Steady","0.22","Preservation","Biodiversity",218,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
 "Connectivity","2020","Steady","0.22","Preservation","Biodiversity",219,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
@@ -323,114 +323,114 @@
 "Large_patches","2035","Lagged","0.3","Preservation","Biodiversity",322,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
 "Small_patches","2035","Lagged","0.3","Preservation","Biodiversity",323,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
 "Connectivity","2035","Lagged","0.3","Preservation","Biodiversity",324,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
-"Large_patches","2020","Steady","0.22","Restoration","Biodiversity",325,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Steady","0.22","Restoration","Biodiversity",326,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Steady","0.22","Restoration","Biodiversity",327,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Steady","0.22","Restoration","Biodiversity",328,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Steady","0.22","Restoration","Biodiversity",329,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Steady","0.22","Restoration","Biodiversity",330,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Steady","0.22","Restoration","Biodiversity",331,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Steady","0.22","Restoration","Biodiversity",332,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Steady","0.22","Restoration","Biodiversity",333,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Steady","0.22","Restoration","Biodiversity",334,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Steady","0.22","Restoration","Biodiversity",335,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Steady","0.22","Restoration","Biodiversity",336,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Rapid","0.22","Restoration","Biodiversity",337,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Rapid","0.22","Restoration","Biodiversity",338,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Rapid","0.22","Restoration","Biodiversity",339,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Rapid","0.22","Restoration","Biodiversity",340,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Rapid","0.22","Restoration","Biodiversity",341,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Rapid","0.22","Restoration","Biodiversity",342,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Rapid","0.22","Restoration","Biodiversity",343,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Rapid","0.22","Restoration","Biodiversity",344,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Rapid","0.22","Restoration","Biodiversity",345,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Rapid","0.22","Restoration","Biodiversity",346,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Rapid","0.22","Restoration","Biodiversity",347,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Rapid","0.22","Restoration","Biodiversity",348,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Lagged","0.22","Restoration","Biodiversity",349,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Lagged","0.22","Restoration","Biodiversity",350,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Lagged","0.22","Restoration","Biodiversity",351,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Lagged","0.22","Restoration","Biodiversity",352,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Lagged","0.22","Restoration","Biodiversity",353,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Lagged","0.22","Restoration","Biodiversity",354,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Lagged","0.22","Restoration","Biodiversity",355,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Lagged","0.22","Restoration","Biodiversity",356,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Lagged","0.22","Restoration","Biodiversity",357,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Lagged","0.22","Restoration","Biodiversity",358,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Lagged","0.22","Restoration","Biodiversity",359,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Lagged","0.22","Restoration","Biodiversity",360,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Steady","0.25","Restoration","Biodiversity",361,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Steady","0.25","Restoration","Biodiversity",362,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Steady","0.25","Restoration","Biodiversity",363,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Steady","0.25","Restoration","Biodiversity",364,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Steady","0.25","Restoration","Biodiversity",365,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Steady","0.25","Restoration","Biodiversity",366,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Steady","0.25","Restoration","Biodiversity",367,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Steady","0.25","Restoration","Biodiversity",368,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Steady","0.25","Restoration","Biodiversity",369,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Steady","0.25","Restoration","Biodiversity",370,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Steady","0.25","Restoration","Biodiversity",371,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Steady","0.25","Restoration","Biodiversity",372,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Rapid","0.25","Restoration","Biodiversity",373,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Rapid","0.25","Restoration","Biodiversity",374,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Rapid","0.25","Restoration","Biodiversity",375,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Rapid","0.25","Restoration","Biodiversity",376,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Rapid","0.25","Restoration","Biodiversity",377,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Rapid","0.25","Restoration","Biodiversity",378,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Rapid","0.25","Restoration","Biodiversity",379,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Rapid","0.25","Restoration","Biodiversity",380,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Rapid","0.25","Restoration","Biodiversity",381,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Rapid","0.25","Restoration","Biodiversity",382,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Rapid","0.25","Restoration","Biodiversity",383,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Rapid","0.25","Restoration","Biodiversity",384,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Lagged","0.25","Restoration","Biodiversity",385,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Lagged","0.25","Restoration","Biodiversity",386,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Lagged","0.25","Restoration","Biodiversity",387,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Lagged","0.25","Restoration","Biodiversity",388,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Lagged","0.25","Restoration","Biodiversity",389,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Lagged","0.25","Restoration","Biodiversity",390,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Lagged","0.25","Restoration","Biodiversity",391,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Lagged","0.25","Restoration","Biodiversity",392,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Lagged","0.25","Restoration","Biodiversity",393,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Lagged","0.25","Restoration","Biodiversity",394,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Lagged","0.25","Restoration","Biodiversity",395,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Lagged","0.25","Restoration","Biodiversity",396,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Steady","0.3","Restoration","Biodiversity",397,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Steady","0.3","Restoration","Biodiversity",398,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Steady","0.3","Restoration","Biodiversity",399,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Steady","0.3","Restoration","Biodiversity",400,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Steady","0.3","Restoration","Biodiversity",401,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Steady","0.3","Restoration","Biodiversity",402,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Steady","0.3","Restoration","Biodiversity",403,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Steady","0.3","Restoration","Biodiversity",404,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Steady","0.3","Restoration","Biodiversity",405,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Steady","0.3","Restoration","Biodiversity",406,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Steady","0.3","Restoration","Biodiversity",407,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Steady","0.3","Restoration","Biodiversity",408,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Rapid","0.3","Restoration","Biodiversity",409,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Rapid","0.3","Restoration","Biodiversity",410,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Rapid","0.3","Restoration","Biodiversity",411,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Rapid","0.3","Restoration","Biodiversity",412,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Rapid","0.3","Restoration","Biodiversity",413,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Rapid","0.3","Restoration","Biodiversity",414,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Rapid","0.3","Restoration","Biodiversity",415,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Rapid","0.3","Restoration","Biodiversity",416,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Rapid","0.3","Restoration","Biodiversity",417,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Rapid","0.3","Restoration","Biodiversity",418,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Rapid","0.3","Restoration","Biodiversity",419,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Rapid","0.3","Restoration","Biodiversity",420,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Lagged","0.3","Restoration","Biodiversity",421,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Lagged","0.3","Restoration","Biodiversity",422,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Lagged","0.3","Restoration","Biodiversity",423,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Lagged","0.3","Restoration","Biodiversity",424,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Lagged","0.3","Restoration","Biodiversity",425,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Lagged","0.3","Restoration","Biodiversity",426,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Lagged","0.3","Restoration","Biodiversity",427,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Lagged","0.3","Restoration","Biodiversity",428,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Lagged","0.3","Restoration","Biodiversity",429,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Lagged","0.3","Restoration","Biodiversity",430,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Lagged","0.3","Restoration","Biodiversity",431,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Lagged","0.3","Restoration","Biodiversity",432,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
+"Large_patches","2020","Steady","0.22","Restoration","Biodiversity",325,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Steady","0.22","Restoration","Biodiversity",326,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Steady","0.22","Restoration","Biodiversity",327,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Steady","0.22","Restoration","Biodiversity",328,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Steady","0.22","Restoration","Biodiversity",329,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Steady","0.22","Restoration","Biodiversity",330,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Steady","0.22","Restoration","Biodiversity",331,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Steady","0.22","Restoration","Biodiversity",332,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Steady","0.22","Restoration","Biodiversity",333,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Steady","0.22","Restoration","Biodiversity",334,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Steady","0.22","Restoration","Biodiversity",335,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Steady","0.22","Restoration","Biodiversity",336,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Rapid","0.22","Restoration","Biodiversity",337,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Rapid","0.22","Restoration","Biodiversity",338,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Rapid","0.22","Restoration","Biodiversity",339,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Rapid","0.22","Restoration","Biodiversity",340,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Rapid","0.22","Restoration","Biodiversity",341,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Rapid","0.22","Restoration","Biodiversity",342,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Rapid","0.22","Restoration","Biodiversity",343,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Rapid","0.22","Restoration","Biodiversity",344,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Rapid","0.22","Restoration","Biodiversity",345,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Rapid","0.22","Restoration","Biodiversity",346,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Rapid","0.22","Restoration","Biodiversity",347,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Rapid","0.22","Restoration","Biodiversity",348,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Lagged","0.22","Restoration","Biodiversity",349,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Lagged","0.22","Restoration","Biodiversity",350,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Lagged","0.22","Restoration","Biodiversity",351,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Lagged","0.22","Restoration","Biodiversity",352,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Lagged","0.22","Restoration","Biodiversity",353,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Lagged","0.22","Restoration","Biodiversity",354,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Lagged","0.22","Restoration","Biodiversity",355,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Lagged","0.22","Restoration","Biodiversity",356,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Lagged","0.22","Restoration","Biodiversity",357,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Lagged","0.22","Restoration","Biodiversity",358,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Lagged","0.22","Restoration","Biodiversity",359,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Lagged","0.22","Restoration","Biodiversity",360,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Steady","0.25","Restoration","Biodiversity",361,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Steady","0.25","Restoration","Biodiversity",362,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Steady","0.25","Restoration","Biodiversity",363,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Steady","0.25","Restoration","Biodiversity",364,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Steady","0.25","Restoration","Biodiversity",365,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Steady","0.25","Restoration","Biodiversity",366,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Steady","0.25","Restoration","Biodiversity",367,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Steady","0.25","Restoration","Biodiversity",368,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Steady","0.25","Restoration","Biodiversity",369,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Steady","0.25","Restoration","Biodiversity",370,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Steady","0.25","Restoration","Biodiversity",371,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Steady","0.25","Restoration","Biodiversity",372,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Rapid","0.25","Restoration","Biodiversity",373,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Rapid","0.25","Restoration","Biodiversity",374,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Rapid","0.25","Restoration","Biodiversity",375,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Rapid","0.25","Restoration","Biodiversity",376,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Rapid","0.25","Restoration","Biodiversity",377,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Rapid","0.25","Restoration","Biodiversity",378,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Rapid","0.25","Restoration","Biodiversity",379,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Rapid","0.25","Restoration","Biodiversity",380,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Rapid","0.25","Restoration","Biodiversity",381,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Rapid","0.25","Restoration","Biodiversity",382,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Rapid","0.25","Restoration","Biodiversity",383,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Rapid","0.25","Restoration","Biodiversity",384,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Lagged","0.25","Restoration","Biodiversity",385,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Lagged","0.25","Restoration","Biodiversity",386,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Lagged","0.25","Restoration","Biodiversity",387,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Lagged","0.25","Restoration","Biodiversity",388,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Lagged","0.25","Restoration","Biodiversity",389,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Lagged","0.25","Restoration","Biodiversity",390,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Lagged","0.25","Restoration","Biodiversity",391,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Lagged","0.25","Restoration","Biodiversity",392,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Lagged","0.25","Restoration","Biodiversity",393,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Lagged","0.25","Restoration","Biodiversity",394,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Lagged","0.25","Restoration","Biodiversity",395,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Lagged","0.25","Restoration","Biodiversity",396,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Steady","0.3","Restoration","Biodiversity",397,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Steady","0.3","Restoration","Biodiversity",398,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Steady","0.3","Restoration","Biodiversity",399,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Steady","0.3","Restoration","Biodiversity",400,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Steady","0.3","Restoration","Biodiversity",401,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Steady","0.3","Restoration","Biodiversity",402,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Steady","0.3","Restoration","Biodiversity",403,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Steady","0.3","Restoration","Biodiversity",404,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Steady","0.3","Restoration","Biodiversity",405,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Steady","0.3","Restoration","Biodiversity",406,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Steady","0.3","Restoration","Biodiversity",407,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Steady","0.3","Restoration","Biodiversity",408,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Rapid","0.3","Restoration","Biodiversity",409,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Rapid","0.3","Restoration","Biodiversity",410,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Rapid","0.3","Restoration","Biodiversity",411,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Rapid","0.3","Restoration","Biodiversity",412,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Rapid","0.3","Restoration","Biodiversity",413,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Rapid","0.3","Restoration","Biodiversity",414,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Rapid","0.3","Restoration","Biodiversity",415,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Rapid","0.3","Restoration","Biodiversity",416,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Rapid","0.3","Restoration","Biodiversity",417,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Rapid","0.3","Restoration","Biodiversity",418,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Rapid","0.3","Restoration","Biodiversity",419,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Rapid","0.3","Restoration","Biodiversity",420,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Lagged","0.3","Restoration","Biodiversity",421,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Lagged","0.3","Restoration","Biodiversity",422,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Lagged","0.3","Restoration","Biodiversity",423,"2060",5,"EI_NAT","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Lagged","0.3","Restoration","Biodiversity",424,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Lagged","0.3","Restoration","Biodiversity",425,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Lagged","0.3","Restoration","Biodiversity",426,"2060",5,"EI_NAT","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Lagged","0.3","Restoration","Biodiversity",427,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Lagged","0.3","Restoration","Biodiversity",428,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Lagged","0.3","Restoration","Biodiversity",429,"2060",5,"EI_NAT","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Lagged","0.3","Restoration","Biodiversity",430,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Lagged","0.3","Restoration","Biodiversity",431,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Lagged","0.3","Restoration","Biodiversity",432,"2060",5,"EI_NAT","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
 "Large_patches","2020","Steady","0.22","Preservation","Cultural",433,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
 "Small_patches","2020","Steady","0.22","Preservation","Cultural",434,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
 "Connectivity","2020","Steady","0.22","Preservation","Cultural",435,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
@@ -539,114 +539,114 @@
 "Large_patches","2035","Lagged","0.3","Preservation","Cultural",538,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
 "Small_patches","2035","Lagged","0.3","Preservation","Cultural",539,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
 "Connectivity","2035","Lagged","0.3","Preservation","Cultural",540,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
-"Large_patches","2020","Steady","0.22","Restoration","Cultural",541,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Steady","0.22","Restoration","Cultural",542,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Steady","0.22","Restoration","Cultural",543,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Steady","0.22","Restoration","Cultural",544,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Steady","0.22","Restoration","Cultural",545,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Steady","0.22","Restoration","Cultural",546,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Steady","0.22","Restoration","Cultural",547,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Steady","0.22","Restoration","Cultural",548,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Steady","0.22","Restoration","Cultural",549,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Steady","0.22","Restoration","Cultural",550,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Steady","0.22","Restoration","Cultural",551,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Steady","0.22","Restoration","Cultural",552,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Rapid","0.22","Restoration","Cultural",553,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Rapid","0.22","Restoration","Cultural",554,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Rapid","0.22","Restoration","Cultural",555,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Rapid","0.22","Restoration","Cultural",556,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Rapid","0.22","Restoration","Cultural",557,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Rapid","0.22","Restoration","Cultural",558,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Rapid","0.22","Restoration","Cultural",559,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Rapid","0.22","Restoration","Cultural",560,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Rapid","0.22","Restoration","Cultural",561,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Rapid","0.22","Restoration","Cultural",562,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Rapid","0.22","Restoration","Cultural",563,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Rapid","0.22","Restoration","Cultural",564,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Lagged","0.22","Restoration","Cultural",565,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Lagged","0.22","Restoration","Cultural",566,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Lagged","0.22","Restoration","Cultural",567,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Lagged","0.22","Restoration","Cultural",568,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Lagged","0.22","Restoration","Cultural",569,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Lagged","0.22","Restoration","Cultural",570,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Lagged","0.22","Restoration","Cultural",571,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Lagged","0.22","Restoration","Cultural",572,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Lagged","0.22","Restoration","Cultural",573,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Lagged","0.22","Restoration","Cultural",574,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Lagged","0.22","Restoration","Cultural",575,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Lagged","0.22","Restoration","Cultural",576,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Steady","0.25","Restoration","Cultural",577,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Steady","0.25","Restoration","Cultural",578,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Steady","0.25","Restoration","Cultural",579,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Steady","0.25","Restoration","Cultural",580,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Steady","0.25","Restoration","Cultural",581,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Steady","0.25","Restoration","Cultural",582,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Steady","0.25","Restoration","Cultural",583,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Steady","0.25","Restoration","Cultural",584,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Steady","0.25","Restoration","Cultural",585,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Steady","0.25","Restoration","Cultural",586,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Steady","0.25","Restoration","Cultural",587,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Steady","0.25","Restoration","Cultural",588,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Rapid","0.25","Restoration","Cultural",589,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Rapid","0.25","Restoration","Cultural",590,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Rapid","0.25","Restoration","Cultural",591,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Rapid","0.25","Restoration","Cultural",592,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Rapid","0.25","Restoration","Cultural",593,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Rapid","0.25","Restoration","Cultural",594,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Rapid","0.25","Restoration","Cultural",595,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Rapid","0.25","Restoration","Cultural",596,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Rapid","0.25","Restoration","Cultural",597,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Rapid","0.25","Restoration","Cultural",598,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Rapid","0.25","Restoration","Cultural",599,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Rapid","0.25","Restoration","Cultural",600,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Lagged","0.25","Restoration","Cultural",601,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Lagged","0.25","Restoration","Cultural",602,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Lagged","0.25","Restoration","Cultural",603,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Lagged","0.25","Restoration","Cultural",604,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Lagged","0.25","Restoration","Cultural",605,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Lagged","0.25","Restoration","Cultural",606,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Lagged","0.25","Restoration","Cultural",607,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Lagged","0.25","Restoration","Cultural",608,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Lagged","0.25","Restoration","Cultural",609,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Lagged","0.25","Restoration","Cultural",610,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Lagged","0.25","Restoration","Cultural",611,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Lagged","0.25","Restoration","Cultural",612,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Steady","0.3","Restoration","Cultural",613,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Steady","0.3","Restoration","Cultural",614,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Steady","0.3","Restoration","Cultural",615,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Steady","0.3","Restoration","Cultural",616,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Steady","0.3","Restoration","Cultural",617,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Steady","0.3","Restoration","Cultural",618,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Steady","0.3","Restoration","Cultural",619,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Steady","0.3","Restoration","Cultural",620,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Steady","0.3","Restoration","Cultural",621,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Steady","0.3","Restoration","Cultural",622,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Steady","0.3","Restoration","Cultural",623,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Steady","0.3","Restoration","Cultural",624,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Rapid","0.3","Restoration","Cultural",625,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Rapid","0.3","Restoration","Cultural",626,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Rapid","0.3","Restoration","Cultural",627,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Rapid","0.3","Restoration","Cultural",628,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Rapid","0.3","Restoration","Cultural",629,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Rapid","0.3","Restoration","Cultural",630,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Rapid","0.3","Restoration","Cultural",631,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Rapid","0.3","Restoration","Cultural",632,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Rapid","0.3","Restoration","Cultural",633,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Rapid","0.3","Restoration","Cultural",634,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Rapid","0.3","Restoration","Cultural",635,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Rapid","0.3","Restoration","Cultural",636,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Lagged","0.3","Restoration","Cultural",637,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Lagged","0.3","Restoration","Cultural",638,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Lagged","0.3","Restoration","Cultural",639,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Lagged","0.3","Restoration","Cultural",640,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Lagged","0.3","Restoration","Cultural",641,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Lagged","0.3","Restoration","Cultural",642,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Lagged","0.3","Restoration","Cultural",643,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Lagged","0.3","Restoration","Cultural",644,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Lagged","0.3","Restoration","Cultural",645,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Lagged","0.3","Restoration","Cultural",646,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Lagged","0.3","Restoration","Cultural",647,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Lagged","0.3","Restoration","Cultural",648,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
+"Large_patches","2020","Steady","0.22","Restoration","Cultural",541,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Steady","0.22","Restoration","Cultural",542,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Steady","0.22","Restoration","Cultural",543,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Steady","0.22","Restoration","Cultural",544,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Steady","0.22","Restoration","Cultural",545,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Steady","0.22","Restoration","Cultural",546,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Steady","0.22","Restoration","Cultural",547,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Steady","0.22","Restoration","Cultural",548,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Steady","0.22","Restoration","Cultural",549,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Steady","0.22","Restoration","Cultural",550,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Steady","0.22","Restoration","Cultural",551,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Steady","0.22","Restoration","Cultural",552,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Rapid","0.22","Restoration","Cultural",553,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Rapid","0.22","Restoration","Cultural",554,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Rapid","0.22","Restoration","Cultural",555,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Rapid","0.22","Restoration","Cultural",556,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Rapid","0.22","Restoration","Cultural",557,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Rapid","0.22","Restoration","Cultural",558,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Rapid","0.22","Restoration","Cultural",559,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Rapid","0.22","Restoration","Cultural",560,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Rapid","0.22","Restoration","Cultural",561,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Rapid","0.22","Restoration","Cultural",562,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Rapid","0.22","Restoration","Cultural",563,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Rapid","0.22","Restoration","Cultural",564,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Lagged","0.22","Restoration","Cultural",565,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Lagged","0.22","Restoration","Cultural",566,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Lagged","0.22","Restoration","Cultural",567,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Lagged","0.22","Restoration","Cultural",568,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Lagged","0.22","Restoration","Cultural",569,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Lagged","0.22","Restoration","Cultural",570,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Lagged","0.22","Restoration","Cultural",571,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Lagged","0.22","Restoration","Cultural",572,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Lagged","0.22","Restoration","Cultural",573,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Lagged","0.22","Restoration","Cultural",574,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Lagged","0.22","Restoration","Cultural",575,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Lagged","0.22","Restoration","Cultural",576,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Steady","0.25","Restoration","Cultural",577,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Steady","0.25","Restoration","Cultural",578,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Steady","0.25","Restoration","Cultural",579,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Steady","0.25","Restoration","Cultural",580,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Steady","0.25","Restoration","Cultural",581,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Steady","0.25","Restoration","Cultural",582,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Steady","0.25","Restoration","Cultural",583,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Steady","0.25","Restoration","Cultural",584,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Steady","0.25","Restoration","Cultural",585,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Steady","0.25","Restoration","Cultural",586,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Steady","0.25","Restoration","Cultural",587,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Steady","0.25","Restoration","Cultural",588,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Rapid","0.25","Restoration","Cultural",589,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Rapid","0.25","Restoration","Cultural",590,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Rapid","0.25","Restoration","Cultural",591,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Rapid","0.25","Restoration","Cultural",592,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Rapid","0.25","Restoration","Cultural",593,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Rapid","0.25","Restoration","Cultural",594,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Rapid","0.25","Restoration","Cultural",595,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Rapid","0.25","Restoration","Cultural",596,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Rapid","0.25","Restoration","Cultural",597,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Rapid","0.25","Restoration","Cultural",598,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Rapid","0.25","Restoration","Cultural",599,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Rapid","0.25","Restoration","Cultural",600,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Lagged","0.25","Restoration","Cultural",601,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Lagged","0.25","Restoration","Cultural",602,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Lagged","0.25","Restoration","Cultural",603,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Lagged","0.25","Restoration","Cultural",604,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Lagged","0.25","Restoration","Cultural",605,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Lagged","0.25","Restoration","Cultural",606,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Lagged","0.25","Restoration","Cultural",607,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Lagged","0.25","Restoration","Cultural",608,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Lagged","0.25","Restoration","Cultural",609,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Lagged","0.25","Restoration","Cultural",610,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Lagged","0.25","Restoration","Cultural",611,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Lagged","0.25","Restoration","Cultural",612,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Steady","0.3","Restoration","Cultural",613,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Steady","0.3","Restoration","Cultural",614,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Steady","0.3","Restoration","Cultural",615,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Steady","0.3","Restoration","Cultural",616,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Steady","0.3","Restoration","Cultural",617,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Steady","0.3","Restoration","Cultural",618,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Steady","0.3","Restoration","Cultural",619,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Steady","0.3","Restoration","Cultural",620,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Steady","0.3","Restoration","Cultural",621,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Steady","0.3","Restoration","Cultural",622,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Steady","0.3","Restoration","Cultural",623,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Steady","0.3","Restoration","Cultural",624,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Rapid","0.3","Restoration","Cultural",625,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Rapid","0.3","Restoration","Cultural",626,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Rapid","0.3","Restoration","Cultural",627,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Rapid","0.3","Restoration","Cultural",628,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Rapid","0.3","Restoration","Cultural",629,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Rapid","0.3","Restoration","Cultural",630,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Rapid","0.3","Restoration","Cultural",631,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Rapid","0.3","Restoration","Cultural",632,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Rapid","0.3","Restoration","Cultural",633,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Rapid","0.3","Restoration","Cultural",634,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Rapid","0.3","Restoration","Cultural",635,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Rapid","0.3","Restoration","Cultural",636,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Lagged","0.3","Restoration","Cultural",637,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Lagged","0.3","Restoration","Cultural",638,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Lagged","0.3","Restoration","Cultural",639,"2060",5,"EI_CUL","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Lagged","0.3","Restoration","Cultural",640,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Lagged","0.3","Restoration","Cultural",641,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Lagged","0.3","Restoration","Cultural",642,"2060",5,"EI_CUL","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Lagged","0.3","Restoration","Cultural",643,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Lagged","0.3","Restoration","Cultural",644,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Lagged","0.3","Restoration","Cultural",645,"2060",5,"EI_CUL","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Lagged","0.3","Restoration","Cultural",646,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Lagged","0.3","Restoration","Cultural",647,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Lagged","0.3","Restoration","Cultural",648,"2060",5,"EI_CUL","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
 "Large_patches","2020","Steady","0.22","Preservation","NCPs",649,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
 "Small_patches","2020","Steady","0.22","Preservation","NCPs",650,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
 "Connectivity","2020","Steady","0.22","Preservation","NCPs",651,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
@@ -755,111 +755,111 @@
 "Large_patches","2035","Lagged","0.3","Preservation","NCPs",754,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
 "Small_patches","2035","Lagged","0.3","Preservation","NCPs",755,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
 "Connectivity","2035","Lagged","0.3","Preservation","NCPs",756,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, Perm_crops",5
-"Large_patches","2020","Steady","0.22","Restoration","NCPs",757,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Steady","0.22","Restoration","NCPs",758,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Steady","0.22","Restoration","NCPs",759,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Steady","0.22","Restoration","NCPs",760,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Steady","0.22","Restoration","NCPs",761,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Steady","0.22","Restoration","NCPs",762,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Steady","0.22","Restoration","NCPs",763,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Steady","0.22","Restoration","NCPs",764,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Steady","0.22","Restoration","NCPs",765,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Steady","0.22","Restoration","NCPs",766,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Steady","0.22","Restoration","NCPs",767,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Steady","0.22","Restoration","NCPs",768,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Rapid","0.22","Restoration","NCPs",769,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Rapid","0.22","Restoration","NCPs",770,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Rapid","0.22","Restoration","NCPs",771,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Rapid","0.22","Restoration","NCPs",772,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Rapid","0.22","Restoration","NCPs",773,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Rapid","0.22","Restoration","NCPs",774,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Rapid","0.22","Restoration","NCPs",775,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Rapid","0.22","Restoration","NCPs",776,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Rapid","0.22","Restoration","NCPs",777,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Rapid","0.22","Restoration","NCPs",778,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Rapid","0.22","Restoration","NCPs",779,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Rapid","0.22","Restoration","NCPs",780,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Lagged","0.22","Restoration","NCPs",781,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Lagged","0.22","Restoration","NCPs",782,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Lagged","0.22","Restoration","NCPs",783,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Lagged","0.22","Restoration","NCPs",784,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Lagged","0.22","Restoration","NCPs",785,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Lagged","0.22","Restoration","NCPs",786,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Lagged","0.22","Restoration","NCPs",787,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Lagged","0.22","Restoration","NCPs",788,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Lagged","0.22","Restoration","NCPs",789,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Lagged","0.22","Restoration","NCPs",790,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Lagged","0.22","Restoration","NCPs",791,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Lagged","0.22","Restoration","NCPs",792,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Steady","0.25","Restoration","NCPs",793,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Steady","0.25","Restoration","NCPs",794,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Steady","0.25","Restoration","NCPs",795,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Steady","0.25","Restoration","NCPs",796,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Steady","0.25","Restoration","NCPs",797,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Steady","0.25","Restoration","NCPs",798,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Steady","0.25","Restoration","NCPs",799,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Steady","0.25","Restoration","NCPs",800,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Steady","0.25","Restoration","NCPs",801,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Steady","0.25","Restoration","NCPs",802,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Steady","0.25","Restoration","NCPs",803,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Steady","0.25","Restoration","NCPs",804,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Rapid","0.25","Restoration","NCPs",805,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Rapid","0.25","Restoration","NCPs",806,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Rapid","0.25","Restoration","NCPs",807,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Rapid","0.25","Restoration","NCPs",808,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Rapid","0.25","Restoration","NCPs",809,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Rapid","0.25","Restoration","NCPs",810,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Rapid","0.25","Restoration","NCPs",811,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Rapid","0.25","Restoration","NCPs",812,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Rapid","0.25","Restoration","NCPs",813,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Rapid","0.25","Restoration","NCPs",814,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Rapid","0.25","Restoration","NCPs",815,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Rapid","0.25","Restoration","NCPs",816,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Lagged","0.25","Restoration","NCPs",817,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Lagged","0.25","Restoration","NCPs",818,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Lagged","0.25","Restoration","NCPs",819,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Lagged","0.25","Restoration","NCPs",820,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Lagged","0.25","Restoration","NCPs",821,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Lagged","0.25","Restoration","NCPs",822,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Lagged","0.25","Restoration","NCPs",823,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Lagged","0.25","Restoration","NCPs",824,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Lagged","0.25","Restoration","NCPs",825,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Lagged","0.25","Restoration","NCPs",826,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Lagged","0.25","Restoration","NCPs",827,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Lagged","0.25","Restoration","NCPs",828,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Steady","0.3","Restoration","NCPs",829,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Steady","0.3","Restoration","NCPs",830,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Steady","0.3","Restoration","NCPs",831,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Steady","0.3","Restoration","NCPs",832,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Steady","0.3","Restoration","NCPs",833,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Steady","0.3","Restoration","NCPs",834,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Steady","0.3","Restoration","NCPs",835,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Steady","0.3","Restoration","NCPs",836,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Steady","0.3","Restoration","NCPs",837,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Steady","0.3","Restoration","NCPs",838,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Steady","0.3","Restoration","NCPs",839,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Steady","0.3","Restoration","NCPs",840,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Rapid","0.3","Restoration","NCPs",841,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Rapid","0.3","Restoration","NCPs",842,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Rapid","0.3","Restoration","NCPs",843,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Rapid","0.3","Restoration","NCPs",844,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Rapid","0.3","Restoration","NCPs",845,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Rapid","0.3","Restoration","NCPs",846,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Rapid","0.3","Restoration","NCPs",847,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Rapid","0.3","Restoration","NCPs",848,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Rapid","0.3","Restoration","NCPs",849,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Rapid","0.3","Restoration","NCPs",850,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Rapid","0.3","Restoration","NCPs",851,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Rapid","0.3","Restoration","NCPs",852,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2020","Lagged","0.3","Restoration","NCPs",853,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2020","Lagged","0.3","Restoration","NCPs",854,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2020","Lagged","0.3","Restoration","NCPs",855,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2025","Lagged","0.3","Restoration","NCPs",856,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2025","Lagged","0.3","Restoration","NCPs",857,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2025","Lagged","0.3","Restoration","NCPs",858,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2030","Lagged","0.3","Restoration","NCPs",859,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2030","Lagged","0.3","Restoration","NCPs",860,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2030","Lagged","0.3","Restoration","NCPs",861,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Large_patches","2035","Lagged","0.3","Restoration","NCPs",862,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Small_patches","2035","Lagged","0.3","Restoration","NCPs",863,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
-"Connectivity","2035","Lagged","0.3","Restoration","NCPs",864,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Urban, Int_AG, test",5
+"Large_patches","2020","Steady","0.22","Restoration","NCPs",757,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Steady","0.22","Restoration","NCPs",758,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Steady","0.22","Restoration","NCPs",759,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Steady","0.22","Restoration","NCPs",760,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Steady","0.22","Restoration","NCPs",761,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Steady","0.22","Restoration","NCPs",762,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Steady","0.22","Restoration","NCPs",763,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Steady","0.22","Restoration","NCPs",764,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Steady","0.22","Restoration","NCPs",765,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Steady","0.22","Restoration","NCPs",766,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Steady","0.22","Restoration","NCPs",767,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Steady","0.22","Restoration","NCPs",768,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Rapid","0.22","Restoration","NCPs",769,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Rapid","0.22","Restoration","NCPs",770,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Rapid","0.22","Restoration","NCPs",771,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Rapid","0.22","Restoration","NCPs",772,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Rapid","0.22","Restoration","NCPs",773,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Rapid","0.22","Restoration","NCPs",774,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Rapid","0.22","Restoration","NCPs",775,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Rapid","0.22","Restoration","NCPs",776,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Rapid","0.22","Restoration","NCPs",777,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Rapid","0.22","Restoration","NCPs",778,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Rapid","0.22","Restoration","NCPs",779,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Rapid","0.22","Restoration","NCPs",780,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Lagged","0.22","Restoration","NCPs",781,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Lagged","0.22","Restoration","NCPs",782,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Lagged","0.22","Restoration","NCPs",783,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Lagged","0.22","Restoration","NCPs",784,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Lagged","0.22","Restoration","NCPs",785,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Lagged","0.22","Restoration","NCPs",786,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Lagged","0.22","Restoration","NCPs",787,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Lagged","0.22","Restoration","NCPs",788,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Lagged","0.22","Restoration","NCPs",789,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Lagged","0.22","Restoration","NCPs",790,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Lagged","0.22","Restoration","NCPs",791,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Lagged","0.22","Restoration","NCPs",792,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Steady","0.25","Restoration","NCPs",793,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Steady","0.25","Restoration","NCPs",794,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Steady","0.25","Restoration","NCPs",795,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Steady","0.25","Restoration","NCPs",796,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Steady","0.25","Restoration","NCPs",797,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Steady","0.25","Restoration","NCPs",798,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Steady","0.25","Restoration","NCPs",799,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Steady","0.25","Restoration","NCPs",800,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Steady","0.25","Restoration","NCPs",801,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Steady","0.25","Restoration","NCPs",802,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Steady","0.25","Restoration","NCPs",803,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Steady","0.25","Restoration","NCPs",804,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Rapid","0.25","Restoration","NCPs",805,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Rapid","0.25","Restoration","NCPs",806,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Rapid","0.25","Restoration","NCPs",807,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Rapid","0.25","Restoration","NCPs",808,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Rapid","0.25","Restoration","NCPs",809,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Rapid","0.25","Restoration","NCPs",810,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Rapid","0.25","Restoration","NCPs",811,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Rapid","0.25","Restoration","NCPs",812,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Rapid","0.25","Restoration","NCPs",813,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Rapid","0.25","Restoration","NCPs",814,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Rapid","0.25","Restoration","NCPs",815,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Rapid","0.25","Restoration","NCPs",816,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Lagged","0.25","Restoration","NCPs",817,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Lagged","0.25","Restoration","NCPs",818,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Lagged","0.25","Restoration","NCPs",819,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Lagged","0.25","Restoration","NCPs",820,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Lagged","0.25","Restoration","NCPs",821,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Lagged","0.25","Restoration","NCPs",822,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Lagged","0.25","Restoration","NCPs",823,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Lagged","0.25","Restoration","NCPs",824,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Lagged","0.25","Restoration","NCPs",825,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Lagged","0.25","Restoration","NCPs",826,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Lagged","0.25","Restoration","NCPs",827,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Lagged","0.25","Restoration","NCPs",828,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Steady","0.3","Restoration","NCPs",829,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Steady","0.3","Restoration","NCPs",830,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Steady","0.3","Restoration","NCPs",831,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Steady","0.3","Restoration","NCPs",832,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Steady","0.3","Restoration","NCPs",833,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Steady","0.3","Restoration","NCPs",834,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Steady","0.3","Restoration","NCPs",835,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Steady","0.3","Restoration","NCPs",836,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Steady","0.3","Restoration","NCPs",837,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Steady","0.3","Restoration","NCPs",838,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Steady","0.3","Restoration","NCPs",839,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Steady","0.3","Restoration","NCPs",840,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Rapid","0.3","Restoration","NCPs",841,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Rapid","0.3","Restoration","NCPs",842,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Rapid","0.3","Restoration","NCPs",843,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Rapid","0.3","Restoration","NCPs",844,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Rapid","0.3","Restoration","NCPs",845,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Rapid","0.3","Restoration","NCPs",846,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Rapid","0.3","Restoration","NCPs",847,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Rapid","0.3","Restoration","NCPs",848,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Rapid","0.3","Restoration","NCPs",849,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Rapid","0.3","Restoration","NCPs",850,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Rapid","0.3","Restoration","NCPs",851,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Rapid","0.3","Restoration","NCPs",852,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2020","Lagged","0.3","Restoration","NCPs",853,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2020","Lagged","0.3","Restoration","NCPs",854,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2020","Lagged","0.3","Restoration","NCPs",855,"2060",5,"EI_SOC","2020, 2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2025","Lagged","0.3","Restoration","NCPs",856,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2025","Lagged","0.3","Restoration","NCPs",857,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2025","Lagged","0.3","Restoration","NCPs",858,"2060",5,"EI_SOC","2025, 2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2030","Lagged","0.3","Restoration","NCPs",859,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2030","Lagged","0.3","Restoration","NCPs",860,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2030","Lagged","0.3","Restoration","NCPs",861,"2060",5,"EI_SOC","2030, 2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Large_patches","2035","Lagged","0.3","Restoration","NCPs",862,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Small_patches","2035","Lagged","0.3","Restoration","NCPs",863,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5
+"Connectivity","2035","Lagged","0.3","Restoration","NCPs",864,"2060",5,"EI_SOC","2035, 2040, 2045, 2050, 2055, 2060","Open_Forest, Closed_Forest, Grassland",5

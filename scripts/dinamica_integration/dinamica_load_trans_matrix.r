@@ -16,14 +16,17 @@
 packs <- c("data.table", "raster", "tidyverse", "stringr", "readr", "xlsx",
            "Dinamica", "readxl")
 
-new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]
-if (length(new.packs)) install.packages(new.packs)
+# new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]
+# if (length(new.packs)) install.packages(new.packs)
 
 # Load required packages
 invisible(lapply(packs, require, character.only = TRUE))
 
 #load table of simulations
-Simulation_table <- read.csv(Control_table_path)[Simulation_num,]
+Simulation_table <- read.csv(Control_table_path)
+
+#subset to current simulation
+Simulation_table <- Simulation_table[Simulation_table$Simulation_num. == Simulation_num,]
 
 #Vector name of Scenario to be tested as string or numeric (i.e. "BAU" etc.)
 Scenario_ID <- Simulation_table$Scenario_ID.string

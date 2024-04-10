@@ -9,20 +9,23 @@
 ### A- Preparation
 ### =========================================================================
 
-setwd(wpath)
-
-#Vector packages for loading
+# setwd(wpath)
+#
+# #Vector packages for loading
 packs <- c("data.table", "raster", "tidyverse", "stringr", "readr", "xlsx",
            "Dinamica", "readxl")
 
-new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]
-if (length(new.packs)) install.packages(new.packs)
+# new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]
+# if (length(new.packs)) install.packages(new.packs)
 
 # Load required packages
 invisible(lapply(packs, require, character.only = TRUE))
 
 #load table of simulations
-Simulation_table <- read.csv(Control_table_path)[Simulation_num,]
+Simulation_table <- read.csv(Control_table_path)
+
+#subset to current simulation
+Simulation_table <- Simulation_table[Simulation_table$Simulation_num. == Simulation_num,]
 
 #Vector name of Climate scenario
 Climate_ID <- Simulation_table$Climate_scenario.string
