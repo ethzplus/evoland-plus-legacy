@@ -310,21 +310,53 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
 
   } #close loop over cantons
 
-  #save the results
-  saveRDS(Muni_urban_areas, file = "Muni_urban_areas_terra.rds")
-
   #add estimated population to polygons and then rasterize
   Muni_shp$Pop_est <- Muni_urban_areas$Pop_est
   pop_raster <- terra::rasterize(x = Muni_shp, y = ref_grid, field = "Pop_est", background = NA)
-  names(pop_raster) <- "Muni_pop" #TO DO: THIS MUST BE THE LAYER NAME IN THE CALIBRATION STACKS/MODELS
+  names(pop_raster) <- "Muni_pop"   # TODO: THIS MUST BE THE LAYER NAME IN THE CALIBRATION STACKS/MODELS
+
+  #produce rasters of rural residential and urban residential areas
+  #needed for HAB NCP model
+
+  #calculate population density
+  Muni_shp$density <- Muni_shp$Pop_est / (Muni_shp$GEM_FLAECH / 100)  #surface area, giving density
+
+  #rural residential areas are municipalities with populations
+  #lower than <10000 inhabitants OR population density <100)
+
+  #subset shape file
+  rur_res <- Muni_shp[Muni_shp$Pop_est < 10000 | Muni_shp$density < 100,] # For rural residential
+
+  #rasterize
+  rur_res_rast <- terra::rasterize(x = rur_res, y = ref_grid, field = 1, background = NA)
+
+  #Extract urban residential areas based on the inverse of the rural residential areas
+  urb_res <- Muni_shp[Muni_shp$Pop_est >= 10000 & Muni_shp$density >= 100,] # For urban residential
+
+  #rasterize
+  urb_res_rast <- terra::rasterize(x = urb_res, y = ref_grid, field = 1, background = NA)
+
+  # save dir: LULCC_output_dir/Simulation_ID
+  simulation_output_dir <- file.path(LULCC_output_dir, Simulation_ID)
+  # if (!dir.exists(simulation_output_dir)) {
+  #   dir.create(simulation_output_dir, showWarnings = FALSE, recursive = TRUE)
+  # }
+
+  #save rural residential raster
+  rural_res_path <- file.path(simulation_output_dir, paste0(
+    "rur_res_simID_", Simulation_ID, "_year_", Simulation_time_step, ".tif"))
+  terra::writeRaster(rur_res_rast, rural_res_path, overwrite = TRUE)
+
+  #save urban residential raster
+  urban_res_path <- file.path(simulation_output_dir, paste0(
+    "urb_res_simID_", Simulation_ID, "_year_", Simulation_time_step, ".tif"))
+  terra::writeRaster(urb_res_rast, urban_res_path, overwrite = TRUE)
 
   #clean up
   rm(Canton_shp, Canton_urban_areas, Can_urban_area, canton_model, Muni_shp,
      Muni_urban_areas, munis_indices, pop_models, Pop_prediction_table,
-     Urban_rast)
+     Urban_rast, rur_res, rur_res_rast, urb_res, urb_res_rast)
 
-  #save Pop_raster
-  # writeRaster(pop_raster, "Population_raster_terra.tif", overwrite = TRUE)
 
   #-------------------------------------------------------------------------
   # E.2- Dynamic predictors: Neighbourhood predictors
@@ -355,9 +387,9 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
     Active_class_raster_subset <- LULC_rast == Active_class_value
 
     Focal_layer <- terra::focal(x = Active_class_raster_subset,
-                         w = Focal_matrices[[Required_focals_details[i,]$matrix_id]],
-                         na.rm = TRUE,
-                         na.policy = "omit")
+                                w = Focal_matrices[[Required_focals_details[i,]$matrix_id]],
+                                na.rm = TRUE,
+                                na.policy = "omit")
 
     #create file path for saving this layer
     Focal_name <- paste(Active_class_name, "nhood", Required_focals_details[i,]$matrix_id, sep = "_")
@@ -532,7 +564,7 @@ Prediction_probs[Non_zero_indices, Pred_prob_columns] <- as.data.frame(t(apply(P
 #bind with NA values
 NA_cells <- as.data.frame(NA_rast,
                           xy = TRUE,
-                          cells= TRUE,
+                          cells = TRUE,
                           na.rm = FALSE)
 
 NA_cells <- NA_cells[is.na(NA_cells$LULC), c("x", "y", "cell")]
