@@ -25,17 +25,17 @@
 #install.packages(packageurl, repos=NULL, type="source")
 
 #vector other required packages
-# packs<-c("data.table", "raster", "tidyverse", "SDMTools", "doParallel",
-# "sf", "tiff", "igraph", "readr", "foreach", "testthat",
-# "sjmisc", "tictoc", "parallel", "terra", "pbapply", "rgdal",
-# "rgeos", "bfsMaps", "rjstat", "future.apply", "future", "stringr",
-# "stringi", "readxl", "rlist", "rstatix", "openxlsx", "pxR", "zen4R",
-# "rvest", "viridis", "sp", "jsonlite", "httr", "xlsx", "callr",
-# "gdata", "landscapemetrics", "randomForest", "RRF", "future.callr",
-# "ghibli", "ggpattern", "butcher", "ROCR", "ecospat", "caret", "Dinamica",
-# "gridExtra", "extrafont", "ggpubr", "ggstatsplot","PMCMRplus", "reshape2",
-# "ggsignif", "ggthemes", "ggside", "gridtext", "grid", "rstudioapi", "landscapemetrics")
-packs <- c("stringr", "xlsx", "openxlsx", "readxl")
+packs<-c("data.table", "tidyverse", "SDMTools", "doParallel",
+ "sf", "tiff", "igraph", "readr", "foreach", "testthat",
+ "sjmisc", "tictoc", "parallel", "terra", "pbapply", "rgdal",
+ "rgeos", "bfsMaps", "rjstat", "future.apply", "future", "stringr",
+ "stringi", "readxl", "rlist", "rstatix", "openxlsx", "pxR", "zen4R",
+ "rvest", "viridis", "sp", "jsonlite", "httr", "xlsx", "callr",
+ "gdata", "landscapemetrics", "randomForest", "RRF", "future.callr",
+ "ghibli", "ggpattern", "butcher", "ROCR", "ecospat", "caret", "Dinamica",
+ "gridExtra", "extrafont", "ggpubr", "ggstatsplot","PMCMRplus", "reshape2",
+ "ggsignif", "ggthemes", "ggside", "gridtext", "grid", "rstudioapi", "landscapemetrics")
+#packs <- c("stringr", "xlsx", "openxlsx", "readxl")
 
 #install new packages
 new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]
@@ -51,7 +51,7 @@ invisible(sapply(list.files("Scripts/Functions",
                             recursive = TRUE), source))
 
 #TO DO: Check if Dinamica EGO is already installed
-# Diego.installed <- system(comannd = paste('*dinamica7* -v'))==0
+# Diego.installed <- system(command = paste('*dinamica7* -v'))==0
 # executable <- "*Dinamica*"
 # test <- system2("where", args = c("-v", executable))
 # print(test)
@@ -76,9 +76,9 @@ invisible(sapply(list.files("Scripts/Functions",
 
 #create table for controlling simulations
 
-#User enter scenario names to model
+#User enter scenario names to model 
 #vector abbreviations of scenario's for folder/file naming
-Scenario_names <- c("BAU", "EI_NAT", "EI_CUL", "EI_SOC", "GR_EX")
+Scenario_names <- c("BAU", "EI-NAT", "EI-CUL", "EI-SOC", "GR-EX")
 
 #User enter start and end dates for the scenarios either enter a single number
 #value or a vector of values the same length as the number of scenarios earliest
@@ -119,11 +119,11 @@ Sim_control_path <- "Tools/Simulation_control.csv"
 #                                          "Spatial_interventions.string",
 #                                          "Deterministic_trans.string",
 #                                          "Completed.string")
-#
+# 
 # #expand vector of scenario names according to number of repetitions and add to table
 # Scenario_IDs <- c(sapply(Scenario_names, function(x) rep(x, reps), simplify = TRUE))
 # Simulation_control_table[1:length(Scenario_IDs), "Scenario_ID.string"] <- Scenario_IDs
-#
+# 
 # #fill other columns
 # Simulation_control_table$Simulation_ID.string <- rep(paste0("v", seq(1, reps, 1)), length(Scenario_names))
 # Simulation_control_table$Scenario_start.real <- if(length(unique(Scenario_start)) == 1){Scenario_start} else {c(rep(Scenario_start, length(Scenario_names)))}
@@ -135,7 +135,7 @@ Sim_control_path <- "Tools/Simulation_control.csv"
 # Simulation_control_table$Spatial_interventions.string <- "Y"
 # Simulation_control_table$Deterministic_trans.string <- "Y"
 # Simulation_control_table$Completed.string <- "N"
-#
+# 
 # #save the table
 # write_csv(Simulation_control_table, Sim_control_path)
 
@@ -144,9 +144,9 @@ Sim_control_path <- "Tools/Simulation_control.csv"
 ### =========================================================================
 
 #TO DO: Document how users should set up the various 'tools' tables that control
-#the creation of transition datasets and the tp models.
+#the creation of transition datasets and the tp models. 
 
-#Get the file path of the Dinamica console executable
+#Get the file path of the Dinamica console executable 
 # DC_path <- list.files("C:/", recursive = TRUE, full.names = TRUE, pattern = ".*DinamicaConsole.*\\.exe")
 # DC_path <- gsub('(*/)\\1+', '\\1', DC_path) #remove instances of double "/"
 # DC_path <- gsub("/", "\\\\", DC_path) #replace "/" with "\\"
@@ -158,13 +158,12 @@ if (dir.exists(Sim_log_dir) == FALSE) {dir.create(Sim_log_dir, recursive = TRUE)
 
 #list objects required for modelling
 Model_tool_vars <- list(LULC_aggregation_path = "Tools/LULC_class_aggregation.xlsx", #Path to LULC class aggregation table
-                        Model_specs_path = "Tools/Model_specs.xlsx", #Path to model
-                        # specifications table
+                        Model_specs_path = "Tools/Model_specs.csv", #Path to model specifications table
                         Param_grid_path = "Tools/param-grid.xlsx", #Path to model hyper parameter grids
                         Pred_table_path = "Tools/Predictor_table.xlsx", #Path to predictor table
                         Spat_ints_path = "Tools/Spatial_interventions.csv", #Path to spatial interventions table
                         EI_ints_path = "Tools/EI_interventions.csv" , #Path to EI interventions table
-                        Ref_grid_path = "Data/Ref_grid.gri",
+                        Ref_grid_path = "Data/Ref_grid.grd",#Path to spatial grid to standardise spatial data
                         Calibration_param_dir = "Data/Allocation_parameters/Calibration",
                         Simulation_param_dir = "Data/Allocation_parameters/Simulation",
                         Trans_rate_table_dir = "Data/Transition_tables/prepared_trans_tables",
@@ -173,10 +172,10 @@ Model_tool_vars <- list(LULC_aggregation_path = "Tools/LULC_class_aggregation.xl
                         Step_length = Step_length,
                         Scenario_names = Scenario_names,
                         Inclusion_thres = Inclusion_thres,
-                        DC_path = DC_path) #Path to grid to standardise spatial data
+                        DC_path = DC_path) 
 
 #Import model specifications table
-model_specs <- read_excel(Model_tool_vars$Model_specs_path)
+model_specs <- read.csv(Model_tool_vars$Model_specs_path)
 
 # Vector data periods contained in model specifications table
 Model_tool_vars$Data_periods <- unique(model_specs$Data_period_name)
@@ -417,7 +416,7 @@ if (Pre_check_result == FALSE) { print("Some elements required for modelling are
           stderr = "", # output_path
   )
 
-  #because the simulations may fail without the system command returning an error
+  #because the simulations may fail without the system command returning an error 
   #(if the error occurs in Dinamica) then check the simulation control table to see
   #if/how many simulations have failed
   Updated_control_tbl <- read.csv(Sim_control_path)
