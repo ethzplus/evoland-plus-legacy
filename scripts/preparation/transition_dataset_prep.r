@@ -1,9 +1,9 @@
 #############################################################################
 ## Transition_dataset_creation: Script for gathering the layers of LULC
-## (dependent variable) and predictors for each historic period then seperating
-## to viable LULC transitions at the scale of Switzerland and Bioregions
+## (dependent variable) and predictors for each historic period then separating
+## into viable LULC transitions at the scale of Switzerland and Bioregions
 ## Date: 25-09-2021
-## Author: Ben Black
+## Author: Ben Black (Modified version)
 #############################################################################
 
 ### =========================================================================
@@ -42,7 +42,7 @@ Region_raster_path <- "Data/Bioreg_CH"
 # create save dir
 save_dir <- "Data/Transition_datasets/Pre_predictor_filtering"
 Periodic_dirs <- paste0(save_dir, "/", Data_periods)
-sapply(Periodic_dirs, function(x) dir.create(x, recursive = TRUE))
+sapply(Periodic_dirs, function(x) dir.create(x, recursive = TRUE, showWarnings = FALSE))
 
 ### =========================================================================
 ### B- Load data and filter for each time period
@@ -81,13 +81,17 @@ Region_path <- data.frame(matrix(ncol = 2, nrow = 1))
 colnames(Region_path) <- c("File_name", "Layer_name")
 Region_path["File_name"] <- list.files(Region_raster_path, pattern = ".gri", full.names = TRUE)
 Region_path["Layer_name"] <- "Bioregion"
+
+# Create regexes for LULC periods
 LULC_period_regexes <- lapply(Data_periods, function(x) {
-  Regex <- str_replace(x, pattern = "_", "|")
+  str_replace(x, pattern = "_", "|")
 })
 names(LULC_period_regexes) <- Data_periods
 
-# filtering the LULC file paths for each period
-LULC_paths_by_period <- lapply(LULC_period_regexes, function(x) filter(LULC_raster_paths, grepl(x, File_name)))
+# Filter LULC files by period
+LULC_paths_by_period <- lapply(LULC_period_regexes, function(x) {
+  dplyr::filter(LULC_raster_paths, grepl(x, File_name))
+})
 
 # Change layer names to Initial and Final for easier splitting later
 LULC_paths_by_period <- lapply(LULC_paths_by_period, function(x) {
@@ -96,19 +100,23 @@ LULC_paths_by_period <- lapply(LULC_paths_by_period, function(x) {
   return(x)
 })
 
-# combining lists of predictor paths and LULC rasters optionally adding the regional raster
+# Combine predictor paths with LULC (and region if needed)
 if (Regionalization == TRUE) {
-  Combined_paths_by_period <- lapply((mapply(rbind, Preds_by_period, LULC_paths_by_period, SIMPLIFY = FALSE)), function(x) rbind(x, Region_path))
+  Combined_paths_by_period <- lapply(
+    (mapply(rbind, Preds_by_period, LULC_paths_by_period, SIMPLIFY = FALSE)),
+    function(x) rbind(x, Region_path)
+  )
 } else {
   Combined_paths_by_period <- mapply(rbind, Preds_by_period, LULC_paths_by_period, SIMPLIFY = FALSE)
 }
 
 # read in all rasters in the list to check compatibility before stacking
 Rasters_by_periods <- lapply(Combined_paths_by_period, function(x) {
-  raster_list <- lapply(x$File_name, function(y) raster(y))
+  raster_list <- lapply(x$File_name, function(y) terra::rast(y))
   names(raster_list) <- x$Layer_name
-  return(raster_list)
+  raster_list
 })
+
 ### =========================================================================
 ### C- Confirm Raster compatibility for stacking
 ### =========================================================================
@@ -116,8 +124,8 @@ Rasters_by_periods <- lapply(Combined_paths_by_period, function(x) {
 # Use a function to test rasters in the list against an 'exemplar'
 # which has the extent, crs and resolution that we want
 # in this case the Ref_grid file used for re-sampling some of the predictors.
-# exemplar raster for comparison
-Exemplar_raster <- raster(Ref_grid_path)
+# Exemplar raster for comparison
+Exemplar_raster <- terra::rast(Ref_grid_path)
 
 Raster_comparison_results <- lapply(Rasters_by_periods, function(raster_list) {
   lulcc.TestRasterCompatibility(raster_list, Exemplar_raster)
@@ -127,14 +135,15 @@ if ((is_empty(unlist(Raster_comparison_results), first.only = FALSE, all.na.empt
 refer to object Raster_comparison_results to locate problems")
 }
 
-# creating raster stacks of all predictors and LULC data for each time period
+# Create SpatRaster stacks for each time period
 Rasterstacks_by_periods <- mapply(
   function(Raster_list, Period_name) {
-    raster_stack_for_period <- stack(Raster_list)
-    names(raster_stack_for_period@layers) <- names(Raster_list)
+    # Combine layers into a single SpatRaster
+    raster_stack_for_period <- do.call(terra::c, Raster_list)
+    names(raster_stack_for_period) <- names(Raster_list)
     Data_period <- str_remove(Period_name, "Period_")
     saveRDS(raster_stack_for_period, file = paste0("Data/Preds/Prepared/Stacks/Calibration/Pred_stack_", Data_period, ".rds"))
-    return(raster_stack_for_period)
+    raster_stack_for_period
   },
   Raster_list = Rasters_by_periods,
   Period_name = names(Rasters_by_periods),
@@ -146,24 +155,23 @@ rm(Rasters_by_periods)
 ### C.1- Data extraction
 ### =========================================================================
 
-# for efficiency all subsequent processes are looped over each period in parallel
-future::plan(multisession, workers = availableCores() - 2)
-future_lapply(Data_periods, function(period) {
-  # seperate data for period
+future::plan(multisession, workers = parallel::availableCores() - 2)
+
+future.apply::future_lapply(Data_periods, function(period) {
+  # Select data for period
   period_data <- Rasterstacks_by_periods[[paste(period)]]
 
-  # Apply function to convert Rasterstacks to dataframes
-  # because the LULC and Region layers have attribute tables the function creates
-  # two columns for each: Pixel value and class name
-  df_conversion <- raster::as.data.frame(period_data)
+  # Convert SpatRaster to data.frame including coordinates
+  # Assumes factor layers already set, so class names appear
+  df_conversion <- as.data.frame(period_data, xy = TRUE, na.rm = FALSE)
 
-  # Get XY coordinates of cells
-  xy_coordinates <- coordinates(period_data)
+  # Remove NAs
+  Trans_data <- na.omit(df_conversion)
+  rm(df_conversion, period_data)
 
-  # cbind XY coordinates to dataframe and remove NAs
-  Trans_data <- na.omit(cbind(df_conversion, xy_coordinates))
-  rm(df_conversion, xy_coordinates, period_data)
-
+  ### =========================================================================
+  ### D. Transition dataset creation
+  ### =========================================================================
   ### =========================================================================
   ### D. Transition dataset creation
   ### =========================================================================
@@ -190,7 +198,7 @@ future_lapply(Data_periods, function(period) {
   # NA :if the row is Not applicable: neither the initial or final class match that of the transition)
   cat(paste0("Creating transition datasets for period ", period))
 
-  # Load the predictor data table that will be used to identify the categories of predictors
+  # Load predictor data table
   predictor_table <- openxlsx::read.xlsx(Pred_table_path, sheet = period)
 
   # Create binarized transition datasets for each transition
@@ -210,43 +218,42 @@ future_lapply(Data_periods, function(period) {
   ))
   colnames(Trans_DF) <- viable_trans_list[, "Trans_name"]
 
-  # loop over transitions
-  for (row in 1:nrow(viable_trans_list)) {
-    # get the from and to classes of the current transition
-    f <- viable_trans_list[row, "Initial_class"]
-    t <- viable_trans_list[row, "Final_class"]
-    Trans_DF[which(Trans_rel_cols$Initial_class_lulc_name == f & Trans_rel_cols$Final_class_lulc_name == t), row] <- 1
-    Trans_DF[which(Trans_rel_cols$Initial_class_lulc_name == f & Trans_rel_cols$Final_class_lulc_name != t), row] <- 0
-  } # close inner loop
-
-  # loop over transition names to combine the transition columns with predictors/info cols
-  Binarized_trans_datasets <- lapply(viable_trans_list[, "Trans_name"], function(trans_name) {
-    # combine transition column with preds/info cols removing NA rows
-    Trans_data_combined <- na.omit(cbind(Trans_data_subset, Trans_DF[, trans_name]))
-    names(Trans_data_combined)[ncol(Trans_data_combined)] <- trans_name
-
-    # remove cols where all values are NA and all cols
-    # and which don't have more than 1 unique value
-    # Data_minus_NA_cols <- Filter(function(y)!all(is.na(y)), Trans_data_combined)
-    # Data_unique_cols <- Filter(function(y)(length(unique(y))>2), Data_minus_NA_cols)
-    return(Trans_data_combined)
-  })
-
-  # rename datasets using period to split lulc classes
-  names(Binarized_trans_datasets) <- sapply(1:nrow(viable_trans_list), function(i) paste0(viable_trans_list[i, "Initial_class"], "/", viable_trans_list[i, "Final_class"]))
-
-  if (Regionalization == TRUE) {
-    Binarized_trans_datasets_regionalized <- unlist(lapply(Binarized_trans_datasets, function(x) {
-      regional_datasets <- split(x, f = x[["Bioregion_Class_Names"]], sep = "/")
-    }), recursive = FALSE)
-
-    # reverse order of name components
-    names(Binarized_trans_datasets_regionalized) <- sapply(strsplit(names(Binarized_trans_datasets_regionalized), "\\."), function(x) {
-      str_replace_all(paste(x[2], x[1], sep = "."), "/", ".")
-    })
+  # Assign 1/0 for each viable transition
+  for (row_i in 1:nrow(viable_trans_list)) {
+    f <- viable_trans_list[row_i, "Initial_class"]
+    t <- viable_trans_list[row_i, "Final_class"]
+    Trans_DF[which(Trans_rel_cols$Initial_class_lulc_name == f &
+      Trans_rel_cols$Final_class_lulc_name == t), row_i] <- 1
+    Trans_DF[which(Trans_rel_cols$Initial_class_lulc_name == f &
+      Trans_rel_cols$Final_class_lulc_name != t), row_i] <- 0
   }
 
-  # also preplace the seperator in the full dataset names
+  # Combine each transition column with predictor/info cols
+  Binarized_trans_datasets <- lapply(viable_trans_list[, "Trans_name"], function(trans_name) {
+    Trans_data_combined <- na.omit(cbind(Trans_data_subset, Trans_DF[, trans_name]))
+    names(Trans_data_combined)[ncol(Trans_data_combined)] <- trans_name
+    Trans_data_combined
+  })
+
+  # Rename datasets using period to split LULC classes
+  names(Binarized_trans_datasets) <- sapply(
+    1:nrow(viable_trans_list),
+    function(i) paste0(viable_trans_list[i, "Initial_class"], "/", viable_trans_list[i, "Final_class"])
+  )
+
+  # Regionalization if needed
+  if (Regionalization == TRUE) {
+    Binarized_trans_datasets_regionalized <- unlist(lapply(Binarized_trans_datasets, function(x) {
+      split(x, f = x[["Bioregion_Class_Names"]], sep = "/")
+    }), recursive = FALSE)
+
+    # Reverse order of name components
+    names(Binarized_trans_datasets_regionalized) <- sapply(
+      strsplit(names(Binarized_trans_datasets_regionalized), "\\."),
+      function(x) str_replace_all(paste(x[2], x[1], sep = "."), "/", ".")
+    )
+  }
+
   names(Binarized_trans_datasets) <- str_replace_all(names(Binarized_trans_datasets), "/", ".")
   rm(Trans_DF, Trans_data_subset, Trans_data, Trans_rel_cols)
 
@@ -267,20 +274,22 @@ future_lapply(Data_periods, function(period) {
     })
     rm(Binarized_trans_datasets_regionalized)
 
-    # remove any regional datasets which do not contain both 0 and 1's
-    Trans_datasets_regionalized <- Trans_datasets_regionalized[sapply(Trans_datasets_regionalized, function(x) sum(x[["trans_result"]] == 1)) > 5]
+      #  Remove regional datasets without sufficient transitions
+      Trans_datasets_regionalized <- Trans_datasets_regionalized[sapply(Trans_datasets_regionalized, function(x) sum(x[["trans_result"]] == 1)) > 5]
   }
 
-  # loop over dataset lists saving individual datasets
+  # Save datasets
   sapply(names(Trans_datasets_full), function(dataset_name) {
     Full_save_path <- paste0(save_dir, "/", period, "/", dataset_name, "_full_ch.rds")
     saveRDS(Trans_datasets_full[[paste(dataset_name)]], Full_save_path)
   })
 
-  sapply(names(Trans_datasets_regionalized), function(dataset_name) {
-    Full_save_path <- paste0(save_dir, "/", period, "/", dataset_name, "_regionalized.rds")
-    saveRDS(Trans_datasets_regionalized[[paste(dataset_name)]], Full_save_path)
-  })
+  if (Regionalization == TRUE) {
+    sapply(names(Trans_datasets_regionalized), function(dataset_name) {
+      Full_save_path <- paste0(save_dir, "/", period, "/", dataset_name, "_regionalized.rds")
+      saveRDS(Trans_datasets_regionalized[[paste(dataset_name)]], Full_save_path)
+    })
+  }
 
   rm(Trans_datasets_full, Trans_datasets_regionalized)
   cat(paste((paste0("Transition Datasets for:", period, "complete")), "", sep = "\n"))
@@ -288,7 +297,6 @@ future_lapply(Data_periods, function(period) {
   gc()
 }) # close loop over periods
 
-plan(sequential) # close parallel clusters
+future::plan(sequential)
 
-
-cat(paste0(" Preparation of transition datasets complete \n"))
+cat(paste0("Preparation of transition datasets complete \n"))

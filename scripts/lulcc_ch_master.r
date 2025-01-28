@@ -52,7 +52,7 @@ invisible(sapply(list.files("Scripts/Functions",
 ), source))
 
 # TO DO: Check if Dinamica EGO is already installed
-# Diego.installed <- system(comannd = paste('*dinamica7* -v'))==0
+# Diego.installed <- system(command = paste('*dinamica7* -v'))==0
 # executable <- "*Dinamica*"
 # test <- system2("where", args = c("-v", executable))
 # print(test)
@@ -79,7 +79,7 @@ invisible(sapply(list.files("Scripts/Functions",
 
 # User enter scenario names to model
 # vector abbreviations of scenario's for folder/file naming
-Scenario_names <- c("BAU", "EI_NAT", "EI_CUL", "EI_SOC", "GR_EX")
+Scenario_names <- c("BAU", "EI-NAT", "EI-CUL", "EI-SOC", "GR-EX")
 
 # User enter start and end dates for the scenarios either enter a single number
 # value or a vector of values the same length as the number of scenarios earliest
@@ -162,13 +162,12 @@ if (dir.exists(Sim_log_dir) == FALSE) {
 # list objects required for modelling
 Model_tool_vars <- list(
   LULC_aggregation_path = "Tools/LULC_class_aggregation.xlsx", # Path to LULC class aggregation table
-  Model_specs_path = "Tools/Model_specs.xlsx", # Path to model
-  # specifications table
+  Model_specs_path = "Tools/Model_specs.csv", # Path to model specifications table
   Param_grid_path = "Tools/param-grid.xlsx", # Path to model hyper parameter grids
   Pred_table_path = "Tools/Predictor_table.xlsx", # Path to predictor table
   Spat_ints_path = "Tools/Spatial_interventions.csv", # Path to spatial interventions table
   EI_ints_path = "Tools/EI_interventions.csv", # Path to EI interventions table
-  Ref_grid_path = "Data/Ref_grid.gri",
+  Ref_grid_path = "Data/Ref_grid.grd", # Path to spatial grid to standardise spatial data
   Calibration_param_dir = "Data/Allocation_parameters/Calibration",
   Simulation_param_dir = "Data/Allocation_parameters/Simulation",
   Trans_rate_table_dir = "Data/Transition_tables/prepared_trans_tables",
@@ -178,10 +177,10 @@ Model_tool_vars <- list(
   Scenario_names = Scenario_names,
   Inclusion_thres = Inclusion_thres,
   DC_path = DC_path
-) # Path to grid to standardise spatial data
+)
 
 # Import model specifications table
-model_specs <- read_excel(Model_tool_vars$Model_specs_path)
+model_specs <- read.csv(Model_tool_vars$Model_specs_path)
 
 # Vector data periods contained in model specifications table
 Model_tool_vars$Data_periods <- unique(model_specs$Data_period_name)

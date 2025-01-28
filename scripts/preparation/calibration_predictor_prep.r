@@ -1,6 +1,7 @@
 #############################################################################
 ## SA_var_prep: Use predictor table to prepare predictor layers at a uniform
 ## 100m resolution, crs and extent prepared layers are saved seperately in a
+## 100m resolution, crs and extent prepared layers are saved seperately in a
 ## and then combined into raster stacks for easy loading
 ## Date: 01-08-2021
 ## Author: Ben Black
@@ -12,9 +13,10 @@
 
 # All packages are sourced in the master document, uncomment here
 # if running the script in isolation
+# if running the script in isolation
 # Install packages if they are not already installed
-# packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse", "testthat",
-#          "sjmisc", "tictoc", "parallel", "terra", "pbapply", "rgdal", "rgeos",
+# packs<-c("foreach", "doMC", "data.table", "terra", "tidyverse", "testthat",
+#          "sjmisc", "tictoc", "parallel", "pbapply", "rgdal", "rgeos",
 #          "sf", "tiff", "bfsMaps", "rjstat", "future.apply", "future", "stringr",
 #          "stringi" ,"readxl","rlist", "rstatix", "openxlsx", "pxR", "zen4R", "rvest")
 
@@ -27,9 +29,10 @@
 
 # Source custom functions
 # invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TRUE, recursive = TRUE), source))
+# invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TRUE, recursive = TRUE), source))
 
 # Load in the grid to use use for re-projecting the CRS and extent of predictor data
-Ref_grid <- raster(Ref_grid_path)
+Ref_grid <- rast(Ref_grid_path)
 
 # vector years of LULC data
 LULC_years <- gsub(".*?([0-9]+).*", "\\1", list.files("Data/Historic_LULC", full.names = FALSE, pattern = ".gri"))
@@ -66,22 +69,31 @@ dir.create(Prepped_layers_dir, recursive = TRUE)
 
 # Predictor table file path (received from output_env only uncomment for testing)
 # Pred_table_path <- "Tools/Predictor_table.xlsx"
+# Predictor table file path (received from output_env only uncomment for testing)
+# Pred_table_path <- "Tools/Predictor_table.xlsx"
 
+# get names of sheets to loop over
 # get names of sheets to loop over
 sheets <- excel_sheets(Pred_table_path)
 
+# load all sheets as a list
 # load all sheets as a list
 Pred_tables <- lapply(sheets, function(x) openxlsx::read.xlsx(Pred_table_path, sheet = x))
 names(Pred_tables) <- sheets
 
 # combine tables for all periods
+# combine tables for all periods
 Pred_table_long <- as.data.frame(rbindlist(Pred_tables))
 
+# create dirs for all predictor categories
 # create dirs for all predictor categories
 sapply(unique(Pred_table_long[["Predictor_category"]]), function(x) {
   dir.create(paste0(Prepped_layers_dir, "/", x), recursive = TRUE)
 })
+})
 
+# seperate unprepared/prepared layers
+Preds_to_prepare <- Pred_table_long[Pred_table_long$Prepared != "Y", ]
 # seperate unprepared/prepared layers
 Preds_to_prepare <- Pred_table_long[Pred_table_long$Prepared != "Y", ]
 
@@ -101,7 +113,10 @@ Preds_raw <- Preds_to_prepare[!is.na(Preds_to_prepare$Raw_data_path), ]
 Preds_static <- Preds_raw[Preds_raw$Static_or_dynamic == "static", ]
 
 # reduce to unique predictors
-Preds_static_unique <- Preds_static[!duplicated(Preds_static$Covariate_ID), c("Covariate_ID", "Predictor_category", "URL", "Raw_data_path", "Prepared_data_path")]
+Preds_static_unique <- Preds_static[
+  !duplicated(Preds_static$Covariate_ID),
+  c("Covariate_ID", "Predictor_category", "URL", "Raw_data_path", "Prepared_data_path")
+]
 
 # loop over the preds loading the raw data, processing and saving, returning a prepared data_path
 for (i in 1:nrow(Preds_static_unique)) {
@@ -110,17 +125,24 @@ for (i in 1:nrow(Preds_static_unique)) {
 
   # aggregate
   Agg_dat <- aggregate(Raw_dat, fact = 4, fun = mean)
+  # aggregate
+  Agg_dat <- aggregate(Raw_dat, fact = 4, fun = mean)
 
+  # vector save path
+  layer_path <- paste0(Prepped_layers_dir, "/", Preds_static_unique[i, "Predictor_category"], "/", Preds_static_unique[i, "Covariate_ID"], ".tif")
   # vector save path
   layer_path <- paste0(Prepped_layers_dir, "/", Preds_static_unique[i, "Predictor_category"], "/", Preds_static_unique[i, "Covariate_ID"], ".tif")
 
   # save
   writeRaster(Agg_dat, layer_path, overwrite = TRUE)
+  # save
+  writeRaster(Agg_dat, layer_path, overwrite = TRUE)
 
-  # add the prepared path to the table
-  Pred_table_long[Pred_table_long$Covariate_ID == Preds_static_unique[i, "Covariate_ID"], "Prepared_data_path"] <- layer_path
-  Pred_table_long[Pred_table_long$Covariate_ID == Preds_static_unique[i, "Covariate_ID"], "Prepared"] <- "Y"
+  #  add the prepared path to the table
+  Pred_table_long[Pred_table_long$Covariate_ID == Preds_static_unique[i,  "Covariate_ID"], "Prepared_data_path"] <- layer_path
+  Pred_table_long[Pred_table_long$Covariate_ID == Preds_static_unique[i,  "Covariate_ID"], "Prepared"] <- "Y"
 
+  # clean up
   # clean up
   rm(Raw_dat, Agg_dat, layer_path)
 }
@@ -133,25 +155,36 @@ Preds_dynamic <- Preds_raw[Preds_raw$Static_or_dynamic == "dynamic", ]
 # re-scaling the rasters, saving and updating predictor table
 for (i in 1:nrow(Preds_dynamic)) {
   # read in rasters as stack
-  raster_stack <- stack(lapply(list.files(Preds_dynamic[i, "Raw_data_path"], full.names = TRUE), readRDS))
+  temp_list <- lapply(list.files(Preds_dynamic[i, "Raw_data_path"], full.names = TRUE), function(x) {
+    rast(readRDS(x))
+  })
+  raster_stack <- do.call(c, temp_list)
 
   # calculate mean on the stack
-  raster_mean <- mean(raster_stack)
+  raster_mean <- app(raster_stack, mean)
 
+  # aggregate
+  Agg_dat <- aggregate(raster_mean, fact = 4, fun = mean)
   # aggregate
   Agg_dat <- aggregate(raster_mean, fact = 4, fun = mean)
 
   # vector save path
   layer_path <- paste0(Prepped_layers_dir, "/", Preds_dynamic[i, "Predictor_category"], "/", Preds_dynamic[i, "Covariate_ID"], "_", Preds_dynamic[i, "period"], ".tif")
+  # vector save path
+  layer_path <- paste0(Prepped_layers_dir, "/", Preds_dynamic[i, "Predictor_category"], "/", Preds_dynamic[i, "Covariate_ID"], "_", Preds_dynamic[i, "period"], ".tif")
 
+  # save
+  writeRaster(Agg_dat, layer_path, overwrite = TRUE)
   # save
   writeRaster(Agg_dat, layer_path, overwrite = TRUE)
 
   # add the prepared path to the table
-  Pred_table_long[which(Pred_table_long$Covariate_ID == Preds_dynamic[i, "Covariate_ID"] & Pred_table_long$period == Preds_dynamic[i, "period"]), "Prepared_data_path"] <- layer_path
-  Pred_table_long[which(Pred_table_long$Covariate_ID == Preds_dynamic[i, "Covariate_ID"] & Pred_table_long$period == Preds_dynamic[i, "period"]), "Prepared"] <- "Y"
+  Pred_table_long[which(Pred_table_long$Covariate_ID == Preds_dynamic[i, "Covariate_ID"] &
+    Pred_table_long$period == Preds_dynamic[i, "period"]), "Prepared_data_path"] <- layer_path
+  Pred_table_long[which(Pred_table_long$Covariate_ID == Preds_dynamic[i, "Covariate_ID"] &
+    Pred_table_long$period == Preds_dynamic[i, "period"]), "Prepared"] <- "Y"
 
-  rm(raster_stack, raster_mean, Agg_dat, layer_path)
+  rm(raster_stack, raster_mean, Agg_dat, layer_path, temp_list)
 }
 
 ### =========================================================================
@@ -195,6 +228,7 @@ names(named_urls) <- lapply(str_split(All_urls, pattern = " = "), function(x) tr
 Statent_urls <- named_urls[4:length(named_urls)]
 
 # create dir for raw data
+# create dir for raw data
 Statent_dir <- "Data/Preds/Raw/Socio_economic/Employment/Historic_employment/Statent"
 
 # Download and unzip all datasets
@@ -204,14 +238,30 @@ sapply(Statent_urls, function(x) {
     save_dir = Statent_dir
   )
 })
+# Download and unzip all datasets
+sapply(Statent_urls, function(x) {
+  lulcc.downloadunzip(
+    url = x,
+    save_dir = Statent_dir
+  )
+})
 
+# gather the relevant files
 # gather the relevant files
 Statent_paths <- grep(list.files(Statent_dir, recursive = TRUE, full.names = TRUE, pattern = "csv"),
   pattern = paste(c("GMDE", "NOLOC"), collapse = "|"),
   invert = TRUE,
   value = TRUE
 )
+  pattern = paste(c("GMDE", "NOLOC"), collapse = "|"),
+  invert = TRUE,
+  value = TRUE
+)
 
+# name using numerics in paths
+names(Statent_paths) <- sapply(Statent_paths, function(x) {
+  str_match(pattern = paste(names(Statent_urls), collapse = "|"), x)
+})
 # name using numerics in paths
 names(Statent_paths) <- sapply(Statent_paths, function(x) {
   str_match(pattern = paste(names(Statent_urls), collapse = "|"), x)
@@ -260,16 +310,24 @@ rm(Statent_data_by_year)
 
 # rasterize
 coordinates(Statent_merged) <- ~ E_KOORD + N_KOORD
+# rasterize
+coordinates(Statent_merged) <- ~ E_KOORD + N_KOORD
 gridded(Statent_merged) <- TRUE
 crs(Statent_merged) <- crs(Ref_grid)
-Statent_brick <- brick(Statent_merged)
-Statent_brick <- raster::resample(Statent_brick, Ref_grid, method = "ngb") # reproject to match extent
+Statent_brick <- rast(Statent_merged)
+Statent_brick <- terra::resample(Statent_brick, Ref_grid, method = "near") # reproject to match extent
 
 ### Business census data
 Biz_census_urls <- named_urls[1:3]
 
 # specify dir and download datasets
 Biz_census_dir <- c("Data/Preds/Raw/Socio_economic/Employment/Historic_employment/Business_census")
+sapply(Biz_census_urls, function(x) {
+  lulcc.downloadunzip(
+    url = x,
+    save_dir = Biz_census_dir
+  )
+})
 sapply(Biz_census_urls, function(x) {
   lulcc.downloadunzip(
     url = x,
@@ -308,6 +366,7 @@ Biz_census_meta_paths <- grep(
 # Find the IDs used for the Full Time Equivalents variables in each metadata file
 Var_IDs_across_datasets <- unlist(sapply(Biz_census_meta_paths, function(x) {
   meta_df <- readxl::read_excel(x)
+  meta_df <- meta_df[26:nrow(meta_df), c(1, 5)]
   meta_df <- meta_df[26:nrow(meta_df), c(1, 5)]
   Var_IDs <- meta_df[which(meta_df[[2]] %in% Statent_var_names), 1]
 }))
@@ -354,11 +413,13 @@ BC_merged <- Reduce(function(x, y) merge(x, y, by = BC_desc_vars, all = TRUE), B
 
 # rasterize
 coordinates(BC_merged) <- ~ X + Y
+# rasterize
+coordinates(BC_merged) <- ~ X + Y
 gridded(BC_merged) <- TRUE
 crs(BC_merged) <- crs(Ref_grid)
-BC_brick <- brick(BC_merged)
-extent(BC_brick) <- extent(Ref_grid)
-BC_brick <- raster::resample(BC_brick, Ref_grid)
+BC_brick <- rast(BC_merged)
+ext(BC_brick) <- ext(Ref_grid)
+BC_brick <- terra::resample(BC_brick, Ref_grid)
 
 # Combine the two bricks together
 Data_stack <- stack(Statent_brick, BC_brick)
@@ -368,7 +429,7 @@ Data_stack <- stack(Statent_brick, BC_brick)
 LMR_shp <- sf::st_read("Data/Preds/Raw/CH_geoms/2022_GEOM_TK/03_ANAL/Gesamtfläche_gf/K4_amre_20180101_gf/K4amre_20180101gf_ch2007Poly.shp")
 
 # sum data in each labour market region
-FTE_lab_market <- raster::extract(Data_stack, LMR_shp, fun = sum, na.rm = TRUE, df = TRUE)
+FTE_lab_market <- terra::extract(Data_stack, vect(LMR_shp), fun = sum, na.rm = TRUE, df = TRUE)
 FTE_lab_market$name <- LMR_shp$name
 
 # split into sectors, vector sector numbers
@@ -377,11 +438,9 @@ sector_nums <- c(1, 2, 3)
 # loop over sector numbers separating data and perform linear model based interpolation
 Sector_extrapolations <- lapply(sector_nums, function(x) {
   Sector_string <- paste0("Sec", x, "_")
-
-  # seperate layers for sector
-  Sector_data <- FTE_lab_market[, which(grepl(colnames(FTE_lab_market), pattern = paste(c(Sector_string, "ID", "name"), collapse = "|")))]
-
-  # seperate the years by removing the prefix to the layer names
+  Sector_data <- FTE_lab_market[, which(grepl(colnames(FTE_lab_market),
+    pattern = paste(c(Sector_string, "ID", "name"), collapse = "|")
+  ))]
   years <- as.numeric(str_remove_all(colnames(Sector_data), pattern = Sector_string))
   names(years) <- colnames(Sector_data)
   years <- sort(years, decreasing = FALSE)
@@ -443,17 +502,28 @@ LMR_values <- pivot_wider(
 )
 # rasterize
 LMR_shp$name <- as.factor(LMR_shp$name)
-LMR_rast <- rasterize(LMR_shp, Ref_grid, field = "name", fun = "last", background = NA)
+LMR_rast <- terra::rasterize(vect(LMR_shp), Ref_grid, field = "name")
 
-# use subs to match raster values based on ID and repeat across all columns
-# saving a seperate layer for each
-FTE_rasts <- subs(LMR_rast,
-  LMR_values,
-  by = "ID",
-  which = 2:ncol(LMR_values)
-)
+FTE_rasts <- LMR_rast
+# Mimic 'subs' functionality for multiple new layers
+# (no new comments; just replacing the approach with terra)
+valmat <- as.data.frame(FTE_rasts, cells = TRUE, na.rm = FALSE)
+colnames(valmat)[2] <- "ID"
+FTE_list <- list()
 
-# base dir
+for (k in 2:ncol(LMR_values)) {
+  tmp <- valmat
+  colname_k <- colnames(LMR_values)[k]
+  matchdf <- data.frame(ID = LMR_values$ID, newval = LMR_values[[colname_k]])
+  tmp <- merge(tmp, matchdf, by = "ID", all.x = TRUE)
+  tmp <- tmp[order(tmp$cells), ]
+  newlayer <- rast(FTE_rasts)
+  values(newlayer) <- tmp$newval
+  FTE_list[[k - 1]] <- newlayer
+}
+
+FTE_rasts <- do.call(c, FTE_list)
+
 Prepared_FTE_dir <- "Data/Preds/Prepared/Layers/Socio_economic/Employment"
 dir.create(Prepared_FTE_dir, recursive = TRUE)
 
@@ -516,21 +586,15 @@ Biophys_paths <- lapply(Biophys_layer_names, function(x) {
 for (i in 1:length(Biophys_paths)) {
   Var_path <- Biophys_paths[[i]]
   Var_name <- names(Biophys_paths)[i]
-
-  # load data
-  Raw_dat <- raster(Var_path)
-
-  # re-project and change resolution
-  Prepped_dat <- projectRaster(Raw_dat, crs = crs(Ref_grid), res = res(Ref_grid))
-  Prepped_dat_resamp <- resample(Prepped_dat, Ref_grid)
-
-  # vector save path
-  layer_path <- paste0(Prepped_layers_dir, "/", unique(Preds_to_prepare[Preds_to_prepare$Covariate_ID == Var_name, "Predictor_category"]), "/", Var_name, ".tif")
-
-  # save
+  Raw_dat <- rast(Var_path)
+  Prepped_dat <- project(Raw_dat, crs(Ref_grid), res = res(Ref_grid))
+  Prepped_dat_resamp <- terra::resample(Prepped_dat, Ref_grid)
+  layer_path <- paste0(
+    Prepped_layers_dir, "/",
+    unique(Preds_to_prepare[Preds_to_prepare$Covariate_ID == Var_name, "Predictor_category"]), "/",
+    Var_name, ".tif"
+  )
   writeRaster(Prepped_dat_resamp, layer_path, overwrite = TRUE)
-
-  # add the prepared path to the table
   Pred_table_long[Pred_table_long$Covariate_ID == Var_name, "Prepared_data_path"] <- layer_path
   Pred_table_long[Pred_table_long$Covariate_ID == Var_name, "Prepared"] <- "Y"
 }
@@ -662,24 +726,25 @@ if (str_contains(Preds_to_prepare$Covariate_ID, "Muni_pop")) {
 
   Var_name <- "Muni_pop"
 
-  # link with spatial municipality data, rasterize and save
-  Muni_save_paths <- sapply(LULC_years[1:3], function(i) {
-    # file_path
-    save_path <- paste0(Prepped_layers_dir, "/", unique(Preds_to_prepare[Preds_to_prepare$Covariate_ID == Var_name, "Predictor_category"]), "/Population/", Var_name, "_", i, ".tif")
+#link with spatial municipality data, rasterize and save
+Muni_save_paths <- sapply(LULC_years[1:3], function(i){
 
-    # loop over the BFS numbers of the polygons and match to population values
-    Muni_shp@data[paste0("Pop_", i)] <- as.numeric(sapply(Muni_shp@data$BFS_NUMMER, function(Muni_num) {
-      pop_value <- as.numeric(pop_in_LULC_years[pop_in_LULC_years$BFS_NUM == Muni_num, paste(i)])
-    }, simplify = TRUE))
+  #file_path
+  save_path <- paste0(Prepped_layers_dir, "/", unique(Preds_to_prepare[Preds_to_prepare$Covariate_ID == Var_name, "Predictor_category"]), "/Population/", Var_name ,"_", i, ".tif")
 
-    # rasterize
-    pop_rast <- rasterize(Muni_shp, Ref_grid, field = paste0("Pop_", i))
+  #loop over the BFS numbers of the polygons and match to population values
+  Muni_shp@data[paste0("Pop_", i)] <- as.numeric(sapply(Muni_shp@data$BFS_NUMMER, function(Muni_num){
+  pop_value <- as.numeric(pop_in_LULC_years[pop_in_LULC_years$BFS_NUM == Muni_num, paste(i)])
+  }, simplify = TRUE))
 
-    # save
-    raster::writeRaster(pop_rast, save_path, overwrite = TRUE)
+  #rasterize
+  pop_rast <- terra::rasterize(vect(Muni_shp), Ref_grid, field = paste0("Pop_", i))
 
-    return(save_path)
-  }) # close loop over LULC years
+  #save
+  writeRaster(pop_rast, save_path, overwrite = TRUE)
+
+  return(save_path)
+})# close loop over LULC years
 
   # Add prepared path to predictor table
   Pred_table_long[Pred_table_long$Covariate_ID == Var_name, "Prepared_data_path"] <- Muni_save_paths
