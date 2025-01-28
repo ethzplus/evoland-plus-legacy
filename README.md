@@ -19,8 +19,13 @@ I've also rewritten all files to be lowercase, because some commits were probabl
 
 # Todos
 
-- [ ] Merge the changes from Manuel
-- [ ] Merge the branches, where sensible
-- [ ] Compare to the public repo version
+- [x] Merge the changes from Manuel
+    - I've merged some changes and tried to leave in as many of @blenback's newer comments as possible. It's very likely that I broke stuff, because the divergence was so far gone that I didn't want to have to run everything anew.
+- [x] Merge the branches, where sensible
+    - I don't think it makes sense to merge the HPC branch now (2025-01-28); I'll focus on getting a grip on the functionality of the current main branch instead. Can always check back later.
+- [x] Compare to the public repo version
+    - I did a rough comparison of [this commit on `blenback/LULCC-CH`](https://github.com/blenback/LULCC-CH/tree/0bb2b0c59660270622878837620fe868b1854dba) and [this commit on this repo](https://github.com/ethzplus/evoland-with-baggage/tree/5d5f62d2d2783e3a0500d872df38037e8c0255c8) and as far as I could discern, we're only missing out on small bugfixes. It would be a major hassle to try and merge, so the latter commit is from where I'll start writing tests and refactoring.
+- [ ] Make R code testable; i.e. introduce [testthat](https://testthat.r-lib.org)
+    - Also implies adding automated data fetchers where possible. If not, add small file excerpts into the testing structure and try to find out where they came from.
 
 [^filterrepo]: I used <https://github.com/newren/git-filter-repo>
