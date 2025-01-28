@@ -18,6 +18,7 @@ Gdrive_api_auth.json
 /publication
 /Model/SetupDinamicaEGO-720_WIN.exe
 /LULCC_CH_user_files
-debug_[0-9].txt
-log_[0-9].txt
+debug_*
+log_*
 
+.DS_Store
