@@ -8,14 +8,13 @@
 #' @author Ben Black
 #' @export
 
-lulcc.requestfocallulcclasses <- function(LULC_aggregation_path){
-
-  #Vector unqiue LULC classes
+lulcc.requestfocallulcclasses <- function(LULC_aggregation_path) {
+  # Vector unqiue LULC classes
   LULC_classes <- unique(read_excel(LULC_aggregation_path)[["Class_abbreviation"]])
 
-  #Use prompt to get active class names as input from user
+  # Use prompt to get active class names as input from user
   print(paste0("The aggregated LULC classes are: ", paste(LULC_classes, collapse = ", ")))
-  Active_class_names <- readline(prompt= paste0("The aggregated LULC classes are: ", c(paste(LULC_classes, collapse = ", ")), ",
+  Active_class_names <- readline(prompt = paste0("The aggregated LULC classes are: ", c(paste(LULC_classes, collapse = ", ")), ",
   Enter those to be considered as active classes for the creation of focal layers: "))
   return(Active_class_names)
 

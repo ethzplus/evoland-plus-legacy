@@ -9,9 +9,9 @@ number-sections: true
 
 ```{r setup, include= FALSE}
 # Install packages
-#install Dinamica seperately
+# install Dinamica seperately
 
-#install.packages("Model/dinamica_1.0.4.tar.gz", repos=NULL, type="source")
+# install.packages("Model/dinamica_1.0.4.tar.gz", repos=NULL, type="source")
 
 # packs <- c("data.table","stringi","stringr", "raster", "tidyverse", #"testthat",
 #            "sjmisc", "tictoc", "readxl", "parallel", "terra", "gridExtra",
@@ -31,7 +31,6 @@ number-sections: true
 #
 # # Source custom functions
 # invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = #TRUE, recursive = TRUE), source))
-
 ```
 
 ```{r include=FALSE}
@@ -44,8 +43,10 @@ library(shiny)
 LULCC_CH uses a combination of Rstats and the 3rd party software Dinamica EGO if Dinamica EGO is not installed on your computer it can be installed using the included executables for different operating systems. Select your operating system below and the appropriate installer window will open
 
 ```{r}
-selectInput("OS", "Operating system:",
-                c("-","Windows", "GNU/Linux"))
+selectInput(
+  "OS", "Operating system:",
+  c("-", "Windows", "GNU/Linux")
+)
 ```
 
 ```{r}
@@ -53,22 +54,20 @@ selectInput("OS", "Operating system:",
 
 # choose file path for installer
 observe({
-if(input$OS != "-"){
-if(input$OS == "Windows"){
-install_path <- paste0(getwd(), "/Model/SetupDinamicaEGO-720_WIN.exe")
-} else if(input$OS == "GNU/Linux"){
-install_path <- paste0(getwd(), "/Model/SetupDinamicaEGO-720_GNU.exe")
-}
+  if (input$OS != "-") {
+    if (input$OS == "Windows") {
+      install_path <- paste0(getwd(), "/Model/SetupDinamicaEGO-720_WIN.exe")
+    } else if (input$OS == "GNU/Linux") {
+      install_path <- paste0(getwd(), "/Model/SetupDinamicaEGO-720_GNU.exe")
+    }
 
 
-install_path <- gsub('/','\\\\',install_path)
+    install_path <- gsub("/", "\\\\", install_path)
 
-# run system command
-system2(command = paste(install_path))
-}
+    # run system command
+    system2(command = paste(install_path))
+  }
 })
-
-
 ```
 
 ## Prepare historic land use land cover (LULC) data
@@ -84,14 +83,13 @@ textOutput("text")
 
 
 
-#Prepare historic LULC data layers
+# Prepare historic LULC data layers
 observeEvent(input$Prep_LULC, {
-#if(LULC_prep_complete != "Y"){
-source("Scripts/Testing_scripts/test_action_button.R")
-output$text <- renderText(LULC_prep_complete)
-#}
+  # if(LULC_prep_complete != "Y"){
+  source("Scripts/Testing_scripts/test_action_button.R")
+  output$text <- renderText(LULC_prep_complete)
+  # }
 })
-
 ```
 
 ## Prepare raster of Swiss Bioregions

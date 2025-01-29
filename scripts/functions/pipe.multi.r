@@ -12,13 +12,12 @@
 #' @author Philipp Brun (main) with edits by Antoine Adde
 #' @export
 
-pipe.multi=function(mod,args,tag="",step=FALSE,weight=FALSE){
-
-  out=pipe.multi.input()
-  out@tag=tag
-  out@args=args
-  out@mod=mod
-  out@weight=weight
+pipe.multi <- function(mod, args, tag = "", step = FALSE, weight = FALSE) {
+  out <- pipe.multi.input()
+  out@tag <- tag
+  out@args <- args
+  out@mod <- mod
+  out@weight <- weight
 
   return(out)
 }

@@ -8,7 +8,7 @@
 ## Author: Ben Black
 #############################################################################
 
-#vector name of model directory
+# vector name of model directory
 Model_dir <- "E:/LULCC_CH"
 Sim_dir <- "E:/LULCC_CH_HPC"
 
@@ -89,35 +89,36 @@ dir.create(Sim_dir)
 ### Copying files to clean directory
 ### =========================================================================
 
-#Load in vector of required file paths
+# Load in vector of required file paths
 Sim_files <- unlist(read.csv2(File_list_path, header = FALSE))
 
-#remove the original dir
+# remove the original dir
 Sim_files <- stringr::str_remove_all(Sim_files, "E:/LULCC_CH/")
 
-#subset the neighbourhood layers to only those required for modelling
+# subset the neighbourhood layers to only those required for modelling
 
-#identify nhood layers and remove from complete vector of file paths
+# identify nhood layers and remove from complete vector of file paths
 All_nhood_paths <- Sim_files[grepl("nhood", Sim_files)]
 Sim_files <- Sim_files[!grepl("nhood", Sim_files)]
 
-#Load details of focal layers required for the models of the simulation period
+# Load details of focal layers required for the models of the simulation period
 Required_focals_details <- readRDS(list.files("Data/Preds/Tools/Neighbourhood_details_for_dynamic_updating", pattern = "2009_2018", full.names = TRUE))
 
-#subset to only required paths
+# subset to only required paths
 Required_nhood <- All_nhood_paths[All_nhood_paths %in% Required_focals_details$Prepared_data_path]
 
-#append required nhood paths
+# append required nhood paths
 Sim_files <- c(Sim_files, Required_nhood)
 
-#create directories before moving files
-sapply(dirname(Sim_files), function(x){
-  if(dir.exists(paste0(Sim_dir, "/", x)) == FALSE){
+# create directories before moving files
+sapply(dirname(Sim_files), function(x) {
+  if (dir.exists(paste0(Sim_dir, "/", x)) == FALSE) {
     dir.create(paste0(Sim_dir, "/", x), recursive = TRUE)
   }
 })
 
-#copy files from private dir to public
+# copy files from private dir to public
 file.copy(Sim_files,
-          to = paste0(Sim_dir, "/", Sim_files),
-          overwrite = TRUE)
+  to = paste0(Sim_dir, "/", Sim_files),
+  overwrite = TRUE
+)

@@ -274,8 +274,8 @@ future.apply::future_lapply(Data_periods, function(period) {
     })
     rm(Binarized_trans_datasets_regionalized)
 
-      #  Remove regional datasets without sufficient transitions
-      Trans_datasets_regionalized <- Trans_datasets_regionalized[sapply(Trans_datasets_regionalized, function(x) sum(x[["trans_result"]] == 1)) > 5]
+    #  Remove regional datasets without sufficient transitions
+    Trans_datasets_regionalized <- Trans_datasets_regionalized[sapply(Trans_datasets_regionalized, function(x) sum(x[["trans_result"]] == 1)) > 5]
   }
 
   # Save datasets

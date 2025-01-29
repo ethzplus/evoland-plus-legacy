@@ -21,12 +21,11 @@ library(shiny)
 library(shinyjs)
 shinyjs::useShinyjs()
 
-   observeEvent(input$ShowButton, {
-     enable("HiddenButton")
-   })
+observeEvent(input$ShowButton, {
+  enable("HiddenButton")
+})
 
-   observeEvent(input$HiddenButton, {
-     output$text <- renderText("Hidden button activated")
-   })
-
+observeEvent(input$HiddenButton, {
+  output$text <- renderText("Hidden button activated")
+})
 ```

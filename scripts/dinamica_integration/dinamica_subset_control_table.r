@@ -5,13 +5,11 @@
 ## Author: Ben Black, Carlson Büth
 #############################################################################
 
-#set working directory
+# set working directory
 setwd(wpath)
 
-#load control table
+# load control table
 Control_table <- read.csv(Control_table_path)
 
-#subset to non-completed simulations
-Control_table <- Control_table[Control_table$Completed.string == "N",]
-
-
+# subset to non-completed simulations
+Control_table <- Control_table[Control_table$Completed.string == "N", ]

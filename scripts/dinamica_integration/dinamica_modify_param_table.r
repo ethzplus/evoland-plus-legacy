@@ -4,10 +4,8 @@
 ## Author: Ben Black
 #############################################################################
 
-#subset to columns required for %expander input
+# subset to columns required for %expander input
 Expander_table <- Param_table[, c("From", "To", "Perc_expander")]
 
-#subset to columns required for patch generation input
-Patch_table <- Param_table[,!(colnames(Param_table) %in% c("Perc_expander", "Perc_patcher"))]
-
-
+# subset to columns required for patch generation input
+Patch_table <- Param_table[, !(colnames(Param_table) %in% c("Perc_expander", "Perc_patcher"))]

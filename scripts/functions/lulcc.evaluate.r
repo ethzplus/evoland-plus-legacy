@@ -24,29 +24,28 @@
 #' @export
 
 lulcc.evaluate <- function(x,
-                           tester=data.frame(),
-                           thres=numeric(),
-                           crit="pp=op",
-                           prevalence_correction=FALSE,
-                           train_test){
-
+                           tester = data.frame(),
+                           thres = numeric(),
+                           crit = "pp=op",
+                           prevalence_correction = FALSE,
+                           train_test) {
   ### ------------------------
   ### check thresholds
   ### ------------------------
 
   # thres has to be a vector with named elements (same names
   # as in evaluation matrix)
-  if(length(thres)>0){
-    if(length(x@fits[[1]])!=length(thres)){
+  if (length(thres) > 0) {
+    if (length(x@fits[[1]]) != length(thres)) {
       stop("Wrong number of thresholds supplied! Should be one threshold per model type...")
     }
-    if(crit!="external"){
+    if (crit != "external") {
       warning("Assuming you want external tresholds to be used - setting crit='external'!")
-      crit="external"
+      crit <- "external"
     }
   }
 
-  if(!(crit%in%c("pp=op","maxTSS","external"))){
+  if (!(crit %in% c("pp=op", "maxTSS", "external"))) {
     stop("Invalid threshold criterion chosen!")
   }
 
@@ -55,72 +54,68 @@ lulcc.evaluate <- function(x,
   ### Check testing data and prepare for evaluation
   ### ------------------------
 
-  if(x@meta$replicatetype=="none" && nrow(tester)==0){
+  if (x@meta$replicatetype == "none" && nrow(tester) == 0) {
     stop("External testing data must be supplied for replicatetype 'none'")
-  } else if(x@meta$replicatetype%in%c("cv","block-cv","splitsample")) {
-    if(train_test == "test"){
-    if(prevalence_correction){
-      x@tesdat=lapply(x@tesdat,function(y){
-        tdpres=y[which(y$transitions_result==1),]
-        tdabs=y[which(y$transitions_result==0),]
-        #If the number of absences (non-trans) is less than the number of presences (trans) then resample them
-        #with replacement so that they are they same. Vice versa for if presences(trans) < absences (non-trans)
-        if(nrow(tdabs)<nrow(tdpres)){
-          tdabs=tdabs[sample(1:nrow(tdabs),nrow(tdpres),replace=T),]
-        } else if(nrow(tdpres)<nrow(tdabs)){
-          tdpres=tdpres[sample(1:nrow(tdpres),nrow(tdabs),replace=T),]
-        }
-        return(rbind(tdpres,tdabs))
+  } else if (x@meta$replicatetype %in% c("cv", "block-cv", "splitsample")) {
+    if (train_test == "test") {
+      if (prevalence_correction) {
+        x@tesdat <- lapply(x@tesdat, function(y) {
+          tdpres <- y[which(y$transitions_result == 1), ]
+          tdabs <- y[which(y$transitions_result == 0), ]
+          # If the number of absences (non-trans) is less than the number of presences (trans) then resample them
+          # with replacement so that they are they same. Vice versa for if presences(trans) < absences (non-trans)
+          if (nrow(tdabs) < nrow(tdpres)) {
+            tdabs <- tdabs[sample(1:nrow(tdabs), nrow(tdpres), replace = T), ]
+          } else if (nrow(tdpres) < nrow(tdabs)) {
+            tdpres <- tdpres[sample(1:nrow(tdpres), nrow(tdabs), replace = T), ]
+          }
+          return(rbind(tdpres, tdabs))
+        })
+      }
+
+      outerloop <- length(x@tesdat)
+      testa <- lapply(x@tesdat, function(x) {
+        y <- x[, -which(colnames(x) == "transitions_result"), drop = FALSE]
       })
-    }
-
-    outerloop<-length(x@tesdat)
-    testa<-lapply(x@tesdat,function(x){
-      y<-x[,-which(colnames(x)=="transitions_result"),drop=FALSE]
-    })
-    papa<-lapply(x@tesdat,function(x){
-      y<-x[,"transitions_result"]
-    })
-    } else if (train_test == "train"){ #close if statement for test data
-
-      if(prevalence_correction){
-      x@train=lapply(x@train,function(y){
-        tdpres=y[which(y$transitions_result==1),]
-        tdabs=y[which(y$transitions_result==0),]
-        #If the number of absences (non-trans) is less than the number of presences (trans) then resample them
-        #with replacement so that they are they same. Vice versa for if presences(trans) < absences (non-trans)
-        if(nrow(tdabs)<nrow(tdpres)){
-          tdabs=tdabs[sample(1:nrow(tdabs),nrow(tdpres),replace=T),]
-        } else if(nrow(tdpres)<nrow(tdabs)){
-          tdpres=tdpres[sample(1:nrow(tdpres),nrow(tdabs),replace=T),]
-        }
-        return(rbind(tdpres,tdabs))
+      papa <- lapply(x@tesdat, function(x) {
+        y <- x[, "transitions_result"]
       })
-    }
+    } else if (train_test == "train") { # close if statement for test data
 
-    outerloop<-length(x@train)
-    testa<-lapply(x@train,function(x){
-      y<-x[,-which(colnames(x)=="transitions_result"),drop=FALSE]
-    })
-    papa<-lapply(x@train,function(x){
-      y<-x[,"transitions_result"]
-    })
+      if (prevalence_correction) {
+        x@train <- lapply(x@train, function(y) {
+          tdpres <- y[which(y$transitions_result == 1), ]
+          tdabs <- y[which(y$transitions_result == 0), ]
+          # If the number of absences (non-trans) is less than the number of presences (trans) then resample them
+          # with replacement so that they are they same. Vice versa for if presences(trans) < absences (non-trans)
+          if (nrow(tdabs) < nrow(tdpres)) {
+            tdabs <- tdabs[sample(1:nrow(tdabs), nrow(tdpres), replace = T), ]
+          } else if (nrow(tdpres) < nrow(tdabs)) {
+            tdpres <- tdpres[sample(1:nrow(tdpres), nrow(tdabs), replace = T), ]
+          }
+          return(rbind(tdpres, tdabs))
+        })
+      }
 
-    } #close if statement for training
-
-  } else if(x@meta$replicatetype=="none"){
-
-    outerloop<-1
-    testa<-list(tester[,-which(colnames(tester)=="transitions_result"),drop=FALSE])
-    papa<-list(tester[,"transitions_result"])
-
+      outerloop <- length(x@train)
+      testa <- lapply(x@train, function(x) {
+        y <- x[, -which(colnames(x) == "transitions_result"), drop = FALSE]
+      })
+      papa <- lapply(x@train, function(x) {
+        y <- x[, "transitions_result"]
+      })
+    } # close if statement for training
+  } else if (x@meta$replicatetype == "none") {
+    outerloop <- 1
+    testa <- list(tester[, -which(colnames(tester) == "transitions_result"), drop = FALSE])
+    papa <- list(tester[, "transitions_result"])
   }
 
   ### ------------------------
   ### generate wsl.evaluation and add meta info
   ### ------------------------
 
-  out<-preva.meta(type="evaluation")
+  out <- preva.meta(type = "evaluation")
 
 
 
@@ -128,46 +123,43 @@ lulcc.evaluate <- function(x,
   ### Evaluate models
   ### -------------------------------------------
 
-  lis<-list()
+  lis <- list()
   # loop over replicates
-  for(i in 1:length(x@fits)){
-
-    lisa<-list()
+  for (i in 1:length(x@fits)) {
+    lisa <- list()
     # Loop over model types
-    for(j in 1:length(x@fits[[1]])){
-
+    for (j in 1:length(x@fits[[1]])) {
       # Make prediction
-      pred=pipe.prd(x@fits[[i]][[j]] ,testa[[i]])
+      pred <- pipe.prd(x@fits[[i]][[j]], testa[[i]])
 
       # Evaluate (with external threshold if available)
-      if(length(thres)==0){
-
-        scores<-pipe.ceval(f=pred,
-                      pa=papa[[i]],
-                      tesdat=testa[[i]],
-                      crit=crit)
-
-      } else{
-
-        scores<-pipe.ceval(f=pred,
-                      pa=papa[[i]],
-                      tesdat=testa[[i]],
-                      tre=thres[which(names(thres)==names(x@fits[[i]])[j])],
-                      crit=crit)
-
+      if (length(thres) == 0) {
+        scores <- pipe.ceval(
+          f = pred,
+          pa = papa[[i]],
+          tesdat = testa[[i]],
+          crit = crit
+        )
+      } else {
+        scores <- pipe.ceval(
+          f = pred,
+          pa = papa[[i]],
+          tesdat = testa[[i]],
+          tre = thres[which(names(thres) == names(x@fits[[i]])[j])],
+          crit = crit
+        )
       }
 
-      if(scores["threshold"]==Inf){
-        scores["threshold"]=.5
+      if (scores["threshold"] == Inf) {
+        scores["threshold"] <- .5
       }
-      lisa[[j]]<-scores
-
+      lisa[[j]] <- scores
     }
-    names(lisa)=names(x@fits[[i]])
-    lis[[i]]<-lisa
+    names(lisa) <- names(x@fits[[i]])
+    lis[[i]] <- lisa
   }
-  names(lis)<-names(x@fits)
-  out@performance<-lis
+  names(lis) <- names(x@fits)
+  out@performance <- lis
 
   return(out)
 }

@@ -16,20 +16,18 @@
 #' @author Philipp Brun (main) with edits by Ben Black
 #' @export
 
-lulcc.BoyceROCcurves <-function(f,pa,tesdat,crit,tre=numeric()){
-
+lulcc.BoyceROCcurves <- function(f, pa, tesdat, crit, tre = numeric()) {
   # If there are any presences in the evaluation data
-  if(any(pa==1)){
-
-   	# Boyce
-	  boyce = ecospat.boyce(fit=f, obs=f[pa==1], res = 1000, PEplot = FALSE)
+  if (any(pa == 1)) {
+    # Boyce
+    boyce <- ecospat.boyce(fit = f, obs = f[pa == 1], res = 1000, PEplot = FALSE)
 
     # AUC
-    z=prediction(f,pa)
-    auc=performance(z,measure="auc")
+    z <- prediction(f, pa)
+    auc <- performance(z, measure = "auc")
 
     # ROC
-    roc=performance(z, "tpr", "fpr")
+    roc <- performance(z, "tpr", "fpr")
 
 
     # Return results

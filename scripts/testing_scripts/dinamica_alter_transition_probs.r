@@ -6,5 +6,5 @@
 ## Author: Ben Black
 #############################################################################
 
-#the point to pick up from in the script: 'Dinamica_trans_potent_calc_parallel', is this object
+# the point to pick up from in the script: 'Dinamica_trans_potent_calc_parallel', is this object
 Raster_prob_values <- NULL

@@ -8,8 +8,10 @@
 #' @slot performance fitted model objects
 #' @slot call the function call
 #'
-wsl.fit<-setClass("wsl.fit",slots=c(meta="list", # Meta information
-                                    tesdat="list", # Test data subset
-                                    train ="list", #Training data subset
-                                    fits="list", # Model objects
-                                    call="call")) # conserve function call
+wsl.fit <- setClass("wsl.fit", slots = c(
+  meta = "list", # Meta information
+  tesdat = "list", # Test data subset
+  train = "list", # Training data subset
+  fits = "list", # Model objects
+  call = "call"
+)) # conserve function call

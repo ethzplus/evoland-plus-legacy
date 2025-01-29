@@ -83,24 +83,23 @@ lulcc.summarisecovselection <- function(nested_list_of_trans, split_by) {
     # loop over each table in the list of results
 
     Cov_occurence_plots <- lapply(seq_along(Cov_occurence_tabular), function(x) {
-
       # convert data from wide to long
       long_data <- gather_(Cov_occurence_tabular[[x]], keycol, valuecol, gathercols)
 
       # drop rows that do not occur in more than 10 transitions
       Filtered_data <- long_data %>% filter(total_occurences > 10)
 
-      #order the data by descending order of total_occurences
-      ordered_data <- Filtered_data[order(-Filtered_data$total_occurences),]
+      # order the data by descending order of total_occurences
+      ordered_data <- Filtered_data[order(-Filtered_data$total_occurences), ]
 
 
       Plot_title <- str_replace_all(str_replace(paste(names(Cov_occurence_tabular)[[x]]), "Cov", "Covariate"), "[._]", " ")
 
       # create plot
-      ggplot(data = ordered_data, aes(fill = Region, y = Frequency, x =fct_reorder(Covariate, total_occurences, .desc = TRUE))) +
+      ggplot(data = ordered_data, aes(fill = Region, y = Frequency, x = fct_reorder(Covariate, total_occurences, .desc = TRUE))) +
         geom_bar(position = "stack", stat = "identity") +
-        labs(fill = "Bioregion", x = "Covariates" , y = "Frequency across transition datasets", title = Plot_title) +
-        theme(axis.text.x = element_text(size = 9,angle = 90)) +
+        labs(fill = "Bioregion", x = "Covariates", y = "Frequency across transition datasets", title = Plot_title) +
+        theme(axis.text.x = element_text(size = 9, angle = 90)) +
         scale_fill_brewer(palette = "Dark2")
     })
     names(Cov_occurence_plots) <- c("Cov_occurence_collinearity_selection_plot", "Cov_occurence_embedded_selection_plot")
@@ -117,7 +116,6 @@ lulcc.summarisecovselection <- function(nested_list_of_trans, split_by) {
 
 
   if (split_by == "Initial_lulc") {
-
     # 1. create a summary table across the levels of the nested list
     # of the number of covariates remaining after each selection process and
     # the measures of central tendency for the sets of covariates that
@@ -185,25 +183,24 @@ lulcc.summarisecovselection <- function(nested_list_of_trans, split_by) {
     gathercols <- sfx
     # loop over each table in the list of results
 
-        Cov_occurence_plots <- lapply(seq_along(Cov_occurence_tabular), function(x) {
-
+    Cov_occurence_plots <- lapply(seq_along(Cov_occurence_tabular), function(x) {
       # convert data from wide to long
       long_data <- gather_(Cov_occurence_tabular[[x]], keycol, valuecol, gathercols)
 
       # drop rows that do not occur in more than 10 transitions
       Filtered_data <- long_data %>% filter(total_occurences > 10)
 
-      #order the data by descending order of total_occurences
-      ordered_data <- Filtered_data[order(-Filtered_data$total_occurences),]
+      # order the data by descending order of total_occurences
+      ordered_data <- Filtered_data[order(-Filtered_data$total_occurences), ]
 
 
       Plot_title <- str_replace_all(str_replace(paste(names(Cov_occurence_tabular)[[x]]), "Cov", "Covariate"), "[._]", " ")
 
       # create plot
-      ggplot(data = ordered_data, aes(fill = Initial_LULC, y = Frequency, x =fct_reorder(Covariate, total_occurences, .desc = TRUE))) +
+      ggplot(data = ordered_data, aes(fill = Initial_LULC, y = Frequency, x = fct_reorder(Covariate, total_occurences, .desc = TRUE))) +
         geom_bar(position = "stack", stat = "identity") +
-        labs(fill = "Initial LULC class", x = "Covariates" , y = "Frequency across transition datasets", title = Plot_title) +
-        theme(axis.text.x = element_text(size = 9,angle = 90)) +
+        labs(fill = "Initial LULC class", x = "Covariates", y = "Frequency across transition datasets", title = Plot_title) +
+        theme(axis.text.x = element_text(size = 9, angle = 90)) +
         scale_fill_brewer(palette = "Dark2")
     })
     names(Cov_occurence_plots) <- c("Cov_occurence_collinearity_selection_plot", "Cov_occurence_embedded_selection_plot")
@@ -222,7 +219,6 @@ lulcc.summarisecovselection <- function(nested_list_of_trans, split_by) {
 
 
   if (split_by == "Final_lulc") {
-
     # 1. create a summary table across the levels of the nested list
     # of the number of covariates remaining after each selection process and
     # the measures of central tendency for the sets of covariates that
@@ -290,24 +286,23 @@ lulcc.summarisecovselection <- function(nested_list_of_trans, split_by) {
     # loop over each table in the list of results
 
     Cov_occurence_plots <- lapply(seq_along(Cov_occurence_tabular), function(x) {
-
       # convert data from wide to long
       long_data <- gather_(Cov_occurence_tabular[[x]], keycol, valuecol, gathercols)
 
       # drop rows that do not occur in more than 10 transitions
       Filtered_data <- long_data %>% filter(total_occurences > 10)
 
-      #order the data by descending order of total_occurences
-      ordered_data <- Filtered_data[order(-Filtered_data$total_occurences),]
+      # order the data by descending order of total_occurences
+      ordered_data <- Filtered_data[order(-Filtered_data$total_occurences), ]
 
 
       Plot_title <- str_replace_all(str_replace(paste(names(Cov_occurence_tabular)[[x]]), "Cov", "Covariate"), "[._]", " ")
 
       # create plot
-      ggplot(data = ordered_data, aes(fill = Final_LULC, y = Frequency, x =fct_reorder(Covariate, total_occurences, .desc = TRUE))) +
+      ggplot(data = ordered_data, aes(fill = Final_LULC, y = Frequency, x = fct_reorder(Covariate, total_occurences, .desc = TRUE))) +
         geom_bar(position = "stack", stat = "identity") +
-        labs(fill = "Final LULC class", x = "Covariates" , y = "Frequency across transition datasets", title = Plot_title) +
-        theme(axis.text.x = element_text(size = 9,angle = 90)) +
+        labs(fill = "Final LULC class", x = "Covariates", y = "Frequency across transition datasets", title = Plot_title) +
+        theme(axis.text.x = element_text(size = 9, angle = 90)) +
         scale_fill_brewer(palette = "Dark2")
     })
     names(Cov_occurence_plots) <- c("Cov_occurence_collinearity_selection_plot", "Cov_occurence_embedded_selection_plot")
@@ -322,5 +317,3 @@ lulcc.summarisecovselection <- function(nested_list_of_trans, split_by) {
     ))
   }
 }
-
-

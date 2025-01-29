@@ -138,8 +138,8 @@ for (i in 1:nrow(Preds_static_unique)) {
   writeRaster(Agg_dat, layer_path, overwrite = TRUE)
 
   #  add the prepared path to the table
-  Pred_table_long[Pred_table_long$Covariate_ID == Preds_static_unique[i,  "Covariate_ID"], "Prepared_data_path"] <- layer_path
-  Pred_table_long[Pred_table_long$Covariate_ID == Preds_static_unique[i,  "Covariate_ID"], "Prepared"] <- "Y"
+  Pred_table_long[Pred_table_long$Covariate_ID == Preds_static_unique[i, "Covariate_ID"], "Prepared_data_path"] <- layer_path
+  Pred_table_long[Pred_table_long$Covariate_ID == Preds_static_unique[i, "Covariate_ID"], "Prepared"] <- "Y"
 
   # clean up
   # clean up
@@ -721,25 +721,24 @@ if (str_contains(Preds_to_prepare$Covariate_ID, "Muni_pop")) {
 
   Var_name <- "Muni_pop"
 
-#link with spatial municipality data, rasterize and save
-Muni_save_paths <- sapply(LULC_years[1:3], function(i){
+  # link with spatial municipality data, rasterize and save
+  Muni_save_paths <- sapply(LULC_years[1:3], function(i) {
+    # file_path
+    save_path <- paste0(Prepped_layers_dir, "/", unique(Preds_to_prepare[Preds_to_prepare$Covariate_ID == Var_name, "Predictor_category"]), "/Population/", Var_name, "_", i, ".tif")
 
-  #file_path
-  save_path <- paste0(Prepped_layers_dir, "/", unique(Preds_to_prepare[Preds_to_prepare$Covariate_ID == Var_name, "Predictor_category"]), "/Population/", Var_name ,"_", i, ".tif")
+    # loop over the BFS numbers of the polygons and match to population values
+    Muni_shp@data[paste0("Pop_", i)] <- as.numeric(sapply(Muni_shp@data$BFS_NUMMER, function(Muni_num) {
+      pop_value <- as.numeric(pop_in_LULC_years[pop_in_LULC_years$BFS_NUM == Muni_num, paste(i)])
+    }, simplify = TRUE))
 
-  #loop over the BFS numbers of the polygons and match to population values
-  Muni_shp@data[paste0("Pop_", i)] <- as.numeric(sapply(Muni_shp@data$BFS_NUMMER, function(Muni_num){
-  pop_value <- as.numeric(pop_in_LULC_years[pop_in_LULC_years$BFS_NUM == Muni_num, paste(i)])
-  }, simplify = TRUE))
+    # rasterize
+    pop_rast <- terra::rasterize(vect(Muni_shp), Ref_grid, field = paste0("Pop_", i))
 
-  #rasterize
-  pop_rast <- terra::rasterize(vect(Muni_shp), Ref_grid, field = paste0("Pop_", i))
+    # save
+    writeRaster(pop_rast, save_path, overwrite = TRUE)
 
-  #save
-  writeRaster(pop_rast, save_path, overwrite = TRUE)
-
-  return(save_path)
-})# close loop over LULC years
+    return(save_path)
+  }) # close loop over LULC years
 
   # Add prepared path to predictor table
   Pred_table_long[Pred_table_long$Covariate_ID == Var_name, "Prepared_data_path"] <- Muni_save_paths
