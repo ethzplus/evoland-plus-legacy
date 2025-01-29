@@ -372,6 +372,7 @@ cat("Stacking LULC, SA_preds and Nhood_preds \n")
 
 #Stack all rasters
 #For calibration mode
+{
 if (grepl("calibration", Model_mode, ignore.case = TRUE)) {
   Trans_data_stack <- stack(LULC_data, SA_pred_stack)
   names(Trans_data_stack) <- c(names(LULC_data), names(SA_pred_stack@layers))
@@ -393,6 +394,7 @@ else if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
 
 else {
   stop("Model mode not recognised!")
+}
 }
 
 #Load raster stacks for testing

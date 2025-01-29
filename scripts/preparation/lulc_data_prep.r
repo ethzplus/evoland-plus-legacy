@@ -60,12 +60,6 @@ AS_tables_seperate_periods <- list(
   NOAS04_2009 = AS_table[, c("E", "N", "AS09R_72")],
   NOAS04_2018 = AS_table[, c("E", "N", "AS18_72")]
 )
-  NOAS04_1985 = AS_table[, c("E", "N", "AS85_72")],
-  NOAS04_1997 = AS_table[, c("E", "N", "AS97_72")],
-  NOAS04_2009 = AS_table[, c("E", "N", "AS09R_72")],
-  NOAS04_2018 = AS_table[, c("E", "N", "AS18_72")]
-)
-
 rm(AS_table)
 
 # instantiate small function for raster creation

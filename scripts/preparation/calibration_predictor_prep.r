@@ -90,7 +90,6 @@ Pred_table_long <- as.data.frame(rbindlist(Pred_tables))
 sapply(unique(Pred_table_long[["Predictor_category"]]), function(x) {
   dir.create(paste0(Prepped_layers_dir, "/", x), recursive = TRUE)
 })
-})
 
 # seperate unprepared/prepared layers
 Preds_to_prepare <- Pred_table_long[Pred_table_long$Prepared != "Y", ]
@@ -249,10 +248,6 @@ sapply(Statent_urls, function(x) {
 # gather the relevant files
 # gather the relevant files
 Statent_paths <- grep(list.files(Statent_dir, recursive = TRUE, full.names = TRUE, pattern = "csv"),
-  pattern = paste(c("GMDE", "NOLOC"), collapse = "|"),
-  invert = TRUE,
-  value = TRUE
-)
   pattern = paste(c("GMDE", "NOLOC"), collapse = "|"),
   invert = TRUE,
   value = TRUE

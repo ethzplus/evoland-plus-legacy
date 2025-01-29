@@ -9,7 +9,8 @@
 ### A- Preparation
 ### =========================================================================
 # Set working directory
-system.time(wpath<-"E:/LULCC_CH"
+system.time()
+wpath<-"E:/LULCC_CH"
 setwd(wpath)
 
 #Vector packages for loading
@@ -357,8 +358,8 @@ Prob_raster <- rasterFromXYZ(Raster_prob_values, crs = crs(Current_LULC))
 prob_map_path <- paste0(prob_map_folder, Trans_ID, "_probability_", Initial_LULC, "_to_", Final_LULC, ".grd")
 
 writeRaster(Prob_raster, prob_map_path, datatype='INT2U', overwrite=T)
-})) #close loop over transitions
 
+}) #close loop over transitions
 
 
 

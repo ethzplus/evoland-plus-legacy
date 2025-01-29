@@ -555,6 +555,3 @@ if(length(Model_pre_checks) == 0){
 }else{
   return(Model_pre_checks)
 }
-
-}
-
