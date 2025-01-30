@@ -10,4 +10,10 @@ check_dinamica <- function() {
 
   # TODO: Check if Dinamica EGO is already installed
   # Diego.installed <- system(command = paste('*dinamica7* -v'))==0
+  stop("This doesn't do anything yet")
+}
+
+#' @export
+get_dinamica_path <- function() {
+  return("C:\\Program Files\\Dinamica EGO 7\\DinamicaConsole7.exe")
 }

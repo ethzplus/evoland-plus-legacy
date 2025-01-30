@@ -26,12 +26,6 @@ lulccfunspkg::simcontrolprep() |>
 ### Modelling set-up
 ### =========================================================================
 
-# TODO: Document how users should set up the various 'tools' tables that control the
-# creation of transition datasets and the tp models.
-
-# Get the file path of the Dinamica console executable
-DC_path <- "C:\\Program Files\\Dinamica EGO 7\\DinamicaConsole7.exe"
-
 # list objects required for modelling
 Model_tool_vars <- list(
   LULC_aggregation_path = "Tools/LULC_class_aggregation.xlsx", # Path to LULC class aggregation table
@@ -47,8 +41,7 @@ Model_tool_vars <- list(
   Sim_control_path = Sim_control_path, # Path to simulation control table
   Step_length = Step_length,
   Scenario_names = Scenario_names,
-  Inclusion_thres = 0.5,
-  DC_path = DC_path
+  Inclusion_thres = 0.5
 )
 
 # Import model specifications table
@@ -286,7 +279,7 @@ if (Pre_check_result == FALSE) {
 
   print("Starting to run model with Dinamica EGO")
   system2(
-    command = paste(DC_path),
+    command = lulccfunspkg::get_dinamica_path(),
     args = c("-disable-parallel-steps -log-level 7", Temp_model_path)
     # env = c(
     #   DINAMICA_EGO_7_LOG_PATH = Win_logdir
