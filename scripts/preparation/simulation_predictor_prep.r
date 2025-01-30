@@ -6,20 +6,6 @@
 ## Author: Ben Black
 #############################################################################
 
-# All packages are sourced in the master document, uncomment here
-# Vector packages for loading
-# packs<-c("foreach", "data.table", "raster", "tidyverse",
-#          "testthat", "sjmisc", "tictoc", "doParallel",
-#          "lulcc", "pbapply", "stringr", "readr", "openxlsx", "bfsMaps",
-#          "jsonlite", "httr", "xlsx", "zen4R)
-#
-# new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
-#
-# if(length(new.packs)) install.packages(new.packs)
-#
-# # Load required packages
-# invisible(lapply(packs, require, character.only = TRUE))
-
 # Supplied by master script only uncomment for testing
 # Predictor table file path
 # Pred_table_path <- "Tools/Predictor_table.xlsx"

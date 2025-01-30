@@ -17,25 +17,6 @@
 ### A- Preparation
 ### =========================================================================
 
-# All packages are sourced in the master document, uncomment here
-# Install packages if they are not already installed
-# packs<-c("foreach", "doMC", "data.table", "raster", "tidyverse",
-#          "testthat","sjmisc", "tictoc", "parallel", "terra",
-#          "pbapply", "readr", "readxl", "openxlsx", "viridis")
-#
-# new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
-#
-# if(length(new.packs)) install.packages(new.packs)
-#
-# # Load required packages
-# invisible(lapply(packs, require, character.only = TRUE))
-
-# Source custom functions
-# invisible(sapply(list.files("Scripts/Functions",
-#                             pattern = ".R",
-#                             full.names = TRUE,
-#                             recursive=TRUE), source))
-
 # Historic LULC data folder path
 LULC_folder <- "Data/Historic_LULC"
 

@@ -10,15 +10,6 @@
 ### A- Preparation
 ### =========================================================================
 
-# All packages are sourced in the master document, uncomment here
-# if running the script in isolation
-# Vector packages for loading
-# packs<-c("data.table", "raster", "tidyverse",
-#          "lulcc", "stringr", "readr", "xlsx", "gdata")
-#
-# # Load required packages
-# invisible(lapply(packs, require, character.only = TRUE))
-
 LULC_years <- gsub(".*?([0-9]+).*", "\\1", list.files("Data/Historic_LULC", full.names = FALSE, pattern = ".gri"))
 
 # Vector time Data_periods for calibration

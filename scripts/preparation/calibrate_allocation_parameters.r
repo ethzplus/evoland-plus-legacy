@@ -11,25 +11,6 @@
 ### A- Preparation
 ### =========================================================================
 
-# Packages are loaded in the master script, uncomment here for testing
-# # Install packages if they are not already installed
-# packs<-c("data.table", "raster", "tidyverse","SDMtools", "doParallel","sf",
-#          "tiff", "igraph", "readr")
-#
-# new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
-#
-# if(length(new.packs)) install.packages(new.packs)
-#
-# #SDMtools is depreciated and needs to be installed from source
-# #packageurl <- "https://cran.r-project.org/src/contrib/Archive/SDMTools/SDMTools_1.1-221.2.tar.gz"
-# #install.packages(packageurl, repos=NULL, type="source")
-#
-# # Load required packages
-# invisible(lapply(packs, require, character.only = TRUE))
-#
-# # Source custom functions
-invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TRUE, recursive = TRUE), source))
-
 # vector years of LULC data
 LULC_years <- gsub(".*?([0-9]+).*", "\\1", list.files("Data/Historic_LULC", full.names = FALSE, pattern = ".gri"))
 
@@ -135,7 +116,7 @@ lulcc.periodicparametercalculation <- function(Raster_combo, Raster_stack, perio
     perc_patcher <- freq(expansion_or_new, value = 5) / freq(r, value = 1) * 100
 
     # Calculate class statistics for patchs in rasters
-    cl.data <- ClassStat(r, bkgd = 0, cellsize = res(r)[1])
+    cl.data <- SDMTools::ClassStat(r, bkgd = 0, cellsize = res(r)[1])
 
     # Mean patch area
     mpa <- cl.data$mean.patch.area / 10000

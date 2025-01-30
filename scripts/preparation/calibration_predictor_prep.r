@@ -11,26 +11,6 @@
 ### A- Preparation
 ### =========================================================================
 
-# All packages are sourced in the master document, uncomment here
-# if running the script in isolation
-# if running the script in isolation
-# Install packages if they are not already installed
-# packs<-c("foreach", "doMC", "data.table", "terra", "tidyverse", "testthat",
-#          "sjmisc", "tictoc", "parallel", "pbapply", "rgdal", "rgeos",
-#          "sf", "tiff", "bfsMaps", "rjstat", "future.apply", "future", "stringr",
-#          "stringi" ,"readxl","rlist", "rstatix", "openxlsx", "pxR", "zen4R", "rvest")
-
-# new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
-#
-# if(length(new.packs)) install.packages(new.packs)
-#
-# # Load required packages
-# invisible(lapply(packs, require, character.only = TRUE))
-
-# Source custom functions
-# invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TRUE, recursive = TRUE), source))
-# invisible(sapply(list.files("Scripts/Functions", pattern = ".R", full.names = TRUE, recursive = TRUE), source))
-
 # Load in the grid to use use for re-projecting the CRS and extent of predictor data
 Ref_grid <- rast(Ref_grid_path)
 

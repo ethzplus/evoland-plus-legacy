@@ -15,41 +15,8 @@
 # Set working directory
 # setwd("~/LULCC_CH_Ensemble")
 
-# Install and load packages
-
 # install Dinamica from source
 # install.packages("Model/dinamica_1.0.4.tar.gz", repos=NULL, type="source")
-
-# SDMtools is depreciated and needs to be installed from source
-# packageurl <- "https://cran.r-project.org/src/contrib/Archive/SDMTools/SDMTools_1.1-221.2.tar.gz"
-# install.packages(packageurl, repos=NULL, type="source")
-
-# vector other required packages
-# packs<-c("data.table", "raster", "tidyverse", "SDMTools", "doParallel",
-# "sf", "tiff", "igraph", "readr", "foreach", "testthat",
-# "sjmisc", "tictoc", "parallel", "terra", "pbapply", "rgdal",
-# "rgeos", "bfsMaps", "rjstat", "future.apply", "future", "stringr",
-# "stringi", "readxl", "rlist", "rstatix", "openxlsx", "pxR", "zen4R",
-# "rvest", "viridis", "sp", "jsonlite", "httr", "xlsx", "callr",
-# "gdata", "landscapemetrics", "randomForest", "RRF", "future.callr",
-# "ghibli", "ggpattern", "butcher", "ROCR", "ecospat", "caret", "Dinamica",
-# "gridExtra", "extrafont", "ggpubr", "ggstatsplot","PMCMRplus", "reshape2",
-# "ggsignif", "ggthemes", "ggside", "gridtext", "grid", "rstudioapi", "landscapemetrics")
-packs <- c("stringr", "xlsx", "openxlsx", "readxl")
-
-# install new packages
-new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]
-if (length(new.packs)) install.packages(new.packs, repos = "http://cran.us.r-project.org")
-
-# Load required packages
-invisible(lapply(packs, require, character.only = TRUE))
-
-# Source custom functions
-invisible(sapply(list.files("Scripts/Functions",
-  pattern = ".R",
-  full.names = TRUE,
-  recursive = TRUE
-), source))
 
 # TO DO: Check if Dinamica EGO is already installed
 # Diego.installed <- system(command = paste('*dinamica7* -v'))==0

@@ -15,7 +15,7 @@ slackr_setup(
 promise <- promises::future_promise(read.csv("Tools/Simulation_control.csv"))
 
 # evaluate with then
-then(promise,
+promises::then(promise,
   onFulfilled = function(value) {
     print("success")
   },

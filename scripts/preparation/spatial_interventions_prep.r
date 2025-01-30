@@ -6,19 +6,6 @@
 ## Author: Ben Black
 #############################################################################
 
-# Vector packages for loading
-# packs<-c("foreach", "data.table", "raster", "tidyverse", "testthat",
-#          "sjmisc", "tictoc", "parallel", "terra", "pbapply", "rgdal", "rgeos",
-#          "sf", "tiff", "bfsMaps", "rjstat", "future.apply", "future", "stringr",
-#          "stringi" ,"readxl","rlist", "rstatix", "openxlsx", "pxR", "rvest", "landscapemetrics")
-#
-# new.packs<-packs[!(packs %in% installed.packages()[,"Package"])]
-#
-# if(length(new.packs)) install.packages(new.packs)
-#
-# # Load required packages
-# invisible(lapply(packs, require, character.only = TRUE))
-
 Ref_grid <- raster(Ref_grid_path)
 Ref_crs <- crs(Ref_grid)
 
@@ -110,7 +97,7 @@ writeRaster(BZ_rast, filename = "Data/Spat_prob_perturb_layers/Bulding_zones/BZ_
 writeRaster(BZ_reclass, filename = "Data/Spat_prob_perturb_layers/Bulding_zones/BZ_raster.grd", overwrite = TRUE)
 
 # create a distance to building zones raster
-BZ_distance <- distance(BZ_rast)
+BZ_distance <- SDMTools::distance(BZ_rast) # not sure it actually comes from this package
 
 # load in land use raster to mask distance raster
 LULC_years <- as.numeric(gsub(".*?([0-9]+).*", "\\1", list.files("Data/Historic_LULC", full.names = FALSE, pattern = ".grd")))

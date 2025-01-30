@@ -9,9 +9,6 @@
 ### A- Preparation
 ### =========================================================================
 
-# Assumes all packages and functions are loaded in the master script
-# Assumes Model_specs_path, Pred_table_path, and other variables are defined globally
-
 # Import model specifications table
 model_specs <- readxl::read_excel(Model_specs_path)
 
