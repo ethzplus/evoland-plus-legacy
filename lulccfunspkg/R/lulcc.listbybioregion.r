@@ -3,7 +3,6 @@
 #' Seperate list of dataframes into a nested list according to Bioregion
 #'
 #' @author Ben Black
-#' @export
 
 lulcc.listbybioregion <- function(All_trans_list) {
   Region_names <- c("Jura", "Plateau", "Northern_Prealps", "Southern_Prealps", "Western_Central_Alps", "Eastern_Central_Alps") # create vector of region names

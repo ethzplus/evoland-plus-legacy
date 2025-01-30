@@ -63,7 +63,7 @@ sapply(nhood_folder_names, function(x) {
 
 # Create matrices
 # All_matrices <- lapply(matrix_sizes, function(matrix_dim) {
-# matrix_list_single_size <- randomPythagorianMatrix(nw, matrix_dim, interpolation="smooth", search = "random")
+# matrix_list_single_size <- random_pythagorean_matrix(nw, matrix_dim, interpolation="smooth", search = "random")
 # names(matrix_list_single_size) <- c(paste0("n", matrix_dim, "_", seq(1:nw)))
 # return(matrix_list_single_size)})
 
@@ -251,9 +251,9 @@ openxlsx::saveWorkbook(Pred_table_update, Pred_table_path, overwrite = TRUE)
 
 # extrafont::loadfonts(device = "win")
 #
-# matrices_plot <- plotPythagorianMatrix(All_matrices[[7]])
+# matrices_plot <- plot_pythagorean_matrix(All_matrices[[7]])
 #
-# matrices_decay <- rbindlist(lapply(All_matrices, function(x) plotPythagorianMatrixDecay(x, plot = TRUE)), idcol = "matrix_ID")
+# matrices_decay <- rbindlist(lapply(All_matrices, function(x) plot_pythagorean_matrix_decay(x, plot = TRUE)), idcol = "matrix_ID")
 #
 # matrices_decay$nsize <- sapply(matrices_decay$matrix_ID, function(y) {str_split(y, "_")[[1]][1]})
 #

@@ -20,8 +20,7 @@
 #' @return Object of class wsl.fit including slots for meta info, testing data for
 #' evaluation, and model objects
 #' @author Philipp Brun (main) with edits by Antoine Adde, adapted by Ben Black
-#'
-#' @export
+# TODO where might this be used? was @export
 
 lulcc.fitrf <- function(trans_result = numeric(),
                         cov_data = data.frame(),

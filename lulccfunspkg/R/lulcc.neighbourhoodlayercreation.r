@@ -16,7 +16,7 @@
 # function to plot all generated random Pythagorian matrices for checking,
 # with values of each cell labelled in the center
 #' @export
-randomPythagorianMatrix <- function(n, x, interpolation = "smooth", search = "random") {
+random_pythagorean_matrix <- function(n, x, interpolation = "smooth", search = "random") {
   choices <- c("random", "grid")
   search <- choices[pmatch(search, choices, duplicates.ok = FALSE)]
   if (search == "random") {
@@ -31,7 +31,6 @@ randomPythagorianMatrix <- function(n, x, interpolation = "smooth", search = "ra
 
 # function that shapes the actual random Pythagorian Matrix using
 # smooth or linear interpolation
-#' @export
 getPythagorianMatrix <- function(x, mid, drop, interpolation = "smooth") {
   if (x %% 2 == 0 | x < 0) stop("x must be an odd positive number")
 
@@ -48,7 +47,7 @@ getPythagorianMatrix <- function(x, mid, drop, interpolation = "smooth") {
 }
 
 #' @export
-plotPythagorianMatrix <- function(mat) {
+plot_pythagorean_matrix <- function(mat) {
   colors <- colorRampPalette(c("deepskyblue4", "deepskyblue3", "darkslateblue", "deepskyblue1", "lightblue1", "gray88"))(256)
   corrplot::corrplot(mat,
     is.corr = FALSE, method = "shade",
@@ -61,7 +60,7 @@ plotPythagorianMatrix <- function(mat) {
 # function to plot the outcomes of applying different decay rates on every generated
 # central cell
 #' @export
-plotPythagorianMatrixDecay <- function(mat, plot = TRUE, ...) {
+plot_pythagorean_matrix_decay <- function(mat, plot = TRUE, ...) {
   mid <- ceiling(ncol(mat) / 2)
   drop <- mat[mid, mid + 1] / mat[mid, mid]
   xs <- seq(0, mid, 0.1)
@@ -128,7 +127,7 @@ lulcc.generatenhoodrasters <- function(LULC_raster, Neighbourhood_matrices, Acti
 ###    to be used as part of dynamic updating of focals during simulation
 ### =========================================================================
 
-#' @export
+# TODO where might this be used? was @export
 lulcc.producefocalsbylist <- function(Focal_specifications, List_of_matrices, LULC_raster, Simulation_time_step, simulation_ID) {
   # create a folder path using simulation ID and time step
   Dynamic_focal_folder_path <- paste0("Data/Preds/Simulation/NH_preds", "/", Scenario_ID, "/", Simulation_time_step)

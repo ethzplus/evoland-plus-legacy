@@ -21,7 +21,6 @@
 #' accepts "test", "train".
 #' @return an obejct of class 'wsl.evaluation'
 #' @author Philipp Brun (main) with edits by Antoine Adde and Ben Black
-#' @export
 
 lulcc.evaluate <- function(x,
                            tester = data.frame(),

@@ -11,7 +11,6 @@
 #' @param corcut  numeric value for correlation cut-off to remove covariates
 #' @return a dataframe of the collinearity filtered covariates
 #' @author Antoine Adde (main) edited by Ben Black
-#' @export
 
 lulcc.covfilter <- function(cov_data, trans_result, method, weights, corcut = 0) {
   # If only one covariate in the candidate set, don't do anything

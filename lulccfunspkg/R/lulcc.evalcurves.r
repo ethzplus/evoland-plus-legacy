@@ -17,7 +17,7 @@
 #' subsampled for model validation.
 #' @return an obejct of class 'wsl.evaluation'
 #' @author Philipp Brun (main) with edits by Antoine Adde and Ben Black
-#' @export
+
 lulcc.evalcurves <- function(x, tester = data.frame(), thres = numeric(), crit = "pp=op", prevalence_correction = FALSE) {
   ### ------------------------
   ### check thresholds

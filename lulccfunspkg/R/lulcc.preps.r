@@ -5,7 +5,7 @@
 #'
 #' Not to be called directly by the user
 #' @author Philipp Brun adapted by Ben Black
-#' @export
+
 lulcc.preps <- function(env = parent.frame(), call) {
   env <- as.list(env)
 

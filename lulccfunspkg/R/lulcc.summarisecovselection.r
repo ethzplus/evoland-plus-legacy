@@ -2,7 +2,6 @@
 #'
 #' Aggregate summary information on results of 2 stage covariate selection procedure
 #'
-#'
 #' @param nested_list_of_trans list of transitions with result elements
 #'    produced by lulcc.analysecovselection function
 #' @param split_by Character determining aspect of transition
@@ -10,7 +9,6 @@
 #'  "across_trans", "Bioregion", "Initial_lulc", "Final_lulc".
 #'
 #' @author Ben Black
-#' @export
 
 lulcc.summarisecovselection <- function(nested_list_of_trans, split_by) {
   if (split_by == "Bioregion") {

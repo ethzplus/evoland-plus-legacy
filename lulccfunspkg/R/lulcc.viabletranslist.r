@@ -4,7 +4,7 @@
 #' inclusion rate
 #'
 #' @author Ben Black
-#' @export
+# TODO where might this be used? was @export
 
 lulcc.viabletranslist <- function(transmatrix, inclusion_threshold) {
   # add the rownames as a column

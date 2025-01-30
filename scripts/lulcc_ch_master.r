@@ -278,6 +278,7 @@ if (Pre_check_result == FALSE) {
   # Win_logdir <- paste0(getwd(), "/", Logdir)
 
   print("Starting to run model with Dinamica EGO")
+  lulccfunspkg::check_dinamica()
   system2(
     command = lulccfunspkg::get_dinamica_path(),
     args = c("-disable-parallel-steps -log-level 7", Temp_model_path)

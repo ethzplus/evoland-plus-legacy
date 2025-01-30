@@ -8,7 +8,6 @@
 #' @param tag character with name for model set-up
 #' @return Object of class 'multi'
 #' @author Philipp Brun (main) with edits by Antoine Adde
-#' @export
 
 pipe.multi <- function(mod, args, tag = "", step = FALSE, weight = FALSE) {
   out <- pipe.multi.input()

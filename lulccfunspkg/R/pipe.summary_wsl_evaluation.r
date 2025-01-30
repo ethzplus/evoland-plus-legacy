@@ -3,7 +3,7 @@
 #' TODO text
 #'
 #' @author Philipp Brun (main) with edits by Antoine Adde
-#' @export
+
 pipe.summary <- function(object) {
   # cat("\nMeta information: \n")
   df <- data.frame(object@meta[c("author", "date")], object@meta$wsl.fit[c("project", "replicatetype", "replicates")])

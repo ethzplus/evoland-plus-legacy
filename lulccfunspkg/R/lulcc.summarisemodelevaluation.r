@@ -10,7 +10,7 @@
 #' @returns either a table summarising performance across models or
 #' if plots = TRUE a list of the performance table and plots
 #' @author Ben Black
-#' @export
+# TODO where might this be used? was @export
 
 lulcc.summarisemodelevaluation <- function(model_eval_results, summary_metrics, plots) {
   # 1. Transform list of model eval results to single data frame

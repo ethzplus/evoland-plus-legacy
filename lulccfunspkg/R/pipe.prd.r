@@ -4,7 +4,7 @@
 #'
 #' Not to be called directly by the user
 #' @author Philipp Brun (main) with edits by Antoine Adde
-#' @export
+
 pipe.prd <- function(mod, tst) {
   # Generate probabilistic precitions
   if ("maxnet" %in% class(mod)) {

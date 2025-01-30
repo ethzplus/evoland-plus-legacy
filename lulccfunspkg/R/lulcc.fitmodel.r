@@ -21,9 +21,6 @@
 #' evaluation, and model objects
 #' @author Philipp Brun (main) with edits by Antoine Adde and Ben Black
 #'
-#' @rdname fitdoc
-#' @export
-
 # instantiate small function to reduce size of saved GLM/RF objects
 stripGlm <- function(cm) {
   cm$y <- c()
@@ -63,6 +60,7 @@ stripRF <- function(cm) {
   cm
 }
 
+#' @export
 lulcc.fitmodel <- function(trans_result = numeric(),
                            cov_data = data.frame(),
                            replicatetype = character(),

@@ -4,7 +4,7 @@
 #'
 #' Not to be called directly by the user
 #' @author Philipp Brun
-#' @export
+
 preva.meta <- function(env = parent.frame(), type = character()) {
   ### ------------------------
   ### generate wsl.evaluation and add meta info

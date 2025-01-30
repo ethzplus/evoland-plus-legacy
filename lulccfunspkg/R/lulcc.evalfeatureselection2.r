@@ -12,8 +12,7 @@
 #'   "across_trans", "Bioregion", "Initial_lulc", "Final_lulc".
 #'
 #' @author Ben Black
-#' @export
-
+# TODO where might this be used? was @export
 
 lulcc.evalfeatureselection2 <- function(Predictor_table_path,
                                         Data_period_name,

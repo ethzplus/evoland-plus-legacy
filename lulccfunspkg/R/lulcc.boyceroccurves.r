@@ -13,7 +13,6 @@
 #' @param tre Optional numeric threshold for seperating predictions
 #' @returns List of model eval result objects: AUC, Boyce and the ROC value
 #' @author Philipp Brun (main) with edits by Ben Black
-#' @export
 
 lulcc.BoyceROCcurves <- function(f, pa, tesdat, crit, tre = numeric()) {
   # If there are any presences in the evaluation data

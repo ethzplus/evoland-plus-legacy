@@ -3,7 +3,7 @@
 #' Predict to data.frame or raster; Not to be called directly by the user
 #'
 #' @author Philipp Brun (main) with edits by Antoine Adde
-#' @export
+
 pipe.df_or_rast <- function(mod, nwdat, ...) {
   if ("randomForest" %in% class(mod)) {
     index <- 2

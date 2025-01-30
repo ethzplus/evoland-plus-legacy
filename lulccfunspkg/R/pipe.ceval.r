@@ -11,7 +11,7 @@
 #' @param tre Optional numeric threshold for seperating predictions
 #' @returns Matrix of model eval metric names and results
 #' @author Philipp Brun (main) with edits by Antoine Adde and Ben Black
-#' @export
+
 pipe.ceval <- function(f, pa, tesdat, crit, tre = numeric()) {
   # If there are any presences in the evaluation data
   if (any(pa == 1)) {

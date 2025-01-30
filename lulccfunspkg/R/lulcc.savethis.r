@@ -9,7 +9,7 @@
 #' @param save_path Character, folder location for saving
 #'
 #' @author Antoine Adde with edits by Ben Black
-#' @export
+
 lulcc.savethis <- function(object, model_name = NULL, transition_name = NULL, tag = NULL, save_path) {
   suppressWarnings(dir.create(save_path, recursive = TRUE))
 

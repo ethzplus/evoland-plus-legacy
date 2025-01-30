@@ -2,7 +2,7 @@
 #'
 #' Produce plots and perform statistical analysis to compare downsampling vs. regular RF
 #' @author Ben Black
-#' @export
+# TODO where might this be used? was @export
 
 lulcc.analysedownsampling <- function(Comparative_table, summary_metrics) {
   comparison_output <- list()

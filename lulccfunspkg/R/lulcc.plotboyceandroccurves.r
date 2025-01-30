@@ -9,8 +9,7 @@
 #' @returns List containing seperate ROC and Boyce plots as well as a combined plot
 #'  and data for ROC plot
 #' @author Ben Black
-#' @export
-
+# TODO where might this be used? was @export
 
 lulcc.plotBoyceandROCcurves <- function(RF_specs, GLM_specs, RF_model_num, transition_name) {
   ### =========================================================================

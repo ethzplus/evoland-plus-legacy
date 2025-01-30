@@ -4,7 +4,6 @@
 #' the transition
 #'
 #' @author Ben Black
-#' @export
 
 lulcc.listbylulc <- function(All_trans_list, initial_or_final) {
   if (initial_or_final == "Initial") {

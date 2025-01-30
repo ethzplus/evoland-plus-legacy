@@ -10,7 +10,7 @@
 #' @param grouping_var Character, name of column to group results by
 #' @returns List of model comparison results objects: stats test results, plots
 #' @author Ben Black
-#' @export
+# TODO where might this be used? was @export
 
 lulcc.modelstatscomparison <- function(model_eval_summary, eval_metrics, grouping_var) {
   comparison_output <- list()
