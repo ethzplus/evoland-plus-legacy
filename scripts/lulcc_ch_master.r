@@ -66,80 +66,8 @@ if (any(grep(
 ### Download and unpack data
 ### =========================================================================
 
-# download raw predictor data using Zenodo API service to get URLs for file
-# downloads
-
-# connect to Zenodo API
-zenodo <- ZenodoManager$new()
-
-# Get record info
-# TODO: won't work until record is made open access
-rec <- zenodo$getRecordByDOI("10.5281/zenodo.7590103")
-files <- rec$listFiles(pretty = TRUE)
-files <- my_rec$listFiles(pretty = TRUE)
-
-# increase timeout limit for downloading file
-options(timeout = 6000)
-
-# create a temporary directory to store the zipped file
-tmpdir <- tempdir()
-
-# Download to tmpdir
-my_rec$downloadFiles(path = tmpdir)
-download.file(files$download, paste0(tmpdir, "/", files$filename), mode = "wb")
-
-# unzip (this can be temperamental may need to manually unzip)
-# function for unzipping large files using system
-decompress_file <- function(directory, file, .file_cache = FALSE) {
-  if (.file_cache == TRUE) {
-    print("decompression skipped")
-  } else {
-    # Set working directory for decompression
-    # simplifies unzip directory location behavior
-    wd <- getwd()
-    setwd(directory)
-
-    # Run decompression
-    decompression <-
-      system2("unzip",
-        args = c(
-          "-o", # include override flag
-          file
-        ),
-        stdout = TRUE
-      )
-
-    # Reset working directory
-    setwd(wd)
-    rm(wd)
-
-    # Test for success criteria
-    # change the search depending on
-    # your implementation
-    if (grepl("Warning message", tail(decompression, 1))) {
-      print(decompression)
-    }
-  }
-}
-
-# using function
-decompress_file(tmpdir, file = paste0(tmpdir, "\\", files$filename), .file_cache = FALSE)
-
-# using r utils::unzip
-unzip(
-  paste0(tmpdir, "/", files$filename),
-  exdir = str_remove(paste0(tmpdir, "/", files$filename), ".zip")
-)
-
-# TODO: update path when Manuel has finished Zenodo upload.
-# select just the raw data
-raw_data_path <- str_replace(paste0(tmpdir, "/", files$filename), ".zip", "/Data/Raw")
-
-# Move files into project structure
-file.copy(raw_data_path, "Data/Preds", recursive = TRUE)
-
-# remove the zipped folder in temp dir
-unlink(paste0(tmpdir, "/", files$filename))
+# download raw predictor data using Zenodo API service to get URLs for file downloads
+lulccfunspkg::fetch_zenodo_predictors(doi = "10.5281/zenodo.7590103")
 
 ### =========================================================================
 ### A- Prepare LULC/region data

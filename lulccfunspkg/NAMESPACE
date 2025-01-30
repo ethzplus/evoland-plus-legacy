@@ -2,6 +2,7 @@
 
 export("%>%")
 export(check_dinamica)
+export(fetch_zenodo_predictors)
 export(get_dinamica_path)
 export(lulcc.TestRasterCompatibility)
 export(lulcc.downloadunzip)
