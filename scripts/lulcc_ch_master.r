@@ -134,15 +134,6 @@ if (any(grep(model_specs$Model_scale,
   Model_tool_vars$Regionalization <- FALSE
 }
 
-# save the list of model tools to be used during simulations
-saveRDS(Model_tool_vars, "Tools/Model_tool_vars.rds")
-
-# Create a seperate environment for storing output of sourced scripts
-scripting_env <- new.env()
-
-# send objects to global and scipting environment
-list2env(Model_tool_vars, .GlobalEnv)
-list2env(Model_tool_vars, scripting_env)
 
 ### =========================================================================
 ### Download and unpack data
