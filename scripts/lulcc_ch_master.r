@@ -18,25 +18,6 @@
 # TODO: Check if Dinamica EGO is already installed
 # Diego.installed <- system(command = paste('*dinamica7* -v'))==0
 
-### =========================================================================
-### Configuration (input for simulation control table?)
-### =========================================================================
-
-# User enter scenario names to model
-# vector abbreviations of scenario's for folder/file naming
-Scenario_names <- c("BAU", "EI-NAT", "EI-CUL", "EI-SOC", "GR-EX")
-
-# User enter start and end dates for the scenarios either enter a single number
-# value or a vector of values the same length as the number of scenarios earliest
-# possible model start time is 1985 and end time is 2060, simulations begin from
-# 2020 and we have initially agreed to use 5 year time steps
-
-Scenario_start <- 2020
-Scenario_end <- 2060
-Step_length <- 5
-
-# User enter number of runs to perform for each simulation
-reps <- 1
 
 # Threshold for identifying transitions: This represents the number of transition
 # instances from class X -> Y as a % of the the total area of class X a good
@@ -52,38 +33,8 @@ Inclusion_thres <- 0.5
 
 # vector save path
 Sim_control_path <- "Tools/Simulation_control.csv"
-
-# Simulation_control_table <- data.frame(matrix(ncol = 11, nrow = 0))
-# colnames(Simulation_control_table) <- c("Simulation_num.",
-#                                          "Scenario_ID.string",
-#                                          "Simulation_ID.string",
-#                                          "Model_mode.string",
-#                                          "Scenario_start.real",
-#                                          "Scenario_end.real",
-#                                          "Step_length.real",
-#                                          "Parallel_TPC.string",
-#                                          "Spatial_interventions.string",
-#                                          "Deterministic_trans.string",
-#                                          "Completed.string")
-#
-# #expand vector of scenario names according to number of repetitions and add to table
-# Scenario_IDs <- c(sapply(Scenario_names, function(x) rep(x, reps), simplify = TRUE))
-# Simulation_control_table[1:length(Scenario_IDs), "Scenario_ID.string"] <- Scenario_IDs
-#
-# #fill other columns
-# Simulation_control_table$Simulation_ID.string <- rep(paste0("v", seq(1, reps, 1)), length(Scenario_names))
-# Simulation_control_table$Scenario_start.real <- if(length(unique(Scenario_start)) == 1){Scenario_start} else {c(rep(Scenario_start, length(Scenario_names)))}
-# Simulation_control_table$Scenario_end.real <- if(length(unique(Scenario_end)) == 1){Scenario_end} else {c(rep(Scenario_end, length(Scenario_names)))}
-# Simulation_control_table$Step_length.real <- Step_length
-# Simulation_control_table$Model_mode.string <- "Simulation"
-# Simulation_control_table$Simulation_num. <- seq(1, nrow(Simulation_control_table),1)
-# Simulation_control_table$Parallel_TPC.string <- "N"
-# Simulation_control_table$Spatial_interventions.string <- "Y"
-# Simulation_control_table$Deterministic_trans.string <- "Y"
-# Simulation_control_table$Completed.string <- "N"
-#
-# #save the table
-# write_csv(Simulation_control_table, Sim_control_path)
+lulccfunspkg::simcontrolprep() |> 
+  readr::write_csv(Sim_control_path)
 
 ### =========================================================================
 ### Modelling set-up
