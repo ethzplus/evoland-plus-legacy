@@ -17,7 +17,7 @@ packs <- c(
   "gdata", "landscapemetrics", "randomForest", "RRF", "future.callr",
   "ghibli", "ggpattern", "butcher", "ROCR", "ecospat", "caret", "Dinamica",
   "gridExtra", "extrafont", "ggpubr", "ggstatsplot", "PMCMRplus", "reshape2",
-  "ggsignif", "ggthemes", "ggside", "gridtext", "grid", "slackr", "rstudioapi",
+  "ggsignif", "ggthemes", "ggside", "gridtext", "grid", "slackr",
   "landscapemetrics", "plotly", "networkD3", "ggalluvial", "ggthemes", "patchwork",
   "extrafont", "tmap", "leaflet", "leaflet.extras", "leaflet.extras2",
   "rcartocolor", "htmlwidgets", "leaflet.opacity", "leaflet.providers",

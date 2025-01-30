@@ -5,8 +5,6 @@
 wpath <- "E:/LULCC_CH"
 setwd(wpath)
 
-rstudioapi::filesPaneNavigate(wpath)
-
 # I've deliberately deleted the right hand side of the assignment below
 # add a vector that could be used with lines 16-21 to load some common packages
 # that would be needed for this analysis

@@ -13,9 +13,6 @@
 wpath <- "E:/LULCC_CH"
 setwd(wpath)
 
-# navigate to the working directory in the files pane for easy viewing
-rstudioapi::filesPaneNavigate(wpath)
-
 # Install packages if they are not already installed
 packs <- c(
   "data.table", "stringi", "stringr", "rlist", "randomForest", "RRF",
