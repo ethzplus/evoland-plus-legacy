@@ -12,6 +12,8 @@
 ## Author: Ben Black
 #############################################################################
 
+# presumed working dir: root of the repo
+devtools::load_all("lulccfunspkg")
 
 ### =========================================================================
 ### Simulation control table prep
@@ -114,8 +116,6 @@ source("Scripts/Preparation/Transition_feature_selection.R", local = scripting_e
 ### F- Statistical modelling of LULCC transition datasets
 ### =========================================================================
 
-# TODO: USER CREATE TABLE OF MODEL SPECIFCATIONS AND PARAM GRID TO BE TESTED
-
 source("Scripts/Preparation/Trans_modelling.R", local = scripting_env)
 
 ### =========================================================================
@@ -128,7 +128,7 @@ source("Scripts/Preparation/Trans_modelling.R", local = scripting_env)
 source("Scripts/Preparation/Transition_model_evaluation.R", local = scripting_env)
 
 # adjust contents of model_specs table to only optimal specifcations
-lulcc.finalisemodelspecifications(
+lulccfunspkg::lulcc.finalisemodelspecifications(
   Model_specs_path = Model_specs_path,
   Param_grid_path = Param_grid_path
 )
