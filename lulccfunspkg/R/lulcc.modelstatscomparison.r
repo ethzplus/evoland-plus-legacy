@@ -42,7 +42,7 @@ lulcc.modelstatscomparison <- function(model_eval_summary, eval_metrics, groupin
       mod_names <- unique(model_eval_summary[, .SD, .SDcols = grouping_var])
 
       # compute the difference in model performance between each specification
-      grouped_dep_var <- model_eval_summary[, .SD, .SDcols = c(grouping_var, "trans_name", eval_metrics[i], "num_covs", "imbalance_ratio", "num_units")] %>% pivot_wider(names_from = 1, values_from = c(3, 4, 5, 6))
+      grouped_dep_var <- model_eval_summary[, .SD, .SDcols = c(grouping_var, "trans_name", eval_metrics[i], "num_covs", "imbalance_ratio", "num_units")] |> pivot_wider(names_from = 1, values_from = c(3, 4, 5, 6))
       grouped_dep_var <- data.frame(grouped_dep_var %>% mutate(model_diff = .[[2]] - .[[3]]) %>%
         mutate(pred_diff = .[[5]] - .[[4]]))
       grouped_dep_var$num_units <- grouped_dep_var[grepl("num_units", colnames(grouped_dep_var))][, 1]
@@ -190,8 +190,8 @@ lulcc.modelstatscomparison <- function(model_eval_summary, eval_metrics, groupin
       # Assumptions: Outliers, Normality and Sphericity
 
       # outlier detection
-      outliers <- model_eval_summary %>%
-        group_by(!!grouping_var) %>%
+      outliers <- model_eval_summary |>
+        group_by(!!grouping_var) |>
         identify_outliers(eval_metrics[i])
       data.frame(outliers)
 
@@ -347,7 +347,7 @@ lulcc.modelstatscomparison <- function(model_eval_summary, eval_metrics, groupin
           post_hoc_results <- post_hoc$p.value # extract the p.value matrix
           ph_df <- melt(post_hoc_results, na.rm = TRUE, value.name = "p_value") # matrix to df
           ph_df$groups <- paste0("c(\"", ph_df$Var1, "\" , \" ", ph_df$Var2, "\")") # get groups column right
-          ph_plot_res <- ph_df %>% arrange(Var1) # sort by the first column
+          ph_plot_res <- ph_df |> arrange(Var1) # sort by the first column
           ph_plot_res$asterisk_label <- sapply(ph_plot_res$p_value, function(x) {
             if (x <= 0.01) {
               "**"
@@ -383,7 +383,7 @@ lulcc.modelstatscomparison <- function(model_eval_summary, eval_metrics, groupin
 
       # calculate number of models below threshold
       models_below_thresh <- model_eval_summary[model_eval_summary[[eval_metrics[i]]] < thresh, ]
-      num_below_thresh <- models_below_thresh %>% dplyr::count(Model_name)
+      num_below_thresh <- models_below_thresh |> dplyr::count(Model_name)
       num_below_thresh$clean_name <- sapply(num_below_thresh[, 1], function(x) {
         str_split(str_remove(x, ".downsampled"), "\\.")[[1]][2]
       })

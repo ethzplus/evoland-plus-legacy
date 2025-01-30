@@ -10,7 +10,7 @@ lulcc.analysedownsampling <- function(Comparative_table, summary_metrics) {
   for (i in 1:length(eval_metrics)) { # loop over model eval metrics
 
     # calculate changes in AUC and Score under downsampling
-    Change_in_eval_metric <- Comparative_table[, .SD, .SDcols = c("trans_name", "Model_name", eval_metrics[i], "imbalance_ratio", "num_units", "model")] %>%
+    Change_in_eval_metric <- Comparative_table[, .SD, .SDcols = c("trans_name", "Model_name", eval_metrics[i], "imbalance_ratio", "num_units", "model")] |>
       pivot_wider(names_from = Model_name, values_from = c(eval_metrics[i]))
     Change_in_eval_metric <- Change_in_eval_metric %>% mutate(model_diff = .[[5]] - .[[6]])
 
@@ -21,7 +21,7 @@ lulcc.analysedownsampling <- function(Comparative_table, summary_metrics) {
     avg_decrease <- format(round(mean(Change_in_eval_metric$model_diff[Change_in_eval_metric$model_diff < 0]), 3), nsmall = 3)
 
 
-    Change_in_eval_metric <- Change_in_eval_metric[Change_in_eval_metric$model_diff != 0, ] %>%
+    Change_in_eval_metric <- Change_in_eval_metric[Change_in_eval_metric$model_diff != 0, ] |>
       mutate(Color = ifelse(model_diff > 0, paste("Positive", " n=", num_increase_performance, "(avg. increase =", avg_increase, ")"), paste("Negative", " n=", num_decrease_performance, "(avg. decrease =", avg_decrease, ")")), Color = factor(Color))
 
     # create a plot from change in eval metric values
@@ -53,7 +53,7 @@ lulcc.analysedownsampling <- function(Comparative_table, summary_metrics) {
       color = ~Color,
       alpha = 0.8,
       colors = c("darkred", "darkolivegreen4")
-    ) %>%
+    ) |>
       layout(
         scene = list(
           xaxis = list(
@@ -75,8 +75,8 @@ lulcc.analysedownsampling <- function(Comparative_table, summary_metrics) {
       )
 
     # summary statistics
-    general_stat_summary <- Comparative_table %>%
-      group_by(Model_name) %>%
+    general_stat_summary <- Comparative_table |>
+      group_by(Model_name) |>
       get_summary_stats(eval_metrics[i], type = "common")
 
     # vector general model formula
@@ -99,7 +99,7 @@ lulcc.analysedownsampling <- function(Comparative_table, summary_metrics) {
     Friedman_output <- try(friedman_test(friedman_formula, data = Comparative_table[order(trans_name), ]))
 
     # Pairwise comparisons
-    pwc_eval_metric <- Comparative_table %>%
+    pwc_eval_metric <- Comparative_table |>
       wilcox_test(model_formula, paired = TRUE, p.adjust.method = "bonferroni")
 
     Eval_metric_violin <- ggwithinstats(

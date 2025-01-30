@@ -52,8 +52,8 @@ lulcc.analysecovselection <- function(All_pred_names, Filtered_predictors, summa
     # Result 2: How many times are each of the covariates used across all transitions?
     Collinearity_selected_variable_occurence <- data.frame(
       table(All_collinearity_selected_covs)
-    ) %>% arrange(desc(Freq))
-    Embedded_selected_variable_occurence <- data.frame(table(All_embedded_selected_covs)) %>% arrange(desc(Freq))
+    ) |> arrange(desc(Freq))
+    Embedded_selected_variable_occurence <- data.frame(table(All_embedded_selected_covs)) |> arrange(desc(Freq))
 
     # Result 3: Measures of central tendency for number of covariates per transition at each stage of filtering
 
@@ -138,8 +138,8 @@ lulcc.analysecovselection <- function(All_pred_names, Filtered_predictors, summa
 
 
     # creating an aggregated plot by transitions across regions
-    Aggregated_cov_nums <- cov_nums_combined %>%
-      group_by(Trans_redact) %>%
+    Aggregated_cov_nums <- cov_nums_combined |>
+      group_by(Trans_redact) |>
       dplyr::summarise(
         mean_Pre_FS = signif(mean(Pre_FS), digits = 2),
         mean_collinearity = signif(mean(collinearity), digits = 2),
@@ -217,8 +217,8 @@ lulcc.analysecovselection <- function(All_pred_names, Filtered_predictors, summa
       Covs_remaining_after_embedded_selection <- length(unique(x[["Embedded_selected_covs"]]))
 
       # Result 2: How many times are each of the covariates used across all transitions?
-      Collinearity_selected_variable_occurence <- data.frame(table(x[["Collinearity_selected_covs"]])) %>% arrange(desc(Freq))
-      Embedded_selected_variable_occurence <- data.frame(table(x[["Embedded_selected_covs"]])) %>% arrange(desc(Freq))
+      Collinearity_selected_variable_occurence <- data.frame(table(x[["Collinearity_selected_covs"]])) |> arrange(desc(Freq))
+      Embedded_selected_variable_occurence <- data.frame(table(x[["Embedded_selected_covs"]])) |> arrange(desc(Freq))
 
       # Bind items as list to return
       Output <- list(Covs_remaining_after_collinearity_selection, Covs_remaining_after_embedded_selection, Collinearity_selected_variable_occurence, Embedded_selected_variable_occurence)
@@ -271,8 +271,8 @@ lulcc.analysecovselection <- function(All_pred_names, Filtered_predictors, summa
       Covs_remaining_after_embedded_selection <- length(unique(x[["Embedded_selected_covs"]]))
 
       # Result 2: How many times are each of the covariates used across all transitions?
-      Collinearity_selected_variable_occurence <- data.frame(table(x[["Collinearity_selected_covs"]])) %>% arrange(desc(Freq))
-      Embedded_selected_variable_occurence <- data.frame(table(x[["Embedded_selected_covs"]])) %>% arrange(desc(Freq))
+      Collinearity_selected_variable_occurence <- data.frame(table(x[["Collinearity_selected_covs"]])) |> arrange(desc(Freq))
+      Embedded_selected_variable_occurence <- data.frame(table(x[["Embedded_selected_covs"]])) |> arrange(desc(Freq))
 
       # Bind items as list to return
       Output <- list(Covs_remaining_after_collinearity_selection, Covs_remaining_after_embedded_selection, Collinearity_selected_variable_occurence, Embedded_selected_variable_occurence)
@@ -324,8 +324,8 @@ lulcc.analysecovselection <- function(All_pred_names, Filtered_predictors, summa
       Covs_remaining_after_embedded_selection <- length(unique(x[["Embedded_selected_covs"]]))
 
       # Result 2: How many times are each of the covariates used across all transitions?
-      Collinearity_selected_variable_occurence <- data.frame(table(x[["Collinearity_selected_covs"]])) %>% arrange(desc(Freq))
-      Embedded_selected_variable_occurence <- data.frame(table(x[["Embedded_selected_covs"]])) %>% arrange(desc(Freq))
+      Collinearity_selected_variable_occurence <- data.frame(table(x[["Collinearity_selected_covs"]])) |> arrange(desc(Freq))
+      Embedded_selected_variable_occurence <- data.frame(table(x[["Embedded_selected_covs"]])) |> arrange(desc(Freq))
 
       # Bind items as list to return
       Output <- list(Covs_remaining_after_collinearity_selection, Covs_remaining_after_embedded_selection, Collinearity_selected_variable_occurence, Embedded_selected_variable_occurence)

@@ -86,7 +86,7 @@ lulcc.summarisecovselection <- function(nested_list_of_trans, split_by) {
       long_data <- gather_(Cov_occurence_tabular[[x]], keycol, valuecol, gathercols)
 
       # drop rows that do not occur in more than 10 transitions
-      Filtered_data <- long_data %>% filter(total_occurences > 10)
+      Filtered_data <- long_data |> filter(total_occurences > 10)
 
       # order the data by descending order of total_occurences
       ordered_data <- Filtered_data[order(-Filtered_data$total_occurences), ]
@@ -187,7 +187,7 @@ lulcc.summarisecovselection <- function(nested_list_of_trans, split_by) {
       long_data <- gather_(Cov_occurence_tabular[[x]], keycol, valuecol, gathercols)
 
       # drop rows that do not occur in more than 10 transitions
-      Filtered_data <- long_data %>% filter(total_occurences > 10)
+      Filtered_data <- long_data |> filter(total_occurences > 10)
 
       # order the data by descending order of total_occurences
       ordered_data <- Filtered_data[order(-Filtered_data$total_occurences), ]
@@ -289,7 +289,7 @@ lulcc.summarisecovselection <- function(nested_list_of_trans, split_by) {
       long_data <- gather_(Cov_occurence_tabular[[x]], keycol, valuecol, gathercols)
 
       # drop rows that do not occur in more than 10 transitions
-      Filtered_data <- long_data %>% filter(total_occurences > 10)
+      Filtered_data <- long_data |> filter(total_occurences > 10)
 
       # order the data by descending order of total_occurences
       ordered_data <- Filtered_data[order(-Filtered_data$total_occurences), ]

@@ -10,7 +10,7 @@ lulcc.viabletranslist <- function(transmatrix, inclusion_threshold) {
   # add the rownames as a column
   transmatrix <- rownames_to_column(transmatrix, var = "Initial_class")
   # reformat matrix from wide to long and sort
-  transmatrix_long <- transmatrix %>% gather(Final_class, value, -c(Initial_class))
+  transmatrix_long <- transmatrix |> gather(Final_class, value, -c(Initial_class))
   transmatrix_sorted <- transmatrix_long[order(transmatrix_long$Initial_class), ]
 
   # remove rows corresponding to transitions that occurred for less 0.5% of the total number of cells of the Initial LULC class total

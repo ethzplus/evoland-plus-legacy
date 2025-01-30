@@ -95,7 +95,7 @@ lulcc.evalfeatureselection <- function(Predictor_table_path,
   Long_results$cov_group <- Covariate_table$CA_category[match(Long_results$covariate, Covariate_table$Layer_name)]
 
   FS_predictor_frequency_bar_chart <-
-    Long_results %>% ggplot(aes(y = fct_reorder(Clean_cov_name, num_covs, .desc = FALSE), x = num_covs, fill = FS_stage), alpha = 0.5) +
+    Long_results |> ggplot(aes(y = fct_reorder(Clean_cov_name, num_covs, .desc = FALSE), x = num_covs, fill = FS_stage), alpha = 0.5) +
     geom_bar(position = position_dodge(), stat = "identity") +
     scale_fill_discrete(
       type = ghibli_palettes$TotoroMedium[5:6],

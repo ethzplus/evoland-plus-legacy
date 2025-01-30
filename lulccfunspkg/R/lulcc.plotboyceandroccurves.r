@@ -107,8 +107,8 @@ lulcc.plotBoyceandROCcurves <- function(RF_specs, GLM_specs, RF_model_num, trans
   # add columns
   Boyce_results_df$model <- sapply(Boyce_results_df$model_tag, function(x) str_split(str_split(x, "\\.")[[1]][1], "_")[[1]][1])
 
-  Boyce_plot <- Boyce_results_df %>%
-    group_by(model) %>%
+  Boyce_plot <- Boyce_results_df |>
+    group_by(model) |>
     ggplot(aes(x = HS, y = F.ratio, colour = model), alpha = 0.7) +
     geom_line(alpha = 0.7) +
     geom_smooth(formula = y ~ x, method = "lm", se = FALSE) +
@@ -169,7 +169,7 @@ lulcc.plotBoyceandROCcurves <- function(RF_specs, GLM_specs, RF_model_num, trans
     ) +
     geom_point(data = Max_LR_diff, aes(x = FalsePositive, y = TruePositive)) +
     geom_text(
-      data = ROC_results %>% filter(FalsePositive == max(FalsePositive)) %>% group_by(model),
+      data = ROC_results |> filter(FalsePositive == max(FalsePositive)) |> group_by(model),
       size = 4,
       show.legend = FALSE,
       aes(x = 0.05, y = c(0.75, 0.8), label = paste0("AUC= ", signif(AUC, 3)), colour = model)

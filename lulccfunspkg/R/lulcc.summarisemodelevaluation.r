@@ -53,7 +53,7 @@ lulcc.summarisemodelevaluation <- function(model_eval_results, summary_metrics, 
   All_evals_data_frame$model <- factor(as.numeric(regmatches(All_evals_data_frame$trans_name, gregexpr("[[:digit:]]+", All_evals_data_frame$trans_name))))
   All_evals_data_frame$initial_lulc <- str_match(All_evals_data_frame$transition, paste(lulc_classes, collapse = "|"))
   All_evals_data_frame$final_lulc <- lapply(str_match_all(All_evals_data_frame$transition, paste(lulc_classes, collapse = "|")), function(x) x[2, ])
-  # All_evals_data_frame <- All_evals_data_frame %>% rowwise() %>% mutate(model_score = mean(AUC.S, Boyce))
+  # All_evals_data_frame <- All_evals_data_frame |> rowwise() |> mutate(model_score = mean(AUC.S, Boyce))
   All_evals_data_frame$Model_score <- rowMeans(All_evals_data_frame[, c("AUC.S", "Boyce")], na.rm = TRUE)
 
   if (plots == TRUE) {
@@ -136,8 +136,8 @@ lulcc.summarisemodelevaluation <- function(model_eval_results, summary_metrics, 
 
     # Violin
     #  for(i in summary_metrics){
-    # initial_lulc_plot <- All_evals_data_frame %>%
-    #  group_by(initial_lulc) %>%
+    # initial_lulc_plot <- All_evals_data_frame |>
+    #  group_by(initial_lulc) |>
     #  ggplot(aes_string(x = "initial_lulc", y = i, shape = "model" , color = "Region")) +
     #  geom_violin(aes(fill = "initial_lulc"), alpha = .1, show.legend = FALSE) +
     #  geom_jitter(alpha = .9, width = .08) +
@@ -174,8 +174,8 @@ lulcc.summarisemodelevaluation <- function(model_eval_results, summary_metrics, 
 
     # Violin
     #  for(i in summary_metrics){
-    #  final_lulc_plot <- All_evals_data_frame %>%
-    #  group_by(final_lulc) %>%
+    #  final_lulc_plot <- All_evals_data_frame |>
+    #  group_by(final_lulc) |>
     #  ggplot(aes_string(x = "final_lulc", y = i, shape = "model" , color = "Region", size = "class_imbalance")) +
     #  geom_violin(aes(fill = "final_lulc"), alpha = .1, show.legend = FALSE) +
     #  guides(colour = FALSE) +
