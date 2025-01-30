@@ -33,6 +33,12 @@ simcontrolprep <- function(
     "Spatial_interventions.string",
     "Deterministic_trans.string",
     "Completed.string"
+    # FIXME this is lacking some columns, compare with tools/simulation_control.csv
+    # might be because they get added later?
+    # "Econ_scenario.string",
+    # "Climate_scenario.string",
+    # "Pop_scenario.string",
+    # "EI_intervention_ID.string",
   )
 
   # expand vector of scenario names according to number of repetitions and add to table
