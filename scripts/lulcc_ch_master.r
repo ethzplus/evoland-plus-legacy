@@ -12,16 +12,15 @@
 ## Author: Ben Black
 #############################################################################
 
-# Set working directory
-# setwd("~/LULCC_CH_Ensemble")
-
-# install Dinamica from source
+# install Dinamica R package from source
 # install.packages("Model/dinamica_1.0.4.tar.gz", repos=NULL, type="source")
 
 # TODO: Check if Dinamica EGO is already installed
 # Diego.installed <- system(command = paste('*dinamica7* -v'))==0
 
-# create table for controlling simulations
+### =========================================================================
+### Configuration (input for simulation control table?)
+### =========================================================================
 
 # User enter scenario names to model
 # vector abbreviations of scenario's for folder/file naming
@@ -94,9 +93,6 @@ Sim_control_path <- "Tools/Simulation_control.csv"
 # creation of transition datasets and the tp models.
 
 # Get the file path of the Dinamica console executable
-# DC_path <- list.files("C:/", recursive = TRUE, full.names = TRUE, pattern = ".*DinamicaConsole.*\\.exe")
-# DC_path <- gsub('(*/)\\1+', '\\1', DC_path) #remove instances of double "/"
-# DC_path <- gsub("/", "\\\\", DC_path) #replace "/" with "\\"
 DC_path <- "C:\\Program Files\\Dinamica EGO 7\\DinamicaConsole7.exe"
 
 # list objects required for modelling
@@ -125,7 +121,8 @@ model_specs <- read.csv(Model_tool_vars$Model_specs_path)
 Model_tool_vars$Data_periods <- unique(model_specs$Data_period_name)
 
 # attach string to env. indicating whether regionalized datasets should be produced
-if (any(grep(model_specs$Model_scale,
+if (any(grep(
+  model_specs$Model_scale,
   pattern = "regionalized",
   ignore.case = TRUE
 )) == TRUE) {
@@ -182,9 +179,6 @@ decompress_file <- function(directory, file, .file_cache = FALSE) {
         stdout = TRUE
       )
 
-    # uncomment to delete archive once decompressed
-    # file.remove(file)
-
     # Reset working directory
     setwd(wd)
     rm(wd)
@@ -202,7 +196,10 @@ decompress_file <- function(directory, file, .file_cache = FALSE) {
 decompress_file(tmpdir, file = paste0(tmpdir, "\\", files$filename), .file_cache = FALSE)
 
 # using r utils::unzip
-unzip(paste0(tmpdir, "/", files$filename), exdir = str_remove(paste0(tmpdir, "/", files$filename), ".zip"))
+unzip(
+  paste0(tmpdir, "/", files$filename),
+  exdir = str_remove(paste0(tmpdir, "/", files$filename), ".zip")
+)
 
 # TODO: update path when Manuel has finished Zenodo upload.
 # select just the raw data
@@ -270,12 +267,6 @@ source("Scripts/Preparation/Trans_modelling.R", local = scripting_env)
 # must balance numerous aspects: accuracy, overfitting, computation time etc.
 source("Scripts/Preparation/Transition_model_evaluation.R", local = scripting_env)
 
-# Enter choice of optimal model specifcations
-# Model_type <- "rf"
-# Model_scale <- "regionalized"
-# Feature_selection_employed <- "TRUE"
-# Balance_adjustment <- "TRUE"
-
 # adjust contents of model_specs table to only optimal specifcations
 lulcc.finalisemodelspecifications(
   Model_specs_path = Model_specs_path,
@@ -330,8 +321,7 @@ source("Scripts/Preparation/Spatial_interventions_prep.R", local = scripting_env
 
 # #Perform pre-checks to make sure that all element required for Dinamica modelling
 # #are prepared
-# Pre_check_result <- lulcc.modelprechecks(Control_table_path, Param_dir = Simulation_param_dir)
-Pre_check_result <- TRUE
+Pre_check_result <- lulcc.modelprechecks(Control_table_path, Param_dir = Simulation_param_dir)
 
 # Run the Dinamica simulation model
 # Fail pre-check condition
@@ -341,7 +331,10 @@ if (Pre_check_result == FALSE) {
 } else if (Pre_check_result == TRUE) {
   # save a temporary copy of the model.ego file to run
   print("Creating a copy of the Dinamica model using the current control table")
-  Temp_model_path <- gsub(".ego", paste0("_simulation_", Sys.Date(), ".ego"), "Model/Dinamica_models/LULCC_CH.ego")
+  Temp_model_path <- gsub(
+    ".ego", paste0("_simulation_", Sys.Date(), ".ego"),
+    "Model/Dinamica_models/LULCC_CH.ego"
+  )
   writeLines(Model_text, Temp_model_path)
 
   # vector a path for saving the output text of this simulation
@@ -369,19 +362,16 @@ if (Pre_check_result == FALSE) {
   Updated_control_tbl <- read.csv(Sim_control_path)
 
   if (any(Updated_control_tbl$Completed.string == "ERROR")) {
-    print(paste(
-      length(which(Updated_control_tbl$Completed.string == "ERROR")), "of", nrow(Updated_control_tbl),
+    message(
+      length(which(Updated_control_tbl$Completed.string == "ERROR")),
+      "of", nrow(Updated_control_tbl),
       "simulations have failed to run till completion, check log for details of errors"
-    ))
+    )
   } else {
     # Send completion message
     print("All simulations completed sucessfully")
 
     # Delete the temporary model file
     # unlink(Temp_model_path)
-
-    # clean up log and debug files created by Dinamica as their output
-    # is stored in the .txt file anyway
-    # unlink(list.files(pattern = paste0(c("log_","debug_"),collapse="|"), full.names = TRUE))
   }
 } # close if statement running simulation
