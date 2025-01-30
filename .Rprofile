@@ -1,6 +1,7 @@
 options(
   renv.config.synchronized.check = FALSE,
-  renv.config.pak.enabled = TRUE
+  renv.config.pak.enabled = TRUE,
+  renv.config.ppm.enabled = FALSE
 )
 source("renv/activate.R")
 
