@@ -1,4 +1,6 @@
 linters: linters_with_defaults(
-    line_length_linter(100)
+    line_length_linter(100),
+    todo_comment_linter(),
+    object_name_linter = NULL
   ) # see vignette("lintr")
 encoding: "UTF-8"
