@@ -7,13 +7,13 @@
 ### A- Instantiate small functions for neighbourhood creation
 ### =========================================================================
 
-# function to set up a random Pythagorian Matrix generating the central values
+# function to set up a random pythagorean matrix generating the central values
 # of each matrix x0,0 and their corresponding decay rates
 # decay rates are positive, pseudorandom number from the uniform distribution
 # in the range 0>??>1. For a randomised search, ??  may be a pseudorandom number
 # from the uniform distribution, while for a grid search ??  may be any number
 # from a user-defined set
-# function to plot all generated random Pythagorian matrices for checking,
+# function to plot all generated random pythagorean matrices for checking,
 # with values of each cell labelled in the center
 #' @export
 random_pythagorean_matrix <- function(n, x, interpolation = "smooth", search = "random") {
@@ -26,12 +26,12 @@ random_pythagorean_matrix <- function(n, x, interpolation = "smooth", search = "
     seed <- rep(seq.int(5, n, 5), each = 5)
     drops <- rep(c(3, 6, 12, 24, 48), times = n / 5)
   }
-  Map(getPythagorianMatrix, x, seed, drops, interpolation)
+  Map(get_pythagorean_matrix, x, seed, drops, interpolation)
 }
 
-# function that shapes the actual random Pythagorian Matrix using
+# function that shapes the actual random pythagorean matrix using
 # smooth or linear interpolation
-getPythagorianMatrix <- function(x, mid, drop, interpolation = "smooth") {
+get_pythagorean_matrix <- function(x, mid, drop, interpolation = "smooth") {
   if (x %% 2 == 0 | x < 0) stop("x must be an odd positive number")
 
   choices <- c("smooth", "linear")
