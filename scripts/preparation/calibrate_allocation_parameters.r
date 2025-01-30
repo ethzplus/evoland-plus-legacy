@@ -334,19 +334,12 @@ if (Pre_check_result == TRUE) {
   Temp_model_path <- gsub(".ego", paste0("_calibration_", Sys.Date(), ".ego"), "Model/Dinamica_models/LULCC_CH.ego")
   writeLines(Model_text, Temp_model_path)
 
-  # vector a path for saving the output text of this simulation
-  # run which indicates any errors
-  output_path <- paste0(Sim_log_dir, "/calibration_output_", Sys.Date(), ".txt")
-
   print("Starting to run model with Dinamica EGO")
   # Use a system command to run the Dinamica model
   system2(
     command = paste(DC_path),
     # args = c("-processors 10","-memory-allocation-policy 1", Temp_model_path),
-    args = c("-disable-parallel-steps", Temp_model_path),
-    wait = TRUE,
-    stdout = output_path,
-    stderr = output_path
+    args = c("-disable-parallel-steps", Temp_model_path)
   )
 
   # because the simulations may fail without the system command returning an error

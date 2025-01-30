@@ -20,27 +20,6 @@
 
 # TO DO: Check if Dinamica EGO is already installed
 # Diego.installed <- system(command = paste('*dinamica7* -v'))==0
-# executable <- "*Dinamica*"
-# test <- system2("where", args = c("-v", executable))
-# print(test)
-
-
-# Install Dinamica EGO using included installer (Windows)
-# create string for installer
-# install_path <- paste0(getwd(), "/Model/SetupDinamicaEGO-720.exe")
-# install_path <- gsub("/", "\\\\", install_path) #replace "/" with "\\"
-
-# system command
-# system2(command = paste(install_path))
-
-# set environment path for Dinamica log/debug files
-# create a temporary dir for storing the Dinamica output files
-# Logdir <- "Model/Dinamica_models/Model_log_files"
-# dir.create(Logdir)
-# Win_logdir <- paste0(getwd(), "/", Logdir)
-# Win_logdir <- gsub('(*/)\\1+', '\\1', Win_logdir) #remove instances of double "/"
-# Win_logdir <- gsub("/", "\\\\", Win_logdir) #replace "/" with "\\"
-# Sys.setenv(DINAMICA_EGO_7_LOG_PATH = paste(Win_logdir))
 
 # create table for controlling simulations
 
@@ -120,12 +99,6 @@ Sim_control_path <- "Tools/Simulation_control.csv"
 # DC_path <- gsub("/", "\\\\", DC_path) #replace "/" with "\\"
 DC_path <- "C:\\Program Files\\Dinamica EGO 7\\DinamicaConsole7.exe"
 
-# create directory to store simulation logs
-Sim_log_dir <- "Results/Simulation_notifications"
-if (dir.exists(Sim_log_dir) == FALSE) {
-  dir.create(Sim_log_dir, recursive = TRUE)
-}
-
 # list objects required for modelling
 Model_tool_vars <- list(
   LULC_aggregation_path = "Tools/LULC_class_aggregation.xlsx", # Path to LULC class aggregation table
@@ -139,7 +112,6 @@ Model_tool_vars <- list(
   Simulation_param_dir = "Data/Allocation_parameters/Simulation",
   Trans_rate_table_dir = "Data/Transition_tables/prepared_trans_tables",
   Sim_control_path = Sim_control_path, # Path to simulation control table
-  Sim_log_dir = Sim_log_dir,
   Step_length = Step_length,
   Scenario_names = Scenario_names,
   Inclusion_thres = Inclusion_thres,
@@ -385,14 +357,19 @@ if (Pre_check_result == FALSE) {
   # run which indicates any errors
   output_path <- paste0(Sim_log_dir, "/Simulation_output_", Sys.Date(), ".txt")
 
+  # set environment path for Dinamica log/debug files
+  # create a temporary dir for storing the Dinamica output files
+  # Logdir <- "Model/Dinamica_models/Model_log_files"
+  # dir.create(Logdir)
+  # Win_logdir <- paste0(getwd(), "/", Logdir)
+
   print("Starting to run model with Dinamica EGO")
   system2(
     command = paste(DC_path),
-    # args = c("-processors 10","-memory-allocation-policy 4", Temp_model_path),
-    args = c("-disable-parallel-steps -log-level 7", Temp_model_path),
-    wait = TRUE,
-    stdout = "", # "" -> log to stdout/stderr so SLURM can capture it
-    stderr = "", # output_path
+    args = c("-disable-parallel-steps -log-level 7", Temp_model_path)
+    # env = c(
+    #   DINAMICA_EGO_7_LOG_PATH = Win_logdir
+    # )
   )
 
   # because the simulations may fail without the system command returning an error
