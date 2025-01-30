@@ -19,14 +19,6 @@
 # Diego.installed <- system(command = paste('*dinamica7* -v'))==0
 
 
-# Threshold for identifying transitions: This represents the number of transition
-# instances from class X -> Y as a % of the the total area of class X a good
-# value for this threshold is 0.5 such that if the number of cells transitioning
-#<0.5% of the total number of cells of the initial class then the transition is
-# not included. The rationale for this is that the statistical model produced for
-# the transition will be too weak due to high-imbalance
-Inclusion_thres <- 0.5
-
 ### =========================================================================
 ### Simulation control table prep
 ### =========================================================================
@@ -61,7 +53,7 @@ Model_tool_vars <- list(
   Sim_control_path = Sim_control_path, # Path to simulation control table
   Step_length = Step_length,
   Scenario_names = Scenario_names,
-  Inclusion_thres = Inclusion_thres,
+  Inclusion_thres = 0.5,
   DC_path = DC_path
 )
 

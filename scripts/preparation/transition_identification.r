@@ -14,6 +14,12 @@
 # LULC_aggregation_path (path to LULC_classes.xlsx)
 # Step_length (numeric; duration of time steps, e.g. 4)
 # Inclusion_thres (numeric; minimum % threshold for transition inclusion)
+# Threshold for identifying transitions: This represents the number of transition
+# instances from class X -> Y as a % of the the total area of class X a good
+# value for this threshold is 0.5 such that if the number of cells transitioning
+#<0.5% of the total number of cells of the initial class then the transition is
+# not included. The rationale for this is that the statistical model produced for
+# the transition will be too weak due to high-imbalance
 
 # Historic LULC data folder path
 LULC_folder <- "Data/Historic_LULC"
