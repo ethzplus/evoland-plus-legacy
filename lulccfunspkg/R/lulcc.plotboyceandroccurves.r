@@ -1,8 +1,6 @@
-### =========================================================================
-### lulcc.plotBoyceandROCcurves: Produce Boyce and AUC curves for a
-### specified LULC transition under specific models
-### =========================================================================
+#' lulcc.plotBoyceandROCcurves
 #'
+#' Produce Boyce and AUC curves for a specified LULC transition under specific models
 #'
 #' @param RF_specs Character specifying which group RF models to plot curves for
 #' @param GLM_specs Character specifying which GLM models to plot curves for

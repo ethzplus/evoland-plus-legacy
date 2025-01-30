@@ -1,8 +1,6 @@
-### =========================================================================
-### lulcc.improvetransareadistrib: Improving distribution of transition areas
-### to approximate expert values for scenarios
-### ===========================================================================
+#' lulcc.improvetransareadistrib
 #'
+#' Improving distribution of transition areas to approximate expert values for scenarios
 #'
 #' @param transition_result vector of transitions result used as response vector for GRRF
 #' @param cov_data dataframe of predictors to be used in GRRF

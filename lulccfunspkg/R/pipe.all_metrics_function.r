@@ -1,53 +1,60 @@
-### =========================================================================
-### Evaluation function: Small functions to calculate common threshold based
-### confusion matrix indices
-###
-### =========================================================================
+#' Evaluation function:
+#'
+#' Small functions to calculate common threshold based confusion matrix indices
+#'
 #' @author Philipp Brun (main) with edits by Antoine Adde
-
 # define some confusion matrix indices
 
 # Sensitivity
+#' @export
 sens <- function(a, c) {
   a / (a + c)
 }
 
 # Specificity
+#' @export
 spec <- function(b, d) {
   d / (b + d)
 }
 
 # Positive predictive value
+#' @export
 ppv <- function(a, b) {
   a / (a + b)
 }
 
 # Negative predictive value
+#' @export
 npv <- function(c, d) {
   d / (c + d)
 }
 
 # Jaccard index
+#' @export
 jaccard <- function(a, b, c) {
   a / (a + b + c)
 }
 
 # True skill statistic
+#' @export
 tss <- function(a, b, c, d) {
   a / (a + c) + d / (b + d) - 1
 }
 
 # Accuracy
+#' @export
 acc <- function(a, b, c, d) {
   (a + d) / (a + b + c + d)
 }
 
 # Approximations
+#' @export
 minusInf <- function(a = a, b = b, c = c, d = d) {
   list2env(list(a = b, b = a, c = d, d = c), envir = .GlobalEnv)
   return(-1e+09)
 }
 
+#' @export
 plusZero <- function(a = a, b = b, c = c, d = d) {
   list2env(list(a = b, b = a, c = d, d = c), envir = .GlobalEnv)
   return(1e-09)
@@ -55,6 +62,7 @@ plusZero <- function(a = a, b = b, c = c, d = d) {
 
 # helper
 # prevalence or base rate
+#' @export
 BaseRate <- function(a = a, b = b, c = c, d = d) {
   list2env(list(a = b, b = a, c = d, d = c), envir = .GlobalEnv)
   return((a + c) / (a + b + c + d))
@@ -62,12 +70,14 @@ BaseRate <- function(a = a, b = b, c = c, d = d) {
 
 # helper
 # sensitivity or hit rate
+#' @export
 HitRate <- function(a = a, b = b, c = c, d = d) {
   list2env(list(a = b, b = a, c = d, d = c), envir = .GlobalEnv)
   return(a / (a + c))
 }
 
 # 1 minus hit rate
+#' @export
 OneMHR <- function(a = a, b = b, c = c, d = d) {
   list2env(list(a = b, b = a, c = d, d = c), envir = .GlobalEnv)
   if (isTRUE(HitRate(a = a, b = b, c = c, d = d) == 1)) {
@@ -78,6 +88,7 @@ OneMHR <- function(a = a, b = b, c = c, d = d) {
 }
 
 # log of hit rate
+#' @export
 logHR <- function(a = a, b = b, c = c, d = d) {
   list2env(list(a = b, b = a, c = d, d = c), envir = .GlobalEnv)
   if (isTRUE(HitRate(a = a, b = b, c = c, d = d) == 0)) {
@@ -89,12 +100,14 @@ logHR <- function(a = a, b = b, c = c, d = d) {
 
 # helper
 # false alarm
+#' @export
 FalseAlarm <- function(a = a, b = b, c = c, d = d) {
   list2env(list(a = b, b = a, c = d, d = c), envir = .GlobalEnv)
   return(b / (b + d))
 }
 
 # 1 minus false alarm
+#' @export
 OneMFA <- function(a = a, b = b, c = c, d = d) {
   list2env(list(a = b, b = a, c = d, d = c), envir = .GlobalEnv)
   if (isTRUE(FalseAlarm(a = a, b = b, c = c, d = d) == 1)) {
@@ -105,6 +118,7 @@ OneMFA <- function(a = a, b = b, c = c, d = d) {
 }
 
 # log of false alarm
+#' @export
 logFA <- function(a = a, b = b, c = c, d = d) {
   list2env(list(a = b, b = a, c = d, d = c), envir = .GlobalEnv)
   if (isTRUE(FalseAlarm(a = a, b = b, c = c, d = d) == 0)) {
@@ -116,6 +130,7 @@ logFA <- function(a = a, b = b, c = c, d = d) {
 
 # main function
 # symmetric extremal dependence index
+#' @export
 sedi <- function(a = a, b = b, c = c, d = d) {
   list2env(list(a = b, b = a, c = d, d = c), envir = .GlobalEnv)
 
@@ -179,15 +194,18 @@ sedi <- function(a = a, b = b, c = c, d = d) {
 
 
 # Kappa
+#' @export
 kappa <- function(a, b, c, d) {
   n <- a + b + c + d
   out <- ((a + d) / n - ((a + b) * (a + c) + (c + d) * (d + b)) / n^2) / (1 - ((a + b) * (a + c) + (c + d) * (d + b)) / n^2)
   return(out)
 }
+#' @export
 wppp <- function(a, b, c, d) {
   a^2 / ((a + b) * (a + c))
 }
 
+#' @export
 ed <- function(a, b, c, d) {
   # Definitions
   N <- a + b + c + d
@@ -205,6 +223,7 @@ ed <- function(a, b, c, d) {
 }
 
 # combine them in a function
+#' @export
 pipe.all.metrics <- function(a, b, c, d) {
   out <- c(
     sens(a, c),

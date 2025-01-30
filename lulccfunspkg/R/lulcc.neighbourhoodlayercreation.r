@@ -1,11 +1,8 @@
-### =========================================================================
-### lulcc.neighbourhoodlayercreation:
-### ===========================================================================
+#' lulcc.neighbourhoodlayercreation
 #'
+#' TODO text
 #'
 #' @author Ben Black (lulcc function), Majid Shadman Roodposhti (matrix functions)
-#' @export
-
 ### =========================================================================
 ### A- Instantiate small functions for neighbourhood creation
 ### =========================================================================
@@ -18,6 +15,7 @@
 # from a user-defined set
 # function to plot all generated random Pythagorian matrices for checking,
 # with values of each cell labelled in the center
+#' @export
 randomPythagorianMatrix <- function(n, x, interpolation = "smooth", search = "random") {
   choices <- c("random", "grid")
   search <- choices[pmatch(search, choices, duplicates.ok = FALSE)]
@@ -33,6 +31,7 @@ randomPythagorianMatrix <- function(n, x, interpolation = "smooth", search = "ra
 
 # function that shapes the actual random Pythagorian Matrix using
 # smooth or linear interpolation
+#' @export
 getPythagorianMatrix <- function(x, mid, drop, interpolation = "smooth") {
   if (x %% 2 == 0 | x < 0) stop("x must be an odd positive number")
 
@@ -48,8 +47,7 @@ getPythagorianMatrix <- function(x, mid, drop, interpolation = "smooth") {
   return(mat)
 }
 
-
-
+#' @export
 plotPythagorianMatrix <- function(mat) {
   colors <- colorRampPalette(c("deepskyblue4", "deepskyblue3", "darkslateblue", "deepskyblue1", "lightblue1", "gray88"))(256)
   corrplot::corrplot(mat,
@@ -62,7 +60,7 @@ plotPythagorianMatrix <- function(mat) {
 
 # function to plot the outcomes of applying different decay rates on every generated
 # central cell
-
+#' @export
 plotPythagorianMatrixDecay <- function(mat, plot = TRUE, ...) {
   mid <- ceiling(ncol(mat) / 2)
   drop <- mat[mid, mid + 1] / mat[mid, mid]
@@ -92,6 +90,7 @@ plotPythagorianMatrixDecay <- function(mat, plot = TRUE, ...) {
 ### B- Instantiate nested loop functions to create focal LULC rasters from matrix
 ### =========================================================================
 
+#' @export
 lulcc.generatenhoodrasters <- function(LULC_raster, Neighbourhood_matrices, Active_LULC_class_names, Data_period, Nhood_folder_path) {
   # get pixel values of all active LULC classes
   Active_class_values <- sapply(Active_LULC_class_names, function(x) {
@@ -129,6 +128,7 @@ lulcc.generatenhoodrasters <- function(LULC_raster, Neighbourhood_matrices, Acti
 ###    to be used as part of dynamic updating of focals during simulation
 ### =========================================================================
 
+#' @export
 lulcc.producefocalsbylist <- function(Focal_specifications, List_of_matrices, LULC_raster, Simulation_time_step, simulation_ID) {
   # create a folder path using simulation ID and time step
   Dynamic_focal_folder_path <- paste0("Data/Preds/Simulation/NH_preds", "/", Scenario_ID, "/", Simulation_time_step)

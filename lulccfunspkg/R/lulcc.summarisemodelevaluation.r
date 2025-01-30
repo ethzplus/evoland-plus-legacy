@@ -1,9 +1,8 @@
-### =========================================================================
-### lulcc.summarisemodelevaluation: Aggregate model evaluation metrics across transitions/bioregions
-### =========================================================================
+#' lulcc.summarisemodelevaluation
 #'
+#' Aggregate model evaluation metrics across transitions/bioregions
 #'
-#' @param model_eval_results
+#' @param model_eval_results TODO
 #' @param summary_metrics Vector, names of evaluation metrics to summarize by
 #' can include: AUC, AUC.S, RMSE, Boyce, Score, threshold, Sensitivity,
 #' Specificity, Accuracy, PPV, NPV, Jaccard, TSS Kappa, SEDI.

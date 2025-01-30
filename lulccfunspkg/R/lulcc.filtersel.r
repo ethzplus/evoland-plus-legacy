@@ -1,6 +1,6 @@
-### =========================================================================
-### lulcc.filtersel: Apply the collinearity filtering on groups of predictors
-### =========================================================================
+#' lulcc.filtersel
+#'
+#' Apply the collinearity filtering on groups of predictors
 #'
 #' @param transition_result a vector containing binary values of transition result (0/1)
 #' @param cov_data a datatable containing column wise values of covariates

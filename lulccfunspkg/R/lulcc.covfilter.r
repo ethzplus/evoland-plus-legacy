@@ -1,9 +1,9 @@
-### =========================================================================
-### lulcc.covfilter: Covariate collinearity testing
-### =========================================================================
+#' lulcc.covfilter
 #'
-#' @param cov_data
-#' @param trans_result
+#' Covariate collinearity testing
+#'
+#' @param cov_data TODO
+#' @param trans_result TODO
 #' @param method a character of the method used to rank covariates
 #'               accepts: "IQR", "IQR.M", "COR.P", "COR.S", "WIL", "GLM", "MAD.M"
 #' @param weights vector of 'prior weights' to be used in the glm fitting

@@ -1,6 +1,5 @@
-### =========================================================================
-### define multi.input class
-### =========================================================================
+#' define multi.input class
+#'
 #' An S4 class to store evaluation data
 #'
 #' @slot mod Name of model algorithm to be called (character) e.g., 'glm'

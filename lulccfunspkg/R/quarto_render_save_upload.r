@@ -1,13 +1,12 @@
-### =========================================================================
-### Quarto_render_save_upload: Render a Quarto document locally, save it and
-### then upload to Google drive using the trackdown package. Prior to using you must
-### follow the instructions on the trackdown vignette for OAuth Client App Configuration:
-### https://claudiozandonella.github.io/trackdown/articles/oauth-client-configuration.html
-
-### =========================================================================
+#' Quarto_render_save_upload
+#'
+#' Render a Quarto document locally, save it and then upload to Google drive using the
+#' trackdown package. Prior to using you must follow the instructions on the trackdown
+#' vignette for [OAuth Client App Configuration](https://claudiozandonella.github.io/trackdown/articles/oauth-client-configuration.html)
 #'
 #' @param Quarto_path chr file path of Quarto document (.qmd) that you wish to save
-#' @param Trackdown_auth_path chr path to .json file for authentication for trackdown to upload to Google drive
+#' @param Trackdown_auth_path chr path to .json file for authentication for trackdown to
+#'                            upload to Google drive
 #' @param File_ext chr either "html" or "pdf"
 #'
 #' @author Ben Black

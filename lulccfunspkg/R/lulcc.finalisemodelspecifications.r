@@ -1,8 +1,6 @@
-### =========================================================================
-### lulcc.finalisemodelspecifications: Enter optimal model specification
-### and parameters for prediction
-### =========================================================================
+#' lulcc.finalisemodelspecifications
 #'
+#' Enter optimal model specification and parameters for prediction
 #'
 #' @param Model_specs_path Character, file path for table of model specifications
 #' @param Param_grid_path Character, file path for grid of hyperparameters

@@ -1,8 +1,7 @@
-### =========================================================================
-### lulcc.viabletranslist: Identify viable LULC transitions from a
-### transition matrix based on a threshold inclusion rate
-### =========================================================================
+#' lulcc.viabletranslist
 #'
+#' Identify viable LULC transitions from a transition matrix based on a threshold
+#' inclusion rate
 #'
 #' @author Ben Black
 #' @export

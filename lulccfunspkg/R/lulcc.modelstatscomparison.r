@@ -1,8 +1,7 @@
-### =========================================================================
-### lulcc.modelstatscomparison: Check assumptions and perform hypothesis testing
-# for differences in model eval metrics between different model specification
-### =========================================================================
+#' lulcc.modelstatscomparison
 #'
+#' Check assumptions and perform hypothesis testingfor differences in model eval metrics
+#' between different model specification
 #'
 #' @param model_eval_summary Dataframe summary of model performance
 #' @param eval_metrics Vector, names of evaluation metrics to summarize by

@@ -1,8 +1,6 @@
-### =========================================================================
-### define wsl.glm function
-### =========================================================================
-#' Re-sample data and fit RF models
+#' define wsl.glm function
 #'
+#' Re-sample data and fit RF models
 #'
 #' @param trans_result vector with presence/absence values
 #' @param cov_data data.frame with environmental predictors
@@ -23,10 +21,8 @@
 #' evaluation, and model objects
 #' @author Philipp Brun (main) with edits by Antoine Adde, adapted by Ben Black
 #'
-NULL
-
-#' @rdname fitdoc
 #' @export
+
 lulcc.fitrf <- function(trans_result = numeric(),
                         cov_data = data.frame(),
                         replicatetype = character(),

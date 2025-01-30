@@ -1,7 +1,6 @@
-### =========================================================================
-### lulcc.listbybioregion: Seperate list of dataframes into a nested list according to Bioregion
-### =========================================================================
+#' lulcc.listbybioregion
 #'
+#' Seperate list of dataframes into a nested list according to Bioregion
 #'
 #' @author Ben Black
 #' @export

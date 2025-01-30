@@ -1,8 +1,8 @@
-### =========================================================================
-### lulcc.evalfeatureselection: Wrapper function to summarise the results of
-### the feature selection process according to different aspects of the
-### transitions datasets
-### =========================================================================
+#' lulcc.evalfeatureselection
+#'
+#' Wrapper function to summarise the results of the feature selection process according
+#' to different aspects of the transitions datasets
+#'
 #' @param Data_period_name Character name of dataset period to be used in file saving.
 #' @param Dataset_scale Character, scale of datasets to be used in file saving.
 #' @param Pre_FS_folder Character, folder path for pre-covariate selection datasets.

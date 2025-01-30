@@ -1,9 +1,8 @@
-#############################################################################
-## lulcc.spatprobmanipulation: function to manipulate spatial transition
-## probabilities to represent interventions/policies/management activities
-## Date: 17-03-2023
-## Author: Ben Black
-#############################################################################
+#' lulcc.spatprobmanipulation
+#'
+#' function to manipulate spatial transition probabilities to represent
+#' interventions/policies/management activities
+#' Date: 17-03-2023
 #'
 #' @param Scenario_ID Chr, abbreviation of current scenario
 #' @param Raster_prob_values Dataframe, predicted cellular transitions

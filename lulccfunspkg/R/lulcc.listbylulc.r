@@ -1,8 +1,7 @@
-### =========================================================================
-### lulcc.listbylulc: Seperate list of dataframes into a nested list
-### according to the initial LULC class of the transition
-### =========================================================================
+#' lulcc.listbylulc
 #'
+#' Seperate list of dataframes into a nested list according to the initial LULC class of
+#' the transition
 #'
 #' @author Ben Black
 #' @export

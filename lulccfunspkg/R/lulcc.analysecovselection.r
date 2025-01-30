@@ -1,7 +1,6 @@
-### =========================================================================
-### lulcc.analysecovselection: Produce summary information on results of
-### 2 stage covariate selection procedure
-### =========================================================================
+#' lulcc.analysecovselection
+#'
+#' Produce summary information on results of 2 stage covariate selection procedure
 #'
 #' @param All_pred_names list of unique covariate names
 #'   produced by function lulcc.evalfeatureselection
@@ -13,7 +12,6 @@
 #'
 #' @author Ben Black
 #' @export
-
 
 lulcc.analysecovselection <- function(All_pred_names, Filtered_predictors, summary_level) {
   # Instantiate small functions
@@ -38,18 +36,23 @@ lulcc.analysecovselection <- function(All_pred_names, Filtered_predictors, summa
   if (summary_level == "across_trans") {
     # create vector of all covariates selected by each selection process
     # collinearity based selection
-    All_collinearity_selected_covs <- unlist(lapply(Filtered_predictors, function(x) x[["collinearity_preds"]]))
+    All_collinearity_selected_covs <- unlist(
+      lapply(Filtered_predictors, function(x) x[["collinearity_preds"]])
+    )
 
     # Embedded GRRF selection
     All_embedded_selected_covs <- unlist(lapply(Filtered_predictors, function(x) x[["GRRF_preds"]]))
 
-    # Result 1: How many of the full selection of covariates remain after each stage of selection?
-    # for this we need to reduce the full vectors of covariates to just the unique values they contain
+    # Result 1: How many of the full selection of covariates remain after each stage of
+    # selection? for this we need to reduce the full vectors of covariates to just the
+    # unique values they contain
     Covs_remaining_after_collinearity_selection <- length(unique(All_collinearity_selected_covs))
     Covs_remaining_after_embedded_selection <- length(unique(All_embedded_selected_covs))
 
     # Result 2: How many times are each of the covariates used across all transitions?
-    Collinearity_selected_variable_occurence <- data.frame(table(All_collinearity_selected_covs)) %>% arrange(desc(Freq))
+    Collinearity_selected_variable_occurence <- data.frame(
+      table(All_collinearity_selected_covs)
+    ) %>% arrange(desc(Freq))
     Embedded_selected_variable_occurence <- data.frame(table(All_embedded_selected_covs)) %>% arrange(desc(Freq))
 
     # Result 3: Measures of central tendency for number of covariates per transition at each stage of filtering

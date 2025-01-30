@@ -1,6 +1,7 @@
-### =========================================================================
-### define summary function for wsl.evaluation objects
-### =========================================================================
+#' define summary function for wsl.evaluation objects
+#'
+#' TODO text
+#'
 #' @author Philipp Brun (main) with edits by Antoine Adde
 #' @export
 pipe.summary <- function(object) {

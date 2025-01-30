@@ -1,8 +1,6 @@
-### =========================================================================
-### define multi function
-### =========================================================================
-#' Define settings for function that should be supplied to wsl.flex
+#' define multi function
 #'
+#' Define settings for function that should be supplied to wsl.flex;
 #' Create a multi.input object that efficiently stores model specifications
 #'
 #' @param mod a character with the name of the function to be called. E.g. "gam"

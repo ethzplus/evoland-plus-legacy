@@ -1,9 +1,6 @@
-### =========================================================================
-### predict df or raster
-### =========================================================================
-#' Predict to data.frame or raster
+#' predict df or raster
 #'
-#' Not to be called directly by the user
+#' Predict to data.frame or raster; Not to be called directly by the user
 #'
 #' @author Philipp Brun (main) with edits by Antoine Adde
 #' @export

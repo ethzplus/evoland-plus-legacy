@@ -1,8 +1,6 @@
-### =========================================================================
-### lulcc.finalisemodelspecifications: Enter optimal model specification
-### and parameters for prediction
-### =========================================================================
+#' lulcc.finalisemodelspecifications
 #'
+#' Enter optimal model specification and parameters for prediction
 #'
 #' @param LULC_aggregation_path Character, file path for table of LULC class aggregations
 #' @author Ben Black

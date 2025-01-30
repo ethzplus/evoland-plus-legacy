@@ -1,9 +1,8 @@
-### =========================================================================
-### lulcc.fitevalsave: Wrapper function to perform model fitting, evaluation and saving
-### with either RF or GLM
-### =========================================================================
+#' lulcc.fitevalsave
 #'
-#' @param Transition_dataset
+#' Wrapper function to perform model fitting, evaluation and saving with either RF or GLM
+#'
+#' @param Transition_dataset TODO
 #' @param Transition_name Character
 #' @param replicatetype Character, (how) should replicates be generated? may be 'none', 'splitsample',
 #' 'cv' 'block-cv'.

@@ -1,6 +1,6 @@
-### =========================================================================
-### lulcc.analysedownsampling: Produce plots and perform statistical analysis to compare downsampling vs. regular RF
-### =========================================================================
+#' lulcc.analysedownsampling
+#'
+#' Produce plots and perform statistical analysis to compare downsampling vs. regular RF
 #' @author Ben Black
 #' @export
 

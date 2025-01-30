@@ -1,7 +1,6 @@
-### =========================================================================
-### lulcc.grrffeatSelect: Embedded feature selection with Guided Regularized Random Forests
-### ===========================================================================
+#' lulcc.grrffeatSelect
 #'
+#' Embedded feature selection with Guided Regularized Random Forests
 #'
 #' @param transition_result vector of transitions result used as response vector for GRRF
 #' @param cov_data dataframe of predictors to be used in GRRF

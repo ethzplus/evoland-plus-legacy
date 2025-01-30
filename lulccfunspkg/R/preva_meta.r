@@ -1,6 +1,5 @@
-### =========================================================================
-### prediction-evaluation meta.info function
-### =========================================================================
+#' prediction-evaluation meta.info function
+#'
 #' Generate meta information for prediction and evaluation
 #'
 #' Not to be called directly by the user

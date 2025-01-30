@@ -1,8 +1,7 @@
-### =========================================================================
-### preparation function
-### =========================================================================
-#' Check input data, collect meta information, take care of data subsetting.
-#' Called by model fitting functions.
+#' preparation function
+#'
+#' Check input data, collect meta information, take care of data subsetting. Called by
+#' model fitting functions.
 #'
 #' Not to be called directly by the user
 #' @author Philipp Brun adapted by Ben Black

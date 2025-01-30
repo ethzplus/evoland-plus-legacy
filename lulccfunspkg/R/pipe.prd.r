@@ -1,6 +1,5 @@
-### =========================================================================
-### prediction-evaluation prediction function
-### =========================================================================
+#' prediction-evaluation prediction function
+#'
 #' Correctly feed the predict functions depending on model type (glm, gbm, maxent...)
 #'
 #' Not to be called directly by the user

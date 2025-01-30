@@ -1,9 +1,6 @@
-### =========================================================================
-### evaluate core function (peval)
-### =========================================================================
-#' Do the actual model evaluations
+#' evaluate core function (peval)
 #'
-#' Not to be called directly by the user
+#' Do the actual model evaluations; Not to be called directly by the user
 #'
 #' @param f Vector of model predicted probabilities
 #' @param pa Vector of response variable values

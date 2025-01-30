@@ -1,6 +1,5 @@
-### =========================================================================
-### lulcc.BoyceAUCcurves
-### =========================================================================
+#' lulcc.BoyceAUCcurves
+#'
 #' Return objects for producing AUC and Boyce Curves
 #'
 #' Not to be called directly by the user

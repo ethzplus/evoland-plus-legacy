@@ -1,7 +1,6 @@
-### =========================================================================
-### Confirm Raster compatibility prior to stacking
-### =========================================================================
+#' Confirm Raster compatibility prior to stacking
 #'
+#' TODO text
 #'
 #' @author Ben Black
 #' @export

@@ -1,7 +1,6 @@
-### =========================================================================
-### lulcc.setparams: set hyperparameters for fitting statistical models
-### =========================================================================
+#' lulcc.setparams
 #'
+#' set hyperparameters for fitting statistical models
 #'
 #' @param model_name Character, abbreviation for model type accepts: "glm", "rf"
 #' @param transition_result Vector of transition result

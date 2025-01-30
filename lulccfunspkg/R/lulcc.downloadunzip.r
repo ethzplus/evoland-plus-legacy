@@ -1,7 +1,6 @@
-### =========================================================================
-### lulcc.downloadunzip: Download folder from URL and unzip to target directory
-### =========================================================================
+#' lulcc.downloadunzip
 #'
+#' Download folder from URL and unzip to target directory
 #'
 #' @param url character string url to download folder from
 #'   produced by function lulcc.evalfeatureselection

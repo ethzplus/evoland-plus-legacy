@@ -1,8 +1,6 @@
-### =========================================================================
-### define wsl.glm function
-### =========================================================================
-#' Re-sample data and fit RF models
+#' define wsl.glm function
 #'
+#' Re-sample data and fit RF models
 #'
 #' @param trans_result vector with presence/absence values
 #' @param cov_data data.frame with environmental predictors
@@ -18,7 +16,7 @@
 #' @param mod_tag (not in wsl.flex) label for the current model
 #' @param mod_args list with elements of class 'multi.input' which specify models to be fitted
 #' in lulcc.fitrf
-#' @Param Downsampling Logical, should downsampling be implemented in RF? (TRUE/FALSE)
+#' @param Downsampling Logical, should downsampling be implemented in RF? (TRUE/FALSE)
 #' @return Object of class wsl.fit including slots for meta info, testing data for
 #' evaluation, and model objects
 #' @author Philipp Brun (main) with edits by Antoine Adde and Ben Black

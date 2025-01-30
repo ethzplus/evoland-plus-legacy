@@ -1,7 +1,6 @@
-### =========================================================================
-### lulcc.summarisecovselection: Aggregate summary information on results of
-### 2 stage covariate selection procedure
-### =========================================================================
+#' lulcc.summarisecovselection
+#'
+#' Aggregate summary information on results of 2 stage covariate selection procedure
 #'
 #'
 #' @param nested_list_of_trans list of transitions with result elements

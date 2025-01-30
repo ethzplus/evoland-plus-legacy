@@ -1,6 +1,5 @@
-### =========================================================================
-### Set wsl.fit Class
-### =========================================================================
+#' Set wsl.fit Class
+#'
 #' An S4 class to store fitted objects
 #'
 #' @slot meta A list with meta information
