@@ -244,7 +244,7 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
   # add estimated population to @data table of polygons and then rasterize
   Muni_shp@data$Pop_est <- Muni_urban_areas$Pop_est
   pop_raster <- raster::rasterize(x = Muni_shp, y = Ref_grid, field = "Pop_est", background = NAvalue(Ref_grid))
-  names(pop_raster) <- "Muni_pop" # TO DO: THIS MUST BE THE LAYER NAME IN THE CALIBRATION STACKS/MODELS
+  names(pop_raster) <- "Muni_pop" # TODO: THIS MUST BE THE LAYER NAME IN THE CALIBRATION STACKS/MODELS
 
   # clean up
   rm(

@@ -137,13 +137,13 @@ system.time({
 
     browser()
 
-    # To DO do not return the averages as a list
+    # TODO do not return the averages as a list
     Average_pred_probs <- list(
       Average_prob_0_over_trees = sum(Instance_records$Prob_0) / nrow(Instance_records),
       Average_prob_1_over_trees = sum(Instance_records$Prob_1) / nrow(Instance_records)
     )
 
-    # TO DO: because the equation is vectorized already do not apply it over the
+    # TODO: because the equation is vectorized already do not apply it over the
     # averages just provide the averages as a vector
 
     # calculate the total uncertainty as the negative sum of the shannon entropies

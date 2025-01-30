@@ -1407,7 +1407,7 @@ Scenario_bar_charts <- lapply(Scenario_names, function(x) {
   Scenario_freq$clean_lab <- paste0(round(Scenario_freq$perc_diff, 2), "%")
 
 
-  # TO DO: BAR CHART COLOURS ARE MESSED UP WITH SCALE_FILL_MANUAL
+  # TODO: BAR CHART COLOURS ARE MESSED UP WITH SCALE_FILL_MANUAL
 
   # bar chart
   Scenario_plot <- ggplot(Scenario_freq, aes(y = perc_diff, x = LULC_class, fill = LULC_class)) +

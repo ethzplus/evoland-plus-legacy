@@ -18,7 +18,7 @@
 # install Dinamica from source
 # install.packages("Model/dinamica_1.0.4.tar.gz", repos=NULL, type="source")
 
-# TO DO: Check if Dinamica EGO is already installed
+# TODO: Check if Dinamica EGO is already installed
 # Diego.installed <- system(command = paste('*dinamica7* -v'))==0
 
 # create table for controlling simulations
@@ -90,8 +90,8 @@ Sim_control_path <- "Tools/Simulation_control.csv"
 ### Modelling set-up
 ### =========================================================================
 
-# TO DO: Document how users should set up the various 'tools' tables that control
-# the creation of transition datasets and the tp models.
+# TODO: Document how users should set up the various 'tools' tables that control the
+# creation of transition datasets and the tp models.
 
 # Get the file path of the Dinamica console executable
 # DC_path <- list.files("C:/", recursive = TRUE, full.names = TRUE, pattern = ".*DinamicaConsole.*\\.exe")
@@ -146,7 +146,7 @@ if (any(grep(model_specs$Model_scale,
 zenodo <- ZenodoManager$new()
 
 # Get record info
-# TO DO: won't work until record is made open access
+# TODO: won't work until record is made open access
 rec <- zenodo$getRecordByDOI("10.5281/zenodo.7590103")
 files <- rec$listFiles(pretty = TRUE)
 files <- my_rec$listFiles(pretty = TRUE)
@@ -204,7 +204,7 @@ decompress_file(tmpdir, file = paste0(tmpdir, "\\", files$filename), .file_cache
 # using r utils::unzip
 unzip(paste0(tmpdir, "/", files$filename), exdir = str_remove(paste0(tmpdir, "/", files$filename), ".zip"))
 
-# TO DO: update path when Manuel has finished Zenodo upload.
+# TODO: update path when Manuel has finished Zenodo upload.
 # select just the raw data
 raw_data_path <- str_replace(paste0(tmpdir, "/", files$filename), ".zip", "/Data/Raw")
 
@@ -257,7 +257,7 @@ source("Scripts/Preparation/Transition_feature_selection.R", local = scripting_e
 ### F- Statistical modelling of LULCC transition datasets
 ### =========================================================================
 
-# TO DO: USER CREATE TABLE OF MODEL SPECIFCATIONS AND PARAM GRID TO BE TESTED
+# TODO: USER CREATE TABLE OF MODEL SPECIFCATIONS AND PARAM GRID TO BE TESTED
 
 source("Scripts/Preparation/Trans_modelling.R", local = scripting_env)
 

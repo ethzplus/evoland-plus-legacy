@@ -39,7 +39,7 @@ Data_URLs <- c(
   "https://www.kgk-cgc.ch/download_file/1019/239"
 ) # undeveloped areas in building zones 2022
 
-# To Do: rewrite this codes as a function that searches for multiple file extensions for spatial data
+# TODO: rewrite this codes as a function that searches for multiple file extensions for spatial data
 # create dir
 BZ_dir <- "Data/Spat_prob_perturb_layers/Bulding_zones"
 dir.create(BZ_dir, recursive = TRUE)

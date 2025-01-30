@@ -231,13 +231,13 @@ system.time({
       Entropy_table[Entropy_table$Node_ID == Predict_nodes[instance, tree] & Entropy_table$Tree_num == tree, ]
     }))
 
-    # TO DO: don't create list from average
+    # TODO: don't create list from average
     Average_pred_probs <- list(
       Average_prob_0_over_trees = sum(Instance_records$Prob_0) / nrow(Instance_records),
       Average_prob_1_over_trees = sum(Instance_records$Prob_1) / nrow(Instance_records)
     )
 
-    # TO DO: No need to use a loop as the equations is already vectorized
+    # TODO: No need to use a loop as the equations is already vectorized
     # calculate the total uncertainty as the negative sum of the shannon entropies
     # of the average predicted probabilities for each class
     Instance_total_unc <- -(sum(sapply(Average_pred_probs, function(p) {
