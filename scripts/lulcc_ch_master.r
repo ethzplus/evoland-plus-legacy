@@ -18,9 +18,11 @@
 ### =========================================================================
 
 # vector save path
-Sim_control_path <- "Tools/Simulation_control.csv"
-lulccfunspkg::simcontrolprep() |> 
-  readr::write_csv(Sim_control_path)
+Sim_control_path <- "tools/simulation_control.csv"
+# TODO the code I found here was missing some columns vs. the csv that's been committed
+# to the repo.
+# lulccfunspkg::simcontrolprep() |> 
+#   readr::write_csv(Sim_control_path)
 
 ### =========================================================================
 ### Modelling set-up
