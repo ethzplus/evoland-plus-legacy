@@ -30,17 +30,17 @@ Sim_control_path <- "tools/simulation_control.csv"
 
 # list objects required for modelling
 Model_tool_vars <- list(
-  LULC_aggregation_path = "Tools/LULC_class_aggregation.xlsx", # Path to LULC class aggregation table
-  Model_specs_path = "Tools/Model_specs.csv", # Path to model specifications table
-  Param_grid_path = "Tools/param-grid.xlsx", # Path to model hyper parameter grids
-  Pred_table_path = "Tools/Predictor_table.xlsx", # Path to predictor table
-  Spat_ints_path = "Tools/Spatial_interventions.csv", # Path to spatial interventions table
-  EI_ints_path = "Tools/EI_interventions.csv", # Path to EI interventions table
-  Ref_grid_path = "Data/Ref_grid.grd", # Path to spatial grid to standardise spatial data
-  Calibration_param_dir = "Data/Allocation_parameters/Calibration",
-  Simulation_param_dir = "Data/Allocation_parameters/Simulation",
-  Trans_rate_table_dir = "Data/Transition_tables/prepared_trans_tables",
-  Sim_control_path = Sim_control_path, # Path to simulation control table
+  LULC_aggregation_path = "tools/lulc_class_aggregation.xlsx", # LULC class aggregation table
+  Model_specs_path = "tools/model_specs.xlsx", # model specifications table
+  Param_grid_path = "tools/param-grid.xlsx", # model hyper parameter grids
+  Pred_table_path = "tools/predictor_table.xlsx", # predictor table
+  Spat_ints_path = "tools/spatial_interventions.csv", # spatial interventions table
+  EI_ints_path = "tools/ei_interventions.xlsx", # EI interventions table
+  Ref_grid_path = "data/ref_grid.grd", # spatial grid to standardise spatial data
+  Calibration_param_dir = "data/allocation_parameters/calibration",
+  Simulation_param_dir = "data/allocation_parameters/simulation",
+  Trans_rate_table_dir = "data/transition_tables/prepared_trans_tables",
+  Sim_control_path = Sim_control_path, # simulation control table
   Step_length = Step_length,
   Scenario_names = Scenario_names,
   Inclusion_thres = 0.5
