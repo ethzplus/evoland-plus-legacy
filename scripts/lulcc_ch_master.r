@@ -78,10 +78,10 @@ lulccfunspkg::fetch_zenodo_predictors(doi = "10.5281/zenodo.7590103")
 ### =========================================================================
 
 # Prepare LULC data layers
-source("Scripts/Preparation/LULC_data_prep.R", local = scripting_env)
+source("scripts/preparation/lulc_data_prep.r", local = scripting_env)
 
 # Prepare raster of Swiss Bioregions
-source("Scripts/Preparation/Region_prep.R", local = scripting_env)
+source("scripts/preparation/region_prep.r", local = scripting_env)
 
 ### =========================================================================
 ### B- Prepare predictor data
@@ -92,31 +92,31 @@ source("Scripts/Preparation/Region_prep.R", local = scripting_env)
 # when data layers are created
 
 # Prepare suitability and accessibility predictors
-source("Scripts/Preparation/Calibration_predictor_prep.R", local = scripting_env)
+source("scripts/preparation/calibration_predictor_prep.r", local = scripting_env)
 
 ### =========================================================================
 ### C- Identify LULC transitions and create transition datasets
 ### =========================================================================
 
-source("Scripts/Preparation/Transition_identification.R", local = scripting_env)
+source("scripts/preparation/transition_identification.r", local = scripting_env)
 
 ### =========================================================================
 ### D- Create transition datasets
 ### =========================================================================
 
-source("Scripts/Preparation/Transition_dataset_prep.R", local = scripting_env)
+source("scripts/preparation/transition_dataset_prep.r", local = scripting_env)
 
 ### =========================================================================
 ### E- Predictor variable selection on LULCC transition datasets
 ### =========================================================================
 
-source("Scripts/Preparation/Transition_feature_selection.R", local = scripting_env)
+source("scripts/preparation/transition_feature_selection.r", local = scripting_env)
 
 ### =========================================================================
 ### F- Statistical modelling of LULCC transition datasets
 ### =========================================================================
 
-source("Scripts/Preparation/Trans_modelling.R", local = scripting_env)
+source("scripts/preparation/trans_modelling.r", local = scripting_env)
 
 ### =========================================================================
 ### G- Summarizing model validation results
@@ -125,7 +125,7 @@ source("Scripts/Preparation/Trans_modelling.R", local = scripting_env)
 # The results comparing the performance of different transition model
 # specifications require manual interpretation as the choice of optimal model
 # must balance numerous aspects: accuracy, overfitting, computation time etc.
-source("Scripts/Preparation/Transition_model_evaluation.R", local = scripting_env)
+source("scripts/preparation/transition_model_evaluation.r", local = scripting_env)
 
 # adjust contents of model_specs table to only optimal specifcations
 lulccfunspkg::lulcc.finalisemodelspecifications(
@@ -137,25 +137,25 @@ lulccfunspkg::lulcc.finalisemodelspecifications(
 ### H- Re-fitting optimal model specifications on full data
 ### =========================================================================
 
-source("Scripts/Preparation/Trans_model_finalization.R", local = scripting_env)
+source("scripts/preparation/trans_model_finalization.r", local = scripting_env)
 
 ### =========================================================================
 ### I- Prepare data for deterministic transitions (e.g glacier -> Non-glacier)
 ### =========================================================================
 
-source("Scripts/Preparation/Deterministic_trans_prep.R", local = scripting_env)
+source("scripts/preparation/deterministic_trans_prep.r", local = scripting_env)
 
 ### =========================================================================
 ### I- Prepare tables of transition rates for scenarios
 ### =========================================================================
 
-source("Scripts/Preparation/Simulation_trans_tables_prep.R", local = scripting_env)
+source("scripts/preparation/simulation_trans_tables_prep.r", local = scripting_env)
 
 ### =========================================================================
 ### J- Prepare predictor data for scenarios
 ### =========================================================================
 
-source("Scripts/Preparation/Simulation_predictor_prep.R", local = scripting_env)
+source("scripts/preparation/simulation_predictor_prep.r", local = scripting_env)
 
 ### =========================================================================
 ### K- Calibrate allocation parameters for Dinamica
@@ -167,13 +167,13 @@ source("Scripts/Preparation/Simulation_predictor_prep.R", local = scripting_env)
 # 3. Identify best performing parameter sets and save copies of tables
 # to be used in scenario simulations
 
-source("Scripts/Preparation/Calibrate_allocation_parameters.R", local = scripting_env)
+source("scripts/preparation/calibrate_allocation_parameters.r", local = scripting_env)
 
 ### =========================================================================
 ### L- Prepare scenario specific spatial interventions
 ### =========================================================================
 
-source("Scripts/Preparation/Spatial_interventions_prep.R", local = scripting_env)
+source("scripts/preparation/spatial_interventions_prep.r", local = scripting_env)
 
 ### =========================================================================
 ### M- Run Dinamica simulations over scenarios
@@ -193,13 +193,13 @@ if (Pre_check_result == FALSE) {
   print("Creating a copy of the Dinamica model using the current control table")
   Temp_model_path <- gsub(
     ".ego", paste0("_simulation_", Sys.Date(), ".ego"),
-    "Model/Dinamica_models/LULCC_CH.ego"
+    "model/dinamica_models/lulcc_ch.ego"
   )
   writeLines(Model_text, Temp_model_path)
 
   # vector a path for saving the output text of this simulation
   # run which indicates any errors
-  output_path <- paste0(Sim_log_dir, "/Simulation_output_", Sys.Date(), ".txt")
+  output_path <- paste0(Sim_log_dir, "/simulation_output_", Sys.Date(), ".txt")
 
   # set environment path for Dinamica log/debug files
   # create a temporary dir for storing the Dinamica output files
