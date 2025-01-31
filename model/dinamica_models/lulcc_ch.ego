@@ -11,7 +11,7 @@ Script {{
 
         workingDirectory := ExtractStructString getEnvironmentVariables $"(Work_dir)";
 
-        simulationControlTablePath := ExtractStructString getEnvironmentVariables $"(Sim_control_path)";
+        simulationControlTablePath := ExtractStructString getEnvironmentVariables $"(simctrl_tbl_path)";
 
         @collapsed = no
         @alias = Subset control table to only simulations yet to be completed (i.e. modelled)
@@ -64,9 +64,9 @@ Script {{
                     @viewer.lookupTable = yes
                     receiveTableOfTimeStepsDefiningLengthOfSimulation := ExtractStructLookupTable initializeCurrentSimulation $"(simulation_time_steps)";
 
-                    stepLength := ExtractStructNumber initializeCurrentSimulation $"(Step_length)";
+                    stepLength := ExtractStructNumber initializeCurrentSimulation $"(step_length)";
 
-                    receiveModelMode := ExtractStructString initializeCurrentSimulation $"(Model_mode)";
+                    receiveModelMode := ExtractStructString initializeCurrentSimulation $"(model_mode)";
 
                     @viewer.string = yes
                     receiveFolderPathForTablesOfAllocationAlgorithmParameters := ExtractStructString initializeCurrentSimulation $"(Allocation_params_folder_path)";
@@ -165,7 +165,7 @@ Script {{
                             @alias = File path for simulated LULC maps
                             NumberString receiveFilePathForSimulatedLulcMaps 2;
 
-                            @alias = Time_step
+                            @alias = time_step
                             NumberValue timeStep 1;
 
                             //

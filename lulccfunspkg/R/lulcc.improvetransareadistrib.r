@@ -19,13 +19,13 @@
 # Instantiate small function to calculate the mismatch between the total projected
 # area of each LULC class from the respective from/to transition area against
 # the proscribed class area from the experts
-lulcc.projectedclassareasmismatch <- function(Scenario_names,
+lulcc.projectedclassareasmismatch <- function(scenario_names,
                                               Scenario_trans_area_tables,
                                               Scenario_class_area_tables,
                                               Sim_time_steps,
                                               mismatch_thres) {
   # loop over scenario's to calculate class area mismatches
-  Scenario_mismatch_info <- lapply(Scenario_names, function(scenario) {
+  Scenario_mismatch_info <- lapply(scenario_names, function(scenario) {
     # seperate projected area table for scenario
     Proj_area_table <- Scenario_trans_area_tables[[scenario]]
 
@@ -121,7 +121,7 @@ lulcc.projectedclassareasmismatch <- function(Scenario_names,
       Synergistic_trans_0ed = Synergistic_trans_0ed
     ))
   }) # close loop over scenarios
-  names(Scenario_mismatch_info) <- Scenario_names
+  names(Scenario_mismatch_info) <- scenario_names
   return(Scenario_mismatch_info)
 } # close function
 
@@ -149,7 +149,7 @@ lulcc.improvetransareadistrib <- function(Scenario_class_area_tables,
 
     # check mismatch of old_trans_areas
     old_areas_mismatch <- lulcc.projectedclassareasmismatch(
-      Scenario_names = names(old_trans_areas),
+      scenario_names = names(old_trans_areas),
       Sim_time_steps = paste(Sim_time_steps),
       Scenario_trans_area_tables = old_trans_areas,
       Scenario_class_area_tables = Scenario_class_area_tables,
@@ -220,7 +220,7 @@ lulcc.improvetransareadistrib <- function(Scenario_class_area_tables,
 
     # calculate class area mismatch after adjusting synergistic transitions
     Syn_mismatch_check <- lulcc.projectedclassareasmismatch(
-      Scenario_names = names(old_trans_areas),
+      scenario_names = names(old_trans_areas),
       Sim_time_steps = paste(Sim_time_steps),
       Scenario_trans_area_tables = new_trans_areas,
       Scenario_class_area_tables = Scenario_class_area_tables,
@@ -244,7 +244,7 @@ lulcc.improvetransareadistrib <- function(Scenario_class_area_tables,
 
       # recalculate mismatch
       old_areas_mismatch <- lulcc.projectedclassareasmismatch(
-        Scenario_names = names(old_trans_areas),
+        scenario_names = names(old_trans_areas),
         Sim_time_steps = paste(Sim_time_steps),
         Scenario_trans_area_tables = old_trans_areas,
         Scenario_class_area_tables = Scenario_class_area_tables,
@@ -383,7 +383,7 @@ lulcc.improvetransareadistrib <- function(Scenario_class_area_tables,
 
     # check mismatch of new transition areas
     new_areas_mismatch <- lulcc.projectedclassareasmismatch(
-      Scenario_names = names(old_trans_areas),
+      scenario_names = names(old_trans_areas),
       Sim_time_steps = paste(Sim_time_steps),
       Scenario_trans_area_tables = new_trans_areas,
       Scenario_class_area_tables = Scenario_class_area_tables,

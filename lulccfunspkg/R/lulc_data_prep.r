@@ -11,7 +11,7 @@ lulc_data_prep <- function() {
   ### =========================================================================
 
   # Load in the grid file we are using for spatial extent and CRS
-  Ref_grid <- terra::rast(Ref_grid_path)
+  Ref_grid <- terra::rast(ref_grid_path)
 
   # Create objects for spatial extents
   # Create objects for spatial extents

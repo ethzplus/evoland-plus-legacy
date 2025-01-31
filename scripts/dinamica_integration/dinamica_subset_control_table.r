@@ -12,4 +12,4 @@ setwd(wpath)
 Control_table <- read.csv(Control_table_path)
 
 # subset to non-completed simulations
-Control_table <- Control_table[Control_table$Completed.string == "N", ]
+Control_table <- Control_table[Control_table$completed.string == "N", ]

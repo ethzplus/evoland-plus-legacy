@@ -24,16 +24,16 @@ if (length(new.packs)) install.packages(new.packs)
 invisible(lapply(packs, require, character.only = TRUE))
 
 # load table of simulations
-Simulation_table <- read.csv(Control_table_path)[Simulation_num, ]
+Simulation_table <- read.csv(Control_table_path)[simulation_num, ]
 
 # Vector name of Climate scenario
-Climate_ID <- Simulation_table$Climate_scenario.string
+Climate_ID <- Simulation_table$climate_scenario.string
 
 # Vector ID for this run of the scenario (e.g V1)
-Simulation_ID <- Simulation_table$Simulation_ID.string
+simulation_id <- Simulation_table$simulation_id.string
 
 # Define model_mode: Calibration or Simulation
-Model_mode <- Simulation_table$Model_mode.string
+model_mode <- Simulation_table$model_mode.string
 
 ### =========================================================================
 ### B- Implement deterministic glacial transitions
@@ -42,8 +42,8 @@ Model_mode <- Simulation_table$Model_mode.string
 # if the model is in simulation mode and the value in the deterministic
 # transitions column of the control table is not "N" then update the current
 # simulated LULC map with the deterministic transitions
-if (grepl("simulation", Model_mode, ignore.case = TRUE) &
-  grepl("Y", Simulation_table$Deterministic_trans.string, ignore.case = TRUE)) {
+if (grepl("simulation", model_mode, ignore.case = TRUE) &
+  grepl("Y", Simulation_table$deterministic_trans.string, ignore.case = TRUE)) {
   # Load simulated LULC map for time step
   Current_lulc <- raster(File_path_simulated_LULC_maps)
 

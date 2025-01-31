@@ -33,44 +33,44 @@ setwd(wpath)
 list2env(readRDS("Tools/Model_tool_vars.rds"), .GlobalEnv)
 
 # simulation number being performed
-Simulation_num <- v1
+simulation_num <- v1
 
 # load table of simulations
 Control_table_path <- s1
-Simulation_table <- read.csv(Control_table_path)[Simulation_num, ]
+Simulation_table <- read.csv(Control_table_path)[simulation_num, ]
 
 # Enter name of Scenario to be tested as string or numeric (i.e. "BAU" etc.)
-Scenario_ID <- Simulation_table$Scenario_ID.string
+scenario_id <- Simulation_table$scenario_id.string
 
 # Enter an ID for this run of the scenario (e.g V1)
-Simulation_ID <- Simulation_table$Simulation_ID.string
+simulation_id <- Simulation_table$simulation_id.string
 
 # Define model_mode: Calibration or Simulation
-Model_mode <- Simulation_table$Model_mode.string
+model_mode <- Simulation_table$model_mode.string
 
 # Get start and end dates of scenario (numeric)
-Scenario_start <- Simulation_table$Scenario_start.real
-Scenario_end <- Simulation_table$Scenario_end.real
+scenario_start <- Simulation_table$scenario_start.real
+scenario_end <- Simulation_table$scenario_end.real
 
 # Enter duration of time step for modelling
-Step_length <- Simulation_table$Step_length.real
+step_length <- Simulation_table$step_length.real
 
 # specify save location for simulated LULC maps (replace quoted section)
 # folder path based upon Scenario and Simulation ID's
-simulated_LULC_folder_path <- paste(wpath, "Results/Dinamica_simulated_LULC", Scenario_ID, Simulation_ID, sep = "/")
+simulated_LULC_folder_path <- paste(wpath, "Results/Dinamica_simulated_LULC", scenario_id, simulation_id, sep = "/")
 
 ### =========================================================================
 ### C- Work Dir and model mode initialization
 ### =========================================================================
 
 # send step length
-outputDouble("Step_length", Step_length)
+outputDouble("step_length", step_length)
 
 # Send Simulation ID
-outputString("Sim_id", Simulation_ID)
+outputString("Sim_id", simulation_id)
 
 # send Model mode
-outputString("Model_mode", Model_mode)
+outputString("model_mode", model_mode)
 
 ### =========================================================================
 ### D- Model time step
@@ -78,8 +78,8 @@ outputString("Model_mode", Model_mode)
 
 # use start and end time to generate a lookup table of dates seperated by 5 years
 model_time_steps <- list(
-  Keys = c(seq(Scenario_start, Scenario_end - 5, Step_length)),
-  Values = c(seq((Scenario_start + 5), (Scenario_end), Step_length))
+  Keys = c(seq(scenario_start, scenario_end - 5, step_length)),
+  Values = c(seq((scenario_start + 5), (scenario_end), step_length))
 )
 
 # send Model time step table to Dinamica receiver: simulation_time_steps
@@ -99,7 +99,7 @@ if (dir.exists(simulated_LULC_folder_path) == TRUE) {
 
 # Create relative file path for simulated LULC maps, building on folder path
 # no need to include Dinamica's escape string because an R script is used to modify for the correct time step
-simulated_LULC_file_path <- paste0(simulated_LULC_folder_path, "/", "simulated_LULC_scenario_", Scenario_ID, "_simID_", Simulation_ID, "_year_")
+simulated_LULC_file_path <- paste0(simulated_LULC_folder_path, "/", "simulated_LULC_scenario_", scenario_id, "_simID_", simulation_id, "_year_")
 
 # send simulated LULC folder path to Dinamica receiver: sim_lulc_folder_path
 outputString("sim_lulc_folder_path", simulated_LULC_file_path)
@@ -111,17 +111,17 @@ Obs_LULC_paths <- list.files("Data/Historic_LULC", full.names = TRUE, pattern = 
 Obs_LULC_years <- unique(as.numeric(gsub(".*?([0-9]+).*", "\\1", Obs_LULC_paths)))
 
 # vector file path for saving raster
-save_raster_path <- paste0(simulated_LULC_file_path, Scenario_start, ".tif")
+save_raster_path <- paste0(simulated_LULC_file_path, scenario_start, ".tif")
 
-# if Scenario_start year is <= 2020 then it probably hasn't been run before so we
+# if scenario_start year is <= 2020 then it probably hasn't been run before so we
 # need to create a copy of the initial LULC map to start the simulation with
-# vice versa if Scenario_start year is >2020 then the scenario may have
+# vice versa if scenario_start year is >2020 then the scenario may have
 # been run previously or have been interrupted by an error so there is no need
 # to copy the start map because one will exist but this still needs to be checked
 
-if (Scenario_start <= 2020) {
+if (scenario_start <= 2020) {
   # Identify start year
-  LULC_start_year <- Obs_LULC_years[base::which.min(abs(Obs_LULC_years - Scenario_start))]
+  LULC_start_year <- Obs_LULC_years[base::which.min(abs(Obs_LULC_years - scenario_start))]
 
   # subset to correct LULC path and load
   Initial_LULC_raster <- raster(Obs_LULC_paths[grep(LULC_start_year, Obs_LULC_paths)])
@@ -141,16 +141,16 @@ if (Scenario_start <= 2020) {
   # For the simulations in order for the transition rates for glaciers to be
   # accurate we need to make sure that the initial LULC map has the correct
   # number of glacier cells according to glacial modelling
-  if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
+  if (grepl("simulation", model_mode, ignore.case = TRUE)) {
     # load scenario specific glacier index
     Glacier_index <- readRDS(file = list.files("Data/Glacial_change/Scenario_indices",
       full.names = TRUE,
-      pattern = Scenario_ID
-    ))[, c("ID_loc", paste(Scenario_start))]
+      pattern = scenario_id
+    ))[, c("ID_loc", paste(scenario_start))]
 
     # seperate vector of cell IDs for glacier and non-glacer cells
-    Non_glacier_IDs <- Glacier_index[Glacier_index[[paste(Scenario_start)]] == 0, "ID_loc"]
-    Glacier_IDs <- Glacier_index[Glacier_index[[paste(Scenario_start)]] == 1, "ID_loc"]
+    Non_glacier_IDs <- Glacier_index[Glacier_index[[paste(scenario_start)]] == 0, "ID_loc"]
+    Glacier_IDs <- Glacier_index[Glacier_index[[paste(scenario_start)]] == 1, "ID_loc"]
 
     # replace the 1's and 0's with the correct LULC
     LULC_dat[LULC_dat$ID %in% Non_glacier_IDs, "Pixel_value"] <- 11
@@ -178,10 +178,10 @@ outputString("initial_lulc_path", save_raster_path)
 ### =========================================================================
 
 # append the suffix necessary for Dinamica to alter strings (<v1>) to the file name
-if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
-  Params_folder_Dinamica <- paste0(Simulation_param_dir, "/", Scenario_ID, "/Allocation_param_table_<v1>.csv")
-} else if (grepl("calibration", Model_mode, ignore.case = TRUE)) {
-  Params_folder_Dinamica <- paste0(Calibration_param_dir, "/", Simulation_ID, "/Allocation_param_table_<v1>.csv")
+if (grepl("simulation", model_mode, ignore.case = TRUE)) {
+  Params_folder_Dinamica <- paste0(simulation_param_dir, "/", scenario_id, "/Allocation_param_table_<v1>.csv")
+} else if (grepl("calibration", model_mode, ignore.case = TRUE)) {
+  Params_folder_Dinamica <- paste0(calibration_param_dir, "/", simulation_id, "/Allocation_param_table_<v1>.csv")
 }
 
 # send folder path as string to Dinamica receiver: trans_matrix_folder_path

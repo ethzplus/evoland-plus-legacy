@@ -15,17 +15,17 @@ transition_dataset_prep <- function() {
 
   # character string for data period inherited from LULCC_CH_master
   # otherwise uncomment here:
-  # Data_periods <- c("1985_1997", "1997_2009", "2009_2018")
+  # data_periods <- c("1985_1997", "1997_2009", "2009_2018")
 
   # Produce regionalized datasets?: inherited from LULCC_CH_master
-  # Regionalization <- TRUE
+  # regionalization <- TRUE
 
-  # If Regionalization = TRUE provide regional raster file path
+  # If regionalization = TRUE provide regional raster file path
   Region_raster_path <- "Data/Bioreg_CH"
 
   # create save dir
   save_dir <- "Data/Transition_datasets/Pre_predictor_filtering"
-  Periodic_dirs <- paste0(save_dir, "/", Data_periods)
+  Periodic_dirs <- paste0(save_dir, "/", data_periods)
   sapply(Periodic_dirs, function(x) dir.create(x, recursive = TRUE, showWarnings = FALSE))
 
   ### =========================================================================
@@ -35,11 +35,11 @@ transition_dataset_prep <- function() {
   # The predictor data table is used to identify the file names of variables that
   # are to be included in the stack for each time period
   # Predictor table file path (received from output_env only uncomment here for testing)
-  # Pred_table_path <- "Tools/Predictor_table.xlsx"
+  # pred_table_path <- "Tools/Predictor_table.xlsx"
 
   # load tables as list
-  predictor_tables <- lapply(Data_periods, function(x) data.table(openxlsx::read.xlsx(Pred_table_path, sheet = x)))
-  names(predictor_tables) <- Data_periods
+  predictor_tables <- lapply(data_periods, function(x) data.table(openxlsx::read.xlsx(pred_table_path, sheet = x)))
+  names(predictor_tables) <- data_periods
 
   # subsetting to only the necessary columns
   Preds_by_period <- lapply(predictor_tables, function(x) {
@@ -67,10 +67,10 @@ transition_dataset_prep <- function() {
   Region_path["Layer_name"] <- "Bioregion"
 
   # Create regexes for LULC periods
-  LULC_period_regexes <- lapply(Data_periods, function(x) {
+  LULC_period_regexes <- lapply(data_periods, function(x) {
     str_replace(x, pattern = "_", "|")
   })
-  names(LULC_period_regexes) <- Data_periods
+  names(LULC_period_regexes) <- data_periods
 
   # Filter LULC files by period
   LULC_paths_by_period <- lapply(LULC_period_regexes, function(x) {
@@ -85,7 +85,7 @@ transition_dataset_prep <- function() {
   })
 
   # Combine predictor paths with LULC (and region if needed)
-  if (Regionalization == TRUE) {
+  if (regionalization == TRUE) {
     Combined_paths_by_period <- lapply(
       (mapply(rbind, Preds_by_period, LULC_paths_by_period, SIMPLIFY = FALSE)),
       function(x) rbind(x, Region_path)
@@ -109,7 +109,7 @@ transition_dataset_prep <- function() {
   # which has the extent, crs and resolution that we want
   # in this case the Ref_grid file used for re-sampling some of the predictors.
   # Exemplar raster for comparison
-  Exemplar_raster <- terra::rast(Ref_grid_path)
+  Exemplar_raster <- terra::rast(ref_grid_path)
 
   Raster_comparison_results <- lapply(Rasters_by_periods, function(raster_list) {
     lulcc.TestRasterCompatibility(raster_list, Exemplar_raster)
@@ -141,7 +141,7 @@ refer to object Raster_comparison_results to locate problems")
 
   future::plan(multisession, workers = parallel::availableCores() - 2)
 
-  future.apply::future_lapply(Data_periods, function(period) {
+  future.apply::future_lapply(data_periods, function(period) {
     # Select data for period
     period_data <- Rasterstacks_by_periods[[paste(period)]]
 
@@ -183,7 +183,7 @@ refer to object Raster_comparison_results to locate problems")
     cat(paste0("Creating transition datasets for period ", period))
 
     # Load predictor data table
-    predictor_table <- openxlsx::read.xlsx(Pred_table_path, sheet = period)
+    predictor_table <- openxlsx::read.xlsx(pred_table_path, sheet = period)
 
     # Create binarized transition datasets for each transition
     # remove rows with static initial class using key.
@@ -225,8 +225,8 @@ refer to object Raster_comparison_results to locate problems")
       function(i) paste0(viable_trans_list[i, "Initial_class"], "/", viable_trans_list[i, "Final_class"])
     )
 
-    # Regionalization if needed
-    if (Regionalization == TRUE) {
+    # regionalization if needed
+    if (regionalization == TRUE) {
       Binarized_trans_datasets_regionalized <- unlist(lapply(Binarized_trans_datasets, function(x) {
         split(x, f = x[["Bioregion_Class_Names"]], sep = "/")
       }), recursive = FALSE)
@@ -252,7 +252,7 @@ refer to object Raster_comparison_results to locate problems")
     })
     rm(Binarized_trans_datasets)
 
-    if (Regionalization == TRUE) {
+    if (regionalization == TRUE) {
       Trans_datasets_regionalized <- lapply(Binarized_trans_datasets_regionalized, function(x) {
         lulcc.splitforcovselection(x, predictor_table = predictor_table)
       })
@@ -268,7 +268,7 @@ refer to object Raster_comparison_results to locate problems")
       saveRDS(Trans_datasets_full[[paste(dataset_name)]], Full_save_path)
     })
 
-    if (Regionalization == TRUE) {
+    if (regionalization == TRUE) {
       sapply(names(Trans_datasets_regionalized), function(dataset_name) {
         Full_save_path <- paste0(save_dir, "/", period, "/", dataset_name, "_regionalized.rds")
         saveRDS(Trans_datasets_regionalized[[paste(dataset_name)]], Full_save_path)

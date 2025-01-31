@@ -9,7 +9,7 @@
 Final_raster_paths <- list.files("Results/Dinamica_simulated_lulc",
   full.names = TRUE,
   recursive = TRUE,
-  pattern = paste(Scenario_end)
+  pattern = paste(scenario_end)
 )
 
 # remove tif.aux files
@@ -17,7 +17,7 @@ Final_raster_paths <- Final_raster_paths[!grepl(".aux", Final_raster_paths)]
 
 # load as stack
 Final_lulc_stack <- stack(Final_raster_paths)
-names(Final_lulc_stack) <- str_match(Final_raster_paths, paste0(Scenario_names, collapse = "|"))
+names(Final_lulc_stack) <- str_match(Final_raster_paths, paste0(scenario_names, collapse = "|"))
 
 # get frequency tables
 Rast_freq <- freq(Final_lulc_stack, merge = TRUE)
@@ -36,7 +36,7 @@ Rast_freq$LULC_name <- sapply(Rast_freq$value, function(x) {
 Total_area <- sum(Rast_freq$BAU)
 
 LULC_percs <- Rast_freq
-LULC_percs[, Scenario_names] <- apply(LULC_percs[, Scenario_names], c(1, 2), function(x) {
+LULC_percs[, scenario_names] <- apply(LULC_percs[, scenario_names], c(1, 2), function(x) {
   (x / Total_area) * 100
 })
 

@@ -48,28 +48,28 @@ LSM_dir <- "Results/Landscape_pattern_analysis"
 dir.create(LSM_dir)
 
 # Load simulation control table
-Simulation_control <- read.csv(Sim_control_path)
-Simulation_control <- Simulation_control[Simulation_control$Completed.string == "Y", ]
+Simulation_control <- read.csv(simctrl_tbl_path)
+Simulation_control <- Simulation_control[Simulation_control$completed.string == "Y", ]
 
 # get unique values of Simulation ID
-Sim_IDs <- unique(Simulation_control$Simulation_ID.string)
+Sim_IDs <- unique(Simulation_control$simulation_id.string)
 
 # get scenario names
-Scenarios <- unique(Simulation_control$Scenario_ID.string)
+Scenarios <- unique(Simulation_control$scenario_id.string)
 
 # get earliest scenario start date
-Scenario_start <- min(Simulation_control$Scenario_start.real)
-Scenario_end <- max(Simulation_control$Scenario_end.real)
+scenario_start <- min(Simulation_control$scenario_start.real)
+scenario_end <- max(Simulation_control$scenario_end.real)
 
 # get time steps
-Time_steps <- seq(Scenario_start, Scenario_end, Step_length)
+Time_steps <- seq(scenario_start, scenario_end, step_length)
 
 # list of final LULC rasters
 LULC_paths <- list.files(Final_map_dir, full.names = TRUE, pattern = ".tif")
 names(LULC_paths) <- basename(LULC_paths)
 
 # subset LULC paths to only 2020 and 2060
-Start_end_LULC <- LULC_paths[grepl(paste0(c(Scenario_start, Scenario_end), collapse = "|"), LULC_paths)]
+Start_end_LULC <- LULC_paths[grepl(paste0(c(scenario_start, scenario_end), collapse = "|"), LULC_paths)]
 
 ### =========================================================================
 ### A- Checking implementation of deterministic transitions
@@ -79,7 +79,7 @@ Start_end_LULC <- LULC_paths[grepl(paste0(c(Scenario_start, Scenario_end), colla
 Final_raster_paths <- list.files("Results/Dinamica_simulated_lulc",
   full.names = TRUE,
   recursive = TRUE,
-  pattern = paste(Scenario_end)
+  pattern = paste(scenario_end)
 )
 
 # remove tif.aux files
@@ -87,7 +87,7 @@ Final_raster_paths <- Final_raster_paths[!grepl(".aux", Final_raster_paths)]
 
 # load as stack
 Final_lulc_stack <- stack(Final_raster_paths)
-names(Final_lulc_stack) <- str_match(Final_raster_paths, paste0(Scenario_names, collapse = "|"))
+names(Final_lulc_stack) <- str_match(Final_raster_paths, paste0(scenario_names, collapse = "|"))
 
 # get frequency tables
 Rast_freq <- freq(Final_lulc_stack, merge = TRUE)
@@ -106,7 +106,7 @@ Rast_freq$LULC_name <- sapply(Rast_freq$value, function(x) {
 Total_area <- sum(Rast_freq$BAU)
 
 LULC_percs <- Rast_freq
-LULC_percs[, Scenario_names] <- apply(LULC_percs[, Scenario_names], c(1, 2), function(x) {
+LULC_percs[, scenario_names] <- apply(LULC_percs[, scenario_names], c(1, 2), function(x) {
   (x / Total_area) * 100
 })
 
@@ -178,7 +178,7 @@ LSM_res <- rbindlist(LSM_res, idcol = "path")
 
 # Extract scenario and time point info to cols
 LSM_res$Scenario <- sapply(LSM_res$path, function(x) {
-  str_replace(na.omit(str_match(x, Scenario_names)), "_", "-")
+  str_replace(na.omit(str_match(x, scenario_names)), "_", "-")
 })
 
 LSM_res$Year <- sapply(LSM_res$path, function(x) {
@@ -205,7 +205,7 @@ LSM_res <- readRDS(paste0(LSM_dir, "/Simulated_LULC_LSMs_results.rds"))
 ### =========================================================================
 
 # seperate names of normative scenarios
-Norm_scenarios <- Scenario_names[2:4]
+Norm_scenarios <- scenario_names[2:4]
 
 # subset LSMs
 Subset_lsms <- All_lsms[All_lsms$metric %in% c("cohesion", "contag", "enn_mn", "mesh", "np", "pd"), ]
@@ -215,7 +215,7 @@ metrics <- as.character(unlist(Subset_lsms[, "function_name"]))
 All_PA_paths <- list.files("data/Spat_prob_perturb_layers/Protected_areas/Future_PAs", full.names = TRUE)
 
 # upper loop over the start and end date
-LSM_PAs <- lapply(paste(c(Scenario_start, Scenario_end)), function(x) {
+LSM_PAs <- lapply(paste(c(scenario_start, scenario_end)), function(x) {
   # subset all LULC paths by time step
   Time_paths <- grep(x, LULC_paths, value = TRUE)
 
@@ -271,7 +271,7 @@ LSM_PAs <- lapply(paste(c(Scenario_start, Scenario_end)), function(x) {
 
   return(Scenario_results_bound)
 }) # close outer loop over time steps
-names(LSM_PAs) <- paste(c(Scenario_start, Scenario_end))
+names(LSM_PAs) <- paste(c(scenario_start, scenario_end))
 
 # bind to df
 LSM_PAs <- rbindlist(LSM_PAs, idcol = "year")

@@ -38,22 +38,22 @@ Simulation_time_step <- v1
 # Simulation_time_step <- 2010
 
 # simulation number being performed
-Simulation_num <- v2
-# Simulation_num <- "1"
+simulation_num <- v2
+# simulation_num <- "1"
 
 # load table of simulations
 Control_table_path <- s1
 # Control_table_path <- "E:/LULCC_CH/Tools/Calibration_control.csv"
-Simulation_table <- read.csv(Control_table_path)[Simulation_num, ]
+Simulation_table <- read.csv(Control_table_path)[simulation_num, ]
 
 # Enter name of Scenario to be tested as string or numeric (i.e. "BAU" etc.)
-Scenario_ID <- Simulation_table$Scenario_ID.string
+scenario_id <- Simulation_table$scenario_id.string
 
 # Enter an ID for this run of the scenario (e.g V1)
-Simulation_ID <- Simulation_table$Simulation_ID.string
+simulation_id <- Simulation_table$simulation_id.string
 
 # Define model_mode: Calibration or Simulation
-Model_mode <- Simulation_table$Model_mode.string
+model_mode <- Simulation_table$model_mode.string
 
 # Receive folder path for loading simulated LULC maps
 File_path_simulated_LULC_maps <- s2
@@ -62,11 +62,11 @@ File_path_simulated_LULC_maps <- s2
 # Convert model mode into a string related to the model period being used
 # this makes it easier to load files because they use this nomenclature
 
-Period_tag <- if (grepl("calibration", Model_mode, ignore.case = TRUE) &
+Period_tag <- if (grepl("calibration", model_mode, ignore.case = TRUE) &
   Simulation_time_step <= 1997
 ) {
   "1985_1997"
-} else if (grepl("calibration", Model_mode, ignore.case = TRUE) &
+} else if (grepl("calibration", model_mode, ignore.case = TRUE) &
   Simulation_time_step >= 1997 &
   Simulation_time_step <= 2009
 ) {
@@ -78,7 +78,7 @@ Period_tag <- if (grepl("calibration", Model_mode, ignore.case = TRUE) &
 # and when the model is in simulation mode
 
 # create folder for saving prediction probability maps
-prob_map_folder <- paste0(wpath, "/Results/Pred_prob_maps/", Scenario_ID, "/", Simulation_ID, "/", Simulation_time_step)
+prob_map_folder <- paste0(wpath, "/Results/Pred_prob_maps/", scenario_id, "/", simulation_id, "/", Simulation_time_step)
 dir.create(prob_map_folder, recursive = TRUE)
 
 ### =========================================================================
@@ -116,14 +116,14 @@ names(LULC_data) <- LULC_labels_current
 # use model mode string to select correct folder
 
 # For calibration mode (matching on Period_tag)
-if (grepl("calibration", Model_mode, ignore.case = TRUE)) {
+if (grepl("calibration", model_mode, ignore.case = TRUE)) {
   SA_pred_stack <- readRDS(list.files("Data/Preds/Prepared/Stacks/Calibration", pattern = Period_tag, full.names = TRUE))
 } # close if statement calibration
 
 # For simulation mode
-if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
+if (grepl("simulation", model_mode, ignore.case = TRUE)) {
   # get file path by matching on scenario ID and time step
-  SA_pred_stack <- readRDS(list.files("Data/Preds/Prepared/Stacks/Simulation/SA_preds/SA_pred_stacks", pattern = paste0(Scenario_ID, "_", Simulation_time_step), full.names = TRUE))
+  SA_pred_stack <- readRDS(list.files("Data/Preds/Prepared/Stacks/Simulation/SA_preds/SA_pred_stacks", pattern = paste0(scenario_id, "_", Simulation_time_step), full.names = TRUE))
 } # close simulation if statement
 
 ### =========================================================================
@@ -134,7 +134,7 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
 # is nothing to be done
 
 # For simulation mode
-if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
+if (grepl("simulation", model_mode, ignore.case = TRUE)) {
   # create population data layer
   # subset current LULC to just urban cells
   Urban_rast <- Current_LULC == 10
@@ -202,17 +202,17 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
 
   # Our scenarios rely on specific population projects from FSO ("Ref", "High", "Low")
   # Identify which population scenario is required according to scenario being simulated
-  Pop_scenario <- if (grepl("BIOPRO", Scenario_ID, ignore.case = TRUE)) {
+  pop_scenario <- if (grepl("BIOPRO", scenario_id, ignore.case = TRUE)) {
     "Low"
   } else if (
-    grepl("SHAD", Scenario_ID, ignore.case = TRUE)) {
+    grepl("SHAD", scenario_id, ignore.case = TRUE)) {
     "High"
   } else {
     "Ref"
   } # Final else clause covers scenarios: "DIV", "BAU", "FUTEI"
 
   # load correct sheet of future population predictions according to scenario
-  Pop_prediction_table <- openxlsx::read.xlsx("Data/Preds/Tools/Population_projections.xlsx", sheet = Pop_scenario)
+  Pop_prediction_table <- openxlsx::read.xlsx("Data/Preds/Tools/Population_projections.xlsx", sheet = pop_scenario)
 
   # loop over unique kanton numbers, rescaled the predicted population percentages
   # and calculate the estimated population per municipality as a % of the cantonal total
@@ -266,7 +266,7 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
   })
 
   # create a folder path using simulation ID and time step
-  Dynamic_focal_folder_path <- paste0("Data/Preds/Prepared/Stacks/Simulation/NH_preds", "/", Scenario_ID, "/", Simulation_time_step)
+  Dynamic_focal_folder_path <- paste0("Data/Preds/Prepared/Stacks/Simulation/NH_preds", "/", scenario_id, "/", Simulation_time_step)
 
   # create directory
   dir.create(paste(wpath, Dynamic_focal_folder_path, sep = "/"), recursive = TRUE)
@@ -294,7 +294,7 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
     Nhood_rasters[Focal_name] <- Focal_layer
 
     # steps for saving of rasters if needed
-    # Focal_file_name <- paste(Scenario_ID, Simulation_time_step, Required_focals_details[i,]$active_lulc, "nhood", Focal_matrices[Required_focals_details[i,]$matrix_id], sep = "_")
+    # Focal_file_name <- paste(scenario_id, Simulation_time_step, Required_focals_details[i,]$active_lulc, "nhood", Focal_matrices[Required_focals_details[i,]$matrix_id], sep = "_")
     # Focal_full_path <- paste0(Dynamic_focal_folder_path, "/", Focal_file_name, ".grd") #create full folder path
     # writeRaster(Focal_layer, Focal_full_path ,datatype='INT2U', overwrite=TRUE) #save layer
   }
@@ -311,14 +311,14 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
 
 # Stack all rasters
 # For calibration mode (matching on Period_tag)
-if (grepl("calibration", Model_mode, ignore.case = TRUE)) {
+if (grepl("calibration", model_mode, ignore.case = TRUE)) {
   Trans_data_stack <- stack(LULC_data, SA_pred_stack)
   names(Trans_data_stack) <- c(names(LULC_data), names(SA_pred_stack@layers))
 } # close if statement calibration
 
 # For simulation mode
 # only stack the Nhood_rasters here because otherwise they were not including in the upper stack function
-if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
+if (grepl("simulation", model_mode, ignore.case = TRUE)) {
   # load the raster of Bioregions
   Bioregion_rast <- raster("Data/Bioreg_CH/Bioreg_raster.gri")
   names(Bioregion_rast) <- "Bioregion"

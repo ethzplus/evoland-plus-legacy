@@ -12,10 +12,10 @@ Control_table <- read.csv(Control_table_path)
 
 # update value in completed column for current simulation
 if (grepl("TRUE", Success, ignore.case = TRUE)) {
-  Control_table[Control_table$Simulation_num. == Simulation_num, "Completed.string"] <- "Y"
+  Control_table[Control_table$simulation_num. == simulation_num, "completed.string"] <- "Y"
   cat("Simulation was completed successfully")
 } else {
-  Control_table[Control_table$Simulation_num. == Simulation_num, "Completed.string"] <- "ERROR"
+  Control_table[Control_table$simulation_num. == simulation_num, "completed.string"] <- "ERROR"
   cat("Simulation encountered an error")
 }
 

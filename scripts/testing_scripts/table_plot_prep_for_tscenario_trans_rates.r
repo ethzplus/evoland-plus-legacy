@@ -36,15 +36,15 @@ LULC_folder <- "Data/Historic_LULC"
 
 
 # Vector duration of time steps to be used in modelling
-Step_length <- 5
+step_length <- 5
 
 # earliest possible model start time is 1985 and end time is 2060
 # we have initially agreed to use 5 year time steps
-Scenario_start <- 1985
-Scenario_end <- 2060
+scenario_start <- 1985
+scenario_end <- 2060
 
 # vector sequence of time points and suffix
-Time_steps <- seq(Scenario_start, Scenario_end, Step_length)
+Time_steps <- seq(scenario_start, scenario_end, step_length)
 
 ### =========================================================================
 ### B- Multistep trans rate table for calibration periods

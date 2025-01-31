@@ -3,7 +3,7 @@
 #' Wrapper function to summarise the results of the feature selection process according
 #' to different aspects of the transitions datasets
 #'
-#' @param Data_period_name Character name of dataset period to be used in file saving.
+#' @param data_period_name Character name of dataset period to be used in file saving.
 #' @param Dataset_scale Character, scale of datasets to be used in file saving.
 #' @param Pre_FS_folder Character, folder path for pre-covariate selection datasets.
 #' @param FS_results_folder Character folder path to save summaries.
@@ -15,7 +15,7 @@
 # TODO where might this be used? was @export
 
 lulcc.evalfeatureselection2 <- function(Predictor_table_path,
-                                        Data_period_name,
+                                        data_period_name,
                                         Dataset_scale,
                                         Pre_FS_folder,
                                         FS_results_folder,
@@ -61,7 +61,7 @@ lulcc.evalfeatureselection2 <- function(Predictor_table_path,
   names(Feature_selection_summaries) <- lapply(summary_levels, function(x) paste0("FS_summary_by_", x))
 
   # save results
-  saveRDS(Feature_selection_summaries, file = paste0("Results/Model_tuning/Covariate_selection/Cov_selection_summaries/", Data_period_name, "_", Dataset_scale, "_feature_selection_summary"))
+  saveRDS(Feature_selection_summaries, file = paste0("Results/Model_tuning/Covariate_selection/Cov_selection_summaries/", data_period_name, "_", Dataset_scale, "_feature_selection_summary"))
 
   # final bar chart from summary
   Collin_results <- Feature_selection_summaries[["FS_summary_by_Bioregion"]][["Cov_occurence_summary"]][["Cov_occurence_tables"]][["Cov_occurence_after_collinearity_selection"]][, c("Covariate", "total_occurences")]
@@ -109,5 +109,5 @@ lulcc.evalfeatureselection2 <- function(Predictor_table_path,
 
   dir.create("Results/Figures/Covariate_selection", recursive = TRUE)
 
-  ggsave(plot = FS_predictor_frequency_bar_chart, filename = paste0("Results/Figures/Covariate_selection/", Data_period_name, "_bar_plot_frq_cov_occurence"), device = "tiff", dpi = 300, width = 28, height = 20, units = "cm")
+  ggsave(plot = FS_predictor_frequency_bar_chart, filename = paste0("Results/Figures/Covariate_selection/", data_period_name, "_bar_plot_frq_cov_occurence"), device = "tiff", dpi = 300, width = 28, height = 20, units = "cm")
 } # close wrapper function

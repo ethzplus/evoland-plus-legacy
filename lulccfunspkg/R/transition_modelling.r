@@ -17,14 +17,14 @@ transition_modelling <- function() {
   eval_results_base_folder <- "Results/Transition_model_evaluation"
 
   # File path for table of model parameters
-  param_grid <- Param_grid_path
+  param_grid <- param_grid_path
 
   dir.create(model_base_folder, recursive = TRUE)
   dir.create(eval_results_base_folder, recursive = TRUE)
 
   # load table of model specifications
   # Import model specifications table
-  model_specs <- read_excel(Model_specs_path)
+  model_specs <- read_excel(model_specs_path)
 
   # Filter for models already completed
   models_specs <- model_specs[model_specs$Modelling_completed == "N", ]
@@ -43,7 +43,7 @@ transition_modelling <- function() {
     # vector model specifcations
     Data_period <- model_specs$Data_period
     Model_type <- model_specs$Model_type
-    Model_scale <- model_specs$Model_scale
+    model_scale <- model_specs$model_scale
     Feature_selection_employed <- model_specs$Feature_selection_employed
     Nhood_extent <- model_specs$Nhood_extent
     Correct_balance <- model_specs$Balance_adjustment
@@ -58,19 +58,19 @@ transition_modelling <- function() {
     }
 
     if (Correct_balance == TRUE) {
-      model_folder <- paste0(model_base_folder, "/", toupper(Model_type), "_models", "/", Model_scale, "_", FS_string, "/")
-      eval_results_folder <- paste0(eval_results_base_folder, "/", toupper(Model_type), "_model_evaluation_downsampled", "/", Model_scale, "_", FS_string, "/")
+      model_folder <- paste0(model_base_folder, "/", toupper(Model_type), "_models", "/", model_scale, "_", FS_string, "/")
+      eval_results_folder <- paste0(eval_results_base_folder, "/", toupper(Model_type), "_model_evaluation_downsampled", "/", model_scale, "_", FS_string, "/")
     } else if (Correct_balance == FALSE) {
-      model_folder <- paste0(model_base_folder, "/", toupper(Model_type), "_models_non_adjusted", "/", Model_scale, "_", FS_string, "/")
-      eval_results_folder <- paste0(eval_results_base_folder, "/", toupper(Model_type), "_model_evaluation_non_adjusted", "/", Model_scale, "_", FS_string, "/")
+      model_folder <- paste0(model_base_folder, "/", toupper(Model_type), "_models_non_adjusted", "/", model_scale, "_", FS_string, "/")
+      eval_results_folder <- paste0(eval_results_base_folder, "/", toupper(Model_type), "_model_evaluation_non_adjusted", "/", model_scale, "_", FS_string, "/")
     }
 
     # Get file paths of transition datasets for period
     Data_paths_for_period <- if (Feature_selection_employed == FALSE) {
-      list.files(paste0("Data/Transition_datasets/Pre_predictor_filtering/", Data_period), pattern = Model_scale, full.names = TRUE)
+      list.files(paste0("Data/Transition_datasets/Pre_predictor_filtering/", Data_period), pattern = model_scale, full.names = TRUE)
     } else if (
       Feature_selection_employed == TRUE) {
-      list.files(paste0("Data/Transition_datasets/Post_predictor_filtering/", Data_period), pattern = Model_scale, full.names = TRUE)
+      list.files(paste0("Data/Transition_datasets/Post_predictor_filtering/", Data_period), pattern = model_scale, full.names = TRUE)
     }
     names(Data_paths_for_period) <- sapply(Data_paths_for_period, function(x) str_remove(basename(x), ".rds"))
 
@@ -143,13 +143,13 @@ transition_modelling <- function() {
     Modelling_check <- unlist(Modelling_outputs)
 
     if (all(Modelling_check == "Success") == TRUE) {
-      # load model spec table and replace the values in the 'Completed' column
-      model_spec_table <- readxl::read_excel(Model_specs_path)
+      # load model spec table and replace the values in the 'completed' column
+      model_spec_table <- readxl::read_excel(model_specs_path)
 
       # find the correct row
       model_spec_table$Modelling_completed[model_spec_table$Detail_model_tag == model_specs$Detail_model_tag] <- "Y"
 
-      openxlsx::write.xlsx(model_spec_table, file = Model_specs_path, overwrite = TRUE)
+      openxlsx::write.xlsx(model_spec_table, file = model_specs_path, overwrite = TRUE)
 
       cat(paste0("Model fitting and evaluation for:", model_specs$Detail_model_tag, "completed without errors"))
     } else if (all(Modelling_check == "Success") == FALSE) {
@@ -169,8 +169,8 @@ transition_modelling <- function() {
         to indicate that this specification has been completed, the likely cause
         of error is transition dataset with insufficient number of transition
         instances (1's) or where feature selection has reduced to a single predictor variable")
-        # load model spec table and replace the values in the 'Completed' column
-        model_spec_table <- readxl::read_excel(Model_specs_path)
+        # load model spec table and replace the values in the 'completed' column
+        model_spec_table <- readxl::read_excel(model_specs_path)
 
         # find the correct row
         model_spec_table$Modelling_completed[model_spec_table$Detail_model_tag == model_specs$Detail_model_tag] <- "Y"
@@ -179,7 +179,7 @@ transition_modelling <- function() {
         model_spec_table$Num_errors <- Num_errors
 
         # save
-        openxlsx::write.xlsx(model_spec_table, file = Model_specs_path, overwrite = TRUE)
+        openxlsx::write.xlsx(model_spec_table, file = model_specs_path, overwrite = TRUE)
       }
 
 

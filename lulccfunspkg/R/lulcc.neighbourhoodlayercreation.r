@@ -130,7 +130,7 @@ lulcc.generatenhoodrasters <- function(LULC_raster, Neighbourhood_matrices, Acti
 # TODO where might this be used? was @export
 lulcc.producefocalsbylist <- function(Focal_specifications, List_of_matrices, LULC_raster, Simulation_time_step, simulation_ID) {
   # create a folder path using simulation ID and time step
-  Dynamic_focal_folder_path <- paste0("Data/Preds/Simulation/NH_preds", "/", Scenario_ID, "/", Simulation_time_step)
+  Dynamic_focal_folder_path <- paste0("Data/Preds/Simulation/NH_preds", "/", scenario_id, "/", Simulation_time_step)
 
   # create directory
   dir.create(paste(wpath, Dynamic_focal_folder_path, sep = "/"), recursive = TRUE)

@@ -17,30 +17,30 @@ lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
   Simulation_table <- read.csv(Control_table_path)
 
   # Get model mode
-  Model_mode <- unique(Simulation_table$Model_mode.string)
+  model_mode <- unique(Simulation_table$model_mode.string)
 
   # Get earliest simulation start date and latest end date
-  Scenario_start <- min(Simulation_table$Scenario_start.real)
-  Scenario_end <- max(Simulation_table$Scenario_end.real)
+  scenario_start <- min(Simulation_table$scenario_start.real)
+  scenario_end <- max(Simulation_table$scenario_end.real)
 
   # Enter duration of time step for modelling
-  Step_length <- unique(Simulation_table$Step_length.real)
+  step_length <- unique(Simulation_table$step_length.real)
 
   # use start and end time to generate a lookup table of dates seperated by 5 years
   model_time_steps <- list(
     Keys = c(seq(
-      Scenario_start,
-      Scenario_end,
-      Step_length
+      scenario_start,
+      scenario_end,
+      step_length
     )),
     Values = c(seq(
-      (Scenario_start + 5),
-      (Scenario_end + 5),
-      Step_length
+      (scenario_start + 5),
+      (scenario_end + 5),
+      step_length
     ))
   )
   # Unique scenario names
-  Scenario_IDs <- unique(Simulation_table$Scenario_ID.string)
+  Scenario_IDs <- unique(Simulation_table$scenario_id.string)
 
   # create list to catch errors
   Model_pre_checks <- list()
@@ -65,13 +65,13 @@ lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
   ### B- Check that not all simulations are already completed
   ### =========================================================================
 
-  if (nrow(Simulation_table[Simulation_table$Completed.string == "N", ]) == 0) {
+  if (nrow(Simulation_table[Simulation_table$completed.string == "N", ]) == 0) {
     Model_pre_checks <- list.append(
       Model_pre_checks,
       list(
         Message = "All simulations are indicated as
                                      already completed please revise table",
-        Result = Simulation_table[Simulation_table$Completed.string == "Y", ]
+        Result = Simulation_table[Simulation_table$completed.string == "Y", ]
       )
     )
   }
@@ -83,9 +83,9 @@ lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
   # Only need to check for calibration because simulation doesn't matter
   # what time start or end is
   Model_mode_correct <- apply(Simulation_table, 1, function(x) {
-    if (grepl("calibration", x[["Scenario_ID.string"]], ignore.case = TRUE) &
-      x[["Scenario_start.real"]] > 2018 &
-      x[["Scenario_end.real"]] > 2020) {
+    if (grepl("calibration", x[["scenario_id.string"]], ignore.case = TRUE) &
+      x[["scenario_start.real"]] > 2018 &
+      x[["scenario_end.real"]] > 2020) {
       FALSE
     } else {
       TRUE
@@ -188,10 +188,10 @@ lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
   Obs_LULC_years <- unique(as.numeric(gsub(".*?([0-9]+).*", "\\1", Obs_LULC_paths)))
 
   # loop over simulation start times and identify closest start years
-  Start_years <- sapply(Simulation_table$Scenario_start.real, function(x) {
+  Start_years <- sapply(Simulation_table$scenario_start.real, function(x) {
     Min_diff <- abs(Obs_LULC_years[base::which.min(abs(Obs_LULC_years - x))] - x)
   })
-  names(Start_years) <- Simulation_table$Simulation_ID.string
+  names(Start_years) <- Simulation_table$simulation_id.string
 
   if (any(between(Start_years, 0, 5)) == FALSE) {
     Model_pre_checks <- list.append(
@@ -213,14 +213,14 @@ lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
   # contain the correct transitions, if not abort.
 
   # gather all required allocation param table file paths
-  if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
-    Param_table_paths <- sapply(unique(Simulation_table$Scenario_ID.string), function(ID) {
+  if (grepl("simulation", model_mode, ignore.case = TRUE)) {
+    Param_table_paths <- sapply(unique(Simulation_table$scenario_id.string), function(ID) {
       table_paths <- sapply(model_time_steps$Keys, function(x) {
         str_replace(paste0(Param_dir, "/", ID, "/Allocation_param_table_<v1>.csv"), "<v1>", paste(x))
       })
     })
-  } else if (grepl("calibration", Model_mode, ignore.case = TRUE)) {
-    Param_table_paths <- c(sapply(unique(Simulation_table$Simulation_ID.string), function(Sim_ID) {
+  } else if (grepl("calibration", model_mode, ignore.case = TRUE)) {
+    Param_table_paths <- c(sapply(unique(Simulation_table$simulation_id.string), function(Sim_ID) {
       Params_path <- paste0(Param_dir, "/", Sim_ID, "/Allocation_param_table_<v1>.csv")
 
       # loop over time steps
@@ -386,7 +386,7 @@ lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
   # be done with only the from the final period (2009-2018)
 
   # get sheet names of predictor table
-  Pred_sheets <- getSheetNames(Pred_table_path)
+  Pred_sheets <- getSheetNames(pred_table_path)
 
   # First check that the .xlsx file contains sheets for all of the simulation time steps
   # all time points <2020 are covered by the calibration period so filter these out
@@ -410,7 +410,7 @@ lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
     Period_preds <- Periodic_SA_preds[[Period]]
 
     # load predictor table
-    Period_sheet <- openxlsx::read.xlsx(Pred_table_path, sheet = grep(Period, Pred_sheets))
+    Period_sheet <- openxlsx::read.xlsx(pred_table_path, sheet = grep(Period, Pred_sheets))
 
     # test
     output <- Period_preds %in% Period_sheet$Covariate_ID
@@ -430,12 +430,12 @@ lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
   Simulation_sheets <- Pred_sheets[-grep(paste(names(Periodic_SA_preds), collapse = "|"), Pred_sheets)]
 
   # Loop over simulation period sheets
-  Simulation_preds_in_tables <- lapply(Simulation_sheets, function(Time_step) {
+  Simulation_preds_in_tables <- lapply(Simulation_sheets, function(time_step) {
     # subset to final period SA preds
     Period_preds <- Periodic_SA_preds[[length(Periodic_SA_preds)]]
 
     # load predictor table
-    Period_sheet <- openxlsx::read.xlsx(Pred_table_path, sheet = Time_step)
+    Period_sheet <- openxlsx::read.xlsx(pred_table_path, sheet = time_step)
 
     # test
     output <- Period_preds %in% Period_sheet$Covariate_ID
@@ -458,7 +458,7 @@ lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
   # Get file path of all unique predictors in tables
   Pred_raster_paths <- unique(unlist(sapply(Pred_sheets, function(Sheet) {
     # load predictor sheet
-    Predictor_table <- openxlsx::read.xlsx(Pred_table_path, sheet = Sheet)
+    Predictor_table <- openxlsx::read.xlsx(pred_table_path, sheet = Sheet)
     Predictor_table$Prepared_data_path
   }, simplify = TRUE)))
 
@@ -482,7 +482,7 @@ lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
   # check that there are no duplicates
   No_duplicate_preds <- sapply(Pred_sheets, function(Sheet) {
     # load predictor table
-    Predictor_table <- openxlsx::read.xlsx(Pred_table_path, sheet = Sheet)
+    Predictor_table <- openxlsx::read.xlsx(pred_table_path, sheet = Sheet)
 
     any(duplicated(cbind(Predictor_table$Covariate_ID, Predictor_table$Scenario)))
   }, simplify = TRUE)
@@ -505,7 +505,7 @@ lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
 
   # For calibration stacks, loop over sheet names from viable transitions lists
   # which equate to the calibration periods
-  # if(grepl("calibration", Model_mode, ignore.case = TRUE)){
+  # if(grepl("calibration", model_mode, ignore.case = TRUE)){
   #   Calibration_pred_stacks_exist <- unlist(lapply(Period_names, function(Period_name){
   #    File_path <- if(length(list.files("Data/Preds/Prepared/Stacks/Calibration",
   #                            full.names = TRUE,
@@ -521,12 +521,12 @@ lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
   #
   # #For simulation stacks, again all time point <2020 use the stacks from the calibration
   # #periods so use the same subset as above
-  # if(grepl("simulation", Model_mode, ignore.case = TRUE)){
-  # Simulation_pred_stacks_exist <- sapply(Scenario_IDs, function(Scenario_ID){
+  # if(grepl("simulation", model_mode, ignore.case = TRUE)){
+  # Simulation_pred_stacks_exist <- sapply(Scenario_IDs, function(scenario_id){
   #
   #   #inner loop over time steps
-  #   Time_step_paths <- sapply(Time_steps_subset, function(Time_step){
-  #   paste0("Data/Preds/Prepared/Stacks/Simulation/SA_preds/SA_pred_", Scenario_ID, "_", Time_step, ".rds")})
+  #   Time_step_paths <- sapply(Time_steps_subset, function(time_step){
+  #   paste0("Data/Preds/Prepared/Stacks/Simulation/SA_preds/SA_pred_", scenario_id, "_", time_step, ".rds")})
   #
   #   Paths_exist <- sapply(Time_step_paths, function(x) file.exists(x))
   #   })
@@ -543,28 +543,28 @@ lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
 ### =========================================================================
 
 if (FALSE) {
-  if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
+  if (grepl("simulation", model_mode, ignore.case = TRUE)) {
     # load table of scenario interventions
-    Interventions <- read.csv(Spat_ints_path)
+    Interventions <- read.csv(spat_ints_path)
 
-    # convert Time_step and Target_classes columns back to character vectors
-    Interventions$Time_step <- sapply(Interventions$Time_step, function(x) {
+    # convert time_step and target_classes columns back to character vectors
+    Interventions$time_step <- sapply(Interventions$time_step, function(x) {
       x <- str_remove_all(x, " ")
       rep <- unlist(strsplit(x, ","))
     }, simplify = FALSE)
 
-    Interventions$Target_classes <- sapply(Interventions$Target_classes, function(x) {
+    Interventions$target_classes <- sapply(Interventions$target_classes, function(x) {
       x <- str_remove_all(x, " ")
       rep <- unlist(strsplit(x, ","))
     }, simplify = FALSE)
 
     # remove parameter adjust interventions because they cannot be tested
-    Interventions <- Interventions[Interventions$Intervention_type != "Param_adjust", ]
+    Interventions <- Interventions[Interventions$intervention_type != "Param_adjust", ]
 
     # Seperate interventions according to those which have temporally dynamic inputs
     # vs. those that have static inputs
-    Dyn_int <- Interventions[Interventions$Dynamic_input == "Y", ]
-    Static_int <- Interventions[Interventions$Dynamic_input == "N", ]
+    Dyn_int <- Interventions[Interventions$dynamic_input == "Y", ]
+    Static_int <- Interventions[Interventions$dynamic_input == "N", ]
 
     # Load in exemplar dataset to test interventions on
     # Exemplar dataset is saved during calibration of allocation parameters
@@ -574,14 +574,14 @@ if (FALSE) {
     Raster_prob_values[order(Raster_prob_values$ID), ]
 
     # loop spatial manipulation function over unique scenarios in static interventions
-    Static_int_tests <- sapply(unique(Static_int$Scenario_ID), function(Scenario_ID) {
+    Static_int_tests <- sapply(unique(Static_int$scenario_id), function(scenario_id) {
       # Identify the first time step common across all interventions for the scenarios
-      Common_step <- Reduce(intersect, Static_int[Static_int$Scenario_ID == Scenario_ID, "Time_step"])[1]
+      Common_step <- Reduce(intersect, Static_int[Static_int$scenario_id == scenario_id, "time_step"])[1]
 
       # test interventions and log errors with 'try'
       test_interventions <- try(lulcc.spatprobmanipulation(
         Interventions = Static_int,
-        Scenario_ID = Scenario_ID,
+        scenario_id = scenario_id,
         Raster_prob_values = Raster_prob_values,
         Simulation_time_step = Common_step
       ), silent = TRUE)
@@ -597,13 +597,13 @@ if (FALSE) {
 
 
     # loop function over unique scenarios in dynamic interventions
-    Dynamic_int_tests <- sapply(unique(Dyn_int$Scenario_ID), function(Scenario_ID) {
+    Dynamic_int_tests <- sapply(unique(Dyn_int$scenario_id), function(scenario_id) {
       # Loop over time steps for the Scenario
       # test interventions and log errors with 'try'
-      Time_step_tests <- sapply(unlist(Dyn_int[Dyn_int$Scenario_ID == Scenario_ID, "Time_step"]), function(Tstep) {
+      Time_step_tests <- sapply(unlist(Dyn_int[Dyn_int$scenario_id == scenario_id, "time_step"]), function(Tstep) {
         test_interventions <- try(lulcc.spatprobmanipulation(
           Interventions = Dyn_int,
-          Scenario_ID = Scenario_ID,
+          scenario_id = scenario_id,
           Raster_prob_values = Raster_prob_values,
           Simulation_time_step = Tstep
         ), silent = TRUE)
@@ -615,7 +615,7 @@ if (FALSE) {
           TRUE
         }
       })
-      names(Time_step_tests) <- unlist(Dyn_int[Dyn_int$Scenario_ID == Scenario_ID, "Time_step"])
+      names(Time_step_tests) <- unlist(Dyn_int[Dyn_int$scenario_id == scenario_id, "time_step"])
 
       return(Time_step_tests)
     })

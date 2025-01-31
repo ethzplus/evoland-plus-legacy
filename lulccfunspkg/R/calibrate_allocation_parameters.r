@@ -177,22 +177,22 @@ calibrate_allocation_parameters <- function() {
   # First create a lookup table to control looping over the simulations
   Calibration_control_table <- data.frame(matrix(ncol = 11, nrow = 0))
   colnames(Calibration_control_table) <- c(
-    "Simulation_num.",
-    "Scenario_ID.string",
-    "Simulation_ID.string",
-    "Model_mode.string",
-    "Scenario_start.real",
-    "Scenario_end.real",
-    "Step_length.real",
-    "Parallel_TPC.string",
-    "Spatial_interventions.string",
-    "Deterministic_trans.string",
-    "Completed.string"
+    "simulation_num.",
+    "scenario_id.string",
+    "simulation_id.string",
+    "model_mode.string",
+    "scenario_start.real",
+    "scenario_end.real",
+    "step_length.real",
+    "parallel_tpc.string",
+    "spatial_interventions.string",
+    "deterministic_trans.string",
+    "completed.string"
   )
 
   # reload allocation parameter tables
   Allocation_params_by_period <- lapply(list.files("Data/Allocation_parameters/Calibration/Periodic", full.names = TRUE), read.csv)
-  names(Allocation_params_by_period) <- Data_periods
+  names(Allocation_params_by_period) <- data_periods
 
   # reloading also causes r to mess up the column names, readjust
   # Adjust col names
@@ -207,27 +207,27 @@ calibrate_allocation_parameters <- function() {
   # time period that will be used in simulations we will run the calibration using
   # the params from the most recent data period
   # we have initially agreed to use 5 year time steps
-  Scenario_start <- 2010
-  Scenario_end <- 2020
-  Step_length <- 5
+  scenario_start <- 2010
+  scenario_end <- 2020
+  step_length <- 5
 
   # vector sequence of time points and suffix
-  Time_steps <- seq(Scenario_start, Scenario_end, Step_length)
+  Time_steps <- seq(scenario_start, scenario_end, step_length)
 
   # seperate vector of time points into those relevant for each calibration period
-  Time_points_by_period <- lapply(Data_periods, function(period) {
+  Time_points_by_period <- lapply(data_periods, function(period) {
     dates <- as.numeric(str_split(period, "_")[[1]])
     period_years <- Time_steps[sapply(Time_steps, function(year) {
       if (year > dates[1] & year <= dates[2]) {
         TRUE
-      } else if ((Scenario_end - dates[2]) < Step_length) {
+      } else if ((scenario_end - dates[2]) < step_length) {
         TRUE
       } else {
         FALSE
       }
     })]
   })
-  names(Time_points_by_period) <- Data_periods
+  names(Time_points_by_period) <- data_periods
 
   # remove any time periods that are empty
   Time_points_by_period <- Time_points_by_period[lapply(Time_points_by_period, length) > 0]
@@ -242,7 +242,7 @@ calibrate_allocation_parameters <- function() {
   # corresponding parameter table foreach one
   sapply(1:length(Time_points_by_period), function(period_indices) {
     sapply(Time_points_by_period[[period_indices]], function(x) {
-      file_name <- paste0(Calibration_param_dir, "/", "v1", "/Allocation_param_table_", x, ".csv")
+      file_name <- paste0(calibration_param_dir, "/", "v1", "/Allocation_param_table_", x, ".csv")
       write_csv(Allocation_params_by_period[[period_indices]], file = file_name)
     })
   })
@@ -255,9 +255,9 @@ calibrate_allocation_parameters <- function() {
   sapply(mc_sims, function(Sim_name) {
     # inner loop over time periods and parameter tables
     mapply(
-      function(Time_steps, Calibration_param_dir, param_table) {
+      function(Time_steps, calibration_param_dir, param_table) {
         # create folder for saving param tables for MC sim name
-        dir.create(paste0(Calibration_param_dir, "/", Sim_name), recursive = TRUE)
+        dir.create(paste0(calibration_param_dir, "/", Sim_name), recursive = TRUE)
 
         # random perturbation of % expander
         # (increase of decrease value by random amount in normal distribution with mean = 0 and sd = 0.05 effectively 5% bounding)
@@ -279,12 +279,12 @@ calibrate_allocation_parameters <- function() {
 
         # inner loop over individual time points
         sapply(Time_steps, function(x) {
-          file_name <- paste0(Calibration_param_dir, "/", Sim_name, "/Allocation_param_table_", x, ".csv")
+          file_name <- paste0(calibration_param_dir, "/", Sim_name, "/Allocation_param_table_", x, ".csv")
           write_csv(param_table, file = file_name)
         }) # close loop over time points
       },
       Time_steps = Time_points_by_period,
-      Calibration_param_dir = Calibration_param_dir,
+      calibration_param_dir = calibration_param_dir,
       param_table = Allocation_params_by_period,
       SIMPLIFY = FALSE
     ) # close loop over time periods
@@ -296,20 +296,20 @@ calibrate_allocation_parameters <- function() {
 
   # add rows for MC sim_names
   for (i in 1:length(mc_sims)) {
-    Calibration_control_table[i, "Simulation_ID.string"] <- mc_sims[i]
-    Calibration_control_table[i, "Simulation_num."] <- i
+    Calibration_control_table[i, "simulation_id.string"] <- mc_sims[i]
+    Calibration_control_table[i, "simulation_num."] <- i
   }
 
   # fill in remaining columns
-  Calibration_control_table$Scenario_ID.string <- "CALIBRATION"
-  Calibration_control_table$Scenario_start.real <- Scenario_start
-  Calibration_control_table$Scenario_end.real <- Scenario_end
-  Calibration_control_table$Step_length.real <- Step_length
-  Calibration_control_table$Model_mode.string <- "Calibration"
-  Calibration_control_table$Parallel_TPC.string <- "N"
-  Calibration_control_table$Completed.string <- "N"
-  Calibration_control_table$Spatial_interventions.string <- "N"
-  Calibration_control_table$Deterministic_trans.string <- "N"
+  Calibration_control_table$scenario_id.string <- "CALIBRATION"
+  Calibration_control_table$scenario_start.real <- scenario_start
+  Calibration_control_table$scenario_end.real <- scenario_end
+  Calibration_control_table$step_length.real <- step_length
+  Calibration_control_table$model_mode.string <- "Calibration"
+  Calibration_control_table$parallel_tpc.string <- "N"
+  Calibration_control_table$completed.string <- "N"
+  Calibration_control_table$spatial_interventions.string <- "N"
+  Calibration_control_table$deterministic_trans.string <- "N"
 
   # save table
   readr::write_csv(Calibration_control_table, "Tools/Calibration_control.csv")
@@ -321,7 +321,7 @@ calibrate_allocation_parameters <- function() {
   # Perform pre-check to make sure that all element required for Dinamica modelling
   # are prepared
   Control_table_path <- paste0(getwd(), "/Tools/Calibration_control.csv")
-  Pre_check_result <- lulcc.modelprechecks(Control_table_path, Param_dir = Calibration_param_dir)
+  Pre_check_result <- lulcc.modelprechecks(Control_table_path, Param_dir = calibration_param_dir)
 
   # run the dinamica model with the calibration table
   if (Pre_check_result == TRUE) {
@@ -352,9 +352,9 @@ calibrate_allocation_parameters <- function() {
     # if/how many simulations have failed
     Updated_control_tbl <- read.csv(Control_table_path)
 
-    if (any(Updated_control_tbl$Completed.string == "ERROR")) {
+    if (any(Updated_control_tbl$completed.string == "ERROR")) {
       print(paste(
-        length(which(Updated_control_tbl$Completed.string == "ERROR")), "of", nrow(Updated_control_tbl),
+        length(which(Updated_control_tbl$completed.string == "ERROR")), "of", nrow(Updated_control_tbl),
         "simulations have failed to run till completion, check simulation output .txt file for details of errors"
       ))
       # slackr_bot('Simulation has stopped because of error')
@@ -418,22 +418,22 @@ calibrate_allocation_parameters <- function() {
   # in the Simulation folder
 
   # get exemplar table
-  param_table <- read.csv(list.files(paste0(Calibration_param_dir, "/", Best_sim_ID), full.names = TRUE, pattern = "2020"))
+  param_table <- read.csv(list.files(paste0(calibration_param_dir, "/", Best_sim_ID), full.names = TRUE, pattern = "2020"))
   colnames(param_table) <- c("From*", "To*", " Mean_Patch_Size", "Patch_Size_Variance", "Patch_Isometry", "Perc_expander", "Perc_patcher")
 
   # save a copy for the publication
   # readr::write_csv(param_table, "publication/figures_tables/Optimal_param_table.csv")
 
   # get simulation start and end times from simulation control table
-  Simulation_control <- read.csv(Sim_control_path)
-  Simulation_start <- min(Simulation_control$Scenario_start.real)
-  Simulation_end <- max(Simulation_control$Scenario_end.real)
-  Scenario_IDs <- unique(Simulation_control$Scenario_ID.string)
+  Simulation_control <- read.csv(simctrl_tbl_path)
+  Simulation_start <- min(Simulation_control$scenario_start.real)
+  Simulation_end <- max(Simulation_control$scenario_end.real)
+  Scenario_IDs <- unique(Simulation_control$scenario_id.string)
 
   # loop over scenario IDs and simulation time points creating allocation param tables
   sapply(Scenario_IDs, function(y) {
-    sapply(seq(Simulation_start, Simulation_end, Step_length), function(x) {
-      save_dir <- paste0(Simulation_param_dir, "/", y)
+    sapply(seq(Simulation_start, Simulation_end, step_length), function(x) {
+      save_dir <- paste0(simulation_param_dir, "/", y)
       dir.create(save_dir, recursive = TRUE)
       file_name <- paste0(save_dir, "/Allocation_param_table_", x, ".csv")
       write_csv(param_table, file = file_name)

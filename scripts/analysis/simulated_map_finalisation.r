@@ -66,18 +66,18 @@ mask_values <- unlist(Aggregation_scheme[Aggregation_scheme$NOAS04_class_ENG %in
 names(mask_values) <- c(20, 21)
 
 # Load simulation control table
-Simulation_control <- read.csv(Sim_control_path)
-Simulation_control <- Simulation_control[Simulation_control$Completed.string == "Y", ]
+Simulation_control <- read.csv(simctrl_tbl_path)
+Simulation_control <- Simulation_control[Simulation_control$completed.string == "Y", ]
 
 # get unique values of Simulation ID
-Sim_IDs <- unique(Simulation_control$Simulation_ID.string)
+Sim_IDs <- unique(Simulation_control$simulation_id.string)
 
 # get scenario names
-Scenarios <- unique(Simulation_control$Scenario_ID.string)
+Scenarios <- unique(Simulation_control$scenario_id.string)
 
 # get earliest scenario start date
-Scenario_start <- min(Simulation_control$Scenario_start.real)
-Scenario_end <- max(Simulation_control$Scenario_end.real)
+scenario_start <- min(Simulation_control$scenario_start.real)
+scenario_end <- max(Simulation_control$scenario_end.real)
 
 # use ID to identify directory for simulated LULC files
 Scenario_lulc_paths <- lapply(Scenarios, function(x) {
@@ -93,7 +93,7 @@ names(Scenario_lulc_paths) <- Scenarios
 
 # loop over simulated LULC maps grouped by Scenario masking the areas that are
 # water bodies (Lakes and rivers) in the most recent LULC maps for visual clarity
-lapply(names(Scenario_lulc_paths), function(Scenario_ID) {
+lapply(names(Scenario_lulc_paths), function(scenario_id) {
   # glacier areas to be accurate we need to make sure that the initial LULC map has the correct
   # number of glacier cells according to glacial modelling
 
@@ -112,12 +112,12 @@ lapply(names(Scenario_lulc_paths), function(Scenario_ID) {
   # load scenario specific glacier index
   Glacier_index <- readRDS(file = list.files("Data/Glacial_change/Scenario_indices",
     full.names = TRUE,
-    pattern = Scenario_ID
-  ))[, c("ID_loc", paste(Scenario_start))]
+    pattern = scenario_id
+  ))[, c("ID_loc", paste(scenario_start))]
 
   # seperate vector of cell IDs for glacier and non-glacer cells
-  Non_glacier_IDs <- Glacier_index[Glacier_index[[paste(Scenario_start)]] == 0, "ID_loc"]
-  Glacier_IDs <- Glacier_index[Glacier_index[[paste(Scenario_start)]] == 1, "ID_loc"]
+  Non_glacier_IDs <- Glacier_index[Glacier_index[[paste(scenario_start)]] == 0, "ID_loc"]
+  Glacier_IDs <- Glacier_index[Glacier_index[[paste(scenario_start)]] == 1, "ID_loc"]
 
   # vector the pixel values of Glacier from the non_agg lulc layer
   Glacier_val <- unlist(Aggregation_scheme[Aggregation_scheme$NOAS04_class_ENG == "Glaciers, perpetual snow", "NOAS04_ID"])
@@ -139,7 +139,7 @@ lapply(names(Scenario_lulc_paths), function(Scenario_ID) {
   Non_agg_LULC_update <- rast(LULC_dat[, c("x", "y", "NOAS04_2018")], crs = ProjCH)
 
   # inner loop over seperate time point layers for scenario
-  lapply(Scenario_lulc_paths[[Scenario_ID]], function(x) {
+  lapply(Scenario_lulc_paths[[scenario_id]], function(x) {
     # Mask the sim LULC raster by the lake classes in the non_agg lulc_raster
     Sim_rast <- rast(x)
     crs(Sim_rast) <- ProjCH
@@ -272,15 +272,15 @@ Final_lulc_maps <- lapply(Scenarios, function(x) {
     full.names = TRUE
   )
   Scenario_paths <- All_sim_LULC_paths[grepl(x, All_sim_LULC_paths)]
-  Start_end_paths <- Scenario_paths[grepl(paste(c(Scenario_start, Scenario_end), collapse = "|"), Scenario_paths)]
+  Start_end_paths <- Scenario_paths[grepl(paste(c(scenario_start, scenario_end), collapse = "|"), Scenario_paths)]
   Start_end_layers <- stack(lapply(Start_end_paths, function(y) {
     lyr <- raster(y)
     raster_with_att <- ratify(lyr)
     levels(raster_with_att) <- LULC_rat
     return(raster_with_att)
   }))
-  names(Start_end_layers@layers) <- c(paste(Scenario_start), paste(Scenario_end))
-  names(Start_end_layers) <- c(paste(Scenario_start), paste(Scenario_end))
+  names(Start_end_layers@layers) <- c(paste(scenario_start), paste(scenario_end))
+  names(Start_end_layers) <- c(paste(scenario_start), paste(scenario_end))
   return(Start_end_layers)
 })
 names(Final_lulc_maps) <- Scenarios
@@ -306,14 +306,14 @@ Scenario_maps <- leaflet() |>
   addMapPane("left", zIndex = 0) |>
   addProviderTiles(providers$Esri.WorldTopoMap, group = "base", layerId = "baseid1", options = pathOptions(pane = "right")) |>
   addProviderTiles(providers$Esri.WorldTopoMap, group = "base", layerId = "baseid2", options = pathOptions(pane = "left")) |>
-  addRasterImage(x = Final_lulc_maps[["BAU"]][[paste0("X", Scenario_start)]], colors = pal, options = leafletOptions(pane = "left"), group = "Business as Usual", project = FALSE) |>
-  addRasterImage(x = Final_lulc_maps[["BAU"]][[paste0("X", Scenario_end)]], colors = pal, options = leafletOptions(pane = "right"), group = "Business as Usual", project = FALSE) |>
-  addRasterImage(x = Final_lulc_maps[["EI_NAT"]][[paste0("X", Scenario_start)]], colors = pal, options = leafletOptions(pane = "left"), group = "EI for Nature", project = FALSE) |>
-  addRasterImage(x = Final_lulc_maps[["EI_NAT"]][[paste0("X", Scenario_end)]], colors = pal, options = leafletOptions(pane = "right"), group = "EI for Nature", project = FALSE) |>
-  addRasterImage(x = Final_lulc_maps[["EI_SOC"]][[paste0("X", Scenario_start)]], colors = pal, options = leafletOptions(pane = "left"), group = "EI for Society", project = FALSE) |>
-  addRasterImage(x = Final_lulc_maps[["EI_SOC"]][[paste0("X", Scenario_end)]], colors = pal, options = leafletOptions(pane = "right"), group = "EI for Society", project = FALSE) |>
-  addRasterImage(x = Final_lulc_maps[["GR_EX"]][[paste0("X", Scenario_start)]], colors = pal, options = leafletOptions(pane = "left"), group = "Growth and Extinction", project = FALSE) |>
-  addRasterImage(x = Final_lulc_maps[["GR_EX"]][[paste0("X", Scenario_end)]], colors = pal, options = leafletOptions(pane = "right"), group = "Growth and Extinction", project = FALSE) |>
+  addRasterImage(x = Final_lulc_maps[["BAU"]][[paste0("X", scenario_start)]], colors = pal, options = leafletOptions(pane = "left"), group = "Business as Usual", project = FALSE) |>
+  addRasterImage(x = Final_lulc_maps[["BAU"]][[paste0("X", scenario_end)]], colors = pal, options = leafletOptions(pane = "right"), group = "Business as Usual", project = FALSE) |>
+  addRasterImage(x = Final_lulc_maps[["EI_NAT"]][[paste0("X", scenario_start)]], colors = pal, options = leafletOptions(pane = "left"), group = "EI for Nature", project = FALSE) |>
+  addRasterImage(x = Final_lulc_maps[["EI_NAT"]][[paste0("X", scenario_end)]], colors = pal, options = leafletOptions(pane = "right"), group = "EI for Nature", project = FALSE) |>
+  addRasterImage(x = Final_lulc_maps[["EI_SOC"]][[paste0("X", scenario_start)]], colors = pal, options = leafletOptions(pane = "left"), group = "EI for Society", project = FALSE) |>
+  addRasterImage(x = Final_lulc_maps[["EI_SOC"]][[paste0("X", scenario_end)]], colors = pal, options = leafletOptions(pane = "right"), group = "EI for Society", project = FALSE) |>
+  addRasterImage(x = Final_lulc_maps[["GR_EX"]][[paste0("X", scenario_start)]], colors = pal, options = leafletOptions(pane = "left"), group = "Growth and Extinction", project = FALSE) |>
+  addRasterImage(x = Final_lulc_maps[["GR_EX"]][[paste0("X", scenario_end)]], colors = pal, options = leafletOptions(pane = "right"), group = "Growth and Extinction", project = FALSE) |>
   leaflet.extras::addResetMapButton() |>
   # add an opacity slider but only works for one half of the map
   # addOpacitySlider(layerId = "raster1") |>

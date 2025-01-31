@@ -13,7 +13,7 @@
 
 calibration_predictor_prep <- function() {
   # Load in the grid to use use for re-projecting the CRS and extent of predictor data
-  Ref_grid <- rast(Ref_grid_path)
+  Ref_grid <- rast(ref_grid_path)
 
   # vector years of LULC data
   LULC_years <- gsub(".*?([0-9]+).*", "\\1", list.files("Data/Historic_LULC", full.names = FALSE, pattern = ".gri"))
@@ -49,17 +49,17 @@ calibration_predictor_prep <- function() {
   dir.create(Prepped_layers_dir, recursive = TRUE)
 
   # Predictor table file path (received from output_env only uncomment for testing)
-  # Pred_table_path <- "Tools/Predictor_table.xlsx"
+  # pred_table_path <- "Tools/Predictor_table.xlsx"
   # Predictor table file path (received from output_env only uncomment for testing)
-  # Pred_table_path <- "Tools/Predictor_table.xlsx"
+  # pred_table_path <- "Tools/Predictor_table.xlsx"
 
   # get names of sheets to loop over
   # get names of sheets to loop over
-  sheets <- excel_sheets(Pred_table_path)
+  sheets <- excel_sheets(pred_table_path)
 
   # load all sheets as a list
   # load all sheets as a list
-  Pred_tables <- lapply(sheets, function(x) openxlsx::read.xlsx(Pred_table_path, sheet = x))
+  Pred_tables <- lapply(sheets, function(x) openxlsx::read.xlsx(pred_table_path, sheet = x))
   names(Pred_tables) <- sheets
 
   # combine tables for all periods
@@ -731,7 +731,7 @@ calibration_predictor_prep <- function() {
   ### =========================================================================
 
   # load predictor_table as workbook to add sheets
-  Pred_table_update <- openxlsx::loadWorkbook(file = Pred_table_path)
+  Pred_table_update <- openxlsx::loadWorkbook(file = pred_table_path)
 
   # split the table back into Dfs for each period and save
   Periodic_pred_tables <- split(Pred_table_long, Pred_table_long$period)
@@ -744,7 +744,7 @@ calibration_predictor_prep <- function() {
   }
 
   # save workbook
-  openxlsx::saveWorkbook(Pred_table_update, Pred_table_path, overwrite = TRUE)
+  openxlsx::saveWorkbook(Pred_table_update, pred_table_path, overwrite = TRUE)
 
   cat(paste0(" Preparation of Suitability and accessibility predictor layers complete \n"))
 

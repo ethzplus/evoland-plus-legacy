@@ -19,7 +19,7 @@ setwd(wpath)
 Val_res_folder <- paste0(wpath, "/Results/Validation/", Sim_ID)
 Val_res_path <- paste0(Val_res_folder, "/", paste("Simulation", Sim_ID, "from", Simulation_time_steps[1, "Keys"], "to", Simulation_time_steps[nrow(Simulation_time_steps), "Values"], sep = "_"))
 
-if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
+if (grepl("simulation", model_mode, ignore.case = TRUE)) {
   validation_condition <- 0
   Validation_map_path <- "NA"
   Validation_result_path <- "NA"

@@ -6,7 +6,7 @@
 ## Author: Ben Black
 #############################################################################
 spatial_interventions_prep <- function() {
-  Ref_grid <- raster(Ref_grid_path)
+  Ref_grid <- raster(ref_grid_path)
   Ref_crs <- crs(Ref_grid)
 
   # need to reload the model tool vars because it has been updated
@@ -15,16 +15,16 @@ spatial_interventions_prep <- function() {
   list2env(Model_tool_vars, .GlobalEnv)
 
   # load table of scenario specific spatial interventions
-  # Spat_ints_path <- "E:/LULCC_CH_Ensemble/Tools/Spatial_interventions.csv"
-  Interventions <- read.csv(Spat_ints_path)
+  # spat_ints_path <- "E:/LULCC_CH_Ensemble/Tools/spatial_interventions.csv"
+  Interventions <- read.csv(spat_ints_path)
 
-  # convert Time_step and Target_classes columns back to character vectors
-  Interventions$Time_step <- sapply(Interventions$Time_step, function(x) {
+  # convert time_step and target_classes columns back to character vectors
+  Interventions$time_step <- sapply(Interventions$time_step, function(x) {
     x <- str_remove_all(x, " ")
     rep <- unlist(strsplit(x, ","))
   }, simplify = FALSE)
 
-  Interventions$Target_classes <- sapply(Interventions$Target_classes, function(x) {
+  Interventions$target_classes <- sapply(Interventions$target_classes, function(x) {
     x <- str_remove_all(x, " ")
     rep <- unlist(strsplit(x, ","))
   }, simplify = FALSE)
@@ -285,13 +285,13 @@ spatial_interventions_prep <- function() {
 
   # create CRS object
   ProjCH <- "+proj=somerc +init=epsg:2056"
-  # Ref_grid_path <- ("Data/Ref_grid.grd")
+  # ref_grid_path <- ("Data/Ref_grid.grd")
 
   # terra won't read rasters from '.gri' extension only '.grd' update path
-  Ref_grid_path <- str_replace(Ref_grid_path, "\\.gri", "\\.grd")
+  ref_grid_path <- str_replace(ref_grid_path, "\\.gri", "\\.grd")
 
   # re-load ref_grid as terra::rast
-  Ref_grid <- rast(Ref_grid_path)
+  Ref_grid <- rast(ref_grid_path)
 
   # vector dir of raw data
   PA_raw_dir <- "Data/Spat_prob_perturb_layers/Protected_areas/raw_data"
@@ -920,7 +920,7 @@ spatial_interventions_prep <- function() {
   # n_cells <- n_cells[2]
 
   # subset interventions table
-  PA_interventions <- Interventions[Interventions$Intervention_ID == "Protection", ]
+  PA_interventions <- Interventions[Interventions$intervention_id == "Protection", ]
 
   # loop function over cell targets for scenarios
   for (i in 1:length(n_cells)) {
@@ -977,8 +977,8 @@ spatial_interventions_prep <- function() {
     writeRaster(Best_patches, file = paste0(New_PA_dir, "/", names(n_cells)[i], "_all_future_PAs.tif"), overwrite = TRUE)
 
     # grab intervention time steps
-    Scenario_time_steps <- unlist(PA_interventions[PA_interventions$Scenario_ID == names(n_cells)[i], "Time_step"])
-    Scenario_path <- unlist(PA_interventions[PA_interventions$Scenario_ID == names(n_cells)[i], "Intervention_data"])
+    Scenario_time_steps <- unlist(PA_interventions[PA_interventions$scenario_id == names(n_cells)[i], "time_step"])
+    Scenario_path <- unlist(PA_interventions[PA_interventions$scenario_id == names(n_cells)[i], "intervention_data"])
 
     # becuase it is unlikely that new protection areas will be established before
     # 2025 and also because the scenario statements specify that PA targets be met by 2060
@@ -1039,23 +1039,23 @@ spatial_interventions_prep <- function() {
   ### =========================================================================
 
   # test to see if spatial zoning
-  if (any(Interventions$Intervention_type == "Param_adjust")) {
+  if (any(Interventions$intervention_type == "Param_adjust")) {
     # subset to interventions involving parameter adjustment
-    Param_ints <- Interventions[Interventions$Intervention_type == "Param_adjust", ]
+    Param_ints <- Interventions[Interventions$intervention_type == "Param_adjust", ]
 
     # load the LULC aggregation scheme
     LULC_agg <- openxlsx::read.xlsx(LULC_aggregation_path)
 
     # swap the target classes for class numbers
-    Param_ints$Target_classes <- sapply(Param_ints$Target_classes, function(x) {
+    Param_ints$target_classes <- sapply(Param_ints$target_classes, function(x) {
       class_nums <- unique(LULC_agg[LULC_agg$Class_abbreviation %in% x, "Aggregated_ID"])
     })
 
     # loop over interventions adjust param tables
     sapply(1:nrow(Param_ints), function(i) {
       # get paths of param tables for relevant scenario and time points
-      Param_table_paths <- list.files(paste0(Simulation_param_dir, "/", Param_ints[i, "Scenario_ID"]),
-        pattern = paste0(Param_ints[[i, "Time_step"]], collapse = "|"),
+      Param_table_paths <- list.files(paste0(simulation_param_dir, "/", Param_ints[i, "scenario_id"]),
+        pattern = paste0(Param_ints[[i, "time_step"]], collapse = "|"),
         full.names = TRUE
       )
 
@@ -1067,9 +1067,9 @@ spatial_interventions_prep <- function() {
         # adjust column names
         colnames(param_table) <- c("From*", "To*", " Mean_Patch_Size", "Patch_Size_Variance", "Patch_Isometry", "Perc_expander", "Perc_patcher")
 
-        # alter rows for Target_classes
-        param_table[param_table$`To*` %in% Param_ints[[i, "Target_classes"]], "Perc_expander"] <- 1
-        param_table[param_table$`To*` %in% Param_ints[[i, "Target_classes"]], "Perc_patcher"] <- 0
+        # alter rows for target_classes
+        param_table[param_table$`To*` %in% Param_ints[[i, "target_classes"]], "Perc_expander"] <- 1
+        param_table[param_table$`To*` %in% Param_ints[[i, "target_classes"]], "Perc_patcher"] <- 0
 
         # save table
         write_csv(param_table, file = tbl_path)

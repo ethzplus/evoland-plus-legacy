@@ -12,38 +12,38 @@
 deterministic_trans_prep <- function() {
   LULC_years <- gsub(".*?([0-9]+).*", "\\1", list.files("Data/Historic_LULC", full.names = FALSE, pattern = ".gri"))
 
-  # Vector time Data_periods for calibration
+  # Vector time data_periods for calibration
   # Inherit from master
-  # Data_periods <- c("1985_1997", "1997_2009", "2009_2018")
+  # data_periods <- c("1985_1997", "1997_2009", "2009_2018")
 
   # The model lookup table specifies which transitions are modelled and
   # should be used to subset the transition rates tables
 
   # Load Model lookup tables for each period and subset to just transition names
-  Periodic_trans_names <- lapply(Data_periods, function(Period) {
+  Periodic_trans_names <- lapply(data_periods, function(Period) {
     full_table <- read.xlsx("Tools/Model_lookup.xlsx", sheet = Period)
     trans_names <- unique(full_table[["Trans_name"]])
   })
-  names(Periodic_trans_names) <- Data_periods
+  names(Periodic_trans_names) <- data_periods
 
   # identify final year of calibration periods
   Final_calib_year <- max(c(sapply(names(Periodic_trans_names), function(x) as.numeric(str_split(x, "_")[[1]]), simplify = TRUE)))
 
   # load simulation control table
-  Sim_control_table <- read.csv(Sim_control_path)
+  Sim_control_table <- read.csv(simctrl_tbl_path)
 
   # vector all time steps in calibration and simulation
-  All_time_steps <- seq(min(LULC_years), max(Sim_control_table$Scenario_end.real), Step_length)
+  All_time_steps <- seq(min(LULC_years), max(Sim_control_table$scenario_end.real), step_length)
 
   # vector simulation time steps
   # (i.e. only the time steps until the end, omitting the start year)
-  Sim_time_steps <- All_time_steps[dplyr::between(All_time_steps, (min(Sim_control_table$Scenario_start.real) + Step_length), max(Sim_control_table$Scenario_end.real))]
+  Sim_time_steps <- All_time_steps[dplyr::between(All_time_steps, (min(Sim_control_table$scenario_start.real) + step_length), max(Sim_control_table$scenario_end.real))]
 
   # vector all simulation years (i.e. including initial year)
-  Sim_years <- c(round(as.numeric(max(LULC_years)) / Step_length) * Step_length, paste(Sim_time_steps))
+  Sim_years <- c(round(as.numeric(max(LULC_years)) / step_length) * step_length, paste(Sim_time_steps))
 
   # use simulation control table to get names of Scenarios
-  Scenario_names <- unique(Sim_control_table[["Scenario_ID.string"]])
+  scenario_names <- unique(Sim_control_table[["scenario_id.string"]])
 
   ### =========================================================================
   ### B - calculate glacial change rates and wrangle indices of change locations

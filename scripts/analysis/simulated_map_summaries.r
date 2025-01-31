@@ -65,41 +65,41 @@ Sankey_dir <- "Results/Sankey_tables_diagrams"
 dir.create(Sankey_dir)
 
 # Load simulation control table
-Simulation_control <- read.csv(Sim_control_path)
-# Simulation_control <- Simulation_control[Simulation_control$Completed.string == "Y",]
+Simulation_control <- read.csv(simctrl_tbl_path)
+# Simulation_control <- Simulation_control[Simulation_control$completed.string == "Y",]
 
 # get unique values of Simulation ID
-Sim_IDs <- unique(Simulation_control$Simulation_ID.string)
+Sim_IDs <- unique(Simulation_control$simulation_id.string)
 
 # get scenario names
-Scenario_names <- unique(Simulation_control$Scenario_ID.string)
-names(Scenario_names) <- Scenario_names
+scenario_names <- unique(Simulation_control$scenario_id.string)
+names(scenario_names) <- scenario_names
 
 # get earliest scenario start date
-Scenario_start <- min(Simulation_control$Scenario_start.real)
-Scenario_end <- max(Simulation_control$Scenario_end.real)
+scenario_start <- min(Simulation_control$scenario_start.real)
+scenario_end <- max(Simulation_control$scenario_end.real)
 
 # get time steps
-Time_steps <- seq(Scenario_start, Scenario_end, Step_length)
+Time_steps <- seq(scenario_start, scenario_end, step_length)
 
 # list of final LULC rasters
 LULC_paths <- list.files(Final_map_dir, full.names = TRUE, pattern = ".tif")
 names(LULC_paths) <- basename(LULC_paths)
 
 # subset LULC paths to only 2020 and 2060
-Start_end_LULC <- LULC_paths[grepl(paste0(c(Scenario_start, Scenario_end), collapse = "|"), LULC_paths)]
+Start_end_LULC <- LULC_paths[grepl(paste0(c(scenario_start, scenario_end), collapse = "|"), LULC_paths)]
 
 # name each path for it's year
 names(Start_end_LULC) <- sapply(Start_end_LULC, function(x) {
-  na.omit(str_match(x, paste0(c(Scenario_start, Scenario_end), collapse = "|")))
+  na.omit(str_match(x, paste0(c(scenario_start, scenario_end), collapse = "|")))
 })
 
 # seperate final lulc map paths
-Final_lulc_paths <- LULC_paths[grepl(Scenario_end, LULC_paths)]
+Final_lulc_paths <- LULC_paths[grepl(scenario_end, LULC_paths)]
 
 # name according to scenarios
 names(Final_lulc_paths) <- sapply(Final_lulc_paths, function(x) {
-  na.omit(str_match(x, Scenario_names))
+  na.omit(str_match(x, scenario_names))
 })
 
 
@@ -150,7 +150,7 @@ LULC_rat$colour <- sapply(LULC_rat$lulc_name, function(x) {
 PA_map_paths <- list.files("data/Spat_prob_perturb_layers/Protected_areas/Future_PAs", full.names = TRUE, pattern = paste0(c("2020", "2055"), collapse = "|"))
 
 # loop over scenario names and combine the rasters for each
-for (i in Scenario_names[2:4]) {
+for (i in scenario_names[2:4]) {
   # subset raster paths
   Scenario_lyrs <- rast(grep(i, PA_map_paths, value = TRUE))
 
@@ -188,7 +188,7 @@ lapply(list.files(PA_maps_dir, full.names = TRUE), function(x) {
 ### =========================================================================
 
 # loop over the scenarios
-Scenario_crosstabs_SE <- as.data.frame(rbindlist(lapply(Scenario_names, function(x) {
+Scenario_crosstabs_SE <- as.data.frame(rbindlist(lapply(scenario_names, function(x) {
   # extract the scenario paths and load as multi-layer raster
   Scenario_LULC <- rast(grep(x, Start_end_LULC, value = TRUE))
 
@@ -220,7 +220,7 @@ Scenario_crosstabs_SE <- as.data.frame(rbindlist(lapply(Scenario_names, function
 saveRDS(Scenario_crosstabs_SE, file = paste0(Sankey_dir, "/Scenario_crosstabulations_start_end_timepoints.rds"))
 
 # Loop over scenarios creating interactive sankey plots and saving tables if necessary
-lapply(Scenario_names, function(x) {
+lapply(scenario_names, function(x) {
   # subset data
   dat <- Scenario_crosstabs_SE[Scenario_crosstabs_SE$Scenario == x, ]
 
@@ -310,7 +310,7 @@ lapply(Scenario_names, function(x) {
 ### =========================================================================
 
 # Upper loop over the scenarios
-Scenario_crosstabs_all <- as.data.frame(rbindlist(lapply(Scenario_names, function(x) {
+Scenario_crosstabs_all <- as.data.frame(rbindlist(lapply(scenario_names, function(x) {
   # seperate paths for scenario
   Scenario_paths <- grep(x, LULC_paths, value = TRUE)
 
@@ -360,7 +360,7 @@ Scenario_crosstabs_all <- as.data.frame(rbindlist(lapply(Scenario_names, functio
 saveRDS(Scenario_crosstabs_all, file = paste0(Sankey_dir, "/Scenario_crosstabulations_all_timepoints.rds"))
 
 # Loop over scenarios producing seperate sankey plots
-Scenario_plots <- lapply(Scenario_names, function(x) {
+Scenario_plots <- lapply(scenario_names, function(x) {
   # subset data to scenario
   dat <- Scenario_crosstabs_all[Scenario_crosstabs_all$Scenario == x, ]
 
@@ -554,7 +554,7 @@ subplot(Scenario_plots, nrows = length(Scenario_plots), shareX = FALSE, shareY =
 # the whole simulation time i.e. they do not change)
 # 2. Not including these instances which allows for clearer visualisations of the proportions of transitions
 
-Scenario_sankey_alluvial_dfs <- lapply(Scenario_names, function(x) {
+Scenario_sankey_alluvial_dfs <- lapply(scenario_names, function(x) {
   # seperate paths for scenario
   Scenario_paths <- grep(x, LULC_paths, value = TRUE)
 
@@ -763,7 +763,7 @@ ggsave(
 ### E- ggalluvial: Sankey diagram for start end dates
 ### =========================================================================
 
-Scenario_sankey_alluvial_dfs_start_end <- lapply(Scenario_names, function(x) {
+Scenario_sankey_alluvial_dfs_start_end <- lapply(scenario_names, function(x) {
   # seperate paths for scenario
   Scenario_paths <- grep(x, Start_end_LULC, value = TRUE)
 
@@ -969,7 +969,7 @@ ggsave(
 ### =========================================================================
 
 # loop over the scenarios
-Scenario_crosstabs_SE <- as.data.frame(rbindlist(lapply(Scenario_names, function(x) {
+Scenario_crosstabs_SE <- as.data.frame(rbindlist(lapply(scenario_names, function(x) {
   # extract the scenario paths and load as multi-layer raster
   Scenario_LULC <- rast(grep(x, Start_end_LULC, value = TRUE))
 
@@ -1170,7 +1170,7 @@ ggSankeyGrad <- function(c1, c2, col1 = "gray", col2 = "gray",
 }
 
 # Loop over scenarios creating sankey plots
-Sankey_grad_plots <- lapply(Scenario_names, function(x) {
+Sankey_grad_plots <- lapply(scenario_names, function(x) {
   # subset data
   dat <- Scenario_crosstabs_SE[Scenario_crosstabs_SE$Scenario == x, ]
 
@@ -1369,7 +1369,7 @@ names(Map_plots) <- names(Map_image_paths)
 ### =========================================================================
 
 # loop over the scenarios
-Scenario_bar_charts <- lapply(Scenario_names, function(x) {
+Scenario_bar_charts <- lapply(scenario_names, function(x) {
   Scenario_paths <- grep(x, Start_end_LULC, value = TRUE)
 
   # extract the scenario paths and load as multi-layer raster
@@ -1484,7 +1484,7 @@ crs(BZ_rast) <- ProjCH
 # as a % of the total class area change for that scenario)
 
 # loop over the scenarios
-BZ_rel_change <- rbindlist(lapply(Scenario_names, function(x) {
+BZ_rel_change <- rbindlist(lapply(scenario_names, function(x) {
   Scenario_paths <- grep(x, Start_end_LULC, value = TRUE)
 
   # extract the scenario paths and load as multi-layer raster
@@ -1542,7 +1542,7 @@ Urban_rel_change <- BZ_rel_change[BZ_rel_change$LULC_class == "Settlement/urban/
 ### =========================================================================
 
 # seperate names of normative scenarios
-Norm_scenarios <- Scenario_names[2:4]
+Norm_scenarios <- scenario_names[2:4]
 
 # list paths of all PA rasters
 All_PA_paths <- list.files("data/Spat_prob_perturb_layers/Protected_areas/Future_PAs", full.names = TRUE)

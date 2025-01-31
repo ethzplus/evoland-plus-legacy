@@ -39,7 +39,7 @@ trans_model_finalization <- function() {
     # vector model specifcations
     Data_period <- model_specs$Data_period
     Model_type <- model_specs$Model_type
-    Model_scale <- model_specs$Model_scale
+    model_scale <- model_specs$model_scale
     Feature_selection_employed <- model_specs$Feature_selection_employed
     Nhood_extent <- model_specs$Nhood_extent
     Correct_balance <- model_specs$Balance_adjustment
@@ -53,10 +53,10 @@ trans_model_finalization <- function() {
 
     # Get file paths of transition datasets for period
     Data_paths_for_period <- if (Feature_selection_employed == FALSE) {
-      list.files(paste0("Data/Transition_datasets/Pre_predictor_filtering/", Data_period), pattern = Model_scale, full.names = TRUE)
+      list.files(paste0("Data/Transition_datasets/Pre_predictor_filtering/", Data_period), pattern = model_scale, full.names = TRUE)
     } else if (
       Feature_selection_employed == TRUE) {
-      list.files(paste0("Data/Transition_datasets/Post_predictor_filtering/", Data_period), pattern = Model_scale, full.names = TRUE)
+      list.files(paste0("Data/Transition_datasets/Post_predictor_filtering/", Data_period), pattern = model_scale, full.names = TRUE)
     }
 
     ### =========================================================================
@@ -73,7 +73,7 @@ trans_model_finalization <- function() {
 
       # load dataset
       Trans_dataset <- readRDS(Dataset_path)
-      Trans_name <- str_remove_all(basename(Dataset_path), paste(c(".rds", paste0("_", Model_scale)), collapse = "|"))
+      Trans_name <- str_remove_all(basename(Dataset_path), paste(c(".rds", paste0("_", model_scale)), collapse = "|"))
 
       ### =========================================================================
       ### B.1 - Attach model parameters
@@ -132,7 +132,7 @@ trans_model_finalization <- function() {
     ### of models is complete
     ### =========================================================================
 
-    # load model spec table and replace the values in the 'Completed' column
+    # load model spec table and replace the values in the 'completed' column
     model_spec_table <- readxl::read_excel("Tools/Predict_model_specs.xlsx")
 
     # find the correct row
@@ -154,7 +154,7 @@ trans_model_finalization <- function() {
   ### F- create a model look up table
   ### =========================================================================
 
-  Model_periods <- unique(models_specs$Data_period_name)
+  Model_periods <- unique(models_specs$data_period_name)
 
   # load list of viable transitions for each time period
   Viable_transitions_lists <- readRDS("Tools/Viable_transitions_lists.rds")

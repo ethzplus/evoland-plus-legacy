@@ -14,7 +14,7 @@ region_prep <- function() {
   ### =========================================================================
 
   # define projection systems
-  Ref_grid <- terra::rast(Ref_grid_path)
+  Ref_grid <- terra::rast(ref_grid_path)
   Ref_crs <- terra::crs(Ref_grid)
 
   ### =========================================================================

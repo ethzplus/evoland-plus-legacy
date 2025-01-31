@@ -28,33 +28,33 @@ invisible(lapply(packs, require, character.only = TRUE))
 ### =========================================================================
 
 # Receive Scenario ID
-# Scenario_ID <- s3
-Scenario_ID <- "BAU"
+# scenario_id <- s3
+scenario_id <- "BAU"
 
 # Receive current simulation time
 # Simulation_time_step <- v1
 Simulation_time_step <- 1985
 
 # Receive simulation ID
-# Simulation_ID <- s4
-Simulation_ID <- "V1"
+# simulation_id <- s4
+simulation_id <- "V1"
 
 # Receive folder path for loading simulated LULC maps
 # File_path_simulated_LULC_maps <- s2
 File_path_simulated_LULC_maps <- "Results/Dinamica_simulated_LULC/BAU/V1/simulated_LULC_scenario_BAU_simID_V1_year_<v1>"
 
 # Receive model mode: Calibration or simulation
-# Model_mode <- s1
-Model_mode <- "calibration"
+# model_mode <- s1
+model_mode <- "calibration"
 
 # Convert model mode into a string related to the model period being used
 # this makes it easier to load files because they use this nomenclature
 
-Period_tag <- if (grepl("calibration", Model_mode, ignore.case = TRUE) &
+Period_tag <- if (grepl("calibration", model_mode, ignore.case = TRUE) &
   Simulation_time_step <= 1997
 ) {
   "1985_1997"
-} else if (grepl("calibration", Model_mode, ignore.case = TRUE) &
+} else if (grepl("calibration", model_mode, ignore.case = TRUE) &
   Simulation_time_step >= 1997 &
   Simulation_time_step <= 2009
 ) {
@@ -66,7 +66,7 @@ Period_tag <- if (grepl("calibration", Model_mode, ignore.case = TRUE) &
 # and when the model is in simulation mode
 
 # create folder for saving prediction probability maps
-prob_map_folder <- paste0("Results/Pred_prob_maps/", Scenario_ID, "/", Simulation_ID, "/", Simulation_time_step, "/")
+prob_map_folder <- paste0("Results/Pred_prob_maps/", scenario_id, "/", simulation_id, "/", Simulation_time_step, "/")
 dir.create(prob_map_folder, recursive = TRUE)
 
 ### =========================================================================
@@ -143,13 +143,13 @@ names(LULC_data) <- obs@labels
 # use model mode string to select correct folder
 
 # For calibration mode (matching on Period_tag)
-if (grepl("calibration", Model_mode, ignore.case = TRUE)) {
+if (grepl("calibration", model_mode, ignore.case = TRUE)) {
   SA_pred_stack <- readRDS(list.files("Data/Preds/Calibration/SA_preds/SA_pred_stacks", pattern = Period_tag, full.names = TRUE))
 } # close if statement calibration
 
 # OLD VERSION BEFORE MODIFICATION OF PERIOD TAG
 # using time step and numeric between
-# if (grepl("calibration", Model_mode, ignore.case = TRUE)){
+# if (grepl("calibration", model_mode, ignore.case = TRUE)){
 # SA_stack_names <- list.files("Data/Preds/Calibration/SA_preds/SA_pred_stacks", full.names = TRUE)
 #
 # #identify which historic data period is required
@@ -164,9 +164,9 @@ if (grepl("calibration", Model_mode, ignore.case = TRUE)) {
 #
 
 # For simulation mode
-if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
+if (grepl("simulation", model_mode, ignore.case = TRUE)) {
   # get file path by matching on scenario ID and time step
-  SA_pred_stack <- readRDS(list.files("Data/Preds/Simulation/SA_preds/SA_pred_stacks", pattern = paste0(Scenario_ID, "_", Simulation_time_step), full.names = TRUE))
+  SA_pred_stack <- readRDS(list.files("Data/Preds/Simulation/SA_preds/SA_pred_stacks", pattern = paste0(scenario_id, "_", Simulation_time_step), full.names = TRUE))
 } # close simulation if statement
 
 ### =========================================================================
@@ -181,7 +181,7 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
 # or 2. create only those realisations that are needed i.e. were retained after feature selection
 
 # For simulation mode
-if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
+if (grepl("simulation", model_mode, ignore.case = TRUE)) {
   # for both approaches:
   # load matrices used to create focal layers
   Focal_matrices <- unlist(readRDS("Data/Preds/Tools/Neighbourhood_matrices/ALL_matrices"), recursive = FALSE)
@@ -192,7 +192,7 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
   })
 
   # create a folder path using simulation ID and time step
-  Dynamic_focal_folder_path <- paste0("Data/Preds/Simulation/NH_preds", "/", Scenario_ID, "/", Simulation_time_step)
+  Dynamic_focal_folder_path <- paste0("Data/Preds/Simulation/NH_preds", "/", scenario_id, "/", Simulation_time_step)
 
   # create directory
   dir.create(paste(wpath, Dynamic_focal_folder_path, sep = "/"), recursive = TRUE)
@@ -203,7 +203,7 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
 
   # generate rasters and save
   # lulcc.generatenhoodrasters(LULC_raster = Current_LULC,
-  #                            Data_period = paste0(Scenario_ID, "_", Simulation_time_step),
+  #                            Data_period = paste0(scenario_id, "_", Simulation_time_step),
   #                            Neighbourhood_matrices = Focal_matrices,
   #                            Active_LULC_class_names = Active_class_names,
   #                            Nhood_folder_path = paste0(Dynamic_focal_folder_path, "/"))
@@ -218,7 +218,7 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
       LULC_raster = Current_LULC,
       Neighbourhood_matrices = Focal_matrices[Required_focals_details[i, ]$matrix_id],
       Active_LULC_class_names = Required_focals_details[i, ]$active_lulc,
-      Data_period = paste0(Scenario_ID, "_", Simulation_time_step),
+      Data_period = paste0(scenario_id, "_", Simulation_time_step),
       Nhood_folder_path = paste0(Dynamic_focal_folder_path, "/")
     )
   }
@@ -227,7 +227,7 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
   nhood_pred_stack <- stack(list.files(Dynamic_focal_folder_path, full.names = TRUE, pattern = ".gri"))
 
   # alter name to generalized form
-  redact <- paste(c(paste0(Scenario_ID, "_", Simulation_time_step, "_"), ".gri"), collapse = "|")
+  redact <- paste(c(paste0(scenario_id, "_", Simulation_time_step, "_"), ".gri"), collapse = "|")
   names(nhood_pred_stack@layers) <- str_remove_all(list.files(Dynamic_focal_folder_path, full.names = FALSE, pattern = ".gri"), redact)
 } # close simulation if statement
 
@@ -237,7 +237,7 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
 
 # Stack all rasters
 # For calibration mode (matching on Period_tag)
-if (grepl("calibration", Model_mode, ignore.case = TRUE)) {
+if (grepl("calibration", model_mode, ignore.case = TRUE)) {
   Trans_data_stack <- stack(LULC_data, SA_pred_stack)
   names(Trans_data_stack@layers) <- c(names(LULC_data), names(SA_pred_stack))
 } # close if statement calibration
@@ -245,7 +245,7 @@ if (grepl("calibration", Model_mode, ignore.case = TRUE)) {
 names(Trans_data_stack@layers)
 
 # For simulation mode
-if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
+if (grepl("simulation", model_mode, ignore.case = TRUE)) {
   Trans_data_stack <- stack(LULC_data, SA_pred_stack, nhood_pred_stack)
   names(Trans_data_stack@layers) <- c(names(LULC_data), names(SA_pred_stack), names(nhood_pred_stack))
 } # close simulation if statement
@@ -429,7 +429,7 @@ prediction_brick <- rasterFromXYZ(prediction_values, crs = crs(Current_LULC))
 # the folder need to have pre-fix according to their row number in the transition matrix
 # create a transition matrix to extract row numbers and then add a column
 # to the model look up table with the row numbers
-prob_map_path <- paste0("Results/Pred_prob_maps/", Scenario_ID, "/", Simulation_ID, "/", Simulation_time_step, "/", )
+prob_map_path <- paste0("Results/Pred_prob_maps/", scenario_id, "/", simulation_id, "/", Simulation_time_step, "/", )
 
 # save layers from raster brick seperately
 

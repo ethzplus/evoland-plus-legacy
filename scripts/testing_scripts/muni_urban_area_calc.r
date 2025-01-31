@@ -105,17 +105,17 @@ for (i in Muni_urban_areas$ID) {
 
 # Our scenarios rely on specific population projects from FSO ("Ref", "High", "Low")
 # Identify which population scenario is required according to scenario being simulated
-Pop_scenario <- if (grepl("BIOPRO", Scenario_ID, ignore.case = TRUE)) {
+pop_scenario <- if (grepl("BIOPRO", scenario_id, ignore.case = TRUE)) {
   "Low"
 } else if (
-  grepl("SHAD", Scenario_ID, ignore.case = TRUE)) {
+  grepl("SHAD", scenario_id, ignore.case = TRUE)) {
   "High"
 } else {
   "Ref"
 } # Final else clause covers scenarios: "DIV", "BAU", "FUTEI"
 
 # load correct sheet of future population predictions according to scenario
-Pop_prediction_table <- read.xlsx("Data/Preds/Tools/Population_projections.xlsx", sheet = Pop_scenario)
+Pop_prediction_table <- read.xlsx("Data/Preds/Tools/Population_projections.xlsx", sheet = pop_scenario)
 
 # loop over unique kanton numbers, rescaled the predicted population percentages
 # and calculate the estimated population per municipality as a % of the cantonal total

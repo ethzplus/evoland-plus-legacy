@@ -21,8 +21,8 @@ lulcc.plotBoyceandROCcurves <- function(RF_specs, GLM_specs, RF_model_num, trans
   names(GLM_specs) <- lapply(GLM_specs, function(x) paste0("GLM_", x))
 
   # finalise folder paths for fitted models
-  RF_model_folder_paths <- lapply(RF_specs, function(x) paste0("Results/Fitted_models/Fitted_rf_models/", x, "/", Data_period_name, "_rf_models"))
-  GLM_model_folder_paths <- lapply(GLM_specs, function(x) paste0("Results/Fitted_models/Fitted_glm_models/", x, "/", Data_period_name, "_glm_models"))
+  RF_model_folder_paths <- lapply(RF_specs, function(x) paste0("Results/Fitted_models/Fitted_rf_models/", x, "/", data_period_name, "_rf_models"))
+  GLM_model_folder_paths <- lapply(GLM_specs, function(x) paste0("Results/Fitted_models/Fitted_glm_models/", x, "/", data_period_name, "_glm_models"))
 
   # append folder paths for all models
   Fitted_model_folder_paths <- append(RF_model_folder_paths, GLM_model_folder_paths)

@@ -31,7 +31,7 @@ nhood_predictor_prep <- function() {
   names(LULC_change_periods) <- sapply(LULC_change_periods, function(x) paste(x[1], x[2], sep = "_"))
 
   # character string for data period
-  Data_periods <- names(LULC_change_periods)
+  data_periods <- names(LULC_change_periods)
 
   # create folders required
   nhood_folder_names <- c(
@@ -95,7 +95,7 @@ nhood_predictor_prep <- function() {
 
   # Load rasters of LULC data for historic periods (adjust list as necessary)
   LULC_years <- lapply(str_extract_all(str_replace_all(
-    Data_periods,
+    data_periods,
     "_", " "
   ), "\\d+"), function(x) x[[1]])
   names(LULC_years) <- paste0("LULC_", LULC_years)
@@ -117,7 +117,7 @@ nhood_predictor_prep <- function() {
   future::plan(multisession, workers = availableCores() - 2)
   future_mapply(lulcc.generatenhoodrasters,
     LULC_raster = LULC_rasters,
-    Data_period = Data_periods,
+    Data_period = data_periods,
     MoreArgs = list(
       Neighbourhood_matrices = All_matrices,
       Active_LULC_class_names = Active_class_names,
@@ -138,8 +138,8 @@ nhood_predictor_prep <- function() {
   )
 
   # split by period
-  new_names_by_period <- lapply(Data_periods, function(x) grep(x, new_nhood_names, value = TRUE))
-  names(new_names_by_period) <- Data_periods
+  new_names_by_period <- lapply(data_periods, function(x) grep(x, new_nhood_names, value = TRUE))
+  names(new_names_by_period) <- data_periods
 
   # function to do numerical re-ordering
   numerical.reorder <- function(period_names) {
@@ -163,7 +163,7 @@ nhood_predictor_prep <- function() {
   layer_names <- Reduce(c, new_names_period_LULC)
 
   # regex strings of period and active class names and matrix_IDs
-  period_names_regex <- str_c(Data_periods, collapse = "|")
+  period_names_regex <- str_c(data_periods, collapse = "|")
   class_names_regex <- str_c(Active_class_names, collapse = "|")
   matrix_id_regex <- str_c(names(All_matrices), collapse = "|")
 
@@ -209,17 +209,17 @@ nhood_predictor_prep <- function() {
   Periodic_focal_details <- split(Focal_details, Focal_details$period)
 
   # Predictor table file path
-  Pred_table_path <- "Tools/Predictor_table.xlsx"
+  pred_table_path <- "Tools/Predictor_table.xlsx"
 
   # get names of sheets to loop over
-  sheets <- excel_sheets(Pred_table_path)
+  sheets <- excel_sheets(pred_table_path)
 
   # load all sheets as a list
-  Pred_tables <- lapply(sheets, function(x) openxlsx::read.xlsx(Pred_table_path, sheet = x))
+  Pred_tables <- lapply(sheets, function(x) openxlsx::read.xlsx(pred_table_path, sheet = x))
   names(Pred_tables) <- sheets
 
   # load predictor_table as workbook to add sheets
-  Pred_table_update <- openxlsx::loadWorkbook(file = Pred_table_path)
+  Pred_table_update <- openxlsx::loadWorkbook(file = pred_table_path)
 
   # loop over periods and add the rows of focal details table to the correct table of the pred table
   lapply(names(Periodic_focal_details), function(x) {
@@ -243,7 +243,7 @@ nhood_predictor_prep <- function() {
   })
 
   # save workbook
-  openxlsx::saveWorkbook(Pred_table_update, Pred_table_path, overwrite = TRUE)
+  openxlsx::saveWorkbook(Pred_table_update, pred_table_path, overwrite = TRUE)
 
   ### =========================================================================
   ### F- Example plotting of nhood matrices and decay rates

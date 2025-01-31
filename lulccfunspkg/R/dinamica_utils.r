@@ -28,7 +28,7 @@ get_dinamica_path <- function() {
 run_dinamica_sims <- function() {
   Pre_check_result <- lulccfunspkg::lulcc.modelprechecks(
     Control_table_path,
-    Param_dir = Simulation_param_dir
+    Param_dir = simulation_param_dir
   )
 
   # Run the Dinamica simulation model
@@ -68,11 +68,11 @@ run_dinamica_sims <- function() {
     # because the simulations may fail without the system command returning an error
     # (if the error occurs in Dinamica) then check the simulation control table to see
     # if/how many simulations have failed
-    Updated_control_tbl <- read.csv(Sim_control_path)
+    Updated_control_tbl <- read.csv(simctrl_tbl_path)
 
-    if (any(Updated_control_tbl$Completed.string == "ERROR")) {
+    if (any(Updated_control_tbl$completed.string == "ERROR")) {
       message(
-        length(which(Updated_control_tbl$Completed.string == "ERROR")),
+        length(which(Updated_control_tbl$completed.string == "ERROR")),
         "of", nrow(Updated_control_tbl),
         "simulations have failed to run till completion, check log for details of errors"
       )

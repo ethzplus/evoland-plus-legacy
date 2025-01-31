@@ -39,7 +39,7 @@ invisible(source("Scripts/Functions/lulcc.spatprobmanipulation.R"))
 list2env(readRDS("Tools/Model_tool_vars.rds"), .GlobalEnv)
 
 # Load in the grid file we are using for spatial extent and CRS
-Ref_grid <- raster(Ref_grid_path)
+Ref_grid <- raster(ref_grid_path)
 
 ### =========================================================================
 ### B- Receive information from Dinamica
@@ -47,7 +47,7 @@ Ref_grid <- raster(Ref_grid_path)
 
 # values for testing purposes
 Simulation_time_step <- 2020
-Simulation_num <- "1"
+simulation_num <- "1"
 Control_table_path <- "Tools/Simulation_control.csv"
 File_path_simulated_LULC_maps <- "Results/Dinamica_simulated_LULC/CALIBRATION/v1/simulated_LULC_scenario_CALIBRATION_simID_v1_year_"
 Use_parallel <- "N"
@@ -57,37 +57,37 @@ Use_parallel <- "N"
 # Simulation_time_step <- v1
 
 # simulation number being performed
-# Simulation_num <- v2
+# simulation_num <- v2
 
 # load table of simulations
 # Control_table_path <- s1
-Simulation_table <- read.csv(Control_table_path)[Simulation_num, ]
+Simulation_table <- read.csv(Control_table_path)[simulation_num, ]
 
 # Vector name of Scenario to be tested as string or numeric (i.e. "BAU" etc.)
-Scenario_ID <- Simulation_table$Scenario_ID.string
+scenario_id <- Simulation_table$scenario_id.string
 
 # Vector an ID for this run of the scenario (e.g V1)
-Simulation_ID <- Simulation_table$Simulation_ID.string
+simulation_id <- Simulation_table$simulation_id.string
 
 # Define model_mode: Calibration or Simulation
-Model_mode <- Simulation_table$Model_mode.string
+model_mode <- Simulation_table$model_mode.string
 
 # Receive folder path for loading simulated LULC maps
 # File_path_simulated_LULC_maps <- s2
 
 # Use parallel processing for transition potential calculation
-# Use_parallel <- Simulation_table$Parallel_TPC.string
+# Use_parallel <- Simulation_table$parallel_tpc.string
 
 # Convert model mode into a string of the dates calibration period being used
 # this makes it easier to load files because they use this nomenclature
 
-Calibration_periods <- unique(readxl::read_excel(Model_specs_path)[["Data_period_name"]])
+Calibration_periods <- unique(readxl::read_excel(model_specs_path)[["data_period_name"]])
 
 Calibration_dates <- lapply(Calibration_periods, function(period) {
   dates <- as.numeric(str_split(period, "_")[[1]])
 })
 
-Period_tag <- if (grepl("calibration", Model_mode, ignore.case = TRUE)) {
+Period_tag <- if (grepl("calibration", model_mode, ignore.case = TRUE)) {
   Period_log <- sapply(Calibration_dates, function(x) {
     if (Simulation_time_step > x[1] & Simulation_time_step <= x[2]) {
       TRUE
@@ -103,14 +103,14 @@ Period_tag <- if (grepl("calibration", Model_mode, ignore.case = TRUE)) {
   } else {
     Calibration_periods[Period_log == TRUE]
   }
-} else if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
+} else if (grepl("simulation", model_mode, ignore.case = TRUE)) {
   Calibration_periods[length(Calibration_periods)]
 }
 # The last clause covers when calibration is occuring between 2009 and 2018
 # and when the model is in simulation mode
 
 # create folder for saving prediction probability maps
-prob_map_folder <- paste0(wpath, "/Results/Pred_prob_maps/", Scenario_ID, "/", Simulation_ID, "/", Simulation_time_step)
+prob_map_folder <- paste0(wpath, "/Results/Pred_prob_maps/", scenario_id, "/", simulation_id, "/", Simulation_time_step)
 suppressWarnings(dir.create(prob_map_folder, recursive = TRUE))
 
 ### =========================================================================
@@ -148,14 +148,14 @@ names(LULC_data) <- LULC_labels_current
 # use model mode string to select correct folder
 
 # For calibration mode (matching on Period_tag)
-if (grepl("calibration", Model_mode, ignore.case = TRUE)) {
+if (grepl("calibration", model_mode, ignore.case = TRUE)) {
   SA_pred_stack <- readRDS(list.files("Data/Preds/Prepared/Stacks/Calibration", pattern = Period_tag, full.names = TRUE))
 } # close if statement calibration
 
 # For simulation mode
-if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
+if (grepl("simulation", model_mode, ignore.case = TRUE)) {
   # get file path by matching on scenario ID and time step
-  SA_pred_stack <- readRDS(list.files("Data/Preds/Prepared/Stacks/Simulation/SA_preds", pattern = paste0(Scenario_ID, "_", Simulation_time_step), full.names = TRUE))
+  SA_pred_stack <- readRDS(list.files("Data/Preds/Prepared/Stacks/Simulation/SA_preds", pattern = paste0(scenario_id, "_", Simulation_time_step), full.names = TRUE))
 } # close simulation if statement
 
 ### =========================================================================
@@ -166,7 +166,7 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
 # is nothing to be done
 
 # For simulation mode
-if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
+if (grepl("simulation", model_mode, ignore.case = TRUE)) {
   # create population data layer
   # subset current LULC to just urban cells
   Urban_rast <- Current_LULC == 10
@@ -235,10 +235,10 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
   # Our scenarios rely on specific population projects from FSO ("Ref", "High", "Low")
   # Identify which population scenario is required according to scenario being simulated
   Scenario_data_table <- openxlsx::read.xlsx("Tools/Scenario_specifications.xlsx", sheet = "Predictor_data")
-  Pop_scenario <- Scenario_data_table[Scenario_data_table$Scenario_ID == Scenario_ID, "FSO_pop_scenario"]
+  pop_scenario <- Scenario_data_table[Scenario_data_table$scenario_id == scenario_id, "FSO_pop_scenario"]
 
   # load correct sheet of future population predictions according to scenario
-  Pop_prediction_table <- openxlsx::read.xlsx("Data/Preds/Tools/Population_projections.xlsx", sheet = Pop_scenario)
+  Pop_prediction_table <- openxlsx::read.xlsx("Data/Preds/Tools/Population_projections.xlsx", sheet = pop_scenario)
 
   # loop over unique kanton numbers, rescale the predicted population percentages
   # and calculate the estimated population per municipality as a % of the cantonal total
@@ -292,7 +292,7 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
   })
 
   # create a folder path using simulation ID and time step
-  Dynamic_focal_folder_path <- paste0("Data/Preds/Prepared/Stacks/Simulation/NH_preds", "/", Scenario_ID, "/", Simulation_time_step)
+  Dynamic_focal_folder_path <- paste0("Data/Preds/Prepared/Stacks/Simulation/NH_preds", "/", scenario_id, "/", Simulation_time_step)
 
   # create directory
   dir.create(paste(wpath, Dynamic_focal_folder_path, sep = "/"), recursive = TRUE)
@@ -320,7 +320,7 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
     Nhood_rasters[Focal_name] <- Focal_layer
 
     # steps for saving of rasters if needed
-    # Focal_file_name <- paste(Scenario_ID, Simulation_time_step, Required_focals_details[i,]$active_lulc, "nhood", Focal_matrices[Required_focals_details[i,]$matrix_id], sep = "_")
+    # Focal_file_name <- paste(scenario_id, Simulation_time_step, Required_focals_details[i,]$active_lulc, "nhood", Focal_matrices[Required_focals_details[i,]$matrix_id], sep = "_")
     # Focal_full_path <- paste0(Dynamic_focal_folder_path, "/", Focal_file_name, ".grd") #create full folder path
     # writeRaster(Focal_layer, Focal_full_path ,datatype='INT2U', overwrite=TRUE) #save layer
   }
@@ -337,7 +337,7 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
 
 # Stack all rasters
 # For calibration mode
-if (grepl("calibration", Model_mode, ignore.case = TRUE)) {
+if (grepl("calibration", model_mode, ignore.case = TRUE)) {
   Trans_data_stack <- stack(LULC_data, SA_pred_stack)
   names(Trans_data_stack) <- c(names(LULC_data), names(SA_pred_stack@layers))
 } # close if statement calibration
@@ -345,7 +345,7 @@ if (grepl("calibration", Model_mode, ignore.case = TRUE)) {
 # For simulation mode
 # only stack the Nhood_rasters here because otherwise they were not included
 # in the upper stack function
-if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
+if (grepl("simulation", model_mode, ignore.case = TRUE)) {
   # load the raster of Bioregions
   Bioregion_rast <- raster("Data/Bioreg_CH/Bioreg_raster.gri")
   names(Bioregion_rast) <- "Bioregion"
@@ -384,8 +384,8 @@ rm(LULC_data, SA_pred_stack, Nhood_rasters, Trans_data_stack, xy_coordinates)
 Model_lookup <- xlsx::read.xlsx("Tools/Model_lookup.xlsx", sheetName = Period_tag)
 
 # if statement to remove transitions if they are being implemented deterministically
-if (grepl("simulation", Model_mode, ignore.case = TRUE) &
-  grepl("Y", Simulation_table$Deterministic_trans.string, ignore.case = TRUE)) {
+if (grepl("simulation", model_mode, ignore.case = TRUE) &
+  grepl("Y", Simulation_table$deterministic_trans.string, ignore.case = TRUE)) {
   # remove transitions with initial class == glacier
   Model_lookup <- Model_lookup[Model_lookup$Initial_LULC != "Glacier", ]
 } # close if statement
@@ -540,11 +540,11 @@ Raster_prob_values <- Raster_prob_values[order(Raster_prob_values$ID), ]
 ### H- Spatial manipulations of transition probabilities
 ### =========================================================================
 
-if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
+if (grepl("simulation", model_mode, ignore.case = TRUE)) {
   # Use function to perform manipulation of spatial transition probabilities
   # according to scenario-specific interventions
   Raster_prob_values <- lulcc.spatprobmanipulation(
-    Scenario_ID = Scenario_ID,
+    scenario_id = scenario_id,
     Raster_prob_values = Raster_prob_values,
     Simulation_time_step = paste(Simulation_time_step)
   )
@@ -554,7 +554,7 @@ if (grepl("simulation", Model_mode, ignore.case = TRUE)) {
   ### =========================================================================
 
   # load scenario specific index of glacial change locations for this time step
-  Glacier_index <- readRDS(file = list.files("Data/Glacial_change/Scenario_indices", full.names = TRUE, pattern = Scenario_ID))[, c("ID_loc", paste(Simulation_time_step))]
+  Glacier_index <- readRDS(file = list.files("Data/Glacial_change/Scenario_indices", full.names = TRUE, pattern = scenario_id))[, c("ID_loc", paste(Simulation_time_step))]
 
   # use cell IDs to add 0/1's to Prob_static column which is what glacier transitions too.
   Raster_prob_values[Raster_prob_values$ID %in% Glacier_index$ID_loc, "Prob_Static"] <- Glacier_index[, paste(Simulation_time_step)]

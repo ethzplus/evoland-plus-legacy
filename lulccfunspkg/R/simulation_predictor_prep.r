@@ -8,19 +8,19 @@
 
 # Supplied by master script only uncomment for testing
 # Predictor table file path
-# Pred_table_path <- "Tools/Predictor_table.xlsx"
+# pred_table_path <- "Tools/Predictor_table.xlsx"
 simulation_predictor_prep <- function() {
   # Load in the grid to use use for re-projecting the CRS and extent of predictor data
-  Ref_grid <- raster(Ref_grid_path)
+  Ref_grid <- raster(ref_grid_path)
 
   # Fetch simulation start and end times from simulation control table
-  Simulation_control <- read.csv(Sim_control_path)
-  Simulation_start <- min(Simulation_control$Scenario_start.real)
-  Simulation_end <- max(Simulation_control$Scenario_end.real)
-  Step_length <- unique(Simulation_control$Step_length.real)
+  Simulation_control <- read.csv(simctrl_tbl_path)
+  Simulation_start <- min(Simulation_control$scenario_start.real)
+  Simulation_end <- max(Simulation_control$scenario_end.real)
+  step_length <- unique(Simulation_control$step_length.real)
 
   # vector time steps for future predictions
-  Time_steps <- seq(Simulation_start, Simulation_end, Step_length)
+  Time_steps <- seq(Simulation_start, Simulation_end, step_length)
 
   # base dir for saving
   Prepared_layers_dir <- "Data/Preds/Prepared/Layers"
@@ -182,7 +182,7 @@ simulation_predictor_prep <- function() {
   # Subset to which econ scenarios are required for our scenarios
 
   # get names of required scenarios from simulation control table
-  Scenario_corr <- unique(Simulation_control$Econ_scenario.string)
+  Scenario_corr <- unique(Simulation_control$econ_scenario.string)
 
   # load shapefile of labour market regions
   LMR_shp <- sf::st_read("Data/Preds/Raw/CH_geoms/2022_GEOM_TK/03_ANAL/Gesamtfläche_gf/K4_amre_20180101_gf/K4amre_20180101gf_ch2007Poly.shp")
@@ -216,7 +216,7 @@ simulation_predictor_prep <- function() {
     # Calculate the average annual difference
     Region_values <- as.data.frame(Econ_dat %>% group_by(Agg_sec, Region_name, time) %>% # grouping
       dplyr::summarize(SumFTE = sum(EmpFTE)) %>% # sum over the economic activities
-      mutate(Avg_chg_FTE = (SumFTE - lag(SumFTE)) / Step_length)) %>% # calculate avg. annual change between time points
+      mutate(Avg_chg_FTE = (SumFTE - lag(SumFTE)) / step_length)) %>% # calculate avg. annual change between time points
       select(-(SumFTE))
 
     # remove incomplete rows (2020 time point)
@@ -562,10 +562,10 @@ simulation_predictor_prep <- function() {
   Future_pred_paths <- unlist(c(Future_FTE_file_paths, Prep_clim_vars_paths))
 
   # load the predictor table sheet for the most recent calibration period
-  Predictor_table <- read.xlsx(Pred_table_path, sheetName = "2009_2018")
+  Predictor_table <- read.xlsx(pred_table_path, sheetName = "2009_2018")
 
   # load the sheet of the scenario table for RCP designations
-  Scenario_RCPs <- unique(Simulation_control$Climate_scenario.string)
+  Scenario_RCPs <- unique(Simulation_control$climate_scenario.string)
 
   # filtering to static predictors
   Static_preds <- Predictor_table[Predictor_table$Static_or_dynamic == "static", ]
@@ -638,10 +638,10 @@ simulation_predictor_prep <- function() {
     # use if/else statement based on predictor category
     if (Dynamic_preds[i, "Predictor_category"] == "Climatic") {
       # socio_economic variables are for the period after that contained in the path
-      Period <- paste0(largest_year, "_", (largest_year + Step_length))
+      Period <- paste0(largest_year, "_", (largest_year + step_length))
     } else if (Dynamic_preds[i, "Predictor_category"] == "Socio_economic") {
       # socio_economic variables are for the period express in the path
-      Period <- paste0((largest_year - Step_length), "_", largest_year)
+      Period <- paste0((largest_year - step_length), "_", largest_year)
     }
     return(Period)
   })
@@ -657,7 +657,7 @@ simulation_predictor_prep <- function() {
 
   # loop over time steps binding static and dynamic preds
   Combined_vars_for_time_steps <- sapply(Time_steps, function(sim_year) {
-    sim_period <- paste0(sim_year, "_", sim_year + Step_length)
+    sim_period <- paste0(sim_year, "_", sim_year + step_length)
 
     # subset dynamic variables to the current time_period
     # Dynamic_preds <- Dynamic_preds[sapply(Dynamic_preds$period, function(data_period){
@@ -673,7 +673,7 @@ simulation_predictor_prep <- function() {
   names(Combined_vars_for_time_steps) <- Time_steps
 
   # load predictor_table as workbook to add sheets
-  pred_workbook <- openxlsx::loadWorkbook(file = Pred_table_path)
+  pred_workbook <- openxlsx::loadWorkbook(file = pred_table_path)
 
   # loop over time steps adding sheets and adding the predictors to them
   for (i in Time_steps) {
@@ -683,5 +683,5 @@ simulation_predictor_prep <- function() {
   }
 
   # save workbook
-  openxlsx::saveWorkbook(pred_workbook, Pred_table_path, overwrite = TRUE)
+  openxlsx::saveWorkbook(pred_workbook, pred_table_path, overwrite = TRUE)
 }

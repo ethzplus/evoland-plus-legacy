@@ -12,8 +12,8 @@ transition_identification <- function() {
 
   # Variables defined externally (not in this script):
   # LULC_aggregation_path (path to LULC_classes.xlsx)
-  # Step_length (numeric; duration of time steps, e.g. 4)
-  # Inclusion_thres (numeric; minimum % threshold for transition inclusion)
+  # step_length (numeric; duration of time steps, e.g. 4)
+  # inclusion_thres (numeric; minimum % threshold for transition inclusion)
   # Threshold for identifying transitions: This represents the number of transition
   # instances from class X -> Y as a % of the the total area of class X a good
   # value for this threshold is 0.5 such that if the number of cells transitioning
@@ -43,7 +43,7 @@ transition_identification <- function() {
     trans_rates_dir <- "Data/Transition_tables/raw_trans_tables"
     # Vector duration of time steps to be used in modelling
     # Provided from master script
-    # Step_length <- 5
+    # step_length <- 5
     dir.create(trans_rates_dir, recursive = TRUE, showWarnings = FALSE)
 
     ### =========================================================================
@@ -112,7 +112,7 @@ transition_identification <- function() {
 
     # instantiate function to produce raw, single step and multistep
     # net percentage transition tables and save each to file
-    lulcc.periodictransmatrices <- function(Raster_combo, Raster_stack, period_name, Step_length) {
+    lulcc.periodictransmatrices <- function(Raster_combo, Raster_stack, period_name, step_length) {
       # Extract rasters by year
       r1 <- Raster_stack[[grep(Raster_combo[1], names(Raster_stack))]]
       r2 <- Raster_stack[[grep(Raster_combo[2], names(Raster_stack))]]
@@ -145,7 +145,7 @@ transition_identification <- function() {
 
       # Multi-step calculation
       Period_length <- as.numeric(Raster_combo[2]) - as.numeric(Raster_combo[1])
-      Num_steps <- ceiling(Period_length / Step_length)
+      Num_steps <- ceiling(Period_length / step_length)
 
       perchange_for_period_multistep <- perchange_for_period
       perchange_for_period_multistep$Rate <- perchange_for_period_multistep$Rate / Num_steps
@@ -159,7 +159,7 @@ transition_identification <- function() {
     mapply(lulcc.periodictransmatrices,
       Raster_combo = LULC_change_periods,
       period_name = names(LULC_change_periods),
-      MoreArgs = list(Raster_stack = LULC_rasters, Step_length = Step_length),
+      MoreArgs = list(Raster_stack = LULC_rasters, step_length = step_length),
       SIMPLIFY = FALSE
     )
 
@@ -170,7 +170,7 @@ transition_identification <- function() {
 
     # vector inclusion threshold (minimum % of total transitions deemed acceptable for modelling)
     # Provided from master script
-    # Inclusion_thres <- 0.5
+    # inclusion_thres <- 0.5
 
     # Load single-step net transition tables produced for historic periods
     Calibration_singlestep_tables <- lapply(list.files(trans_rates_dir, full.names = TRUE, pattern = "singlestep"), read.csv)
@@ -185,7 +185,7 @@ transition_identification <- function() {
       x$Trans_name <- paste(x$Initial_class, x$Final_class, sep = "_")
 
       # Subset by inclusion threshold
-      x <- x[x$Rate * 100 >= Inclusion_thres, ]
+      x <- x[x$Rate * 100 >= inclusion_thres, ]
 
       # Subset by transitions from non-static classes
       x <- x[x$Initial_class != "Static", ]

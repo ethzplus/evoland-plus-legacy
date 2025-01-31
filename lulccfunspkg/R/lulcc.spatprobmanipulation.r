@@ -4,7 +4,7 @@
 #' interventions/policies/management activities
 #' Date: 17-03-2023
 #'
-#' @param Scenario_ID Chr, abbreviation of current scenario
+#' @param scenario_id Chr, abbreviation of current scenario
 #' @param Raster_prob_values Dataframe, predicted cellular transitions
 #'                            probabilities with x,y and cell ID cols
 #' @param Simulation_time_step Chr, current simultion time step
@@ -14,7 +14,7 @@
 #'
 
 lulcc.spatprobmanipulation <- function(Interventions,
-                                       Scenario_ID,
+                                       scenario_id,
                                        Raster_prob_values,
                                        Simulation_time_step) {
   # vector names of columns of probability predictions (matching on Prob_)
@@ -24,45 +24,45 @@ lulcc.spatprobmanipulation <- function(Interventions,
   Prob_raster_stack <- stack(lapply(Pred_prob_columns, function(x) rasterFromXYZ(Raster_prob_values[, c("x", "y", x)])))
   names(Prob_raster_stack@layers) <- Pred_prob_columns
 
-  # convert Time_step and Target_classes columns back to character vectors
-  Interventions$Time_step <- sapply(Interventions$Time_step, function(x) {
+  # convert time_step and target_classes columns back to character vectors
+  Interventions$time_step <- sapply(Interventions$time_step, function(x) {
     x <- str_remove_all(x, " ")
     rep <- unlist(strsplit(x, ","))
   }, simplify = FALSE)
 
-  Interventions$Target_classes <- sapply(Interventions$Target_classes, function(x) {
+  Interventions$target_classes <- sapply(Interventions$target_classes, function(x) {
     x <- str_remove_all(x, " ")
     rep <- unlist(strsplit(x, ","))
   }, simplify = FALSE)
 
   # subset interventions to scenario
-  Scenario_interventions <- Interventions[Interventions$Scenario_ID == Scenario_ID, ]
+  Scenario_interventions <- Interventions[Interventions$scenario_id == scenario_id, ]
 
   # subset to interventions for current time point
-  Time_step_rows <- sapply(Scenario_interventions$Time_step, function(x) any(grepl(Simulation_time_step, x)))
+  Time_step_rows <- sapply(Scenario_interventions$time_step, function(x) any(grepl(Simulation_time_step, x)))
   Current_interventions <- Scenario_interventions[Time_step_rows, ]
 
   # loop over rows
   if (nrow(Current_interventions) != 0) {
     for (i in nrow(Current_interventions)) {
       # vector intervention details for easy reference
-      Intervention_ID <- Current_interventions[i, "Intervention_ID"]
-      Target_classes <- paste0("Prob_", Current_interventions[[i, "Target_classes"]])
-      Intervention_data <- Current_interventions[i, "Intervention_data"]
+      intervention_id <- Current_interventions[i, "intervention_id"]
+      target_classes <- paste0("Prob_", Current_interventions[[i, "target_classes"]])
+      intervention_data <- Current_interventions[i, "intervention_data"]
 
       # if Perc_diff is too small then the effect will likely not be achieved
       # to mitigate use a threshold of minimum probability perturbation
-      Prob_perturb_thresh <- as.numeric(Current_interventions[i, "Prob_perturb_threshold"])
+      Prob_perturb_thresh <- as.numeric(Current_interventions[i, "prob_perturb_threshold"])
 
       #--------------------------------------------------------------------------
       # Urban_densification intervention
       #--------------------------------------------------------------------------
-      if (Intervention_ID == "Urban_densification") {
+      if (intervention_id == "Urban_densification") {
         # load building zone raster
-        Intervention_rast <- raster(Intervention_data)
+        Intervention_rast <- raster(intervention_data)
 
         # identify pixels inside of building zones
-        Intersecting <- mask(Prob_raster_stack@layers[[Target_classes]], Intervention_rast == 1)
+        Intersecting <- mask(Prob_raster_stack@layers[[target_classes]], Intervention_rast == 1)
 
         # increase probability to one
         Intersecting[Intersecting > 0] <- 1
@@ -71,22 +71,22 @@ lulcc.spatprobmanipulation <- function(Interventions,
         ix <- Intersecting == 1
 
         # replace values in target raster
-        Prob_raster_stack@layers[[Target_classes]][ix] <- Intersecting[ix]
+        Prob_raster_stack@layers[[target_classes]][ix] <- Intersecting[ix]
       } # close Urban_densification chunk
 
 
       #--------------------------------------------------------------------------
       # Urban_sprawl intervention
       #--------------------------------------------------------------------------
-      if (Intervention_ID == "Urban_sprawl") {
+      if (intervention_id == "Urban_sprawl") {
         # load building zone raster
-        Intervention_rast <- raster(Intervention_data)
+        Intervention_rast <- raster(intervention_data)
 
         # identify pixels inside of building zones
-        Intersecting <- mask(Prob_raster_stack@layers[[Target_classes]], Intervention_rast == 1)
+        Intersecting <- mask(Prob_raster_stack@layers[[target_classes]], Intervention_rast == 1)
 
         # identify pixels outside of building zones
-        non_intersecting <- overlay(Prob_raster_stack@layers[[Target_classes]], Intervention_rast, fun = function(x, y) {
+        non_intersecting <- overlay(Prob_raster_stack@layers[[target_classes]], Intervention_rast, fun = function(x, y) {
           x[y == 1] <- NA
           return(x)
         })
@@ -131,8 +131,8 @@ lulcc.spatprobmanipulation <- function(Interventions,
           ix <- non_intersecting > Nonintersect_percentile
 
           # replace values in target raster
-          Prob_raster_stack@layers[[Target_classes]][ix] <- non_intersecting[ix]
-          positive_test <- Prob_raster_stack@layers[[Target_classes]]
+          Prob_raster_stack@layers[[target_classes]][ix] <- non_intersecting[ix]
+          positive_test <- Prob_raster_stack@layers[[target_classes]]
 
           # else if Perc_diff is <0 then decrease the probability of instances above the
           # 90th percentile for the inside pixels by the percentage difference
@@ -152,17 +152,17 @@ lulcc.spatprobmanipulation <- function(Interventions,
           ix <- Intersecting > Intersect_percentile
 
           # replace values in target raster
-          Prob_raster_stack@layers[[Target_classes]][ix] <- Intersecting[ix]
-          negative_test <- Prob_raster_stack@layers[[Target_classes]]
+          Prob_raster_stack@layers[[target_classes]][ix] <- Intersecting[ix]
+          negative_test <- Prob_raster_stack@layers[[target_classes]]
         } # close else if statement
       } # close Urban_sprawl chunk
 
       #--------------------------------------------------------------------------
       # Urban_migration intervention
       #--------------------------------------------------------------------------
-      if (Intervention_ID == "Urban_migration") {
+      if (intervention_id == "Urban_migration") {
         # load municipality typology raster
-        Intervention_rast <- raster(Intervention_data)
+        Intervention_rast <- raster(intervention_data)
 
         # seperate raster legend and recode values for remote rural municaplities
         # for this intervention: 325, 326, 327, 335, 338
@@ -175,10 +175,10 @@ lulcc.spatprobmanipulation <- function(Interventions,
         Intervention_rast <- reclassify(Intervention_rast, rcl = Leg)
 
         # identify pixels inside of remote rural municipalities
-        Intersecting <- mask(Prob_raster_stack@layers[[Target_classes]], Intervention_rast == 1)
+        Intersecting <- mask(Prob_raster_stack@layers[[target_classes]], Intervention_rast == 1)
 
         # identify pixels outside of remote rural municipalities
-        non_intersecting <- overlay(Prob_raster_stack@layers[[Target_classes]], Intervention_rast, fun = function(x, y) {
+        non_intersecting <- overlay(Prob_raster_stack@layers[[target_classes]], Intervention_rast, fun = function(x, y) {
           x[y == 1] <- NA
           return(x)
         })
@@ -222,7 +222,7 @@ lulcc.spatprobmanipulation <- function(Interventions,
           ix <- Intersecting > Intersect_percentile
 
           # replace values in target raster
-          Prob_raster_stack@layers[[Target_classes]][ix] <- Intersecting[ix]
+          Prob_raster_stack@layers[[target_classes]][ix] <- Intersecting[ix]
 
           # else if Perc_diff is >0 then increase the probability of instances above the
           # 90th percentile for the outside pixels by the percentage difference
@@ -242,16 +242,16 @@ lulcc.spatprobmanipulation <- function(Interventions,
           ix <- non_intersecting > Nonintersect_percentile
 
           # replace values in target raster
-          Prob_raster_stack@layers[[Target_classes]][ix] <- non_intersecting[ix]
+          Prob_raster_stack@layers[[target_classes]][ix] <- non_intersecting[ix]
         } # close else if statement
       } # close Urban_migration chunk
 
       #--------------------------------------------------------------------------
       # Mountain_development intervention
       #--------------------------------------------------------------------------
-      if (Intervention_ID == "Mountain_development") {
+      if (intervention_id == "Mountain_development") {
         # load municipality typology raster
-        Intervention_rast <- raster(Intervention_data)
+        Intervention_rast <- raster(intervention_data)
 
         # seperate raster legend and recode values for remote rural municaplities
         Leg <- Intervention_rast@data@attributes[[1]]
@@ -259,9 +259,9 @@ lulcc.spatprobmanipulation <- function(Interventions,
         # For this intervention there are two different specs for scenarios
         # EI_NAT: 314
         # EI_SOC: 314,334
-        if (Scenario_ID == "EI_NAT") {
+        if (scenario_id == "EI_NAT") {
           Leg[Leg$ID == 314, "type"] <- 1
-        } else if (Scenario_ID == "EI_SOC") {
+        } else if (scenario_id == "EI_SOC") {
           Leg[Leg$ID %in% c(314, 334), "type"] <- 1
         }
 
@@ -272,10 +272,10 @@ lulcc.spatprobmanipulation <- function(Interventions,
         Intervention_rast <- reclassify(Intervention_rast, rcl = Leg)
 
         # identify pixels inside of mountainous remote municipalities
-        Intersecting <- mask(Prob_raster_stack@layers[[Target_classes]], Intervention_rast == 1)
+        Intersecting <- mask(Prob_raster_stack@layers[[target_classes]], Intervention_rast == 1)
 
         # identify pixels outside of mountainous remote municipalities
-        non_intersecting <- overlay(Prob_raster_stack@layers[[Target_classes]], Intervention_rast, fun = function(x, y) {
+        non_intersecting <- overlay(Prob_raster_stack@layers[[target_classes]], Intervention_rast, fun = function(x, y) {
           x[y == 1] <- NA
           return(x)
         })
@@ -320,7 +320,7 @@ lulcc.spatprobmanipulation <- function(Interventions,
           ix <- Intersecting > Intersect_percentile
 
           # replace values in target raster
-          Prob_raster_stack@layers[[Target_classes]][ix] <- Intersecting[ix]
+          Prob_raster_stack@layers[[target_classes]][ix] <- Intersecting[ix]
 
 
           # else if Perc_diff is >0 then increase the probability of instances above the
@@ -341,16 +341,16 @@ lulcc.spatprobmanipulation <- function(Interventions,
           ix <- non_intersecting > Nonintersect_percentile
 
           # replace values in target raster
-          Prob_raster_stack@layers[[Target_classes]][ix] <- non_intersecting[ix]
+          Prob_raster_stack@layers[[target_classes]][ix] <- non_intersecting[ix]
         } # close else if statement
       } # close Mountain_development chunk
 
       #--------------------------------------------------------------------------
       # Rural_migration intervention
       #--------------------------------------------------------------------------
-      if (Intervention_ID == "Rural_migration") {
+      if (intervention_id == "Rural_migration") {
         # load municipality typology raster
-        Intervention_rast <- raster(Intervention_data)
+        Intervention_rast <- raster(intervention_data)
 
         # seperate raster legend and recode values for remote rural municaplities
         Leg <- Intervention_rast@data@attributes[[1]]
@@ -362,10 +362,10 @@ lulcc.spatprobmanipulation <- function(Interventions,
         Intervention_rast <- reclassify(Intervention_rast, rcl = Leg)
 
         # identify pixels inside of remote rural municipalities
-        Intersecting <- mask(Prob_raster_stack@layers[[Target_classes]], Intervention_rast == 1)
+        Intersecting <- mask(Prob_raster_stack@layers[[target_classes]], Intervention_rast == 1)
 
         # identify pixels outside of remote rural municipalities
-        non_intersecting <- overlay(Prob_raster_stack@layers[[Target_classes]], Intervention_rast, fun = function(x, y) {
+        non_intersecting <- overlay(Prob_raster_stack@layers[[target_classes]], Intervention_rast, fun = function(x, y) {
           x[y == 1] <- NA
           return(x)
         })
@@ -410,7 +410,7 @@ lulcc.spatprobmanipulation <- function(Interventions,
           ix <- Intersecting > Intersect_percentile
 
           # replace values in target raster
-          Prob_raster_stack@layers[[Target_classes]][ix] <- Intersecting[ix]
+          Prob_raster_stack@layers[[target_classes]][ix] <- Intersecting[ix]
 
 
           # else if Perc_diff is <0 then increase the probability of instances above the
@@ -431,7 +431,7 @@ lulcc.spatprobmanipulation <- function(Interventions,
           ix <- non_intersecting > Nonintersect_percentile
 
           # replace values in target raster
-          Prob_raster_stack@layers[[Target_classes]][ix] <- non_intersecting[ix]
+          Prob_raster_stack@layers[[target_classes]][ix] <- non_intersecting[ix]
         } # close else if statement
       } # close Rural_migration chunk
 
@@ -439,7 +439,7 @@ lulcc.spatprobmanipulation <- function(Interventions,
       # Agri_abandonment intervention
       #--------------------------------------------------------------------------
 
-      if (Intervention_ID == "Agri_abandonment") {
+      if (intervention_id == "Agri_abandonment") {
         # The predicted probability of cells to transition from agriculture to other
         # LULC classes already uses accessibility based predictors such as
         # distance to roads/slope however other variables e.g climaticor soil may be having
@@ -520,7 +520,7 @@ lulcc.spatprobmanipulation <- function(Interventions,
         marginal_index[marginal_index == 0] <- NA
 
         # loop over target classes gathering probability values for marginal vs. non-marginal cells
-        for (class in Target_classes) {
+        for (class in target_classes) {
           # calculate the 90th percentile value of probability of transition to the
           # target class in the marginal agricultural cells vs. non-marginal
           marginal_cells <- Prob_raster_stack@layers[[class]][marginal_index]
@@ -561,7 +561,7 @@ lulcc.spatprobmanipulation <- function(Interventions,
       # Agri_maintenance intervention
       #--------------------------------------------------------------------------
 
-      if (Intervention_ID == "Agri_maintenance") {
+      if (intervention_id == "Agri_maintenance") {
         # Use the same approach as the Agri_abandonment intervention to identify
         # most marginal agricultural pixels and decrease their probability of
         # transitioning to the target classes (i.e. away from agriculture)
@@ -637,7 +637,7 @@ lulcc.spatprobmanipulation <- function(Interventions,
         marginal_index[marginal_index == 0] <- NA
 
         # loop over target classes gathering probability values for marginal vs. non-marginal cells
-        for (class in Target_classes) {
+        for (class in target_classes) {
           # calculate the 90th percentile value of probability of transition to the
           # target class in the marginal agricultural cells vs. non-marginal
           marginal_cells <- Prob_raster_stack@layers[[class]][marginal_index]
@@ -663,16 +663,16 @@ lulcc.spatprobmanipulation <- function(Interventions,
       # Protection intervention
       #--------------------------------------------------------------------------
 
-      if (Intervention_ID == "Protection") {
+      if (intervention_id == "Protection") {
         # Load intervention raster
-        Intervention_rast <- raster(str_replace(Intervention_data, "X", Simulation_time_step))
+        Intervention_rast <- raster(str_replace(intervention_data, "X", Simulation_time_step))
 
         # loop over target classes
-        for (class in Target_classes) {
+        for (class in target_classes) {
           # identify pixels of target class inside of protected areas
           Intersecting <- raster::mask(Prob_raster_stack@layers[[class]], Intervention_rast == 1)
 
-          if (Scenario_ID == "EI_NAT" || Scenario_ID == "EI_SOC") {
+          if (scenario_id == "EI_NAT" || scenario_id == "EI_SOC") {
             # decrease probability to zero
             Intersecting[Intersecting > 0] <- 0
 
@@ -681,7 +681,7 @@ lulcc.spatprobmanipulation <- function(Interventions,
 
             # replace values in target raster
             Prob_raster_stack@layers[[class]][ix] <- Intersecting[ix]
-          } else if (Scenario_ID == "EI_CUL") {
+          } else if (scenario_id == "EI_CUL") {
             # identify pixels outside of PAs
             non_intersecting <- overlay(Prob_raster_stack@layers[[class]], Intervention_rast, fun = function(x, y) {
               x[y == 1] <- NA

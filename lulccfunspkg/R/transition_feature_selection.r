@@ -10,16 +10,16 @@
 ### =========================================================================
 transition_feature_selection <- function() {
   # Import model specifications table
-  model_specs <- readxl::read_excel(Model_specs_path)
+  model_specs <- readxl::read_excel(model_specs_path)
 
   # Filter for models with feature selection required
   Filtering_required <- model_specs %>%
     dplyr::filter(Feature_selection_employed == "TRUE") %>%
-    dplyr::group_by(Model_scale) %>%
-    dplyr::distinct(Data_period_name)
+    dplyr::group_by(model_scale) %>%
+    dplyr::distinct(data_period_name)
 
   # Add tag column
-  Filtering_required$tag <- paste0(Filtering_required$Data_period_name, "_", Filtering_required$Model_scale)
+  Filtering_required$tag <- paste0(Filtering_required$data_period_name, "_", Filtering_required$model_scale)
 
   # Split into named list
   Datasets_for_PS <- split(Filtering_required, seq(nrow(Filtering_required)))
@@ -43,7 +43,7 @@ transition_feature_selection <- function() {
   ), function(x) dir.create(x, recursive = TRUE, showWarnings = FALSE))
 
   # Predictor table file path (received from output_env, only uncomment here for testing)
-  # Pred_table_path <- "Tools/Predictor_table.xlsx"
+  # pred_table_path <- "Tools/Predictor_table.xlsx"
 
   ### =========================================================================
   ### B- Perform Feature Selection
@@ -55,12 +55,12 @@ transition_feature_selection <- function() {
     ### A- Preparation
     ### =========================================================================
 
-    Data_period <- Dataset_details$Data_period_name
+    Data_period <- Dataset_details$data_period_name
     Dataset_scale <- Dataset_details$model_scale
 
     # Load the predictor data table that will be used to identify the categories of covariates
     # and perform collinearity testing seperately
-    Predictor_table <- openxlsx::read.xlsx(Pred_table_path, sheet = Data_period)
+    Predictor_table <- openxlsx::read.xlsx(pred_table_path, sheet = Data_period)
 
     # vector file paths for the data for the period specified
     Data_paths <- list.files(paste0(Pre_PS_folder, "/", Data_period), pattern = Dataset_scale, full.names = TRUE)

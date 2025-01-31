@@ -149,13 +149,13 @@ mapply(function(model_table, model_name) write.xlsx(model_table, file = "Tools/M
 ### =========================================================================
 
 # vector abbreviations of scenario's for folder/file naming
-Scenario_names <- c("BIOPRO", "DIV", "SHAD", "BAU", "FUTEI")
+scenario_names <- c("BIOPRO", "DIV", "SHAD", "BAU", "FUTEI")
 
 # base folder for creating scenario specifci folders
 base_trans_table_folder <- "Data/Transition_tables/prepared_trans_tables/"
 
 # loop over scenario names creating folders for each in base folder
-sapply(Scenario_names, function(x) {
+sapply(scenario_names, function(x) {
   dir.create(paste0(base_trans_table_folder, x), recursive = TRUE)
 })
 
@@ -165,12 +165,12 @@ sapply(Scenario_names, function(x) {
 
 # earliest possible model start time is 1985 and end time is 2060
 # we have initially agreed to use 5 year time steps
-Scenario_start <- 1985
-Scenario_end <- 2060
-Step_length <- 5
+scenario_start <- 1985
+scenario_end <- 2060
+step_length <- 5
 
 # vector sequence of time points and suffix
-Time_steps <- paste0("trans_table_", seq(Scenario_start, Scenario_end, Step_length))
+Time_steps <- paste0("trans_table_", seq(scenario_start, scenario_end, step_length))
 
 # These time points and suffixes can be used to name trans tables in a loop over scenarios
 

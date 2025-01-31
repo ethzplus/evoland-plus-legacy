@@ -16,22 +16,22 @@ LULCC_M_CAL_PARAM_DIR <- "Data/Allocation_parameters/Calibration"
 LULCC_M_SIM_PARAM_DIR <- "Data/Allocation_parameters/Simulation"
 LULCC_M_RATE_TABLE_DIR <- "Data/Transition_tables/prepared_trans_tables"
 LULCC_M_SIM_CONTROL_TABLE <- "Tools/Simulation_control.csv"
-LULCC_M_SPAT_INTS_TABLE <- "Tools/Spatial_interventions.csv"
+LULCC_M_SPAT_INTS_TABLE <- "Tools/spatial_interventions.csv"
 LULCC_M_EI_INTS_TABLE <- "Tools/EI_interventions.csv"
 
 # Created list of environment variables with names used in R scripts
 Env_var_key <- list(
   "LULCC_M_WORK_DIR" = "wpath", # Working directory
   "LULCC_M_CLASS_AGG" = "LULC_aggregation_path", # Path to LULC class aggregation table
-  "LULCC_M_SPEC" = "Model_specs_path", # Path to model specifications table
-  "LULCC_M_PARAM_GRID" = "Param_grid_path", # Path to model hyper parameter grids
-  "LULCC_M_PRED_TABLE" = "Pred_table_path", # Path to predictor table
-  "LULCC_M_REF_GRID" = "Ref_grid_path", # Path to reference raster
-  "LULCC_M_CAL_PARAM_DIR" = "Calibration_param_dir", # Path to calibration parameter directory
-  "LULCC_M_SIM_PARAM_DIR" = "Simulation_param_dir", # Path to simulation parameter directory
-  "LULCC_M_RATE_TABLE_DIR" = "Trans_rate_table_dir", # Path to transition rate table directory
-  "LULCC_M_SIM_CONTROL_TABLE" = "Sim_control_path", # Path to simulation control table
-  "LULCC_M_SPAT_INTS_TABLE" = "Spat_ints_path", # Path to spatial interventions table
+  "LULCC_M_SPEC" = "model_specs_path", # Path to model specifications table
+  "LULCC_M_PARAM_GRID" = "param_grid_path", # Path to model hyper parameter grids
+  "LULCC_M_PRED_TABLE" = "pred_table_path", # Path to predictor table
+  "LULCC_M_REF_GRID" = "ref_grid_path", # Path to reference raster
+  "LULCC_M_CAL_PARAM_DIR" = "calibration_param_dir", # Path to calibration parameter directory
+  "LULCC_M_SIM_PARAM_DIR" = "simulation_param_dir", # Path to simulation parameter directory
+  "LULCC_M_RATE_TABLE_DIR" = "trans_rate_table_dir", # Path to transition rate table directory
+  "LULCC_M_SIM_CONTROL_TABLE" = "simctrl_tbl_path", # Path to simulation control table
+  "LULCC_M_SPAT_INTS_TABLE" = "spat_ints_path", # Path to spatial interventions table
   "LULCC_M_EI_INTS_TABLE" = "EI_ints_path"
 ) # Path to EI interventions table
 

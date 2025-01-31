@@ -46,8 +46,8 @@ lulccfunspkg::transition_modelling()
 
 # adjust contents of model_specs table to only optimal specifcations
 lulccfunspkg::lulcc.finalisemodelspecifications(
-  Model_specs_path = Model_specs_path,
-  Param_grid_path = Param_grid_path
+  model_specs_path = model_specs_path,
+  param_grid_path = param_grid_path
 )
 
 # H- Re-fitting optimal model specifications on full data
