@@ -9,11 +9,16 @@ Authors@R:
 Description: Gather land use / land cover related functions inherited from LULCC-CH.
 License: file LICENSE
 Imports:
-    rstudioapi,
-    trackdown,
-    tools,
-    quarto,
-    magrittr
+    ROCR,
+    corrplot,
+    dplyr,
+    magrittr,
+    methods,
+    openxlsx,
+    parallel,
+    raster,
+    stringr,
+    zen4R
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2

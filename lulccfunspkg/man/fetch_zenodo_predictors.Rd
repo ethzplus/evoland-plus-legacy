@@ -4,7 +4,10 @@
 \alias{fetch_zenodo_predictors}
 \title{Get predictor data from Zenodo}
 \usage{
-fetch_zenodo_predictors(doi = "10.5281/zenodo.8263509")
+fetch_zenodo_predictors(
+  url = "https://zenodo.org/records/8263509/files/LULCC_CH_dat.zip",
+  target_dir = "data/raw/"
+)
 }
 \arguments{
 \item{DOI}{which identifier to use}

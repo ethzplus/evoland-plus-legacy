@@ -1,7 +1,11 @@
-#' Dinamica Check
+#' Dinamica Utility Functions
 #'
-#' From master lulcc: make sure dinamica is available
+#' Various functions to interact with Dinamica from R
 #'
+#' @name dinamica_utils
+NULL
+
+#' @describeIn dinamica_utils Check Dinamica is installed
 #' @export
 
 check_dinamica <- function() {
@@ -13,6 +17,7 @@ check_dinamica <- function() {
   stop("This doesn't do anything yet")
 }
 
+#' @describeIn dinamica_utils Get Dinamica path
 #' @export
 get_dinamica_path <- function() {
   return("C:\\Program Files\\Dinamica EGO 7\\DinamicaConsole7.exe")

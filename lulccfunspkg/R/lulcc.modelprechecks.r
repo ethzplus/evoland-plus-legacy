@@ -304,7 +304,7 @@ lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
     viable_trans_list <- viable_trans_lists[[Period]]
 
     # load model look up table
-    Model_lookup <- xlsx::read.xlsx("Tools/Model_lookup.xlsx", sheetName = Period)
+    Model_lookup <- openxlsx::read.xlsx("Tools/Model_lookup.xlsx", sheet = Period)
 
     # vector unique trans IDs
     unique_trans_IDs <- sort(unique(Model_lookup$Trans_ID))
