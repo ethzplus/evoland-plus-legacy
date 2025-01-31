@@ -6,13 +6,13 @@
 \usage{
 lulcc.spatprobmanipulation(
   Interventions,
-  Scenario_ID,
+  scenario_id,
   Raster_prob_values,
   Simulation_time_step
 )
 }
 \arguments{
-\item{Scenario_ID}{Chr, abbreviation of current scenario}
+\item{scenario_id}{Chr, abbreviation of current scenario}
 
 \item{Raster_prob_values}{Dataframe, predicted cellular transitions
 probabilities with x,y and cell ID cols}

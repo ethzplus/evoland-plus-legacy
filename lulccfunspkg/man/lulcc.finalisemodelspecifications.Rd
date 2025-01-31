@@ -4,12 +4,12 @@
 \alias{lulcc.finalisemodelspecifications}
 \title{lulcc.finalisemodelspecifications}
 \usage{
-lulcc.finalisemodelspecifications(Model_specs_path, Param_grid_path)
+lulcc.finalisemodelspecifications(model_specs_path, param_grid_path)
 }
 \arguments{
-\item{Model_specs_path}{Character, file path for table of model specifications}
+\item{model_specs_path}{Character, file path for table of model specifications}
 
-\item{Param_grid_path}{Character, file path for grid of hyperparameters}
+\item{param_grid_path}{Character, file path for grid of hyperparameters}
 }
 \description{
 Enter optimal model specification and parameters for prediction

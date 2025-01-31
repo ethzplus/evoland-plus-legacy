@@ -6,11 +6,13 @@
 \usage{
 fetch_zenodo_predictors(
   url = "https://zenodo.org/records/8263509/files/LULCC_CH_dat.zip",
-  target_dir = "data/raw/"
+  target_dir = "data/preds/"
 )
 }
 \arguments{
-\item{DOI}{which identifier to use}
+\item{url}{The url of the zip to fetch}
+
+\item{target_dir}{The dir in which to depose the data}
 }
 \description{
 This fetches predictor data from a very specifically structured Zenodo repo, namely

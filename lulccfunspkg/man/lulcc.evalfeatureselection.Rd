@@ -6,7 +6,7 @@
 \usage{
 lulcc.evalfeatureselection(
   Predictor_table_path,
-  Data_period_name,
+  data_period_name,
   Dataset_scale,
   Pre_FS_folder,
   FS_results_folder,
@@ -14,7 +14,7 @@ lulcc.evalfeatureselection(
 )
 }
 \arguments{
-\item{Data_period_name}{Character name of dataset period to be used in file saving.}
+\item{data_period_name}{Character name of dataset period to be used in file saving.}
 
 \item{Dataset_scale}{Character, scale of datasets to be used in file saving.}
 

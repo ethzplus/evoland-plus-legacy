@@ -4,11 +4,14 @@
 \alias{dinamica_utils}
 \alias{check_dinamica}
 \alias{get_dinamica_path}
+\alias{run_dinamica_sims}
 \title{Dinamica Utility Functions}
 \usage{
 check_dinamica()
 
 get_dinamica_path()
+
+run_dinamica_sims()
 }
 \description{
 Various functions to interact with Dinamica from R
@@ -18,5 +21,7 @@ Various functions to interact with Dinamica from R
 \item \code{check_dinamica()}: Check Dinamica is installed
 
 \item \code{get_dinamica_path()}: Get Dinamica path
+
+\item \code{run_dinamica_sims()}: Run a dinamica simulation set
 
 }}

@@ -5,7 +5,7 @@
 \title{lulcc.improvetransareadistrib}
 \usage{
 lulcc.projectedclassareasmismatch(
-  Scenario_names,
+  scenario_names,
   Scenario_trans_area_tables,
   Scenario_class_area_tables,
   Sim_time_steps,
