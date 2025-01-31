@@ -3,80 +3,46 @@
 #' This fetches predictor data from a very specifically structured Zenodo repo, namely
 #' like <https://doi.org/10.5281/zenodo.8263509>
 #'
-#' @param DOI which identifier to use
+#' @param url The url of the zip to fetch
+#' @param target_dir The dir in which to depose the data
 #'
 #' @export
 
-fetch_zenodo_predictors <- function(doi = "10.5281/zenodo.8263509") {
-  # connect to Zenodo API
-  zenodo <- zen4r::ZenodoManager$new()
+fetch_zenodo_predictors <- function(
+    url = "https://zenodo.org/records/8263509/files/LULCC_CH_dat.zip",
+    target_dir = "data/preds/") {
+  # WONTFIX currently, the raw data resides at the zenodo record, which will stay about
+  # as persistent as a DOI based lookup. We need to make assumptions about the data
+  # structure anyways, so let's stick with this.
+  # WONTFIX no2 the zip file is corrupted on zenodo, so you need to locally fix it using
+  # zip -FF infile.zip --out outfile.zip
 
-  # Get record info
-  # TODO: won't work until record is made open access
-  rec <- zenodo$getRecordByDOI(doi)
-  files <- rec$listFiles(pretty = TRUE)
-  files <- my_rec$listFiles(pretty = TRUE)
-
-  # increase timeout limit for downloading file
-  options(timeout = 6000)
-
-  # create a temporary directory to store the zipped file
-  tmpdir <- tempdir()
-
-  # Download to tmpdir
-  my_rec$downloadFiles(path = tmpdir)
-  download.file(files$download, paste0(tmpdir, "/", files$filename), mode = "wb")
-
-  # using function
-  decompress_file(tmpdir, file = paste0(tmpdir, "\\", files$filename), .file_cache = FALSE)
-
-  # using r utils::unzip
-  unzip(
-    paste0(tmpdir, "/", files$filename),
-    exdir = str_remove(paste0(tmpdir, "/", files$filename), ".zip")
+  tmpfile <- tempfile()
+  curl::curl_download(
+    url = "https://zenodo.org/records/8263509/files/LULCC_CH_dat.zip",
+    destfile = tmpfile
   )
 
-  # TODO: update path when Manuel has finished Zenodo upload.
-  # select just the raw data
-  raw_data_path <- str_replace(paste0(tmpdir, "/", files$filename), ".zip", "/Data/Raw")
+  raw_files <-
+    zip::zip_list(tmpfile) |>
+    purrr::pluck("filename") |>
+    # TODO are these files enough for reproducibility?
+    purrr::keep(stringr::str_detect, pattern = "Data/Raw")
 
-  # Move files into project structure
-  file.copy(raw_data_path, "Data/Preds", recursive = TRUE)
+  zip::unzip(
+    zipfile = tmpfile,
+    files = raw_files,
+    exdir = target_dir
+  )
 
-  # remove the zipped folder in temp dir
-  unlink(paste0(tmpdir, "/", files$filename))
-}
+  file.rename(
+    file.path(target_dir, raw_files),
+    file.path(
+      target_dir,
+      stringr::str_remove(raw_files, "LULCC_CH_dat/Data/Raw/")
+    )
+  )
 
-decompress_file <- function(directory, file, .file_cache = FALSE) {
-  stop("This code should be checked before being run")
-  if (.file_cache == TRUE) {
-    print("decompression skipped")
-  } else {
-    # Set working directory for decompression
-    # simplifies unzip directory location behavior
-    # FIXME get rid of sideeffect
-    wd <- getwd()
-    setwd(directory)
-
-    # Run decompression
-    decompression <-
-      system2("unzip",
-        args = c(
-          "-o", # include override flag
-          file
-        ),
-        stdout = TRUE
-      )
-
-    # Reset working directory
-    setwd(wd)
-    rm(wd)
-
-    # Test for success criteria
-    # change the search depending on
-    # your implementation
-    if (grepl("Warning message", tail(decompression, 1))) {
-      print(decompression)
-    }
-  }
+  unlink(file.path(target_dir, "LULCC_CH_dat/Data/Raw/"))
+  unlink(tmpfile)
 }
