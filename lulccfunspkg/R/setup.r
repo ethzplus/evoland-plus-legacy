@@ -4,23 +4,14 @@
 #'
 #' @export
 
-setup <- function(
+get_config <- function(
     scenario_names = c("BAU", "EI-NAT", "EI-CUL", "EI-SOC", "GR-EX"),
-    scenario_start = 2020L,
-    scenario_end = 2060L,
     step_length = 5L,
-    reps = 1L,
     simctrl_tbl_path = "tools/simulation_control.csv") {
-  prepare_simctrl_tbl(
-    scenario_names = scenario_names,
-    scenario_start = scenario_start,
-    scenario_end = scenario_end,
-    step_length = step_length,
-    reps = reps
-  ) |>
-    readr::write_csv(simctrl_tbl_path)
+  # TODO does it make sense to generate this table programmatically?
+  # prepare_simctrl_tbl() |> readr::write_csv(simctrl_tbl_path)
 
-  # Modelling set-up
+  # TODO move all the config tables into a common xlsx and read individual sheets?
   config <- list(
     LULC_aggregation_path = "tools/lulc_class_aggregation.xlsx", # LULC class aggregation table
     model_specs_path = "tools/model_specs.xlsx", # model specifications table
