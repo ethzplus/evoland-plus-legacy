@@ -6,64 +6,64 @@
 #' possible model start time is 1985 and end time is 2060, simulations begin from
 #' 2020 and we have initially agreed to use 5 year time steps
 #'
-#' @param Scenario_names char
-#' @param Scenario_start 1985 or later
-#' @param Scenario_end 2060 per default
-#' @param Step_length in years
+#' @param scenario_names char
+#' @param scenario_start 1985 or later
+#' @param scenario_end 2060 per default
+#' @param step_length in years
 #' @param reps Number of runs for each simulation
 #'
 #' @export
 
-simcontrolprep <- function(
-    Scenario_names = c("BAU", "EI-NAT", "EI-CUL", "EI-SOC", "GR-EX"),
-    Scenario_start = 2020L,
-    Scenario_end = 2060L,
-    Step_length = 5L,
+prepare_simctrl_tbl <- function(
+    scenario_names = c("BAU", "EI-NAT", "EI-CUL", "EI-SOC", "GR-EX"),
+    scenario_start = 2020L,
+    scenario_end = 2060L,
+    step_length = 5L,
     reps = 1L) {
   Simulation_control_table <- data.frame(matrix(ncol = 11, nrow = 0))
   colnames(Simulation_control_table) <- c(
-    "Simulation_num.",
-    "Scenario_ID.string",
-    "Simulation_ID.string",
-    "Model_mode.string",
-    "Scenario_start.real",
-    "Scenario_end.real",
-    "Step_length.real",
-    "Parallel_TPC.string",
-    "Spatial_interventions.string",
-    "Deterministic_trans.string",
-    "Completed.string"
+    "simulation_num.",
+    "scenario_id.string",
+    "simulation_id.string",
+    "model_mode.string",
+    "scenario_start.real",
+    "scenario_end.real",
+    "step_length.real",
+    "parallel_tpc.string",
+    "spatial_interventions.string",
+    "deterministic_trans.string",
+    "completed.string"
     # FIXME this is lacking some columns, compare with tools/simulation_control.csv
     # might be because they get added later?
-    # "Econ_scenario.string",
-    # "Climate_scenario.string",
-    # "Pop_scenario.string",
-    # "EI_intervention_ID.string",
+    # "econ_scenario.string",
+    # "climate_scenario.string",
+    # "pop_scenario.string",
+    # "ei_intervention_id.string",
   )
 
   # expand vector of scenario names according to number of repetitions and add to table
-  Scenario_IDs <- c(sapply(Scenario_names, function(x) rep(x, reps), simplify = TRUE))
-  Simulation_control_table[1:length(Scenario_IDs), "Scenario_ID.string"] <- Scenario_IDs
+  Scenario_IDs <- c(sapply(scenario_names, function(x) rep(x, reps), simplify = TRUE))
+  Simulation_control_table[1:length(Scenario_IDs), "scenario_id.string"] <- Scenario_IDs
 
   # fill other columns
-  Simulation_control_table$Simulation_ID.string <- rep(paste0("v", seq(1, reps, 1)), length(Scenario_names))
-  Simulation_control_table$Scenario_start.real <- if (length(unique(Scenario_start)) == 1) {
-    Scenario_start
+  Simulation_control_table$simulation_id.string <- rep(paste0("v", seq(1, reps, 1)), length(scenario_names))
+  Simulation_control_table$scenario_start.real <- if (length(unique(scenario_start)) == 1) {
+    scenario_start
   } else {
-    c(rep(Scenario_start, length(Scenario_names)))
+    c(rep(scenario_start, length(scenario_names)))
   }
-  Simulation_control_table$Scenario_end.real <- if (length(unique(Scenario_end)) == 1) {
-    Scenario_end
+  Simulation_control_table$scenario_end.real <- if (length(unique(scenario_end)) == 1) {
+    scenario_end
   } else {
-    c(rep(Scenario_end, length(Scenario_names)))
+    c(rep(scenario_end, length(scenario_names)))
   }
-  Simulation_control_table$Step_length.real <- Step_length
-  Simulation_control_table$Model_mode.string <- "Simulation"
-  Simulation_control_table$Simulation_num. <- seq(1, nrow(Simulation_control_table), 1)
-  Simulation_control_table$Parallel_TPC.string <- "N"
-  Simulation_control_table$Spatial_interventions.string <- "Y"
-  Simulation_control_table$Deterministic_trans.string <- "Y"
-  Simulation_control_table$Completed.string <- "N"
+  Simulation_control_table$step_length.real <- step_length
+  Simulation_control_table$model_mode.string <- "Simulation"
+  Simulation_control_table$simulation_num. <- seq(1, nrow(Simulation_control_table), 1)
+  Simulation_control_table$parallel_tpc.string <- "N"
+  Simulation_control_table$spatial_interventions.string <- "Y"
+  Simulation_control_table$deterministic_trans.string <- "Y"
+  Simulation_control_table$completed.string <- "N"
 
   return(Simulation_control_table)
 }
