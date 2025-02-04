@@ -5,13 +5,13 @@
 ## Date: 18-11-2021
 ## Author: Ben Black
 #############################################################################
-spatial_interventions_prep <- function() {
+spatial_interventions_prep <- function(config) {
   Ref_grid <- raster::raster(ref_grid_path)
   Ref_crs <- raster::crs(Ref_grid)
 
   # need to reload the model tool vars because it has been updated
   # during the process of preparing the calibration allocation parameters
-  Model_tool_vars <- readRDS("Tools/Model_tool_vars.rds")
+  Model_tool_vars <- config
   list2env(Model_tool_vars, .GlobalEnv)
 
   # load table of scenario specific spatial interventions
