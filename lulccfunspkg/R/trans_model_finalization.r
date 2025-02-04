@@ -16,7 +16,7 @@ trans_model_finalization <- function() {
   param_grid <- "Tools/Predict_param-grid.xlsx"
 
   # load table of model specifications
-  model_specs <- read_excel("Tools/Predict_model_specs.xlsx")
+  model_specs <- readxl::read_excel("Tools/Predict_model_specs.xlsx")
 
   # Filter for models already completed
   models_specs <- model_specs[model_specs$Modelling_completed == "N", ]

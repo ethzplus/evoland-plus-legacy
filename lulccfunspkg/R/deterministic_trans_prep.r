@@ -21,7 +21,7 @@ deterministic_trans_prep <- function() {
 
   # Load Model lookup tables for each period and subset to just transition names
   Periodic_trans_names <- lapply(data_periods, function(Period) {
-    full_table <- read.xlsx("Tools/Model_lookup.xlsx", sheet = Period)
+    full_table <- openxlsx::read.xlsx("Tools/Model_lookup.xlsx", sheet = Period)
     trans_names <- unique(full_table[["Trans_name"]])
   })
   names(Periodic_trans_names) <- data_periods

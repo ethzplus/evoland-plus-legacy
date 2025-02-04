@@ -6,8 +6,8 @@
 ## Author: Ben Black
 #############################################################################
 spatial_interventions_prep <- function() {
-  Ref_grid <- raster(ref_grid_path)
-  Ref_crs <- crs(Ref_grid)
+  Ref_grid <- raster::raster(ref_grid_path)
+  Ref_crs <- raster::crs(Ref_grid)
 
   # need to reload the model tool vars because it has been updated
   # during the process of preparing the calibration allocation parameters
@@ -20,12 +20,12 @@ spatial_interventions_prep <- function() {
 
   # convert time_step and target_classes columns back to character vectors
   Interventions$time_step <- sapply(Interventions$time_step, function(x) {
-    x <- str_remove_all(x, " ")
+    x <- stringr::str_remove_all(x, " ")
     rep <- unlist(strsplit(x, ","))
   }, simplify = FALSE)
 
   Interventions$target_classes <- sapply(Interventions$target_classes, function(x) {
-    x <- str_remove_all(x, " ")
+    x <- stringr::str_remove_all(x, " ")
     rep <- unlist(strsplit(x, ","))
   }, simplify = FALSE)
 
