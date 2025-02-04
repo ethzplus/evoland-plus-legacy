@@ -138,7 +138,16 @@ Model_lookups_with_ID <- mapply(
 # save updated model look up table
 # necessary to delete existing xlsx first because overwrite is not possible
 unlink("Tools/Model_lookup.xlsx")
-mapply(function(model_table, model_name) write.xlsx(model_table, file = "Tools/Model_lookup.xlsx", sheetName = model_name, row.names = FALSE, append = TRUE),
+mapply(
+  function(model_table, model_name) {
+    xlsx::write.xlsx(
+      x = model_table,
+      file = "Tools/Model_lookup.xlsx",
+      sheetName = model_name,
+      row.names = FALSE,
+      append = TRUE
+    )
+  },
   model_table = Model_lookups_with_ID,
   model_name = names(Model_lookups_with_ID)
 )

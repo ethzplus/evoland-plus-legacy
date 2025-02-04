@@ -94,5 +94,5 @@ deterministic_trans_prep <- function() {
   }), idcol = "RCP")
 
   # save areal change across scenario's table
-  write.xlsx(Glacial_change, "Tools/Glacial_area_change.xlsx", row.names = FALSE)
+  xlsx::write.xlsx(Glacial_change, "Tools/Glacial_area_change.xlsx", row.names = FALSE)
 }

@@ -178,8 +178,11 @@ transratesextrapolation <- function(trans_rate_table_path, plot_dir, single_mult
   Combined_table <- cbind(trans_rate_table, Extrap_calibration_rates[, c(paste(Simulation_steps))])
   Combined_table$Rate <- NULL
 
-  # save
-  write.xlsx(Combined_table, paste0(save_dir, "/Extrapolated_trans_rates_", single_multi_step, ".xlsx"))
+  # might have used openxlsx instead of xlsx, but cannot infer from function signature
+  xlsx::write.xlsx(
+    Combined_table, 
+    paste0(save_dir, "/Extrapolated_trans_rates_", single_multi_step, ".xlsx")
+  )
 } # close function
 
 transratesextrapolation(
