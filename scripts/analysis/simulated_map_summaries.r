@@ -46,6 +46,8 @@ invisible(lapply(packs, require, character.only = TRUE))
 
 # send model tool vars to global environment
 list2env(readRDS("Tools/Model_tool_vars.rds"), .GlobalEnv)
+# FIXME actually just variables provided by lulccfunspkg::get_config() hoisted into
+# global env
 
 ProjCH <- "+proj=somerc +init=epsg:2056"
 
