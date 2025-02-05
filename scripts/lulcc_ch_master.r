@@ -17,8 +17,13 @@ devtools::load_all("lulccfunspkg")
 
 config <- lulccfunspkg::get_config()
 
-# Download and unpack data
-lulccfunspkg::fetch_zenodo_predictors()
+#' Download and unpack data
+#' FIXME this all-in-one download might be the wrong strategy:
+#' - i'm unsure whether we're allowed to republish the data under CC04-BY
+#' - the zenodo file is corrupted and needs to be replaced
+#' - the zenodo file is pretty large, which increases risk of corruptinon during
+#'   download. might want to segment into multiple smaller chunks
+#' lulccfunspkg::fetch_zenodo_predictors()
 
 # A- Prepare LULC/region data
 # Prepare LULC data layers
