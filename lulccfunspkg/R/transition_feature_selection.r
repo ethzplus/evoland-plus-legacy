@@ -42,9 +42,6 @@ transition_feature_selection <- function() {
     PS_results_folder
   ), function(x) dir.create(x, recursive = TRUE, showWarnings = FALSE))
 
-  # Predictor table file path (received from output_env, only uncomment here for testing)
-  # pred_table_path <- "Tools/Predictor_table.xlsx"
-
   ### =========================================================================
   ### B- Perform Feature Selection
   ### =========================================================================

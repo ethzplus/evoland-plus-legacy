@@ -48,14 +48,8 @@ calibration_predictor_prep <- function() {
   Prepped_layers_dir <- "Data/Preds/Prepared/Layers"
   dir.create(Prepped_layers_dir, recursive = TRUE)
 
-  # Predictor table file path (received from output_env only uncomment for testing)
-  # pred_table_path <- "Tools/Predictor_table.xlsx"
-  # Predictor table file path (received from output_env only uncomment for testing)
-  # pred_table_path <- "Tools/Predictor_table.xlsx"
-
   # get names of sheets to loop over
-  # get names of sheets to loop over
-  sheets <- excel_sheets(pred_table_path)
+  sheets <- readxl::excel_sheets(pred_table_path)
 
   # load all sheets as a list
   # load all sheets as a list

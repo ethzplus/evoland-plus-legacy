@@ -34,8 +34,6 @@ transition_dataset_prep <- function() {
 
   # The predictor data table is used to identify the file names of variables that
   # are to be included in the stack for each time period
-  # Predictor table file path (received from output_env only uncomment here for testing)
-  # pred_table_path <- "Tools/Predictor_table.xlsx"
 
   # load tables as list
   predictor_tables <- lapply(data_periods, function(x) data.table(openxlsx::read.xlsx(pred_table_path, sheet = x)))

@@ -15,8 +15,7 @@ spatial_interventions_prep <- function(config) {
   list2env(Model_tool_vars, .GlobalEnv)
 
   # load table of scenario specific spatial interventions
-  # spat_ints_path <- "E:/LULCC_CH_Ensemble/Tools/spatial_interventions.csv"
-  Interventions <- read.csv(spat_ints_path)
+  Interventions <- read.csv(config[["spat_ints_path"]])
 
   # convert time_step and target_classes columns back to character vectors
   Interventions$time_step <- sapply(Interventions$time_step, function(x) {

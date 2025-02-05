@@ -8,13 +8,13 @@
 
 # Supplied by master script only uncomment for testing
 # Predictor table file path
-# pred_table_path <- "Tools/Predictor_table.xlsx"
-simulation_predictor_prep <- function() {
+
+simulation_predictor_prep <- function(config) {
   # Load in the grid to use use for re-projecting the CRS and extent of predictor data
-  Ref_grid <- raster(ref_grid_path)
+  Ref_grid <- raster::raster(config[["ref_grid_path"]])
 
   # Fetch simulation start and end times from simulation control table
-  Simulation_control <- read.csv(simctrl_tbl_path)
+  Simulation_control <- read.csv(config[["simctrl_tbl_path"]])
   Simulation_start <- min(Simulation_control$scenario_start.real)
   Simulation_end <- max(Simulation_control$scenario_end.real)
   step_length <- unique(Simulation_control$step_length.real)

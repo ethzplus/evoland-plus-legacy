@@ -545,7 +545,7 @@ lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
 if (FALSE) {
   if (grepl("simulation", model_mode, ignore.case = TRUE)) {
     # load table of scenario interventions
-    Interventions <- read.csv(spat_ints_path)
+    Interventions <- read.csv(config[["spat_ints_path"]])
 
     # convert time_step and target_classes columns back to character vectors
     Interventions$time_step <- sapply(Interventions$time_step, function(x) {

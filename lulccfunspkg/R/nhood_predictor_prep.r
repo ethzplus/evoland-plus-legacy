@@ -208,11 +208,8 @@ nhood_predictor_prep <- function() {
   # split focal_details by period
   Periodic_focal_details <- split(Focal_details, Focal_details$period)
 
-  # Predictor table file path
-  pred_table_path <- "Tools/Predictor_table.xlsx"
-
   # get names of sheets to loop over
-  sheets <- excel_sheets(pred_table_path)
+  sheets <- readxl::excel_sheets(pred_table_path)
 
   # load all sheets as a list
   Pred_tables <- lapply(sheets, function(x) openxlsx::read.xlsx(pred_table_path, sheet = x))

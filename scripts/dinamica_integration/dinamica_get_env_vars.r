@@ -5,22 +5,21 @@
 #############################################################################
 
 # testing values for env vars
-# LULCC_WORK_DIR <- "X:/CH_ValPar.CH/03_workspaces/07_Modeling/LULCC_CH_Ensemble"
-LULCC_M_WORK_DIR <- "E:/LULCC_CH"
-LULCC_M_CLASS_AGG <- "Tools/LULC_class_aggregation.xlsx"
-LULCC_M_SPEC <- "Tools/Model_specs.xlsx"
-LULCC_M_PARAM_GRID <- "Tools/param-grid.xlsx"
-LULCC_M_PRED_TABLE <- "Tools/Predictor_table.xlsx"
-LULCC_M_REF_GRID <- "Data/Ref_grid.gri"
-LULCC_M_CAL_PARAM_DIR <- "Data/Allocation_parameters/Calibration"
-LULCC_M_SIM_PARAM_DIR <- "Data/Allocation_parameters/Simulation"
-LULCC_M_RATE_TABLE_DIR <- "Data/Transition_tables/prepared_trans_tables"
-LULCC_M_SIM_CONTROL_TABLE <- "Tools/Simulation_control.csv"
-LULCC_M_SPAT_INTS_TABLE <- "Tools/spatial_interventions.csv"
-LULCC_M_EI_INTS_TABLE <- "Tools/EI_interventions.csv"
+LULCC_M_WORK_DIR <- "e:/lulcc_ch"
+LULCC_M_CLASS_AGG <- "tools/lulc_class_aggregation.xlsx"
+LULCC_M_SPEC <- "tools/model_specs.xlsx"
+LULCC_M_PARAM_GRID <- "tools/param-grid.xlsx"
+LULCC_M_PRED_TABLE <- "tools/predictor_table.xlsx"
+LULCC_M_REF_GRID <- "data/ref_grid.gri"
+LULCC_M_CAL_PARAM_DIR <- "data/allocation_parameters/calibration"
+LULCC_M_SIM_PARAM_DIR <- "data/allocation_parameters/simulation"
+LULCC_M_RATE_TABLE_DIR <- "data/transition_tables/prepared_trans_tables"
+LULCC_M_SIM_CONTROL_TABLE <- "tools/simulation_control.csv"
+LULCC_M_SPAT_INTS_TABLE <- "tools/spatial_interventions.csv"
+LULCC_M_EI_INTS_TABLE <- "tools/ei_interventions.xlsx"
 
 # Created list of environment variables with names used in R scripts
-Env_var_key <- list(
+env_var_key <- list(
   "LULCC_M_WORK_DIR" = "wpath", # Working directory
   "LULCC_M_CLASS_AGG" = "LULC_aggregation_path", # Path to LULC class aggregation table
   "LULCC_M_SPEC" = "model_specs_path", # Path to model specifications table
@@ -36,17 +35,17 @@ Env_var_key <- list(
 ) # Path to EI interventions table
 
 # Get environment variables set from SLURM
-Sys.getenv(x = names(Env_var_key), names = TRUE)
+Sys.getenv(x = names(env_var_key), names = TRUE)
 
 # list values of env_vars
-Model_vars <- mget(names(Env_var_key))
+model_vars <- mget(names(env_var_key))
 
 # rename with model specific names
-names(Model_vars) <- unlist(Env_var_key)
+names(model_vars) <- unlist(env_var_key)
 
 # Send re-named variables to global environment
-list2env(Model_vars, .GlobalEnv)
+list2env(model_vars, .GlobalEnv)
 
 # Remove redundant variables from environment
-rm(list = names(Env_var_key))
-rm(Model_vars, Env_var_key)
+rm(list = names(env_var_key))
+rm(model_vars, env_var_key)
