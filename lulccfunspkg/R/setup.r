@@ -7,7 +7,11 @@
 get_config <- function(
     scenario_names = c("BAU", "EI-NAT", "EI-CUL", "EI-SOC", "GR-EX"),
     step_length = 5L,
-    simctrl_tbl_path = "tools/simulation_control.csv") {
+    simctrl_tbl_path = "tools/simulation_control.csv",
+    data_periods = c("1985_1997", "1997_2009", "2009_2018"),
+    regionalization = TRUE) {
+  # FIXME the input simulation control table should remain untouched, i.e. not be
+  # updatable in place
   # TODO does it make sense to generate this table programmatically?
   # prepare_simctrl_tbl() |> readr::write_csv(simctrl_tbl_path)
 
@@ -26,25 +30,12 @@ get_config <- function(
     simctrl_tbl_path = simctrl_tbl_path, # simulation control table
     step_length = step_length,
     scenario_names = scenario_names,
+    # FIXME the next two used to be read from model_specs_path;
+    # we should first move to a coherent singular config
+    data_periods = data_periods,
+    regionalization = regionalization,
     inclusion_thres = 0.5
   )
-
-  # Import model specifications table
-  model_specs <- readxl::read_excel(config$model_specs_path)
-
-  # Vector data periods contained in model specifications table
-  config$data_periods <- unique(model_specs$data_period_name)
-
-  # attach string to env. indicating whether regionalized datasets should be produced
-  if (any(grep(
-    model_specs$model_scale,
-    pattern = "regionalized",
-    ignore.case = TRUE
-  )) == TRUE) {
-    config$regionalization <- TRUE
-  } else {
-    config$regionalization <- FALSE
-  }
 
   return(config)
 }
