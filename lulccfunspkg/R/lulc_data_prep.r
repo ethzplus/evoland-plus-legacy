@@ -5,58 +5,49 @@
 #' @author Ben Black
 #' @export
 
-lulc_data_prep <- function() {
-  ### =========================================================================
-  ### A- Preparation
-  ### =========================================================================
-
-  # Load in the grid file we are using for spatial extent and CRS
-  Ref_grid <- terra::rast(ref_grid_path)
-
-  # Create objects for spatial extents
-  # Create objects for spatial extents
-  prj_95 <- "+init=epsg:2056" ## CH1903+ in which AS data is needed
-
-  ### =========================================================================
-  ### B- Creating numerical rasters of LULC in NOAs04 classification for each period
-  ### =========================================================================
-
-  # Read in table of Areal Statistik LULC data from all historic period
-
-  # possible to read directly from URL but this exhibits strange behaviour
-  # sometimes differing number of rows
-  # AS_table <- read.csv2(url("https://dam-api.bfs.admin.ch/hub/api/dam/assets/20104753/master"), sep = ";")
-  # possible to read directly from URL but this exhibits strange behaviour
-  # sometimes differing number of rows
-  # AS_table <- read.csv2(url("https://dam-api.bfs.admin.ch/hub/api/dam/assets/20104753/master"), sep = ";")
+lulc_data_prep <- function(config) {
+  if (!file.exists(config[["arealstat_zip_local"]])) {
+    message("Downloading Arealstatistik csv as zip")
+    dir.create(dirname(config[["arealstat_zip_local"]]), recursive = TRUE)
+    curl::curl_download(
+      url = config[["arealstat_zip_remote"]],
+      destfile = config[["arealstat_zip_local"]],
+      quiet = FALSE
+    )
+  }
 
   # read from file for security
-  # read from file for security
-  AS_table <- read.csv2("Data/Historic_LULC/NOAS04_LULC/raw/AREA_NOAS04_72_LATEST.csv", sep = ";")
+  AS_table <-
+    unz(config[["arealstat_zip_local"]], "ag-b-00.03-37-area-all-csv.csv") |>
+    read.csv2()
 
   # splitting into a list of tables for separate periods
   # Keep only columns of coordinates and LULC classes under the 72 categories scheme
   AS_tables_seperate_periods <- list(
-    NOAS04_1985 = AS_table[, c("E", "N", "AS85_72")],
-    NOAS04_1997 = AS_table[, c("E", "N", "AS97_72")],
-    NOAS04_2009 = AS_table[, c("E", "N", "AS09R_72")],
-    NOAS04_2018 = AS_table[, c("E", "N", "AS18_72")]
+    NOAS04_1985 = AS_table[, c("E_COORD", "N_COORD", "AS85_72")],
+    NOAS04_1997 = AS_table[, c("E_COORD", "N_COORD", "AS97_72")],
+    NOAS04_2009 = AS_table[, c("E_COORD", "N_COORD", "AS09_72")],
+    NOAS04_2018 = AS_table[, c("E_COORD", "N_COORD", "AS18_72")]
   )
   rm(AS_table)
 
+  # TODO why are we resampling to the ref_grid if the area stats are the main
+  # determinant of data availability?
   # instantiate small function for raster creation
   create.reproject.save.raster <- function(table_for_period, raster_name) {
     Raster_for_period <- terra::rast(table_for_period, type = "xyz")
-    terra::crs(Raster_for_period) <- prj_95
+    terra::crs(Raster_for_period) <- config[["reference_crs"]]
+    Ref_grid <- terra::rast(config[["ref_grid_path"]])
     cropped_raster_for_period <- terra::crop(Raster_for_period, Ref_grid)
     reprojected_raster_for_period <- terra::project(cropped_raster_for_period, Ref_grid, method = "near")
     terra::writeRaster(reprojected_raster_for_period,
-      filename = paste0("Data/Historic_LULC/NOAS04_LULC/rasterized/", raster_name, ".tif"),
+      filename = paste0(config[["rasterized_lulc_dir"]], "/", raster_name, ".tif"),
       overwrite = TRUE
     )
   }
 
   # Loop function over tables
+  dir.create(config[["rasterized_lulc_dir"]])
   NOAS04_periods_rasters <- mapply(create.reproject.save.raster,
     table_for_period = AS_tables_seperate_periods,
     raster_name = names(AS_tables_seperate_periods)
@@ -91,19 +82,14 @@ lulc_data_prep <- function() {
   # 19 Glacier
 
   # Preparing rasters using a 2 col (initial value, new value) matrix
-  # Preparing rasters using a 2 col (initial value, new value) matrix
-
   # load aggregation scheme
-  # load aggregation scheme
-  Aggregation_scheme <- read_excel(LULC_aggregation_path)
+  Aggregation_scheme <- readxl::read_excel(config[["LULC_aggregation_path"]])
 
-  # subset to just the ID cols
-  Agg_matrix <- as.matrix(Aggregation_scheme[, c("NOAS04_ID", "Aggregated_ID")])
   # subset to just the ID cols
   Agg_matrix <- as.matrix(Aggregation_scheme[, c("NOAS04_ID", "Aggregated_ID")])
 
   # load each tif just created, reclassify, and store in a list
-  NOAS04_list <- list.files("Data/Historic_LULC/NOAS04_LULC/rasterized",
+  NOAS04_list <- list.files(config[["rasterized_lulc_dir"]],
     pattern = ".tif$", full.names = TRUE
   )
   NOAS04_list <- NOAS04_list[order(NOAS04_list)]
@@ -113,6 +99,7 @@ lulc_data_prep <- function() {
   names(Reclassified_rasters) <- c("LULC_1985_agg", "LULC_1997_agg", "LULC_2009_agg", "LULC_2018_agg")
 
   # add raster attribute table (rat)
+  # TODO are we sure that the order is preserved when calling unique?
   LULC_IDs <- unique(Aggregation_scheme$Aggregated_ID)
   names(LULC_IDs) <- sapply(LULC_IDs, function(x) {
     unique(Aggregation_scheme[Aggregation_scheme$Aggregated_ID == x, "Class_abbreviation"])
@@ -135,7 +122,10 @@ lulc_data_prep <- function() {
   mapply(
     FUN = terra::writeRaster,
     x = Reclassified_rasters,
-    filename = paste0("Data/Historic_LULC/", names(Reclassified_rasters), ".grd"),
+    filename = paste0(
+      config[["historic_lulc_basepath"]], "/",
+      names(Reclassified_rasters), ".grd"
+    ),
     overwrite = TRUE
   )
 }

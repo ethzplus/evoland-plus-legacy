@@ -15,6 +15,9 @@ get_config <- function(
   # TODO does it make sense to generate this table programmatically?
   # prepare_simctrl_tbl() |> readr::write_csv(simctrl_tbl_path)
 
+  data_basepath <- "data"
+  historic_lulc_basepath <- file.path(data_basepath, "historic_lulc")
+
   # TODO move all the config tables into a common xlsx and read individual sheets?
   config <- list(
     LULC_aggregation_path = "tools/lulc_class_aggregation.xlsx", # LULC class aggregation table
@@ -23,7 +26,7 @@ get_config <- function(
     pred_table_path = "tools/predictor_table.xlsx", # predictor table
     spat_ints_path = "tools/spatial_interventions.csv", # spatial interventions table
     EI_ints_path = "tools/ei_interventions.xlsx", # EI interventions table
-    ref_grid_path = "data/ref_grid.grd", # spatial grid to standardise spatial data
+    ref_grid_path = file.path(data_basepath, "ref_grid.grd"),
     calibration_param_dir = "data/allocation_parameters/calibration",
     simulation_param_dir = "data/allocation_parameters/simulation",
     trans_rate_table_dir = "data/transition_tables/prepared_trans_tables",
@@ -34,7 +37,13 @@ get_config <- function(
     # we should first move to a coherent singular config
     data_periods = data_periods,
     regionalization = regionalization,
-    inclusion_thres = 0.5
+    inclusion_thres = 0.5,
+    arealstat_zip_remote =
+      "https://dam-api.bfs.admin.ch/hub/api/dam/assets/32376216/appendix",
+    historic_lulc_basepath = historic_lulc_basepath,
+    arealstat_zip_local = file.path(historic_lulc_basepath, "ag-b-00.03-37-area-all-csv.zip"),
+    rasterized_lulc_dir = file.path(historic_lulc_basepath, "rasterized"),
+    reference_crs = "epsg:2056"
   )
 
   return(config)
