@@ -15,10 +15,12 @@ get_config <- function(
   # TODO does it make sense to generate this table programmatically?
   # prepare_simctrl_tbl() |> readr::write_csv(simctrl_tbl_path)
 
-  # TODO is there a better way for doing path composition?
+  # TODO path composition could happen here through nested lists, or e.g. json dicts
   data_basepath <- "data"
   historic_lulc_basepath <- file.path(data_basepath, "historic_lulc")
   bioreg_dir <- file.path(data_basepath, "bioregions")
+  predictors_dir <- file.path(data_basepath, "preds")
+  predictors_raw_dir <- file.path(predictors_dir, "raw")
 
   # TODO move all the config tables into a common xlsx and read individual sheets?
   config <- list(
@@ -48,6 +50,7 @@ get_config <- function(
     bioreg_dir = bioreg_dir,
     bioreg_zip_remote = "https://data.geo.admin.ch/ch.bafu.biogeographische_regionen/data.zip",
     bioreg_zip_local = file.path(bioreg_dir, "biogeographische_regionen.zip"),
+    ch_geoms_path = file.path(predictors_raw_dir, "ch_geoms"),
     reference_crs = "epsg:2056"
   )
 

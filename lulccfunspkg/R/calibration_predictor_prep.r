@@ -1,22 +1,23 @@
-#############################################################################
-## SA_var_prep: Use predictor table to prepare predictor layers at a uniform
-## 100m resolution, crs and extent prepared layers are saved seperately in a
-## 100m resolution, crs and extent prepared layers are saved seperately in a
-## and then combined into raster stacks for easy loading
-## Date: 01-08-2021
-## Author: Ben Black
-############################################################################
+#' Preparation of Predictor Data
+#'
+#' Not yet clear why this script was originally called `calibration_predictor_prep.r` -
+#' 100m resolution, crs and extent prepared layers are saved seperately in a
+#' Use predictor table to prepare predictor layers at a uniform
+#' 100m resolution, crs and extent prepared layers are saved seperately in a
+#' and then combined into raster stacks for easy loading
+#' Date: 01-08-2021
+#' Author: Ben Black
+#'
+#' @export
 
-### =========================================================================
-### A- Preparation
-### =========================================================================
-
-calibration_predictor_prep <- function() {
+calibration_predictor_prep <- function(config) {
   # Load in the grid to use use for re-projecting the CRS and extent of predictor data
-  Ref_grid <- rast(ref_grid_path)
+  Ref_grid <- terra::rast(config[["ref_grid_path"]])
 
   # vector years of LULC data
-  LULC_years <- gsub(".*?([0-9]+).*", "\\1", list.files("Data/Historic_LULC", full.names = FALSE, pattern = ".gri"))
+  LULC_years <-
+    list.files(config[["historic_lulc_basepath"]], full.names = FALSE, pattern = ".gri") |>
+    gsub(pattern = ".*?([0-9]+).*", replacement = "\\1", x = _)
 
   # create a list of the data/modelling periods
   LULC_change_periods <- c()
@@ -26,11 +27,12 @@ calibration_predictor_prep <- function() {
   names(LULC_change_periods) <- sapply(LULC_change_periods, function(x) paste(x[1], x[2], sep = "_"))
 
   # #download basic map geometries for Switzerland
-  Geoms_path <- "Data/Preds/Raw/CH_geoms"
-  dir.create(Geoms_path)
+  ensure_dir(config[["ch_geoms_path"]])
+
+  # TODO is just a wicked zip, replace fun
   DownloadBfSMaps(
     url = "https://dam-api.bfs.admin.ch/hub/api/dam/assets/21245514/master",
-    path = Geoms_path
+    path = config[["ch_geoms_path"]]
   )
 
   ### =========================================================================
@@ -49,16 +51,16 @@ calibration_predictor_prep <- function() {
   dir.create(Prepped_layers_dir, recursive = TRUE)
 
   # get names of sheets to loop over
-  sheets <- readxl::excel_sheets(pred_table_path)
+  sheets <- readxl::excel_sheets(config[["pred_table_path"]])
 
   # load all sheets as a list
   # load all sheets as a list
-  Pred_tables <- lapply(sheets, function(x) openxlsx::read.xlsx(pred_table_path, sheet = x))
+  Pred_tables <- lapply(sheets, function(x) openxlsx::read.xlsx(config[["pred_table_path"]], sheet = x))
   names(Pred_tables) <- sheets
 
   # combine tables for all periods
   # combine tables for all periods
-  Pred_table_long <- as.data.frame(rbindlist(Pred_tables))
+  Pred_table_long <- as.data.frame(data.table::rbindlist(Pred_tables))
 
   # create dirs for all predictor categories
   # create dirs for all predictor categories
@@ -725,7 +727,7 @@ calibration_predictor_prep <- function() {
   ### =========================================================================
 
   # load predictor_table as workbook to add sheets
-  Pred_table_update <- openxlsx::loadWorkbook(file = pred_table_path)
+  Pred_table_update <- openxlsx::loadWorkbook(file = config[["pred_table_path"]])
 
   # split the table back into Dfs for each period and save
   Periodic_pred_tables <- split(Pred_table_long, Pred_table_long$period)
@@ -738,7 +740,7 @@ calibration_predictor_prep <- function() {
   }
 
   # save workbook
-  openxlsx::saveWorkbook(Pred_table_update, pred_table_path, overwrite = TRUE)
+  openxlsx::saveWorkbook(Pred_table_update, config[["pred_table_path"]], overwrite = TRUE)
 
   cat(paste0(" Preparation of Suitability and accessibility predictor layers complete \n"))
 
