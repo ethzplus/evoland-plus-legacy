@@ -4,7 +4,11 @@
 \alias{lulcc.finalisemodelspecifications}
 \title{lulcc.finalisemodelspecifications}
 \usage{
-lulcc.finalisemodelspecifications(model_specs_path, param_grid_path)
+lulcc.finalisemodelspecifications(
+  model_specs_path,
+  param_grid_path,
+  data_periods
+)
 }
 \arguments{
 \item{model_specs_path}{Character, file path for table of model specifications}

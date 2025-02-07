@@ -2,9 +2,9 @@
 % Please edit documentation in R/region_prep.r
 \name{region_prep}
 \alias{region_prep}
-\title{region_prep}
+\title{Bioregion Preparation: region_prep}
 \usage{
-region_prep()
+region_prep(config)
 }
 \description{
 Preparing Rasters of Bioregions in Switzerland to sub-divide data for regional
