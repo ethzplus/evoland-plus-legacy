@@ -6,18 +6,18 @@
 Gdrive_api_auth.json
 
 #specific folders to ignore
-/Data
-/Model/guidebook_dinamica_5
-/Model/Useful_submodels
-/Model/Dinamica_models/Model_backup
-/Model/Dinamica_models/Model_testing
-/Model/SetupDinamicaEGO-720.exe
-/Results
-/PopulationModel_ValPar
-/Scenario_trans_rates
+data-raw
+/model/guidebook_dinamica_5
+/model/useful_submodels
+/model/dinamica_models/model_backup
+/model/dinamica_models/model_testing
+/model/setupdinamicaego-720.exe
+results
+/populationmodel_valpar
+/scenario_trans_rates
 /publication
-/Model/SetupDinamicaEGO-720_WIN.exe
-/LULCC_CH_user_files
+/model/setupdinamicaego-720_win.exe
+/lulcc_ch_user_files
 debug_*
 log_*
 

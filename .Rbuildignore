@@ -1,0 +1,9 @@
+^renv$
+^renv\.lock$
+.dockerignore
+.lintr
+.devcontainer
+model
+renv
+tools
+data-raw

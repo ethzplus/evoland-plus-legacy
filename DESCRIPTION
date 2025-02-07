@@ -9,22 +9,55 @@ Authors@R:
 Description: Gather land use / land cover related functions inherited from LULCC-CH.
 License: file LICENSE
 Imports:
-    ROCR,
-    corrplot,
+    curl,
+    data.table,
     dplyr,
+    future,
+    future.apply,
+    future.callr,
     magrittr,
-    methods,
     openxlsx,
     parallel,
+    promises,
+    purrr,
     raster,
+    readr,
+    readxl,
+    ROCR,
+    sf,
     stringr,
-    zen4R
+    terra,
+    tidyr,
+    tidyselect,
+    xlsx,
+    zip
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Suggests: 
     testthat (>= 3.0.0),
     usethis
+    bezier,
+    corrplot,
+    cowplot,
+    ggalluvial,
+    ggplot2,
+    ggSankeyGrad,
+    ggthemes,
+    htmlwidgets,
+    leaflet.extras,
+    networkD3,
+    plotly,
+    png,
+    rjstat,
+    shiny,
+    shinyjs,
+    testthat,
+    viridis,
+    zen4R
+Remotes:
+    cran/SDMTools,
+    ssp3nc3r/ggSankeyGrad
 Config/testthat/edition: 3
 Depends: 
     R (>= 4.2)
