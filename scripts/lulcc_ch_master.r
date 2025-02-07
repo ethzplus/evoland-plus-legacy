@@ -29,8 +29,9 @@ config <- lulccfunspkg::get_config()
 # Prepare LULC data layers
 lulccfunspkg::lulc_data_prep(config = config)
 
-# Prepare raster of Swiss Bioregions
-lulccfunspkg::region_prep(config = config)
+#' Prepare raster of Swiss Bioregions
+#' TODO why is this prepared? none of the produced files seem to be referenced
+#' lulccfunspkg::region_prep(config = config)
 
 # B- Prepare predictor data
 # Prepare suitability and accessibility predictors
