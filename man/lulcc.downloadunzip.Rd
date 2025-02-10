@@ -4,11 +4,13 @@
 \alias{lulcc.downloadunzip}
 \title{lulcc.downloadunzip}
 \usage{
-lulcc.downloadunzip(url, save_dir)
+lulcc.downloadunzip(url, save_dir, filename = basename(url))
 }
 \arguments{
 \item{url}{character string url to download folder from
 produced by function lulcc.evalfeatureselection}
+
+\item{filename}{defaults to the \code{basename(url)}}
 
 \item{save_path}{character string path of directory to save unzipped files in}
 }
