@@ -6,6 +6,9 @@
 \usage{
 calibration_predictor_prep(config)
 }
+\arguments{
+\item{config}{A list object}
+}
 \description{
 Not yet clear why this script was originally called \code{calibration_predictor_prep.r} -
 100m resolution, crs and extent prepared layers are saved seperately in a
