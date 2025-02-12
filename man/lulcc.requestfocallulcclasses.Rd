@@ -2,7 +2,7 @@
 % Please edit documentation in R/lulcc.requestfocallulcclasses.r
 \name{lulcc.requestfocallulcclasses}
 \alias{lulcc.requestfocallulcclasses}
-\title{lulcc.finalisemodelspecifications}
+\title{lulcc.requestfocallulcclasses}
 \usage{
 lulcc.requestfocallulcclasses(LULC_aggregation_path)
 }

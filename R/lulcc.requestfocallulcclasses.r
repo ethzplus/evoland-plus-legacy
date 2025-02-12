@@ -1,4 +1,4 @@
-#' lulcc.finalisemodelspecifications
+#' lulcc.requestfocallulcclasses
 #'
 #' Enter optimal model specification and parameters for prediction
 #'
@@ -8,7 +8,7 @@
 
 lulcc.requestfocallulcclasses <- function(LULC_aggregation_path) {
   # Vector unqiue LULC classes
-  LULC_classes <- unique(read_excel(LULC_aggregation_path)[["Class_abbreviation"]])
+  LULC_classes <- unique(readxl::read_excel(LULC_aggregation_path)[["Class_abbreviation"]])
 
   # Use prompt to get active class names as input from user
   print(paste0("The aggregated LULC classes are: ", paste(LULC_classes, collapse = ", ")))
