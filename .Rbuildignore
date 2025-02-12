@@ -3,8 +3,8 @@
 .dockerignore
 .lintr
 .devcontainer
-model
-renv
-tools
-data-raw
-scripts
+^model$
+^tools$
+^data-raw$
+^scripts$
+suddel*
