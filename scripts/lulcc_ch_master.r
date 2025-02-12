@@ -25,6 +25,10 @@ config <- get_config()
 #'   download. might want to segment into multiple smaller chunks
 #' fetch_zenodo_predictors()
 
+#' TODO where does the base / reference grid come from? why isn't it algorithmically
+#' created? do we even need it, given that we need to know the extent of LULC observations?
+#' init_base_grid()
+
 # A- Prepare LULC/region data
 # Prepare LULC data layers
 lulc_data_prep(config = config)
