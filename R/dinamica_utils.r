@@ -26,7 +26,7 @@ get_dinamica_path <- function() {
 #' @describeIn dinamica_utils Run a dinamica simulation set
 #' @export
 run_dinamica_sims <- function() {
-  Pre_check_result <- lulccfunspkg::lulcc.modelprechecks(
+  Pre_check_result <- lulcc.modelprechecks(
     Control_table_path,
     Param_dir = simulation_param_dir
   )

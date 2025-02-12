@@ -342,7 +342,7 @@ calibrate_allocation_parameters <- function() {
     print("Starting to run model with Dinamica EGO")
     # Use a system command to run the Dinamica model
     system2(
-      command = lulccfunspkg::get_dinamica_path(),
+      command = get_dinamica_path(),
       # args = c("-processors 10","-memory-allocation-policy 1", Temp_model_path),
       args = c("-disable-parallel-steps", Temp_model_path)
     )
