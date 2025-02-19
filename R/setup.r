@@ -55,6 +55,7 @@ get_config <- function(
     predictors_raw_dir = predictors_raw_dir,
     ch_geoms_path = file.path(predictors_raw_dir, "ch_geoms"),
     prepped_lyr_path = file.path(predictors_prepped_dir, "layers"),
+    prepped_fte_dir = file.path(predictors_prepped_dir, "socio_economic", "employment"),
     reference_crs = "epsg:2056"
   )
 

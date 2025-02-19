@@ -12,7 +12,7 @@
 #'
 #' @export
 
-calibration_predictor_prep <- function(config) {
+calibration_predictor_prep <- function(config = get_config(), refresh_cache = FALSE) {
   # Load in the grid to use use for re-projecting the CRS and extent of predictor data
   Ref_grid <- terra::rast(config[["ref_grid_path"]])
 
@@ -31,13 +31,17 @@ calibration_predictor_prep <- function(config) {
     function(x) paste(x[1], x[2], sep = "_")
   )
 
-  # download basic map geometries for Switzerland
-  lulcc.downloadunzip(
-    # the 2024 url = "https://dam-api.bfs.admin.ch/hub/api/dam/assets/30566934/master",
-    url = "https://dam-api.bfs.admin.ch/hub/api/dam/assets/21245514/master",
-    save_dir = config[["ch_geoms_path"]],
-    filename = paste0(basename(config[["ch_geoms_path"]]), ".zip")
-  )
+  if (refresh_cache) {
+    # download basic map geometries for Switzerland
+    lulcc.downloadunzip(
+      # This was using the 2022 URL but that zip had encoding issues. Only one
+      # "arbeitsmarktregion" changed afaik.
+      # https://dam-api.bfs.admin.ch/hub/api/dam/assets/21245514/master
+      url = "https://dam-api.bfs.admin.ch/hub/api/dam/assets/33807959/master",
+      save_dir = config[["ch_geoms_path"]],
+      filename = paste0(basename(config[["ch_geoms_path"]]), ".zip")
+    )
+  }
 
   ### =========================================================================
   ### B- Gather predictor information
@@ -65,11 +69,11 @@ calibration_predictor_prep <- function(config) {
 
   # combine tables for all periods
   # TODO is the fill = TRUE assumption safe?
-  Pred_table_long <- as.data.frame(data.table::rbindlist(Pred_tables, fill = TRUE))
+  Pred_table_long <- data.table::rbindlist(Pred_tables, fill = TRUE)
 
   # create dirs for all predictor categories
   sapply(unique(Pred_table_long[["Predictor_category"]]), function(x) {
-    ensure_dir(paste0(config[["prepped_lyr_path"]], "/", x))
+    ensure_dir(tolower(paste0(config[["prepped_lyr_path"]], "/", x)))
   })
 
   # seperate unprepared/prepared layers
@@ -99,6 +103,25 @@ calibration_predictor_prep <- function(config) {
     c("Covariate_ID", "Predictor_category", "URL", "Raw_data_path", "Prepared_data_path")
   ]
 
+  # FIXME all the valpar datasets have artifacts around their borders
+  # TODO replace all topographic predictors with DHM25 derived hectare mean
+  # /dem/ch_topo_alti3d2016_pixel_dem_mean2m.rds
+  # /aspect/ch_topo_alti3d2016_pixel_aspect_mean2m.rds
+  # /slope/ch_topo_alti3d2016_pixel_slope_mean2m.rds
+  # /hillshade/ch_topo_alti3d2016_pixel_hillshade_mean.rds
+
+  # TODO replace noise from sonBASE, which appear to simply be the daytime noise
+  # emmisions from road noise. proposal to replace this by taking the maximum over all
+  # the noise maps in the sonBASE dataset
+  # /Noise/ch_transport_sonbase_pixel_noise.rds
+
+  # TODO replace distance to roads with own tlm3d based calculation
+  # /Distance_to_roads/ch_transport_tlm3d_pixel_dist2road_all.rds
+
+  # TODO replace with tlm3d-based calculations
+  # /Distance_lakes/ch_hydro_gwn07_pixel_dist2lake_all.rds
+  # /Distance_rivers/ch_hydro_gwn07_pixel_dist2riverstrahler_all.rds
+
   # loop over the preds loading the raw data, processing and saving, returning a prepared data_path
   for (i in seq_len(nrow(Preds_static_unique))) {
     # load data
@@ -107,16 +130,18 @@ calibration_predictor_prep <- function(config) {
     # - why they're listed in an excel sheet instead of read from a folder,
     # - why they are in RDS format when they are clearly raster data
     Raw_dat <- readRDS(unlist(Preds_static_unique[i, "Raw_data_path"]))
+    # FIXME the RDS files are missing the srs attribute
+    Raw_dat@srs <- raster::crs(Raw_dat@crs@projargs)
 
     # aggregate
     Agg_dat <- raster::aggregate(Raw_dat, fact = 4, fun = mean)
 
     # vector save path
-    layer_path <- paste0(
+    layer_path <- tolower(paste0(
       config[["prepped_lyr_path"]], "/",
       Preds_static_unique[i, "Predictor_category"], "/",
       Preds_static_unique[i, "Covariate_ID"], ".tif"
-    )
+    ))
 
     # save
     raster::writeRaster(Agg_dat, layer_path, overwrite = TRUE)
@@ -135,12 +160,15 @@ calibration_predictor_prep <- function(config) {
     rm(Raw_dat, Agg_dat, layer_path)
   }
 
+  # TODO these are apparently only the climatic predictors from broennimann, CHclim25
+  # https://zenodo.org/communities/chclim25 which we want to ditch for CHELSA
   # Process the dynamic predictors
   Preds_dynamic <- Preds_raw[Preds_raw$Static_or_dynamic == "dynamic", ]
 
   # Loop over the predictors, Calculating periodic averages for each
   # re-scaling the rasters, saving and updating predictor table
   for (i in seq_len(nrow(Preds_dynamic))) {
+    message("Processing: ", Preds_dynamic[i, "Covariate_ID"])
     # read in rasters as stack
     temp_list <- lapply(
       list.files(Preds_dynamic[i, "Raw_data_path"], full.names = TRUE),
@@ -155,17 +183,11 @@ calibration_predictor_prep <- function(config) {
     Agg_dat <- terra::aggregate(raster_mean, fact = 4, fun = mean)
 
     # vector save path
-    layer_path <- paste0(
+    layer_path <- tolower(paste0(
       config[["prepped_lyr_path"]], "/",
       Preds_dynamic[i, "Predictor_category"], "/",
       Preds_dynamic[i, "Covariate_ID"], "_", Preds_dynamic[i, "period"], ".tif"
-    )
-    # vector save path
-    layer_path <- paste0(
-      config[["prepped_lyr_path"]], "/",
-      Preds_dynamic[i, "Predictor_category"], "/",
-      Preds_dynamic[i, "Covariate_ID"], "_", Preds_dynamic[i, "period"], ".tif"
-    )
+    ))
 
     # save
     terra::writeRaster(Agg_dat, layer_path, overwrite = TRUE)
@@ -213,50 +235,54 @@ calibration_predictor_prep <- function(config) {
   # exactly however changes are minor in the scope of the number of industries them
   # exactly
 
-  # get urls for variable and convert to named list
-  All_urls <- stringr::str_split(
-    Preds_to_prepare[
-      grep(Preds_to_prepare$Covariate_ID, pattern = "Avg_chg_FTE"),
-      "URL"
-    ][1], ","
-  )[[1]]
-  named_urls <- lapply(
-    stringr::str_split(All_urls, pattern = " = "),
-    function(x) trimws(x[2])
-  )
-  names(named_urls) <- lapply(
-    stringr::str_split(All_urls, pattern = " = "),
-    function(x) trimws(x[1])
-  )
-
-  ### Statent data
-  # seperate the Statent urls
-  # FIXME dangerous to rely on ordering to identify specific URLs
-  Statent_urls <- named_urls[4:length(named_urls)]
-
-  # create dir for raw data
-  Statent_dir <- "Data/Preds/Raw/Socio_economic/Employment/Historic_employment/Statent"
   Statent_dir <- file.path(
-    config[["predictors_raw_dir"]], "socio_economic", "employment",
-    "historic_employment", "statent"
+    config[["predictors_raw_dir"]],
+    "socio_economic",
+    "employment",
+    "historic_employment",
+    "statent"
   )
 
-  # Download and unzip all datasets
-  sapply(Statent_urls, function(x) {
-    lulcc.downloadunzip(
-      url = x,
-      save_dir = Statent_dir
-    )
-  })
-  # Download and unzip all datasets
-  sapply(Statent_urls, function(x) {
-    lulcc.downloadunzip(
-      url = x,
-      save_dir = Statent_dir
-    )
-  })
+  statent_raw_tbl <-
+    Preds_to_prepare |>
+    dplyr::filter(stringr::str_detect(Covariate_ID, "Avg_chg_FTE")) |>
+    dplyr::select(period, URL, Raw_data_path, Prepared_data_path) |>
+    dplyr::mutate(
+      # extracting urls and names from "year = url, year2 = url2" format strings
+      URL =
+        stringr::str_split(URL, ",") |>
+          purrr::map(stringr::str_squish) |>
+          purrr::map(function(x) {
+            parts <-
+              stringr::str_split_fixed(x, "=", n = 2)
+            rlang::set_names(
+              stringr::str_trim(parts[, 2]),
+              stringr::str_trim(parts[, 1])
+            )
+          })
+    ) |>
+    tidyr::unnest_longer(URL, values_to = "URL", indices_to = "URL_id") |>
+    dplyr::distinct()
 
-  # gather the relevant files
+  ### Statent data: only years 2011-2020
+  Statent_urls <-
+    statent_raw_tbl |>
+    dplyr::filter(stringr::str_detect(URL_id, "^\\d+$")) |>
+    dplyr::transmute(
+      url = URL,
+      filename = paste0(URL_id, ".zip")
+    ) |>
+    dplyr::distinct()
+
+  if (refresh_cache) {
+    # Download and unzip all datasets
+    purrr::pwalk(
+      Statent_urls,
+      lulcc.downloadunzip,
+      save_dir = Statent_dir
+    )
+  }
+
   # gather the relevant files
   Statent_paths <- grep(
     list.files(Statent_dir, recursive = TRUE, full.names = TRUE, pattern = "csv"),
@@ -266,19 +292,23 @@ calibration_predictor_prep <- function(config) {
   )
 
   # name using numerics in paths
-  names(Statent_paths) <- sapply(Statent_paths, function(x) {
-    stringr::str_match(pattern = paste(names(Statent_urls), collapse = "|"), x)
-  })
+  names(Statent_paths) <- stringr::str_extract(
+    Statent_paths,
+    pattern = "STATENT(\\d{4})",
+    group = 1L
+  )
 
   # Get the variable IDs for the number of Full Time Equivalents in each sector
   # webpage for variable list: https://www.bfs.admin.ch/bfs/de/home/dienstleistungen/geostat/geodaten-bundesstatistik/arbeitsstaetten-beschaeftigung/statistik-unternehmensstruktur-statent-ab-2011.assetdetail.23264982.html
   # download file from API URL
-  Statent_metadata <- openxlsx::read.xlsx(
-    "https://dam-api.bfs.admin.ch/hub/api/dam/assets/23264982/master",
-    startRow = 9,
-    cols = c(1, 3)
-  )
-  colnames(Statent_metadata) <- c("ID", "Name")
+  Statent_metadata <-
+    openxlsx::read.xlsx(
+      "https://dam-api.bfs.admin.ch/hub/api/dam/assets/23264982/master",
+      startRow = 9,
+      cols = c(1, 3),
+      colNames = FALSE
+    ) |>
+    rlang::set_names(c("ID", "Name"))
 
   # subset using German variable names
   Statent_var_names <- c(
@@ -297,26 +327,21 @@ calibration_predictor_prep <- function(config) {
   Statent_desc_vars <- c("E_KOORD", "N_KOORD", "RELI")
 
   # loop over each file loading it in and seperating on the required variables including coords
-  future::plan(future::multisession(workers = future::availableCores() - 2))
-  Statent_data_by_year <- future.apply::future_mapply(
+  Statent_data_by_year <- mapply(
     function(annual_data_path, year) {
-      # load the xlsx file
-      Annual_data <- read.csv2(annual_data_path)
+      # named vector for select/rename with readr
+      statent_var_ids_yr <- Statent_var_IDs
+      names(statent_var_ids_yr) <- paste0(names(Statent_var_IDs), "_", year)
 
-      # subset to just the required variables
-      Data_subset <- Annual_data[, c(Statent_desc_vars, Statent_var_IDs)]
-
-      # rename the sectoral columns appending year
-      names(Data_subset)[names(Data_subset) %in% Statent_var_IDs] <-
-        paste(names(Statent_var_IDs), year, sep = "_")
-
-      return(Data_subset)
+      readr::read_csv2(
+        file = annual_data_path,
+        col_select = tidyselect::all_of(c(Statent_desc_vars, statent_var_ids_yr))
+      )
     },
     annual_data_path = Statent_paths,
     year = names(Statent_paths),
     SIMPLIFY = FALSE
   )
-  future::plan(future::sequential)
 
   # Merge based on Statent_desc_vars
   Statent_merged <- Reduce(
@@ -327,65 +352,79 @@ calibration_predictor_prep <- function(config) {
 
   # rasterize
   sp::coordinates(Statent_merged) <- ~ E_KOORD + N_KOORD
-  sp::gridded(Statent_merged) <- TRUE
-  sp::crs(Statent_merged) <- terra::crs(Ref_grid)
-  Statent_brick <- terra::rast(Statent_merged)
+  sp::gridded(Statent_merged) <- TRUE # FIXME there are empty points in x and y coords
+  Statent_brick <- terra::rast(Statent_merged, crs = config[["reference_crs"]])
   # rensample to match extent
+  # FIXME why is it nearest neighbour instead of bilinear? not categorical data!
   Statent_brick <- terra::resample(Statent_brick, Ref_grid, method = "near")
 
   ### Business census data
-  Biz_census_urls <- named_urls[1:3]
+  Biz_census_urls <-
+    statent_raw_tbl |>
+    dplyr::filter(stringr::str_detect(URL_id, "^\\d+$", negate = TRUE)) |>
+    dplyr::transmute(
+      url = URL,
+      filename = paste0(URL_id, ".zip")
+    ) |>
+    dplyr::distinct()
 
   # specify dir and download datasets
-  # Biz_census_dir <- "Data/Preds/Raw/Socio_economic/Employment/Historic_employment/Business_census"
   Biz_census_dir <- file.path(
     config[["predictors_raw_dir"]], "socio_economic", "employment",
     "historic_employment", "business_census"
   )
-  sapply(Biz_census_urls, function(x) {
-    lulcc.downloadunzip(
-      url = x,
-      save_dir = Biz_census_dir
+
+  if (refresh_cache) {
+    purrr::pwalk(
+      Biz_census_urls,
+      function(url, filename) {
+        lulcc.downloadunzip(
+          url = url,
+          save_dir = file.path(Biz_census_dir, basename(filename)),
+          filename = filename
+        )
+      }
     )
-  })
+  }
 
   # list all csv files.
-  Biz_census_paths <- grep(
-    list.files(
-      path = Biz_census_dir,
-      full.names = TRUE,
-      recursive = TRUE
-    ),
+  Biz_census_paths <- list.files(
+    path = Biz_census_dir,
+    full.names = TRUE,
+    recursive = TRUE,
     pattern = "csv",
-    value = TRUE,
     ignore.case = TRUE
   )
 
-  # TOOD this isn't ordered, check that this logic is stable. manually name according to
-  # the year of each (based on abbreviations in file name e.g '05' == 2005)
-  names(Biz_census_paths) <- c(
-    "2000", "2005", "1996", "2001", "2005", "2008", "1995", "1998"
-  )
+  # extract year based on abbreviations in file name e.g '05' -> 2005
+  names(Biz_census_paths) <-
+    Biz_census_paths |>
+    basename() |>
+    tolower() |>
+    stringr::str_extract("bz(\\d{2})", group = 1) |>
+    as.integer() |>
+    (\(x) ifelse(x > 90, x + 1900, x + 2000))()
 
-  # each dataset uses different IDs for the variable of Full Time Equivalents
-  # detailed in seperate meta data files
-  Biz_census_meta_paths <- grep(
-    list.files(
+
+  if (FALSE) {
+    # TODO this is used to find some variable names that are then just hardcoded. not
+    # sure this needs to be included as code, or easier to have explanation as comment
+    # each dataset uses different IDs for the variable of Full Time Equivalents
+    # detailed in seperate meta data files
+    Biz_census_meta_paths <- list.files(
       path = Biz_census_dir,
       full.names = TRUE,
-      recursive = TRUE
-    ),
-    pattern = "xls",
-    value = TRUE,
-    ignore.case = TRUE
-  )
-
-  # Find the IDs used for the Full Time Equivalents variables in each metadata file
-  unlist(sapply(Biz_census_meta_paths, function(x) {
-    meta_df <- readxl::read_excel(x)
-    meta_df <- meta_df[26:nrow(meta_df), c(1, 5)]
-    return(meta_df[which(meta_df[[2]] %in% Statent_var_names), 1])
-  }))
+      recursive = TRUE,
+      pattern = "xls",
+      ignore.case = TRUE
+    )
+    # Find the IDs used for the Full Time Equivalents variables in each metadata file
+    unlist(sapply(Biz_census_meta_paths, function(x) {
+      meta_df <- readxl::read_excel(x)
+      meta_df <- meta_df[26:nrow(meta_df), c(1, 5)]
+      return(meta_df[which(meta_df[[2]] %in% Statent_var_names), 1])
+    }))
+  }
 
   # The IDs contain a common string across the datasets i.e 'VZAS' followed by
   # 1,2 or 3 for the sector. Use to match columns across all datasets.
@@ -403,7 +442,7 @@ calibration_predictor_prep <- function(config) {
   BC_data_by_year <- mapply(
     function(annual_data_path, year) {
       # load the file
-      Annual_data <- read.csv2(annual_data_path)
+      Annual_data <- readr::read_csv2(annual_data_path)
 
       # subset to just the required variables
       Data_subset <- Annual_data[
@@ -431,31 +470,32 @@ calibration_predictor_prep <- function(config) {
   )
 
   # merge
+  # FIXME
   BC_merged <- Reduce(function(x, y) merge(x, y, by = BC_desc_vars, all = TRUE), BC_data_by_year)
 
-  # rasterize
+  # TODO move to terra
   sp::coordinates(BC_merged) <- ~ X + Y
   sp::gridded(BC_merged) <- TRUE
-  sp::crs(BC_merged) <- terra::crs(Ref_grid)
-  BC_brick <- terra::rast(BC_merged)
+  BC_brick <- terra::rast(BC_merged, crs = config[["reference_crs"]])
   terra::ext(BC_brick) <- terra::ext(Ref_grid)
   BC_brick <- terra::resample(BC_brick, Ref_grid)
 
   # Combine the two bricks together
-  Data_stack <- stack(Statent_brick, BC_brick)
+  Data_stack <- c(Statent_brick, BC_brick)
 
   # intersect with labour market regions
   # load shapefile of labour market regions
-  LMR_shp <- sf::st_read(file.path(
+  LMR_shp <- terra::vect(file.path(
     config[["ch_geoms_path"]],
-    "2022_GEOM_TK", "03_ANAL", "Gesamtfläche_gf",
-    "K4_amre_20180101_gf", "K4amre_20180101gf_ch2007Poly.shp"
+    "2025_GEOM_TK", "03_ANAL", "Gesamtfläche_gf",
+    "K4_amre20190101_gf", "K4amre_20190101gf_ch2007Poly.shp"
   ))
 
   # sum data in each labour market region
+  # FIXME warning mismatching CRS; data stack
   FTE_lab_market <- terra::extract(
-    Data_stack, terra::vect(LMR_shp),
-    fun = sum, na.rm = TRUE, df = TRUE
+    Data_stack, LMR_shp,
+    fun = sum, na.rm = TRUE
   )
   FTE_lab_market$name <- LMR_shp$name
 
@@ -465,6 +505,7 @@ calibration_predictor_prep <- function(config) {
   # loop over sector numbers separating data and perform linear model based interpolation
   Sector_extrapolations <- lapply(
     sector_nums, function(x) {
+      # FIXME i get warnings: "NAs introduced by coercion", unclear where they come from
       Sector_string <- paste0("Sec", x, "_")
       Sector_data <- FTE_lab_market[
         ,
@@ -542,7 +583,7 @@ calibration_predictor_prep <- function(config) {
   )
   # rasterize
   LMR_shp$name <- as.factor(LMR_shp$name)
-  LMR_rast <- terra::rasterize(terra::vect(LMR_shp), Ref_grid, field = "name")
+  LMR_rast <- terra::rasterize(LMR_shp, Ref_grid, field = "name")
 
   FTE_rasts <- LMR_rast
   # Mimic 'subs' functionality for multiple new layers
@@ -556,7 +597,7 @@ calibration_predictor_prep <- function(config) {
     colname_k <- colnames(LMR_values)[k]
     matchdf <- data.frame(ID = LMR_values$ID, newval = LMR_values[[colname_k]])
     tmp <- merge(tmp, matchdf, by = "ID", all.x = TRUE)
-    tmp <- tmp[order(tmp$cells), ]
+    tmp <- tmp[order(tmp$cell), ]
     newlayer <- terra::rast(FTE_rasts)
     terra::values(newlayer) <- tmp$newval
     FTE_list[[k - 1]] <- newlayer
@@ -564,21 +605,18 @@ calibration_predictor_prep <- function(config) {
 
   FTE_rasts <- do.call(c, FTE_list)
 
-  Prepared_FTE_dir <- "Data/Preds/Prepared/Layers/Socio_economic/Employment"
-  dir.create(Prepared_FTE_dir, recursive = TRUE)
+  ensure_dir(config[["prepped_fte_dir"]])
 
   # vector file names
-  FTE_file_names <- paste0(
-    Prepared_FTE_dir, "/", "Avg_chg_FTE_",
-    names(LMR_values)[2:length(LMR_values)], ".tif"
+  FTE_file_names <- file.path(
+    config[["prepped_fte_dir"]],
+    paste0("avg_chg_fte_", names(LMR_values)[2:length(LMR_values)], ".tif")
   )
 
   # save a seperate file for each layer
   terra::writeRaster(
     FTE_rasts,
     filename = FTE_file_names,
-    bylayer = TRUE,
-    format = "GTiff",
     overwrite = TRUE
   )
 
