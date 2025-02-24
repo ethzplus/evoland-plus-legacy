@@ -483,6 +483,30 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
   # Combine the two bricks together
   Data_stack <- c(Statent_brick, BC_brick)
 
+  if (FALSE) {
+    # FIXME the data from before 2010 are not in the same unit; there might be a simple
+    # factor of 10 difference. the metadata for both business census and statent
+    # datasets describe the data as full time equivalents.
+    dat_tbl <- 
+    Data_stack |> 
+    as.data.frame(na.rm=T) |> 
+    tibble::as_tibble() |> 
+    tidyr::pivot_longer(-RELI) |> 
+    dplyr::transmute(
+      sector = stringr::str_extract(name, pattern = "Sec\\d"),
+      year = as.integer(stringr::str_extract(name, pattern = "\\d{4}")),
+      before_2010 = year < 2010,
+      value = value
+    )
+  
+  ggplot2::ggplot(dat_tbl, ggplot2::aes(x=year, y=value, color=sector)) +
+    ggplot2::geom_violin() +
+    ggplot2::facet_grid(
+      ggplot2::vars(sector),
+      scales = "free"
+    )
+  }
+
   # intersect with labour market regions
   # load shapefile of labour market regions
   LMR_shp <- terra::vect(file.path(
