@@ -16,19 +16,23 @@
 ### =========================================================================
 ### A- Preparation
 ### =========================================================================
-nhood_predictor_prep <- function() {
-  # Historic LULC data folder path
-  LULC_folder <- "Data/Historic_LULC"
-
+nhood_predictor_prep <- function(conf = get_config()) {
   # vector years of LULC data
-  LULC_years <- gsub(".*?([0-9]+).*", "\\1", list.files(LULC_folder, full.names = FALSE, pattern = ".gri"))
+  LULC_years <- gsub(
+    ".*?([0-9]+).*",
+    "\\1",
+    list.files(conf[["historic_lulc_basepath"]], full.names = FALSE, pattern = ".gri")
+  )
 
   # create a list of the data/modelling periods
   LULC_change_periods <- c()
   for (i in 1:(length(LULC_years) - 1)) {
     LULC_change_periods[[i]] <- c(LULC_years[i], LULC_years[i + 1])
   }
-  names(LULC_change_periods) <- sapply(LULC_change_periods, function(x) paste(x[1], x[2], sep = "_"))
+  names(LULC_change_periods) <- sapply(
+    LULC_change_periods,
+    function(x) paste(x[1], x[2], sep = "_")
+  )
 
   # character string for data period
   data_periods <- names(LULC_change_periods)

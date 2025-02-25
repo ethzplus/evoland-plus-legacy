@@ -670,7 +670,9 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
 
   # use function to download and unpack
   Biophys_dir <- file.path(config[["predictors_raw_dir"]], "biophysical")
-  lulcc.downloadunzip(url = Biophys_url, save_dir = Biophys_dir)
+  if (refresh_cache) {
+    lulcc.downloadunzip(url = Biophys_url, save_dir = Biophys_dir)
+  }
 
   # download metadata
   Biophys_meta <-
@@ -741,9 +743,9 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
   ### Prepare municipality population data incorporating mutations
 
   # use if statement to only perform prep if layers have not already been prepared
-  if (stringr::str_contains(Preds_to_prepare$Covariate_ID, "Muni_pop")) {
+  if (any(stringr::str_detect(Preds_to_prepare$Covariate_ID, "Muni_pop"))) {
     # read in PX data from http and convert to DF
-    px_data <- pxR::as.data.frame(pxR::read.px(
+    px_data <- as.data.frame(pxR::read.px(
       "https://dam-api.bfs.admin.ch/hub/api/dam/assets/23164063/master"
     ))
 
@@ -786,18 +788,21 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
     # subset to only municipalities existing in 2021
     raw_mun_popdata <- raw_mun_popdata[raw_mun_popdata$`2021` > 0, ]
 
-    # import municipality shape file
-    lulcc.downloadunzip(
-      url = paste0(
-        "https://data.geo.admin.ch/ch.swisstopo.swissboundaries3d/swissboundaries3d_2021-07/",
-        "swissboundaries3d_2021-07_2056_5728.shp.zip"
-      ),
-      save_dir = config[["ch_geoms_path"]]
-    )
+    if (refresh_cache) {
+      # fetch municipality shape file
+      lulcc.downloadunzip(
+        url = paste0(
+          "https://data.geo.admin.ch/ch.swisstopo.swissboundaries3d/swissboundaries3d_2021-07/",
+          "swissboundaries3d_2021-07_2056_5728.shp.zip"
+        ),
+        save_dir = config[["ch_geoms_path"]]
+      )
+    }
 
     Muni_shp <- raster::shapefile(file.path(
       config[["ch_geoms_path"]],
-      "SHAPEFILE_LV95_LN02", "swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.shp"
+      # TODO check that 1_3 and 1_5 are interchangeable
+      "swissBOUNDARIES3D_1_5_TLM_HOHEITSGEBIET.shp"
     ))
 
     # filter out non-swiss municipalities
@@ -817,7 +822,7 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
     ))
     muni_mutations <- rvest::html_table(content, fill = TRUE)[[1]]
 
-    # remove 1st row
+    # remove 1st row because it contains additional column names
     muni_mutations <- muni_mutations[-1, ]
 
     # rename columns
@@ -878,8 +883,11 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
     })
 
     # save a copy raw_mun_popdata for preparation of future population layers
-    saveRDS(raw_mun_popdata, "Data/Preds/Raw/Socio_economic/Population/raw_muni_pop_historic.rds")
-
+    ensure_dir(config[["raw_pop_dir"]])
+    saveRDS(
+      raw_mun_popdata,
+      file.path(config[["raw_pop_dir"]], "raw_muni_pop_historic.rds")
+    )
 
     ### Create historic municipality population rasters
 
@@ -894,10 +902,10 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
       # file_path
       save_path <- paste0(
         config[["prepped_lyr_path"]], "/",
-        unique(Preds_to_prepare[Preds_to_prepare$Covariate_ID == Var_name, "Predictor_category"]),
-        "/Population/",
+        unique(Preds_to_prepare[Covariate_ID == Var_name, Predictor_category]),
+        "/population/",
         Var_name, "_", i, ".tif"
-      )
+      ) |> tolower()
 
       # loop over the BFS numbers of the polygons and match to population values
       Muni_shp@data[paste0("Pop_", i)] <- as.numeric(sapply(
@@ -913,6 +921,7 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
       pop_rast <- terra::rasterize(terra::vect(Muni_shp), Ref_grid, field = paste0("Pop_", i))
 
       # save
+      ensure_dir(dirname(save_path))
       terra::writeRaster(pop_rast, save_path, overwrite = TRUE)
 
       return(save_path)
@@ -920,11 +929,11 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
 
     # Add prepared path to predictor table
     Pred_table_long[
-      Pred_table_long$Covariate_ID == Var_name,
+      Covariate_ID == Var_name,
       "Prepared_data_path"
     ] <- Muni_save_paths
     Pred_table_long[
-      Pred_table_long$Covariate_ID == Var_name,
+      Covariate_ID == Var_name,
       "Prepared"
     ] <- "Y"
   } # close if statement
@@ -935,6 +944,7 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
 
   # load predictor_table as workbook to add sheets
   Pred_table_update <- openxlsx::loadWorkbook(file = config[["pred_table_path"]])
+  Pred_table_update <- openxlsx::createWorkbook(creator = "lulcc-ch")
 
   # split the table back into Dfs for each period and save
   Periodic_pred_tables <- split(Pred_table_long, Pred_table_long$period)
@@ -943,13 +953,13 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
   for (i in names(Periodic_pred_tables)) {
     # the try() is necessary in case sheets already exist
     try(openxlsx::addWorksheet(Pred_table_update, sheetName = paste(i)))
-    openxlsx::writeData(Pred_table_update, sheet = paste(i), x = Periodic_pred_tables[[i]])
+    openxlsx::writeDataTable(Pred_table_update, sheet = paste(i), x = Periodic_pred_tables[[i]])
   }
 
   # save workbook
   openxlsx::saveWorkbook(Pred_table_update, config[["pred_table_path"]], overwrite = TRUE)
 
-  cat(paste0(" Preparation of Suitability and accessibility predictor layers complete \n"))
+  message(" Preparation of Suitability and accessibility predictor layers complete")
 
   ### =========================================================================
   ### X- Create Neighbourhood predictors

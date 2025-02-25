@@ -23,6 +23,7 @@ get_config <- function(
   predictors_prepped_dir <- file.path(predictors_dir, "prepared")
   predictors_raw_dir <- file.path(predictors_dir, "raw")
   allocation_pars_dir <- file.path(data_basepath, "allocation_parameters")
+  preds_tools_dir <- file.path(predictors_dir, "tools")
 
   # TODO move all the config tables into a common xlsx and read individual sheets?
   config <- list(
@@ -54,6 +55,8 @@ get_config <- function(
     bioreg_zip_local = file.path(bioreg_dir, "biogeographische_regionen.zip"),
     predictors_raw_dir = predictors_raw_dir,
     ch_geoms_path = file.path(predictors_raw_dir, "ch_geoms"),
+    raw_pop_dir = file.path(predictors_raw_dir, "socio_economic", "population"),
+    preds_tools_dir = preds_tools_dir,
     prepped_lyr_path = file.path(predictors_prepped_dir, "layers"),
     prepped_fte_dir = file.path(predictors_prepped_dir, "socio_economic", "employment"),
     reference_crs = "epsg:2056"
