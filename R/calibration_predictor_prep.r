@@ -487,24 +487,24 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
     # FIXME the data from before 2010 are not in the same unit; there might be a simple
     # factor of 10 difference. the metadata for both business census and statent
     # datasets describe the data as full time equivalents.
-    dat_tbl <- 
-    Data_stack |> 
-    as.data.frame(na.rm=T) |> 
-    tibble::as_tibble() |> 
-    tidyr::pivot_longer(-RELI) |> 
-    dplyr::transmute(
-      sector = stringr::str_extract(name, pattern = "Sec\\d"),
-      year = as.integer(stringr::str_extract(name, pattern = "\\d{4}")),
-      before_2010 = year < 2010,
-      value = value
-    )
-  
-  ggplot2::ggplot(dat_tbl, ggplot2::aes(x=year, y=value, color=sector)) +
-    ggplot2::geom_violin() +
-    ggplot2::facet_grid(
-      ggplot2::vars(sector),
-      scales = "free"
-    )
+    dat_tbl <-
+      Data_stack |>
+      as.data.frame(na.rm = T) |>
+      tibble::as_tibble() |>
+      tidyr::pivot_longer(-RELI) |>
+      dplyr::transmute(
+        sector = stringr::str_extract(name, pattern = "Sec\\d"),
+        year = as.integer(stringr::str_extract(name, pattern = "\\d{4}")),
+        before_2010 = year < 2010,
+        value = value
+      )
+
+    ggplot2::ggplot(dat_tbl, ggplot2::aes(x = year, y = value, color = sector)) +
+      ggplot2::geom_violin() +
+      ggplot2::facet_grid(
+        ggplot2::vars(sector),
+        scales = "free"
+      )
   }
 
   # intersect with labour market regions
@@ -646,11 +646,11 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
 
   # update the predictor table with the file paths
   Pred_table_long[
-    grep(Pred_table_long$Covariate_ID, pattern = "Avg_chg_FTE"),
+    grepl(Covariate_ID, pattern = "Avg_chg_FTE") & is.na(Scenario_variant),
     "Prepared_data_path"
   ] <- FTE_file_names
   Pred_table_long[
-    grep(Pred_table_long$Covariate_ID, pattern = "Avg_chg_FTE"),
+    grepl(Covariate_ID, pattern = "Avg_chg_FTE") & is.na(Scenario_variant),
     "Prepared"
   ] <- "Y"
 
@@ -659,23 +659,25 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
   ### -------------------------------------------------------------------------
 
   # grab url from table
-  Biophys_url <- stringr::str_split(
-    Preds_to_prepare[
-      grep(Preds_to_prepare$Data_citation, pattern = "Descombes et al. 2020"),
-      "URL"
-    ][1], ","
-  )[[1]]
+  # FIXME temporarily hardcoding URL from here instead of relying on arbitrarily sorted table
+  # https://www.envidat.ch/dataset/spatial-modelling-of-ecological-indicator-values/resource/e0faab13-0d1b-492a-8539-5370d48b9e35
+  Biophys_url <- paste0(
+    "https://www.envidat.ch/",
+    "dataset/4ab13d14-6f96-41fd-96b0-b3ea45278b3d/",
+    "resource/e0faab13-0d1b-492a-8539-5370d48b9e35",
+    "/download/predictors.zip"
+  )
 
   # use function to download and unpack
-  Biophys_dir <- c("Data/Preds/Raw/Biophysical")
   Biophys_dir <- file.path(config[["predictors_raw_dir"]], "biophysical")
   lulcc.downloadunzip(url = Biophys_url, save_dir = Biophys_dir)
 
   # download metadata
-  Biophys_meta <- openxlsx::read.xlsx(paste0(
-    "https://www.envidat.ch/dataset/4ab13d14-6f96-41fd-96b0-b3ea45278b3d/resource",
-    "/81c046c3-8d1d-45bc-a833-7d8240cebd12/download/predictors_description.xlsx"
-  ))
+  Biophys_meta <-
+    openxlsx::read.xlsx(paste0(
+      "https://www.envidat.ch/dataset/4ab13d14-6f96-41fd-96b0-b3ea45278b3d/resource",
+      "/81c046c3-8d1d-45bc-a833-7d8240cebd12/download/predictors_description.xlsx"
+    )) |> data.table::as.data.table()
 
   # clean required column names
   names(Biophys_meta)[1:3] <- c("Layer_name", "Abbrev", "Desc_name")
@@ -685,22 +687,23 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
 
   # get layer names using variable names
   Biophys_var_names <- unique(Preds_to_prepare[
-    Preds_to_prepare$Data_citation == "Descombes et al. 2020", "Variable_name"
+    Data_citation == "Descombes et al. 2020", Variable_name
   ])
   Biophys_layer_names <- Biophys_meta[
     Biophys_meta$Desc_name %in% Biophys_var_names,
-    "Layer_name"
+    Layer_name
   ]
 
   # Get variable descriptive names
   Biophys_desc_names <- Biophys_meta[
     Biophys_meta$Desc_name %in% Biophys_var_names,
-    "Desc_name"
+    Desc_name
   ]
 
+  # FIXME how on earth can we be sure these names are in the right order?
   # Match descriptive names with the pred table and return the covariate ID
   names(Biophys_layer_names) <- unique(sapply(Biophys_desc_names, function(x) {
-    Preds_to_prepare[Preds_to_prepare$Variable_name == x, "Covariate_ID"]
+    Preds_to_prepare[Variable_name == x, Covariate_ID]
   }))
 
   # get layer paths
@@ -709,26 +712,26 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
   })
 
   # loop over paths and process layers
-  for (i in seq_len(length(Biophys_paths))) {
+  for (i in seq_along(Biophys_paths)) {
     Var_path <- Biophys_paths[[i]]
     Var_name <- names(Biophys_paths)[i]
     Raw_dat <- terra::rast(Var_path)
-    # FIXME terra::project doesn't have a method for SpatialRaster / CRS signature
     Prepped_dat <- terra::project(
       Raw_dat, terra::crs(Ref_grid),
       res = terra::res(Ref_grid)
     )
     Prepped_dat_resamp <- terra::resample(Prepped_dat, Ref_grid)
-    layer_path <- paste0(
-      config[["prepped_lyr_path"]], "/",
-      unique(Preds_to_prepare[
-        Preds_to_prepare$Covariate_ID == Var_name, "Predictor_category"
-      ]), "/",
-      Var_name, ".tif"
-    )
+    layer_path <-
+      file.path(
+        config[["prepped_lyr_path"]],
+        unique(Preds_to_prepare[
+          Covariate_ID == Var_name, Predictor_category
+        ]),
+        paste0(Var_name, ".tif")
+      ) |> tolower()
     terra::writeRaster(Prepped_dat_resamp, layer_path, overwrite = TRUE)
-    Pred_table_long[Pred_table_long$Covariate_ID == Var_name, "Prepared_data_path"] <- layer_path
-    Pred_table_long[Pred_table_long$Covariate_ID == Var_name, "Prepared"] <- "Y"
+    Pred_table_long[Covariate_ID == Var_name, "Prepared_data_path"] <- layer_path
+    Pred_table_long[Covariate_ID == Var_name, "Prepared"] <- "Y"
   }
 
   ### -------------------------------------------------------------------------
