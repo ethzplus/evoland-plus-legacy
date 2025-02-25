@@ -1,27 +1,30 @@
-#############################################################################
-## Nhood_data_prep: Neighbourhood effect predictor layer preparation
-##
-## when devising neighborhood effect predictors there are two considerations:
-## 1.The size of the neighborhood (no. of cells: n)
-##  2.The decay rate from the central value outwards
-##  and to a lesser extent the choice of method for interpolating the decay rate values
-##  This script will follow the process for automatic rule detection procedure (ARD)
-##  devised by Roodposhti et al. (2020) to test various permutations of these values
-##  for more details refer to: http://www.spatialproblems.com/wp-content/uploads/2019/09/ARD.html
-##
-## Date: 29-06-2021
-## Author: Ben Black
-#############################################################################
+#' Nhood_data_prep: Neighbourhood effect predictor layer preparation
+#'
+#' When devising neighborhood effect predictors there are two considerations:
+#' 1.The size of the neighborhood (no. of cells: n)
+#' 2.The decay rate from the central value outwards and to a lesser extent the choice of
+#' method for interpolating the decay rate values.
+#'
+#' This script will follow the process for automatic rule detection procedure (ARD)
+#' devised by Roodposhti et al. (2020) to test various permutations of these values; for
+#' more details refer to:
+#' http://www.spatialproblems.com/wp-content/uploads/2019/09/ARD.html
+#'
+#' @author Ben Black
+#' @param config list of configuration parameters
+#' @param redo_random_matrices logical indicating whether to re-generate the random matrices
+#' @return NULL
+#' @export
 
-### =========================================================================
-### A- Preparation
-### =========================================================================
-nhood_predictor_prep <- function(conf = get_config()) {
+nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = FALSE) {
+  ### =========================================================================
+  ### A- Preparation
+  ### =========================================================================
   # vector years of LULC data
   LULC_years <- gsub(
     ".*?([0-9]+).*",
     "\\1",
-    list.files(conf[["historic_lulc_basepath"]], full.names = FALSE, pattern = ".gri")
+    list.files(config[["historic_lulc_basepath"]], full.names = FALSE, pattern = ".gri")
   )
 
   # create a list of the data/modelling periods
@@ -39,47 +42,52 @@ nhood_predictor_prep <- function(conf = get_config()) {
 
   # create folders required
   nhood_folder_names <- c(
-    "Data/Preds/Tools/Neighbourhood_details_for_dynamic_updating",
-    "Data/Preds/Tools/Neighbourhood_matrices",
-    "Data/Preds/Prepared/Layers/Neighbourhood/"
+    file.path(config[["preds_tools_dir"]], "neighbourhood_details_for_dynamic_updating"),
+    file.path(config[["preds_tools_dir"]], "neighbourhood_matrices"),
+    file.path(config[["prepped_lyr_path"]], "neighbourhood")
   )
 
-  sapply(nhood_folder_names, function(x) {
-    dir.create(x, recursive = TRUE)
-  })
+  purrr::walk(nhood_folder_names, ensure_dir)
 
   ### =========================================================================
   ### B- Generating the desired number of random matrices for testing as
   ### focal windows for neighbourhood effect
   ### =========================================================================
+  all_matrices_path <- file.path(
+    config[["preds_tools_dir"]], "neighbourhood_matrices", "all_matrices.rds"
+  )
+  if (redo_random_matrices) {
+    # FIXME this looks like you could simply set the seed to be reproducible?
+    # ONLY REPEAT THIS SECTION OF CODE IF YOU WISH TO REPLACE THE EXISTING
+    # RANDOM MATRICES WHICH ARE CARRIED FORWARD IN THE TRANSITION MODELLING
+    # set the number of neighbourhood windows to be tested and the maximum sizes of moving windows
+    # Specify sizes of matrices to be used as focal windows
+    # (each value corresponds to row and col size)
+    matrix_sizes <- c(11, 9, 7, 5, 3) # (11x11; 9x9; 7x7; 5x5; 3x3)
 
-  # ONLY REPEAT THIS SECTION OF CODE IF YOU WISH TO REPLACE THE EXISTING
-  # RANDOM MATRICES WHICH ARE CARRIED FORWARD IN THE TRANSITION MODELLING
+    # Specify how many random decay rate  matrices should be created for each size
+    nw <- 5 # How many random matrices to create for each matrix size below
 
-  # set the number of neighbourhood windows to be tested and the maximum sizes of moving windows
+    # Create matrices
+    All_matrices <- lapply(matrix_sizes, function(matrix_dim) {
+      matrix_list_single_size <- random_pythagorean_matrix(
+        n = nw, x = matrix_dim,
+        interpolation = "smooth", search = "random"
+      )
+      names(matrix_list_single_size) <- c(paste0("n", matrix_dim, "_", seq(1:nw)))
+      return(matrix_list_single_size)
+    })
 
-  # Specify sizes of matrices to be used as focal windows
-  # (each value corresponds to row and col size)
-  # matrix_sizes <- c(11, 9, 7, 5, 3) #(11x11; 9x9; 7x7; 5x5; 3x3)
+    # add top-level item names to list
+    names(All_matrices) <- c(paste0("n", matrix_sizes, "_matrices"))
 
-  # Specify how many random decay rate  matrices should be created for each size
-  # nw   <- 5 # How many random matrices to create for each matrix size below
-
-  # Create matrices
-  # All_matrices <- lapply(matrix_sizes, function(matrix_dim) {
-  # matrix_list_single_size <- random_pythagorean_matrix(nw, matrix_dim, interpolation="smooth", search = "random")
-  # names(matrix_list_single_size) <- c(paste0("n", matrix_dim, "_", seq(1:nw)))
-  # return(matrix_list_single_size)})
-
-  # add top-level item names to list
-  # names(All_matrices) <- c(paste0("n", matrix_sizes, "_matrices"))
-
-  # writing it to a file
-  # saveRDS(All_matrices, "Data/Preds/Tools/Neighbourhood_matrices/ALL_matrices")
-
+    # writing it to a file
+    saveRDS(All_matrices, all_matrices_path)
+  }
 
   ### =========================================================================
-  ### C- Applying the sets of random matrices to create focal window layers for each active LULC type
+  # C- Applying the sets of random matrices to create focal window layers for each
+  # active LULC type
   ### =========================================================================
 
   # the active LULC types are:
@@ -90,36 +98,45 @@ nhood_predictor_prep <- function(conf = get_config()) {
   # Permanent crops	(18)
 
   # Load back in the matrices
-  All_matrices <- unlist(readRDS("Data/Preds/Tools/Neighbourhood_matrices/ALL_matrices"), recursive = FALSE)
+  All_matrices <- unlist(readRDS(all_matrices_path), recursive = FALSE)
 
   # adjust names
   names(All_matrices) <- sapply(names(All_matrices), function(x) {
-    split_name <- (str_split(x, "[.]"))[[1]][2]
+    stringr::str_split(x, "[.]")[[1]][2]
   })
 
   # Load rasters of LULC data for historic periods (adjust list as necessary)
-  LULC_years <- lapply(str_extract_all(str_replace_all(
-    data_periods,
-    "_", " "
-  ), "\\d+"), function(x) x[[1]])
+  # FIXME until here, LULC_years is a vector, from here on out it's a list
+  LULC_years <- lapply(
+    stringr::str_extract_all(stringr::str_replace_all(data_periods, "_", " "), "\\d+"),
+    function(x) x[[1]]
+  )
   names(LULC_years) <- paste0("LULC_", LULC_years)
 
   LULC_rasters <- lapply(LULC_years, function(x) {
     LULC_pattern <- glob2rx(paste0("*", x, "*gri*")) # generate regex
-    raster(list.files("Data/Historic_LULC", full.names = TRUE, pattern = LULC_pattern)) # load raster
+    raster::raster(
+      list.files(config[["historic_lulc_basepath"]],
+        full.names = TRUE,
+        pattern = LULC_pattern
+      )
+    )
   })
 
   # provide vector of active LULC class names
+  # FIXME this should be predictor metadata, not hardcoded
   Active_class_names <- c("Urban", "Int_AG", "Alp_Past", "Grassland", "Perm_crops")
 
-  # Active_class_names <- lulcc.requestfocallulcclasses(LULC_aggregation_path = LULC_aggregation_path)
-
-  Nhood_folder_path <- "Data/Preds/Prepared/Layers/Neighbourhood"
+  Nhood_folder_path <- file.path(
+    config[["prepped_lyr_path"]],
+    "Neighbourhood"
+  )
 
   # mapply function over the LULC rasters and Data period names
   # saves rasters to file and return list of focal layer names
-  future::plan(multisession, workers = availableCores() - 2)
-  future_mapply(lulcc.generatenhoodrasters,
+  # future::plan(multisession, workers = availableCores() - 2)
+  mapply(
+    lulcc.generatenhoodrasters,
     LULC_raster = LULC_rasters,
     Data_period = data_periods,
     MoreArgs = list(
@@ -128,7 +145,7 @@ nhood_predictor_prep <- function(conf = get_config()) {
       Nhood_folder_path = Nhood_folder_path
     )
   )
-  plan(sequential)
+  # plan(sequential)
 
   ### =========================================================================
   ### D- Manage file names/details for neighbourhood layers
