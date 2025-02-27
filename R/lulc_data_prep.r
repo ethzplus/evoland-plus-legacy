@@ -5,10 +5,9 @@
 #' @author Ben Black
 #' @export
 
-lulc_data_prep <- function(config) {
-  if (!file.exists(config[["arealstat_zip_local"]])) {
-    message("Downloading Arealstatistik csv as zip")
-    dir.create(dirname(config[["arealstat_zip_local"]]), recursive = TRUE)
+lulc_data_prep <- function(config, refresh_cache = FALSE) {
+  if (refresh_cache) {
+    ensure_dir(dirname(config[["arealstat_zip_local"]]))
     curl::curl_download(
       url = config[["arealstat_zip_remote"]],
       destfile = config[["arealstat_zip_local"]],
@@ -17,9 +16,7 @@ lulc_data_prep <- function(config) {
   }
 
   # read from file for security
-  AS_table <-
-    unz(config[["arealstat_zip_local"]], "ag-b-00.03-37-area-all-csv.csv") |>
-    read.csv2()
+  AS_table <- readr::read_csv2(config[["arealstat_zip_local"]])
 
   # splitting into a list of tables for separate periods
   # Keep only columns of coordinates and LULC classes under the 72 categories scheme
@@ -39,7 +36,11 @@ lulc_data_prep <- function(config) {
     terra::crs(Raster_for_period) <- config[["reference_crs"]]
     Ref_grid <- terra::rast(config[["ref_grid_path"]])
     cropped_raster_for_period <- terra::crop(Raster_for_period, Ref_grid)
-    reprojected_raster_for_period <- terra::project(cropped_raster_for_period, Ref_grid, method = "near")
+    reprojected_raster_for_period <- terra::project(
+      cropped_raster_for_period,
+      Ref_grid,
+      method = "near"
+    )
     terra::writeRaster(reprojected_raster_for_period,
       filename = paste0(config[["rasterized_lulc_dir"]], "/", raster_name, ".tif"),
       overwrite = TRUE
@@ -47,8 +48,9 @@ lulc_data_prep <- function(config) {
   }
 
   # Loop function over tables
-  dir.create(config[["rasterized_lulc_dir"]])
-  NOAS04_periods_rasters <- mapply(create.reproject.save.raster,
+  ensure_dir(config[["rasterized_lulc_dir"]])
+  mapply(
+    create.reproject.save.raster,
     table_for_period = AS_tables_seperate_periods,
     raster_name = names(AS_tables_seperate_periods)
   )
@@ -94,7 +96,7 @@ lulc_data_prep <- function(config) {
   )
   NOAS04_list <- NOAS04_list[order(NOAS04_list)]
 
-  period_rasts <- lapply(NOAS04_list, function(x) terra::rast(x))
+  period_rasts <- lapply(NOAS04_list, terra::rast)
   Reclassified_rasters <- lapply(period_rasts, function(x) terra::classify(x, rcl = Agg_matrix))
   names(Reclassified_rasters) <- c("LULC_1985_agg", "LULC_1997_agg", "LULC_2009_agg", "LULC_2018_agg")
 
@@ -113,9 +115,7 @@ lulc_data_prep <- function(config) {
   )
 
   Reclassified_rasters <- lapply(Reclassified_rasters, function(x) {
-    x <- terra::as.factor(x)
-    df <- data.frame(value = LULC_rat$Pixel_value, label = LULC_rat$lulc_name)
-    levels(x)[[1]] <- df
+    levels(x) <- LULC_rat
     x
   })
 
