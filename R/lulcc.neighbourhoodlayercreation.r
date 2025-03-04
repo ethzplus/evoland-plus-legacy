@@ -37,7 +37,10 @@ get_pythagorean_matrix <- function(x, mid, drop, interpolation = "smooth") {
   choices <- c("smooth", "linear")
   interpolation <- choices[pmatch(interpolation, choices, duplicates.ok = FALSE)]
 
-  dists <- outer(abs(1:x - ceiling(x / 2)), abs(1:x - ceiling(x / 2)), function(x, y) sqrt(x^2 + y^2))
+  dists <- outer(
+    abs(1:x - ceiling(x / 2)), abs(1:x - ceiling(x / 2)),
+    function(x, y) sqrt(x^2 + y^2)
+  )
   if (interpolation == "smooth") {
     mat <- (1 / drop)^dists * mid
   } else {
@@ -48,7 +51,9 @@ get_pythagorean_matrix <- function(x, mid, drop, interpolation = "smooth") {
 
 #' @export
 plot_pythagorean_matrix <- function(mat) {
-  colors <- colorRampPalette(c("deepskyblue4", "deepskyblue3", "darkslateblue", "deepskyblue1", "lightblue1", "gray88"))(256)
+  colors <- colorRampPalette(c(
+    "deepskyblue4", "deepskyblue3", "darkslateblue", "deepskyblue1", "lightblue1", "gray88"
+  ))(256)
   corrplot::corrplot(mat,
     is.corr = FALSE, method = "shade",
     col = colors, tl.pos = "n",
@@ -85,63 +90,96 @@ plot_pythagorean_matrix_decay <- function(mat, plot = TRUE, ...) {
 }
 
 
-### =========================================================================
-### B- Instantiate nested loop functions to create focal LULC rasters from matrix
-### =========================================================================
-
+#' Generate Neighborhood Rasters for Land Use/Land Cover Classes
+#'
+#' This function creates neighborhood rasters for specified land use/land cover (LULC)
+#' classes using given neighborhood matrices. For each active LULC class and
+#' neighborhood matrix combination, it generates and saves a focal raster.
+#'
+#' @param lulc_raster A RasterLayer object containing land use/land cover data
+#' @param neighbourhood_matrices List of matrices defining different neighborhood configurations
+#' @param active_lulc_class_names Character vector of active LULC class names to process
+#' @param data_period String indicating the time period of the data
+#' @param nhood_folder_path String path to folder where neighborhood rasters will be saved
+#'
+#' @return List of lists containing generated focal rasters for each LULC class and
+#' neighborhood combination
+#'
+#' @details
+#' The function performs the following steps:
+#' 1. Extracts pixel values for active LULC classes
+#' 2. Creates binary rasters for each active LULC class
+#' 3. Applies focal operations using provided neighborhood matrices
+#' 4. Saves resulting rasters as .grd files
+#'
+#' @note Output rasters are saved with INT2U datatype
+#' @importMethodsFrom raster ==
 #' @export
-lulcc.generatenhoodrasters <- function(LULC_raster, Neighbourhood_matrices, Active_LULC_class_names, Data_period, Nhood_folder_path) {
+
+lulcc_generatenhoodrasters <- function(
+    lulc_raster,
+    neighbourhood_matrices,
+    active_lulc_class_names,
+    data_period,
+    nhood_folder_path) {
   # get pixel values of all active LULC classes
-  Active_class_values <- sapply(Active_LULC_class_names, function(x) {
-    class_value <- LULC_raster@data@attributes[[1]][LULC_raster@data@attributes[[1]]$lulc_name == x, "Pixel_value"]
-    return(class_value)
-  })
-
-  # subset LULC raster by all Active_class_values
-  Active_class_raster_subsets <- lapply(Active_class_values, function(subset_value) {
-    subset_raster <- LULC_raster == subset_value
-  })
-
-  # outer loop over the active class LULC rasters
-  All_focal_rasters <- mapply(
-    function(active_class_raster, active_class_raster_name) {
-      Matrices_for_lulc_class <- mapply(function(single_matrix, matrix_name) { # Inner loop: running the focal function using each matrix in the list
-        Focal_layer <- focal(x = active_class_raster, w = single_matrix, na.rm = FALSE, pad = TRUE, padValue = 0, NAonly = FALSE) # create focal layer using matrix
-        Focal_file_name <- paste(active_class_raster_name, "nhood", matrix_name, Data_period, sep = "_") # create file path for saving this layer
-        Focal_full_path <- paste0(Nhood_folder_path, "/", Focal_file_name, ".grd") # create full folder path
-        writeRaster(Focal_layer, Focal_full_path, datatype = "INT2U", overwrite = TRUE) # save layer
-        names(Focal_layer) <- Focal_file_name # rename focal layer
-        return(Focal_layer) # return layer for inspection
-      }, single_matrix = Neighbourhood_matrices, matrix_name = names(Neighbourhood_matrices), SIMPLIFY = FALSE) # close inner loop
-      return(Matrices_for_lulc_class)
-    }, # close outer loop
-    active_class_raster = Active_class_raster_subsets,
-    active_class_raster_name = names(Active_class_raster_subsets), SIMPLIFY = FALSE
+  active_class_values <- sapply(
+    active_lulc_class_names,
+    function(x) {
+      lulc_raster@data@attributes[[1]][
+        lulc_raster@data@attributes[[1]]$lulc_name == x, "Pixel_value"
+      ]
+    }
   )
 
-  return(All_focal_rasters)
-}
+  # subset LULC raster by all Active_class_values
+  active_class_raster_subsets <- lapply(
+    active_class_values,
+    function(subset_value) {
+      lulc_raster == subset_value
+    }
+  )
 
-### =========================================================================
-### C- Instantiate function to create focal LULC rasters from a list of details
-###    to be used as part of dynamic updating of focals during simulation
-### =========================================================================
+  # outer loop over the active class LULC rasters
+  all_focal_rasters <- mapply(
+    function(active_class_raster, active_class_raster_name) {
+      # Inner loop: running the focal function using each matrix in the list
+      matrices_for_lulc_class <- mapply(
+        function(single_matrix, matrix_name) {
+          focal_layer <- raster::focal(
+            x = active_class_raster,
+            w = single_matrix,
+            na.rm = FALSE,
+            pad = TRUE,
+            padValue = 0,
+            NAonly = FALSE
+          ) # create focal layer using matrix
+          focal_file_name <- paste(
+            active_class_raster_name, "nhood", matrix_name, data_period,
+            sep = "_"
+          ) # create file path for saving this layer
 
-# TODO where might this be used? was @export
-lulcc.producefocalsbylist <- function(Focal_specifications, List_of_matrices, LULC_raster, Simulation_time_step, simulation_ID) {
-  # create a folder path using simulation ID and time step
-  Dynamic_focal_folder_path <- paste0("Data/Preds/Simulation/NH_preds", "/", scenario_id, "/", Simulation_time_step)
+          focal_full_path <- paste0(
+            nhood_folder_path, "/", focal_file_name, ".grd"
+          ) # create full folder path
+          raster::writeRaster(
+            focal_layer,
+            focal_full_path,
+            datatype = "INT2U",
+            overwrite = TRUE
+          ) # save layer
+          names(focal_layer) <- focal_file_name # rename focal layer
+          return(focal_layer) # return layer for inspection
+        },
+        single_matrix = neighbourhood_matrices,
+        matrix_name = names(neighbourhood_matrices),
+        SIMPLIFY = FALSE
+      ) # close inner loop
+      return(matrices_for_lulc_class)
+    }, # close outer loop
+    active_class_raster = active_class_raster_subsets,
+    active_class_raster_name = names(active_class_raster_subsets), SIMPLIFY = FALSE
+  )
 
-  # create directory
-  dir.create(paste(wpath, Dynamic_focal_folder_path, sep = "/"), recursive = TRUE)
-
-  for (i in 1:nrow(Focal_specifications)) {
-    lulcc.generatenhoodrasters(
-      LULC_raster = LULC_raster,
-      Neighbourhood_matrices = List_of_matrices[Focal_specifications[i, ]$matrix_id],
-      Active_LULC_class_names = Focal_specifications[i, ]$active_lulc,
-      Data_period = "", # This is a blank as we need generic layer names for the existing fitted models
-      Nhood_folder_path = paste0(Dynamic_focal_folder_path, "/")
-    )
-  }
+  return(all_focal_rasters)
 }

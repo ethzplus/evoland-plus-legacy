@@ -134,18 +134,17 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
 
   # mapply function over the LULC rasters and Data period names
   # saves rasters to file and return list of focal layer names
-  # future::plan(multisession, workers = availableCores() - 2)
-  mapply(
-    lulcc.generatenhoodrasters,
-    LULC_raster = LULC_rasters,
-    Data_period = data_periods,
+  future.apply::future_mapply(
+    lulcc_generatenhoodrasters,
+    lulc_raster = LULC_rasters,
+    data_period = data_periods,
     MoreArgs = list(
-      Neighbourhood_matrices = All_matrices,
-      Active_LULC_class_names = Active_class_names,
-      Nhood_folder_path = Nhood_folder_path
-    )
+      neighbourhood_matrices = All_matrices,
+      active_lulc_class_names = Active_class_names,
+      nhood_folder_path = Nhood_folder_path
+    ),
+    future.seed = TRUE
   )
-  # plan(sequential)
 
   ### =========================================================================
   ### D- Manage file names/details for neighbourhood layers
