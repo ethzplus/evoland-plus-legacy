@@ -7,7 +7,7 @@
 ### =========================================================================
 ### A- Preparation
 ### =========================================================================
-trans_model_finalization <- function() {
+trans_model_finalization <- function(config = get_config()) {
   # Provide base folder paths for saving models for simulation
   model_base_folder <- "Data/Transition_models/Prediction_models"
   dir.create(model_base_folder, recursive = TRUE)
@@ -157,7 +157,7 @@ trans_model_finalization <- function() {
   Model_periods <- unique(models_specs$data_period_name)
 
   # load list of viable transitions for each time period
-  Viable_transitions_lists <- readRDS("Tools/Viable_transitions_lists.rds")
+  Viable_transitions_lists <- readRDS(config[["viable_transitions_lists.rds"]])
   names(Viable_transitions_lists) <- Model_periods
 
   # create a df with info for each period

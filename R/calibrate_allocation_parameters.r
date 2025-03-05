@@ -17,13 +17,15 @@
 ### =========================================================================
 calibrate_allocation_parameters <- function() {
   # vector years of LULC data
-  LULC_years <- gsub(".*?([0-9]+).*", "\\1", list.files("Data/Historic_LULC", full.names = FALSE, pattern = ".gri"))
-
-  # Historic LULC data folder path
-  LULC_folder <- "Data/Historic_LULC"
+  LULC_years <-
+    list.files(config[["historic_lulc_basepath"]], full.names = FALSE, pattern = ".gri") |>
+    stringr::str_extract("\\d{4}")
 
   # Load list of historic lulc rasters
-  LULC_rasters <- lapply(list.files(LULC_folder, full.names = TRUE, pattern = ".gri"), raster)
+  LULC_rasters <- lapply(
+    list.files(config[["historic_lulc_basepath"]], full.names = TRUE, pattern = ".grd$"),
+    terra::rast
+  )
   names(LULC_rasters) <- LULC_years
 
   ### =========================================================================
@@ -31,8 +33,8 @@ calibrate_allocation_parameters <- function() {
   ### =========================================================================
 
   # create folders for results
-  dir.create("Data/Allocation_parameters/Simulation", recursive = TRUE)
-  dir.create("Data/Allocation_parameters/Calibration/Periodic", recursive = TRUE)
+  ensure_dir("Data/Allocation_parameters/Simulation")
+  ensure_dir("Data/Allocation_parameters/Calibration/Periodic")
 
   # because each period relies on a different combination of raster layers
   # create a vector of these to run through

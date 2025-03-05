@@ -9,7 +9,7 @@
 ### =========================================================================
 ### A- Preparation
 ### =========================================================================
-transition_dataset_prep <- function() {
+transition_dataset_prep <- function(config = get_config()) {
   # Historic LULC data folder path
   LULC_folder <- "Data/Historic_LULC"
 
@@ -172,7 +172,7 @@ refer to object Raster_comparison_results to locate problems")
     # occur at a sufficient rate.
     # read in list of viable transition for period
     # created in script 'Transition_identification'
-    viable_trans_list <- readRDS("Tools/Viable_transitions_lists.rds")[[paste(period)]]
+    viable_trans_list <- readRDS(config[["viable_transitions_lists.rds"]])[[paste(period)]]
 
     # loop over viable transitions and add column for each to the data with the values:
     # 1: If the row is positive for the given transition: If both Initial and Final classes match that of the transition)

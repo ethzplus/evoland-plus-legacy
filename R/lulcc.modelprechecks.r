@@ -8,7 +8,10 @@
 #' @author Ben Black
 #' @export
 
-lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
+lulcc.modelprechecks <- function(
+    Control_table_path,
+    Param_dir,
+    config = get_config()) {
   # For testing purposes
   # Control_table_path <- "Tools/Simulation_control.csv"
   # Param_dir <- "Data/Allocation_parameters/Simulation"
@@ -153,7 +156,7 @@ lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
       }
 
       # load the list of viable transitions
-      viable_trans_list <- readRDS("Tools/Viable_transitions_lists.rds")[[Period]]
+      viable_trans_list <- readRDS(config[["viable_transitions_lists.rds"]])[[Period]]
 
       # add a from_to column
       viable_trans_list$From_To <- paste(viable_trans_list$From., viable_trans_list$To., sep = "_")
@@ -261,7 +264,7 @@ lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
     }
 
     # load the list of viable transitions
-    viable_trans_list <- readRDS("Tools/Viable_transitions_lists.rds")[[Period]]
+    viable_trans_list <- readRDS(config[["viable_transitions_lists.rds"]])[[Period]]
 
     # add from_to column
     viable_trans_list$From_To <- paste(viable_trans_list$From., viable_trans_list$To., sep = "_")
@@ -294,7 +297,7 @@ lulcc.modelprechecks <- function(Control_table_path, Param_dir) {
   # in the viable trans lists and that all models in the table exist if not abort.
 
   # get names of transition lists (the same as model lookup tables)
-  viable_trans_lists <- readRDS("Tools/Viable_transitions_lists.rds")
+  viable_trans_lists <- readRDS(config[["viable_transitions_lists.rds"]])
   Period_names <- names(viable_trans_lists)
   names(Period_names) <- Period_names
 

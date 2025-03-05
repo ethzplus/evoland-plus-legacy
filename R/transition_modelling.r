@@ -7,7 +7,7 @@
 ## Date: 08-04-2022
 ## Author: Ben Black
 #############################################################################
-transition_modelling <- function() {
+transition_modelling <- function(config = get_config()) {
   ### =========================================================================
   ### A- Preparation
   ### =========================================================================
@@ -222,7 +222,7 @@ transition_modelling <- function() {
     })
 
     # load viable trans_list for period
-    Initial_LULC_classes <- unique(readRDS("Tools/Viable_transitions_lists.rds")[[Model_period]][["Initial_class"]])
+    Initial_LULC_classes <- unique(readRDS(config[["viable_transitions_lists.rds"]])[[Model_period]][["Initial_class"]])
     Initial_LULC_classes <- paste0(Initial_LULC_classes, "_")
 
     # replacing the "_" between LULC classes with a '.'
@@ -267,7 +267,7 @@ transition_modelling <- function() {
   ### =========================================================================
 
   # load list of viable transitions for each time period
-  Viable_transitions_lists <- readRDS("Tools/Viable_transitions_lists.rds")
+  Viable_transitions_lists <- readRDS(config[["viable_transitions_lists.rds"]])
   names(Viable_transitions_lists) <- Model_periods
 
   # create a df with info for each period
