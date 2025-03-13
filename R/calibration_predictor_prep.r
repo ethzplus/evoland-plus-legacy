@@ -12,7 +12,10 @@
 #'
 #' @export
 
-calibration_predictor_prep <- function(config = get_config(), refresh_cache = FALSE) {
+calibration_predictor_prep <- function(
+    config = get_config(),
+    refresh_cache = FALSE,
+    ignore_excel = FALSE) {
   # Load in the grid to use use for re-projecting the CRS and extent of predictor data
   Ref_grid <- terra::rast(config[["ref_grid_path"]])
 
@@ -61,7 +64,7 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
   sheets <- readxl::excel_sheets(config[["pred_table_path"]])
 
   # load all sheets as a list
-  Pred_tables <- sapply(
+  Pred_tables <- lapply(
     sheets,
     function(x) readxl::read_excel(config[["pred_table_path"]], sheet = x)
   )
@@ -77,9 +80,17 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
   })
 
   # seperate unprepared/prepared layers
-  # FIXME here, we're storing state in an excel file. difficult for reproduction, better
-  # to check for file presence and have some cache = "ignore" option
-  # Preds_to_prepare <- Pred_table_long
+  if (ignore_excel) {
+    Pred_table_long$Prepared <- "N"
+  } else {
+    # TODO ideally, we wouldn't store state in the excel table at all.
+    # just delete them or add a refresh argument to all prep functions
+    Pred_table_long$Prepared <- ifelse(
+      file.exists(Pred_table_long$Prepared_data_path),
+      "Y",
+      "N"
+    )
+  }
   Preds_to_prepare <- Pred_table_long[Pred_table_long$Prepared != "Y", ]
 
   ### =========================================================================
@@ -125,12 +136,8 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
   # loop over the preds loading the raw data, processing and saving, returning a prepared data_path
   for (i in seq_len(nrow(Preds_static_unique))) {
     # load data
-    # TODO find out
-    # - how these data were created (apparently valpar?)
-    # - why they're listed in an excel sheet instead of read from a folder,
-    # - why they are in RDS format when they are clearly raster data
+    # TODO move to tifs or some other standard format
     Raw_dat <- readRDS(unlist(Preds_static_unique[i, "Raw_data_path"]))
-    # FIXME the RDS files are missing the srs attribute
     Raw_dat@srs <- raster::crs(Raw_dat@crs@projargs)
 
     # aggregate
@@ -333,9 +340,11 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
       statent_var_ids_yr <- Statent_var_IDs
       names(statent_var_ids_yr) <- paste0(names(Statent_var_IDs), "_", year)
 
-      readr::read_csv2(
+      readr::read_delim(
         file = annual_data_path,
-        col_select = tidyselect::all_of(c(Statent_desc_vars, statent_var_ids_yr))
+        col_select = tidyselect::all_of(c(Statent_desc_vars, statent_var_ids_yr)),
+        show_col_types = FALSE,
+        progress = FALSE
       )
     },
     annual_data_path = Statent_paths,
@@ -345,14 +354,12 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
 
   # Merge based on Statent_desc_vars
   Statent_merged <- Reduce(
-    function(x, y) merge(x, y, by = Statent_desc_vars, all = TRUE),
+    function(x, y) dplyr::full_join(x, y, by = Statent_desc_vars),
     Statent_data_by_year
   )
   rm(Statent_data_by_year)
 
   # rasterize
-  sp::coordinates(Statent_merged) <- ~ E_KOORD + N_KOORD
-  sp::gridded(Statent_merged) <- TRUE # FIXME there are empty points in x and y coords
   Statent_brick <- terra::rast(Statent_merged, crs = config[["reference_crs"]])
   # rensample to match extent
   # FIXME why is it nearest neighbour instead of bilinear? not categorical data!
@@ -442,7 +449,7 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
   BC_data_by_year <- mapply(
     function(annual_data_path, year) {
       # load the file
-      Annual_data <- readr::read_csv2(annual_data_path)
+      Annual_data <- readr::read_delim(annual_data_path)
 
       # subset to just the required variables
       Data_subset <- Annual_data[
@@ -451,7 +458,7 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
       ]
 
       # rename the sectoral columns appending year
-      names(Data_subset) <- lapply(names(Data_subset), function(y) {
+      names(Data_subset) <- sapply(names(Data_subset), function(y) {
         new_name <- names(BC_vars)[
           which(BC_vars %in% stringr::str_match(pattern = paste(c(BC_vars), collapse = "|"), y))
         ]
@@ -470,53 +477,31 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
   )
 
   # merge
-  # FIXME
-  BC_merged <- Reduce(function(x, y) merge(x, y, by = BC_desc_vars, all = TRUE), BC_data_by_year)
+  BC_merged <- Reduce(
+    function(x, y) dplyr::full_join(x, y, by = BC_desc_vars),
+    BC_data_by_year
+  )
 
-  # TODO move to terra
-  sp::coordinates(BC_merged) <- ~ X + Y
-  sp::gridded(BC_merged) <- TRUE
-  BC_brick <- terra::rast(BC_merged, crs = config[["reference_crs"]])
-  terra::ext(BC_brick) <- terra::ext(Ref_grid)
-  BC_brick <- terra::resample(BC_brick, Ref_grid)
+  BC_brick <-
+    terra::rast(BC_merged, crs = "epsg:21781") |>
+    terra::project(config[["reference_crs"]]) |>
+    terra::resample(Ref_grid)
 
   # Combine the two bricks together
   Data_stack <- c(Statent_brick, BC_brick)
 
-  if (FALSE) {
-    # FIXME the data from before 2010 are not in the same unit; there might be a simple
-    # factor of 10 difference. the metadata for both business census and statent
-    # datasets describe the data as full time equivalents.
-    dat_tbl <-
-      Data_stack |>
-      as.data.frame(na.rm = T) |>
-      tibble::as_tibble() |>
-      tidyr::pivot_longer(-RELI) |>
-      dplyr::transmute(
-        sector = stringr::str_extract(name, pattern = "Sec\\d"),
-        year = as.integer(stringr::str_extract(name, pattern = "\\d{4}")),
-        before_2010 = year < 2010,
-        value = value
-      )
-
-    ggplot2::ggplot(dat_tbl, ggplot2::aes(x = year, y = value, color = sector)) +
-      ggplot2::geom_violin() +
-      ggplot2::facet_grid(
-        ggplot2::vars(sector),
-        scales = "free"
-      )
-  }
-
   # intersect with labour market regions
   # load shapefile of labour market regions
-  LMR_shp <- terra::vect(file.path(
-    config[["ch_geoms_path"]],
-    "2025_GEOM_TK", "03_ANAL", "Gesamtfläche_gf",
-    "K4_amre20190101_gf", "K4amre_20190101gf_ch2007Poly.shp"
-  ))
+  # TODO can we not find this in LV95?
+  LMR_shp <-
+    terra::vect(file.path(
+      config[["ch_geoms_path"]],
+      "2025_GEOM_TK", "03_ANAL", "Gesamtfläche_gf",
+      "K4_amre20190101_gf", "K4amre_20190101gf_ch2007Poly.shp"
+    )) |>
+    terra::project(config[["reference_crs"]])
 
   # sum data in each labour market region
-  # FIXME warning mismatching CRS; data stack
   FTE_lab_market <- terra::extract(
     Data_stack, LMR_shp,
     fun = sum, na.rm = TRUE
@@ -529,7 +514,6 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
   # loop over sector numbers separating data and perform linear model based interpolation
   Sector_extrapolations <- lapply(
     sector_nums, function(x) {
-      # FIXME i get warnings: "NAs introduced by coercion", unclear where they come from
       Sector_string <- paste0("Sec", x, "_")
       Sector_data <- FTE_lab_market[
         ,
@@ -537,11 +521,13 @@ calibration_predictor_prep <- function(config = get_config(), refresh_cache = FA
           pattern = paste(c(Sector_string, "ID", "name"), collapse = "|")
         ))
       ]
+      # FIXME "NAs introduced by coercion" for ID and name cols
       years <- as.numeric(stringr::str_remove_all(
         colnames(Sector_data),
         pattern = Sector_string
       ))
       names(years) <- colnames(Sector_data)
+      # sort drops the NAs
       years <- sort(years, decreasing = FALSE)
 
       # reorder columns on the basis of ascending years using the names of the years
