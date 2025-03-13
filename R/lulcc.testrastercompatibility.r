@@ -1,27 +1,38 @@
+#' Test Raster Compatibility
+#'
 #' Confirm Raster compatibility prior to stacking
 #'
-#' TODO text
+#' @param rasterlist A list of Raster objects to be compared to the exemplar raster
+#' @param exemplar_raster A Raster object to be compared to the list of rasters
 #'
 #' @author Ben Black
 #' @export
 
-lulcc.TestRasterCompatibility <- function(Rasterlist, ExemplarRaster) {
+lulcc.TestRasterCompatibility <- function(rasterlist, exemplar_raster) {
   # creating an empty list to store comparison results in
   comparison_result <- list()
 
-  # for loop that compares all rasters in the list to the exemplar and return results of any discrepancies to the empty list
-  cat("Comparing Rasters to confirm uniform characteristics prior to stacking...\n")
-
-  for (i in 1:length(Rasterlist)) {
-    comparison_result[[i]] <- capture_warnings(compareRaster(ExemplarRaster, Rasterlist[[i]], res = T, orig = T, stopiffalse = F, showwarning = T))
+  # for loop that compares all rasters in the list to the exemplar and return results of
+  # any discrepancies to the empty list
+  for (i in seq_along(rasterlist)) {
+    comparison_result[[i]] <- testthat::capture_warnings(
+      terra::compareGeom(
+        exemplar_raster,
+        rasterlist[[i]],
+        stopOnError = FALSE,
+        messages = TRUE
+      )
+    )
   }
 
-  if ((is_empty(comparison_result, first.only = FALSE, all.na.empty = TRUE)) == TRUE) {
-    cat("Rasters ready to stack...\n")
-  } else {
-    cat("Differences in Rasters characteristics, opening comparison results...\n")
+  any_errs <- any(purrr::map_lgl(comparison_result, \(x) length(x) > 0))
 
+  if (any_errs) {
     print(comparison_result)
+    stop(
+      "Differences in Raster characteristics means they are unsuitable for stacking, ",
+      "refer to object Raster_comparison_results to locate problems"
+    )
   }
   return(comparison_result)
 }

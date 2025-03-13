@@ -4,7 +4,7 @@
 \alias{lulcc.modelprechecks}
 \title{LULCC_model_pre_checks}
 \usage{
-lulcc.modelprechecks(Control_table_path, Param_dir)
+lulcc.modelprechecks(Control_table_path, Param_dir, config = get_config())
 }
 \arguments{
 \item{Control_table_path}{Chr, file path of calibration/simulation control table

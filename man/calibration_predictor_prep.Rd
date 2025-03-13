@@ -4,7 +4,11 @@
 \alias{calibration_predictor_prep}
 \title{Preparation of Predictor Data}
 \usage{
-calibration_predictor_prep(config = get_config(), refresh_cache = FALSE)
+calibration_predictor_prep(
+  config = get_config(),
+  refresh_cache = FALSE,
+  ignore_excel = FALSE
+)
 }
 \arguments{
 \item{config}{A list object}

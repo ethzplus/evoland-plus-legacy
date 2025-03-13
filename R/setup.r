@@ -53,6 +53,9 @@ get_config <- function(
     simulation_param_dir = file.path(allocation_pars_dir, "simulation"),
     trans_rate_table_dir = file.path(data_basepath, "transition_tables", "prepared_trans_tables"),
     trans_rates_raw_dir = file.path(data_basepath, "transition_tables", "raw_trans_tables"),
+    trans_pre_pred_filter_dir = file.path(
+      data_basepath, "transition_datasets", "pre_predictor_filtering"
+    ),
     simctrl_tbl_path = simctrl_tbl_path, # simulation control table
     step_length = step_length,
     scenario_names = scenario_names,
@@ -75,6 +78,7 @@ get_config <- function(
     preds_tools_dir = preds_tools_dir,
     prepped_lyr_path = file.path(predictors_prepped_dir, "layers"),
     prepped_fte_dir = file.path(predictors_prepped_dir, "socio_economic", "employment"),
+    prepped_pred_stacks = file.path(predictors_prepped_dir, "stacks", "calibration"),
     reference_crs = "epsg:2056",
     viable_transitions_lists = "tools/viable_transitions_lists.rds"
   )

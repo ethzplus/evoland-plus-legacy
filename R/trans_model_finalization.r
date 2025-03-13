@@ -157,7 +157,7 @@ trans_model_finalization <- function(config = get_config()) {
   Model_periods <- unique(models_specs$data_period_name)
 
   # load list of viable transitions for each time period
-  Viable_transitions_lists <- readRDS(config[["viable_transitions_lists.rds"]])
+  Viable_transitions_lists <- readRDS(config[["viable_transitions_lists"]])
   names(Viable_transitions_lists) <- Model_periods
 
   # create a df with info for each period

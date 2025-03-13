@@ -27,7 +27,7 @@ transition_feature_selection <- function() {
   names(Datasets_for_PS) <- Filtering_required$tag
 
   # Set folder paths
-  Pre_PS_folder <- "Data/Transition_datasets/Pre_predictor_filtering" # Pre Predictor selection datasets folder
+  Pre_PS_folder <- config[["trans_pre_pred_filter_dir"]] # Pre Predictor selection datasets folder
   collinearity_folder_path <- "Results/Model_tuning/Predictor_selection/Collinearity_filtering"
   grrf_folder_path <- "Results/Model_tuning/Predictor_selection/GRRF_embedded_selection"
   Filtered_datasets_folder_path <- "Data/Transition_datasets/Post_predictor_filtering"

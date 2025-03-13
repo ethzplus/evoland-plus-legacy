@@ -2,12 +2,17 @@
 % Please edit documentation in R/lulcc.testrastercompatibility.r
 \name{lulcc.TestRasterCompatibility}
 \alias{lulcc.TestRasterCompatibility}
-\title{Confirm Raster compatibility prior to stacking}
+\title{Test Raster Compatibility}
 \usage{
-lulcc.TestRasterCompatibility(Rasterlist, ExemplarRaster)
+lulcc.TestRasterCompatibility(rasterlist, exemplar_raster)
+}
+\arguments{
+\item{rasterlist}{A list of Raster objects to be compared to the exemplar raster}
+
+\item{exemplar_raster}{A Raster object to be compared to the list of rasters}
 }
 \description{
-TODO text
+Confirm Raster compatibility prior to stacking
 }
 \author{
 Ben Black

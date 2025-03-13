@@ -2,12 +2,21 @@
 % Please edit documentation in R/lulcc.splitforcovselection.r
 \name{lulcc.splitforcovselection}
 \alias{lulcc.splitforcovselection}
-\title{lulcc.splitforcovselection:}
+\title{lulcc.splitforcovselection}
 \usage{
-lulcc.splitforcovselection(trans_dataset, predictor_table)
+lulcc.splitforcovselection(trans_dataset, covariate_ids)
+}
+\arguments{
+\item{trans_dataset}{A data frame containing the transition data for one specific
+transition from class A to class B. Presumed that the last column contains an
+indicator of whether a transition has occurred (1) or not (0).}
+
+\item{covariate_ids}{Character vector of column names of the covariates to be split}
 }
 \description{
-TODO text
+Takes a data frame containing the transition data for one specific transition, splits
+it into covariates / non-covariates, and enriches these data with collinearity and
+embedding weights.
 }
 \author{
 Ben Black
