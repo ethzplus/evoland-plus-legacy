@@ -39,6 +39,7 @@ get_config <- function(
   predictors_raw_dir <- file.path(predictors_dir, "raw")
   allocation_pars_dir <- file.path(data_basepath, "allocation_parameters")
   preds_tools_dir <- file.path(predictors_dir, "tools")
+  results_dir <- file.path(data_basepath, "results")
 
   # TODO move all the config tables into a common xlsx and read individual sheets?
   config <- list(
@@ -55,6 +56,9 @@ get_config <- function(
     trans_rates_raw_dir = file.path(data_basepath, "transition_tables", "raw_trans_tables"),
     trans_pre_pred_filter_dir = file.path(
       data_basepath, "transition_datasets", "pre_predictor_filtering"
+    ),
+    trans_post_pred_filter_dir = file.path(
+      data_basepath, "transition_datasets", "post_predictor_filtering"
     ),
     simctrl_tbl_path = simctrl_tbl_path, # simulation control table
     step_length = step_length,
@@ -80,7 +84,16 @@ get_config <- function(
     prepped_fte_dir = file.path(predictors_prepped_dir, "socio_economic", "employment"),
     prepped_pred_stacks = file.path(predictors_prepped_dir, "stacks", "calibration"),
     reference_crs = "epsg:2056",
-    viable_transitions_lists = "tools/viable_transitions_lists.rds"
+    viable_transitions_lists = "tools/viable_transitions_lists.rds",
+    grrf_dir = file.path(
+      results_dir, "model_tuning", "predictor_selection", "grrf_embedded_selection"
+    ),
+    collinearity_dir = file.path(
+      results_dir, "model_tuning", "predictor_selection", "grrf_embedded_selection"
+    ),
+    pred_sel_summary_dir = file.path(
+      results_dir, "model_tuning", "predictor_selection", "pred_sel_summary"
+    )
   )
 
   return(config)
