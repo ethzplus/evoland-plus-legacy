@@ -99,7 +99,6 @@ lulcc.plotBoyceandROCcurves <- function(RF_specs, GLM_specs, RF_model_num, trans
 
   # Boyce curve
   Boyce_results_df <- rbindlist(lapply(AUC_Boyce_results, function(x) {
-    browser()
     Boyce_res <- as.data.frame(x[[2]][c(1, 3)])
   }), idcol = "model_tag")
 

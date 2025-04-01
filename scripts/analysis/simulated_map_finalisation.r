@@ -232,7 +232,7 @@ lapply(names(Scenario_lulc_paths), function(scenario_id) {
 #     #mask LULC by region
 #     LULC_region <- terra::mask(LULC, Regions[[Reg_num]])
 #     # plot(LULC_region)
-#     # browser()
+#
 #     #produce frequency table from masked region
 #     rast_tbl <- freq(LULC_region)
 #     rast_tbl$layer <- NULL

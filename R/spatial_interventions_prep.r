@@ -933,7 +933,7 @@ spatial_interventions_prep <- function(config) {
     )
     saveRDS(Solutions, paste0(PA_int_dir, "/Solutions_10k_", names(n_cells)[i], ".rds"))
 
-    browser()
+
     Solutions <- readRDS(paste0(PA_int_dir, "/Solutions_10k_", names(n_cells)[i], ".rds"))
 
     # rank solutions according greatest value of the sum of median patch priority * patch size

@@ -17,7 +17,6 @@ lulcc.summarisemodelevaluation <- function(model_eval_results, summary_metrics, 
   # remove any empty results
   complete_results <- model_eval_results[lapply(model_eval_results, length) > 0]
 
-  browser()
   # list names of eval metrics
   eval_metrics_names <- rownames(model_eval_results[[1]])
 

@@ -89,7 +89,6 @@ for (i in 1:length(Feature_data_types)) {
     }
   })
   DL_paths <- DL_paths[!sapply(DL_paths, is.null)] # remove NULL items
-  browser()
   # create directory for saving the data into
   Save_path <- paste0(Save_dir, "/", Feature_ID)
   dir.create(Save_path)

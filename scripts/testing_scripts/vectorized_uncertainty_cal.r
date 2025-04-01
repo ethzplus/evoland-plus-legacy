@@ -132,7 +132,7 @@ system.time({
       Prob_1[[tree]] <- Tree_records[Tree_records[, "Node_ID"] == 1, "Prob_1"]
     }
 
-    browser()
+
 
     # TODO do not return the averages as a list
     Average_pred_probs <- list(
