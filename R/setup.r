@@ -93,6 +93,10 @@ get_config <- function(
     ),
     pred_sel_summary_dir = file.path(
       results_dir, "model_tuning", "predictor_selection", "pred_sel_summary"
+    ),
+    transition_model_dir = file.path(data_basepath, "transition_models"),
+    transition_model_eval_dir = file.path(
+      results_dir, "transition_model_eval"
     )
   )
 
