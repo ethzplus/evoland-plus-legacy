@@ -21,7 +21,8 @@ the strongest guiding effect which will lead to the most penalisation of redunda
 features and hence the most concise feature sets}
 }
 \value{
-dataframe of covariates selected by GRRF ranked according to importance (Mean decrease Gini)
+dataframe of covariates selected by GRRF ranked according to importance
+(Mean decrease Gini)
 }
 \description{
 Embedded feature selection with Guided Regularized Random Forests

@@ -29,37 +29,34 @@ lulcc.filtersel <- function(
   # Level 0 for focals, focals is specificed in the function call as one of the
   # categories identified in the covariate info table in my case the focal categoriy is
   # Neighbourhood
-  if (length(focals > 0)) { # check length of focals vector
-    for (f in seq_along(focals)) {
-      # loop through each category of focal covariate (redundant in my case because
-      # there is only one)
-      foc <- focals[f]
-      ix_foc <- which(names(covdata.candidates) == foc)
+  for (foc in focals) {
+    # loop through each category of focal covariate (redundant in my case because
+    # there is only one)
+    ix_foc <- which(names(covdata.candidates) == foc)
 
-      # the intention of this line is to seperate the focal neighbourhood covariates
-      # into a nested list according to their type (active LULC) and within that the
-      # different focal window sizes (and decay rates) this originally split on the '_'
-      # however my column names have multiple of these so instead I split on the word
-      # 'cov'
-      covdata.focals <- split.default(
-        covdata.candidates[[ix_foc]], sub("\\cov.*", "", names(covdata.candidates[[ix_foc]]))
-      )
+    # the intention of this line is to seperate the focal neighbourhood covariates
+    # into a nested list according to their type (active LULC) and within that the
+    # different focal window sizes (and decay rates) this originally split on the '_'
+    # however my column names have multiple of these so instead I split on the word
+    # 'cov'
+    covdata.focals <- split.default(
+      covdata.candidates[[ix_foc]], sub("\\cov.*", "", names(covdata.candidates[[ix_foc]]))
+    )
 
-      # apply the filtering procedure to each group of LULC neighbourhood covariates
-      covdata.focals.filter <- lapply(
-        covdata.focals,
-        function(x) {
-          lulcc.covfilter(
-            cov_data = x,
-            method = method,
-            trans_result = transition_result,
-            weights = collin_weight_vector,
-            corcut = 0
-          )
-        }
-      )
-      covdata.candidates[[foc]] <- do.call("cbind", covdata.focals.filter)
-    }
+    # apply the filtering procedure to each group of LULC neighbourhood covariates
+    covdata.focals.filter <- lapply(
+      covdata.focals,
+      function(x) {
+        lulcc.covfilter(
+          cov_data = x,
+          method = method,
+          trans_result = transition_result,
+          weights = collin_weight_vector,
+          corcut = 0
+        )
+      }
+    )
+    covdata.candidates[[foc]] <- do.call("cbind", covdata.focals.filter)
   }
 
   ## Level 1 for each category

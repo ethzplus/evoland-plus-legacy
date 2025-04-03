@@ -134,17 +134,15 @@ transition_feature_selection <- function(config = get_config()) {
     GRRF_selection_results <- furrr::future_map(
       collin_selection_results,
       function(x) {
-        gc()
-
         # Load dataset
         Collin_filtered_data <- readRDS(x)
 
         GRRF_filtered_data <- tryCatch(
           {
             lulcc.grrffeatselect(
-              transition_result = Collin_filtered_data$trans_result,
-              cov_data = Collin_filtered_data$cov_data,
-              weight_vector = Collin_filtered_data$embed_weights,
+              transition_result = Collin_filtered_data$transition_result,
+              cov_data = Collin_filtered_data$covdata_collinearity_filtered,
+              weight_vector = Collin_filtered_data$embedded_weight_vector,
               gamma = 0.5
             )
           },
@@ -163,8 +161,6 @@ transition_feature_selection <- function(config = get_config()) {
             Save_dir, paste0(gsub("_collin_filtered", "", Dataset_name), "_GRRF_filtered.rds")
           )
           saveRDS(GRRF_filtered_data, Save_path_grrf)
-
-          gc()
           return(Save_path_grrf)
         } else {
           return(NULL)
