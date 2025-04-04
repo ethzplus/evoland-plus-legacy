@@ -22,16 +22,15 @@ lulcc.fitevalsave(
 
 \item{Transition_name}{Character}
 
-\item{replicatetype}{Character, (how) should replicates be generated? may be 'none', 'splitsample',
-'cv' 'block-cv'.}
+\item{replicatetype}{Character, (how) should replicates be generated? may be 'none',
+'splitsample', 'cv' 'block-cv'.}
 
 \item{reps}{Numeric number of replicates}
 
 \item{balance_class}{Logical, should downsampling be implemented in RF? (TRUE/FALSE)}
 
-\item{Downsampling_bounds}{Numeric vector,
-c(lower bound of class imbalance: Upper bound of class imbalance),
-if balance_class = TRUE use to determine which datasets are modelled with downsampling}
+\item{Downsampling_bounds}{Numeric vector, \verb{c(lower bound of class imbalance: Upper bound of class imbalance)}, if \code{balance_class = TRUE} use
+to determine which datasets are modelled with downsampling}
 
 \item{Data_period}{Character}
 
@@ -42,7 +41,8 @@ if balance_class = TRUE use to determine which datasets are modelled with downsa
 \item{Model_type}{Character}
 }
 \description{
-Wrapper function to perform model fitting, evaluation and saving with either RF or GLM
+Wrapper function to perform model fitting, evaluation and saving with either RF or
+GLM.
 }
 \author{
 Antoine Adde adapted by Ben Black

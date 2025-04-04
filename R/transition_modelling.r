@@ -29,6 +29,7 @@ transition_modelling <- function(config = get_config()) {
   # Instantiate wrapper function over process of modelling prep, fitting,
   # evaluation, saving and completeness checking
   lulcc.multispectransmodelling <- function(model_specs) {
+    # model_specs <- model_list[[1]]
     ### =========================================================================
     ### A- Prepare model specifications
     ### =========================================================================
@@ -41,17 +42,13 @@ transition_modelling <- function(config = get_config()) {
     Correct_balance <- model_specs$balance_adjustment
 
     message(
-      "Conducting modelling under specification ", model_specs$detail_model_tag, "...\n"
+      "Conducting modelling under specification `", model_specs$detail_model_tag, "`"
     )
 
     # finalise folder paths
-    FS_string <- if (Feature_selection_employed == TRUE) {
-      "filtered"
-    } else if (Feature_selection_employed == FALSE) {
-      "unfiltered"
-    }
+    FS_string <- ifelse(Feature_selection_employed, "filtered", "unfiltered")
 
-    if (Correct_balance == TRUE) {
+    if (Correct_balance) {
       model_folder <- paste0(
         config[["transition_model_dir"]], "/",
         toupper(Model_type), "_models", "/",
@@ -62,7 +59,7 @@ transition_modelling <- function(config = get_config()) {
         toupper(Model_type), "_model_evaluation_downsampled", "/",
         model_scale, "_", FS_string, "/"
       )
-    } else if (Correct_balance == FALSE) {
+    } else {
       model_folder <- paste0(
         config[["transition_model_dir"]], "/",
         toupper(Model_type), "_models_non_adjusted", "/",
@@ -76,19 +73,19 @@ transition_modelling <- function(config = get_config()) {
     }
 
     # Get file paths of transition datasets for period
-    Data_paths_for_period <- if (Feature_selection_employed == FALSE) {
-      list.files(paste0(
-        "Data/Transition_datasets/Pre_predictor_filtering/",
-        Data_period
-      ), pattern = model_scale, full.names = TRUE)
-    } else if (Feature_selection_employed == TRUE) {
-      list.files(paste0(
-        "Data/Transition_datasets/Post_predictor_filtering/", Data_period
-      ), pattern = model_scale, full.names = TRUE)
-    }
+    Data_paths_for_period <-
+      if (Feature_selection_employed) {
+        list.files(file.path(
+          config[["trans_post_pred_filter_dir"]], Data_period
+        ), pattern = model_scale, full.names = TRUE)
+      } else {
+        list.files(file.path(
+          config[["trans_pre_pred_filter_dir"]], Data_period
+        ), pattern = model_scale, full.names = TRUE)
+      }
 
     names(Data_paths_for_period) <- sapply(
-      Data_paths_for_period, function(x) stringr::str_remove(basename(x), ".rds")
+      Data_paths_for_period, function(x) tools::file_path_sans_ext(basename(x))
     )
 
     ### =========================================================================
@@ -96,9 +93,11 @@ transition_modelling <- function(config = get_config()) {
     ### =========================================================================
 
     # Now opening loop over datasets
-    Modelling_outputs <- future::future_lapply(
-      Data_paths_for_period,
-      function(Dataset_path) {
+    Modelling_outputs <- furrr::future_map(
+      .x = Data_paths_for_period,
+      .options = furrr::furrr_options(seed = TRUE),
+      .f = function(Dataset_path) {
+        # Dataset_path <- Data_paths_for_period[[1]]
         message("Modelling transition: ", stringr::str_remove(basename(Dataset_path), ".rds"))
 
         # load dataset
@@ -111,7 +110,7 @@ transition_modelling <- function(config = get_config()) {
 
         # Attach  a list of model parameters('model_settings')
         # for each type of model specifcied in the parameter grid
-        model_settings <- lulcc.setparams(
+        Trans_dataset[["model_settings"]] <- lulcc.setparams(
           transition_result = Trans_dataset$trans_result,
           covariate_names = names(Trans_dataset$cov_data),
           model_name = Model_type,
@@ -120,8 +119,6 @@ transition_modelling <- function(config = get_config()) {
           weights = 1
         )
 
-        Trans_dataset <- c(Trans_dataset, model_settings = model_settings)
-        rm(model_settings)
         message("Modelling parameters defined")
 
         ### =========================================================================
@@ -145,8 +142,7 @@ transition_modelling <- function(config = get_config()) {
 
         gc()
         return(Trans_model_capture)
-      },
-      future.seed = TRUE
+      }
     ) # close loop over trnasition datasets
 
     ### =========================================================================
@@ -157,22 +153,26 @@ transition_modelling <- function(config = get_config()) {
     # check for failures in the Modelling outputs
     Modelling_check <- unlist(Modelling_outputs)
 
-    if (all(Modelling_check == "Success") == TRUE) {
+    if (all(Modelling_check == "Success")) {
       # load model spec table and replace the values in the 'completed' column
       model_spec_table <- readxl::read_excel(config[["model_specs_path"]])
 
       # find the correct row
-      model_spec_table$Modelling_completed[
-        model_spec_table$Detail_model_tag == model_specs$detail_model_tag
+      model_spec_table$modelling_completed[
+        model_spec_table$detail_model_tag == model_specs$detail_model_tag
       ] <- "Y"
 
-      openxlsx::write.xlsx(model_spec_table, file = config[["model_specs_path"]], overwrite = TRUE)
+      openxlsx::write.xlsx(
+        model_spec_table,
+        file = config[["model_specs_path"]],
+        overwrite = TRUE
+      )
 
       message(
         "Model fitting and evaluation for:",
         model_specs$detail_model_tag, "completed without errors"
       )
-    } else if (!all(Modelling_check == "Success")) {
+    } else {
       # count number of errors
       Num_errors <- length(Modelling_check[Modelling_check != "Success"])
 

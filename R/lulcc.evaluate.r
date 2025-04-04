@@ -1,24 +1,24 @@
 #' lulcc.evaluate models
 #'
-#' Assess several model skill metrics for all models in a wsl.fit object. Currently
-#' AUC, RMSE, TSS, PPV, Accuracy, and Cohen's Kappa are evaluated. Furthermore, the
-#' threshold applied is returned.
+#' Assess several model skill metrics for all models in a wsl.fit object. Currently AUC,
+#' RMSE, TSS, PPV, Accuracy, and Cohen's Kappa are evaluated. Furthermore, the threshold
+#' applied is returned.
 #'
 #' @param x a wsl.fit object
 #' @param tester data.frame with testing data (only mandatory if replicatetype='none'
-#' was chosen when models were fitted)
+#'               was chosen when models were fitted)
 #' @param threshold vector of the same length as number of models chosen with custom
-#' thresholds for model evaluation. for wsl.flex outputs the thresholds have to be labelled
-#' with the same names provided to models
+#'                  thresholds for model evaluation. for wsl.flex outputs the thresholds
+#'                  have to be labelled with the same names provided to models
 #' @param crit which threshold criterion should be considered? Currently 'pp=op'
-#' (predicted prevalence = observed prevalence), 'maxTSS' (threshold yielding maximum TSS),
-#' and 'external' (thresholds manually supplied) are possible
-#' @param prevalence_correction logical. Should imbalanced presence/absence data be upsampled to
-#' prevalence 0.5 for model evaluation.
-#' data. In a pseudoabsence correction the same amount of pseudoabsences as presences are
-#' subsampled for model validation.
-#' @param train_test Character to determine whether evaluation is run on training or test data
-#' accepts "test", "train".
+#' (predicted prevalence = observed prevalence), 'maxTSS' (threshold yielding maximum
+#' TSS), and 'external' (thresholds manually supplied) are possible
+#' @param prevalence_correction logical. Should imbalanced presence/absence data be
+#' upsampled to prevalence 0.5 for model evaluation. data. In a pseudoabsence correction
+#' the same amount of pseudoabsences as presences are subsampled for model validation.
+#' @param train_test Character to determine whether evaluation is run on training or
+#' test data accepts "test", "train".
+#'
 #' @return an obejct of class 'wsl.evaluation'
 #' @author Philipp Brun (main) with edits by Antoine Adde and Ben Black
 
@@ -48,7 +48,6 @@ lulcc.evaluate <- function(x,
     stop("Invalid threshold criterion chosen!")
   }
 
-
   ### ------------------------
   ### Check testing data and prepare for evaluation
   ### ------------------------
@@ -61,23 +60,28 @@ lulcc.evaluate <- function(x,
         x@tesdat <- lapply(x@tesdat, function(y) {
           tdpres <- y[which(y$transitions_result == 1), ]
           tdabs <- y[which(y$transitions_result == 0), ]
-          # If the number of absences (non-trans) is less than the number of presences (trans) then resample them
-          # with replacement so that they are they same. Vice versa for if presences(trans) < absences (non-trans)
+
+          # If the number of absences (non-trans) is less than the number of presences
+          # (trans) then resample them with replacement so that they are they same. Vice
+          # versa for if presences(trans) < absences (non-trans)
           if (nrow(tdabs) < nrow(tdpres)) {
-            tdabs <- tdabs[sample(1:nrow(tdabs), nrow(tdpres), replace = T), ]
+            tdabs <- tdabs[
+              sample(seq_len(nrow(tdabs)), nrow(tdpres), replace = TRUE),
+            ]
           } else if (nrow(tdpres) < nrow(tdabs)) {
-            tdpres <- tdpres[sample(1:nrow(tdpres), nrow(tdabs), replace = T), ]
+            tdpres <- tdpres[
+              sample(seq_len(nrow(tdpres)), nrow(tdabs), replace = TRUE),
+            ]
           }
           return(rbind(tdpres, tdabs))
         })
       }
 
-      outerloop <- length(x@tesdat)
       testa <- lapply(x@tesdat, function(x) {
-        y <- x[, -which(colnames(x) == "transitions_result"), drop = FALSE]
+        x[, -which(colnames(x) == "transitions_result"), drop = FALSE]
       })
       papa <- lapply(x@tesdat, function(x) {
-        y <- x[, "transitions_result"]
+        x[, "transitions_result"]
       })
     } else if (train_test == "train") { # close if statement for test data
 
@@ -85,28 +89,33 @@ lulcc.evaluate <- function(x,
         x@train <- lapply(x@train, function(y) {
           tdpres <- y[which(y$transitions_result == 1), ]
           tdabs <- y[which(y$transitions_result == 0), ]
-          # If the number of absences (non-trans) is less than the number of presences (trans) then resample them
-          # with replacement so that they are they same. Vice versa for if presences(trans) < absences (non-trans)
+          # If the number of absences (non-trans) is less than the number of presences
+          # (trans) then resample them with replacement so that they are they same. Vice
+          # versa for if presences(trans) < absences (non-trans)
           if (nrow(tdabs) < nrow(tdpres)) {
-            tdabs <- tdabs[sample(1:nrow(tdabs), nrow(tdpres), replace = T), ]
+            tdabs <- tdabs[sample(seq_len(nrow(tdabs)), nrow(tdpres), replace = TRUE), ]
           } else if (nrow(tdpres) < nrow(tdabs)) {
-            tdpres <- tdpres[sample(1:nrow(tdpres), nrow(tdabs), replace = T), ]
+            tdpres <- tdpres[sample(seq_len(nrow(tdpres)), nrow(tdabs), replace = TRUE), ]
           }
           return(rbind(tdpres, tdabs))
         })
       }
 
-      outerloop <- length(x@train)
       testa <- lapply(x@train, function(x) {
-        y <- x[, -which(colnames(x) == "transitions_result"), drop = FALSE]
+        x[, -which(colnames(x) == "transitions_result"), drop = FALSE]
       })
       papa <- lapply(x@train, function(x) {
-        y <- x[, "transitions_result"]
+        x[, "transitions_result"]
       })
     } # close if statement for training
   } else if (x@meta$replicatetype == "none") {
-    outerloop <- 1
-    testa <- list(tester[, -which(colnames(tester) == "transitions_result"), drop = FALSE])
+    testa <- list(
+      tester[
+        ,
+        -which(colnames(tester) == "transitions_result"),
+        drop = FALSE
+      ]
+    )
     papa <- list(tester[, "transitions_result"])
   }
 
@@ -116,18 +125,16 @@ lulcc.evaluate <- function(x,
 
   out <- preva.meta(type = "evaluation")
 
-
-
   ### -------------------------------------------
   ### Evaluate models
   ### -------------------------------------------
 
   lis <- list()
   # loop over replicates
-  for (i in 1:length(x@fits)) {
+  for (i in seq_along(x@fits)) {
     lisa <- list()
     # Loop over model types
-    for (j in 1:length(x@fits[[1]])) {
+    for (j in seq_along(x@fits[[1]])) {
       # Make prediction
       pred <- pipe.prd(x@fits[[i]][[j]], testa[[i]])
 
@@ -150,7 +157,7 @@ lulcc.evaluate <- function(x,
       }
 
       if (scores["threshold"] == Inf) {
-        scores["threshold"] <- .5
+        scores["threshold"] <- 0.5
       }
       lisa[[j]] <- scores
     }
