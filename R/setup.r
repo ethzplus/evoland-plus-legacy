@@ -25,11 +25,6 @@ get_config <- function(
     data_periods = c("1985_1997", "1997_2009", "2009_2018"),
     regionalization = TRUE,
     inclusion_threshold = 0.5) {
-  # FIXME the input simulation control table should remain untouched, i.e. not be
-  # updatable in place
-  # TODO does it make sense to generate this table programmatically?
-  # prepare_simctrl_tbl() |> readr::write_csv(simctrl_tbl_path)
-
   # TODO path composition could happen here through nested lists, or e.g. json dicts?
   data_basepath <- "data-raw" # the name "data" is taken by R package convention
   historic_lulc_basepath <- file.path(data_basepath, "historic_lulc")
@@ -40,15 +35,30 @@ get_config <- function(
   allocation_pars_dir <- file.path(data_basepath, "allocation_parameters")
   preds_tools_dir <- file.path(predictors_dir, "tools")
   results_dir <- file.path(data_basepath, "results")
+  tools_dir <- "tools"
 
-  # TODO move all the config tables into a common xlsx and read individual sheets?
   config <- list(
-    LULC_aggregation_path = "tools/lulc_class_aggregation.xlsx", # LULC class aggregation table
-    model_specs_path = "tools/model_specs.xlsx", # model specifications table
-    param_grid_path = "tools/param-grid.xlsx", # model hyper parameter grids
-    pred_table_path = "tools/predictor_table.xlsx", # predictor table
-    spat_ints_path = "tools/spatial_interventions.csv", # spatial interventions table
-    EI_ints_path = "tools/ei_interventions.xlsx", # EI interventions table
+    # Base directories
+    historic_lulc_basepath = historic_lulc_basepath,
+
+    # Tools files
+    LULC_aggregation_path = file.path(
+      tools_dir, "lulc_class_aggregation.xlsx"
+    ), # LULC class aggregation table
+    model_specs_path = file.path(tools_dir, "model_specs.xlsx"), # model specifications table
+    param_grid_path = file.path(tools_dir, "param-grid.xlsx"), # model hyper parameter grids
+    pred_table_path = file.path(tools_dir, "predictor_table.xlsx"), # predictor table
+    # FIXME why are the next two repeated?
+    predict_param_grid_path = file.path(tools_dir, "predict_param_grid.xlsx"),
+    predict_model_specs_path = file.path(tools_dir, "predict_model_specs.xlsx"),
+    spat_ints_path = file.path(
+      tools_dir, "spatial_interventions.csv"
+    ), # spatial interventions table
+    EI_ints_path = file.path(tools_dir, "ei_interventions.xlsx"), # EI interventions table
+    viable_transitions_lists = file.path(tools_dir, "viable_transitions_lists.rds"),
+    model_lookup_path = file.path(tools_dir, "model_lookup.xlsx"),
+
+    # Paths for original data files
     ref_grid_path = file.path(data_basepath, "ref_grid.grd"),
     calibration_param_dir = file.path(allocation_pars_dir, "calibration"),
     simulation_param_dir = file.path(allocation_pars_dir, "simulation"),
@@ -60,6 +70,8 @@ get_config <- function(
     trans_post_pred_filter_dir = file.path(
       data_basepath, "transition_datasets", "post_predictor_filtering"
     ),
+
+    # Configuration parameters
     simctrl_tbl_path = simctrl_tbl_path, # simulation control table
     step_length = step_length,
     scenario_names = scenario_names,
@@ -68,14 +80,17 @@ get_config <- function(
     data_periods = data_periods,
     regionalization = regionalization,
     inclusion_thres = inclusion_threshold,
+
+    # Remote data sources and local paths
     arealstat_zip_remote =
       "https://dam-api.bfs.admin.ch/hub/api/dam/assets/32376216/appendix",
-    historic_lulc_basepath = historic_lulc_basepath,
     arealstat_zip_local = file.path(historic_lulc_basepath, "ag-b-00.03-37-area-all-csv.zip"),
     rasterized_lulc_dir = file.path(historic_lulc_basepath, "rasterized"),
     bioreg_dir = bioreg_dir,
     bioreg_zip_remote = "https://data.geo.admin.ch/ch.bafu.biogeographische_regionen/data.zip",
     bioreg_zip_local = file.path(bioreg_dir, "biogeographische_regionen.zip"),
+
+    # Predictor directories
     predictors_raw_dir = predictors_raw_dir,
     ch_geoms_path = file.path(predictors_raw_dir, "ch_geoms"),
     raw_pop_dir = file.path(predictors_raw_dir, "socio_economic", "population"),
@@ -83,8 +98,11 @@ get_config <- function(
     prepped_lyr_path = file.path(predictors_prepped_dir, "layers"),
     prepped_fte_dir = file.path(predictors_prepped_dir, "socio_economic", "employment"),
     prepped_pred_stacks = file.path(predictors_prepped_dir, "stacks", "calibration"),
+
+    # System configuration
     reference_crs = "epsg:2056",
-    viable_transitions_lists = "tools/viable_transitions_lists.rds",
+
+    # Results directories
     grrf_dir = file.path(
       results_dir, "model_tuning", "predictor_selection", "grrf_embedded_selection"
     ),

@@ -1,12 +1,35 @@
-#############################################################################
-## Trans_modelling: Fit and evaluate models of LULC transitions
-## under multiple model specifications
-## The results comparing the performance of different transition model
-## specifications require manual interpretation as the choice of optimal model
-## must balance numerous aspects: accuracy, overfitting, computation time etc.
-## Date: 08-04-2022
-## Author: Ben Black
-#############################################################################
+#' Transition Modeling for Land Use Land Cover Change
+#'
+#' This function coordinates the modeling and evaluation of land use and land cover
+#' change (LULCC) transitions based on configurations specified in a model specification
+#' table. It handles model preparation, fitting, evaluation, and state tracking.
+#'
+#' @author Ben Black
+#'
+#' @param config A list containing configuration parameters
+#'
+#' @details
+#' The function performs the following steps:
+#' 1. Creates necessary directories for models and evaluation results
+#' 2. Loads model specifications from an Excel file
+#' 3. Filters out models that have already been completed
+#' 4. For each model specification:
+#'    - Prepares model settings based on configuration (balanced/unbalanced, filtered/unfiltered)
+#'    - Loads appropriate transition datasets
+#'    - Sets model parameters via `lulcc.setparams()`
+#'    - Fits, evaluates, and saves models via `lulcc.fitevalsave()`
+#'    - Updates the model specification table to mark completed models
+#'    - Handles and reports errors that occur during modeling
+#'
+#' @note
+#' - Models are processed in parallel using the `furrr` package
+#' - The function tracks model completion status in an Excel file
+#' - Error handling includes saving diagnostic information for failed models
+#'
+#' @return No explicit return value, operates through side effects (writing files)
+#'
+#' @export
+
 transition_modelling <- function(config = get_config()) {
   ### =========================================================================
   ### A- Preparation
@@ -29,13 +52,12 @@ transition_modelling <- function(config = get_config()) {
   # Instantiate wrapper function over process of modelling prep, fitting,
   # evaluation, saving and completeness checking
   lulcc.multispectransmodelling <- function(model_specs) {
-    # model_specs <- model_list[[1]]
     ### =========================================================================
     ### A- Prepare model specifications
     ### =========================================================================
 
     # vector model specifcations
-    Data_period <- model_specs$data_period
+    Data_period <- model_specs$data_period_name
     Model_type <- model_specs$model_type
     model_scale <- model_specs$model_scale
     Feature_selection_employed <- model_specs$feature_selection_employed
@@ -49,26 +71,26 @@ transition_modelling <- function(config = get_config()) {
     FS_string <- ifelse(Feature_selection_employed, "filtered", "unfiltered")
 
     if (Correct_balance) {
-      model_folder <- paste0(
-        config[["transition_model_dir"]], "/",
-        toupper(Model_type), "_models", "/",
-        model_scale, "_", FS_string, "/"
+      model_folder <- file.path(
+        config[["transition_model_dir"]],
+        paste0(toupper(Model_type), "_models"),
+        paste0(model_scale, "_", FS_string)
       )
-      eval_results_folder <- paste0(
-        config[["transition_model_eval_dir"]], "/",
-        toupper(Model_type), "_model_evaluation_downsampled", "/",
-        model_scale, "_", FS_string, "/"
+      eval_results_folder <- file.path(
+        config[["transition_model_eval_dir"]],
+        paste0(toupper(Model_type), "_model_evaluation_downsampled"),
+        paste0(model_scale, "_", FS_string)
       )
     } else {
-      model_folder <- paste0(
-        config[["transition_model_dir"]], "/",
-        toupper(Model_type), "_models_non_adjusted", "/",
-        model_scale, "_", FS_string, "/"
+      model_folder <- file.path(
+        config[["transition_model_dir"]],
+        paste0(toupper(Model_type), "_models_non_adjusted"),
+        paste0(model_scale, "_", FS_string)
       )
-      eval_results_folder <- paste0(
-        config[["transition_model_eval_dir"]], "/",
-        toupper(Model_type), "_model_evaluation_non_adjusted", "/",
-        model_scale, "_", FS_string, "/"
+      eval_results_folder <- file.path(
+        config[["transition_model_eval_dir"]],
+        paste0(toupper(Model_type), "_model_evaluation_non_adjusted"),
+        paste0(model_scale, "_", FS_string)
       )
     }
 
@@ -97,7 +119,6 @@ transition_modelling <- function(config = get_config()) {
       .x = Data_paths_for_period,
       .options = furrr::furrr_options(seed = TRUE),
       .f = function(Dataset_path) {
-        # Dataset_path <- Data_paths_for_period[[1]]
         message("Modelling transition: ", stringr::str_remove(basename(Dataset_path), ".rds"))
 
         # load dataset
