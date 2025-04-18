@@ -51,14 +51,18 @@ transition_dataset_prep(config = config)
 transition_feature_selection(config = config)
 
 # F- Statistical modelling of LULCC transition datasets
-# G- Summarizing model validation results
 transition_modelling(config = config)
 
+# G- Summarizing model validation results
+# TODO here, there was a reference to a "Transition_model_evaluation.R" script
+# Without having seen it, its name implies that it was run on the comprehensive set of
+# models that are calculated in the previous step. I _did_ find a file called
+# "Model_evaluation.R" which I'm committing together with these lines as
+# "transition_model_evaluation.r" with the slight adaptation of encapsulating its logic
+# in a function of the same name.
+
 # adjust contents of model_specs table to only optimal specifcations
-lulcc.finalisemodelspecifications(
-  model_specs_path = model_specs_path,
-  param_grid_path = param_grid_path
-)
+lulcc.finalisemodelspecifications()
 
 # H- Re-fitting optimal model specifications on full data
 trans_model_finalization(config = config)
