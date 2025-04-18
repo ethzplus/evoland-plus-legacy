@@ -7,6 +7,7 @@
 #' @author Ben Black
 #'
 #' @param config A list containing configuration parameters
+#' @param ignore_excel_state Logical, whether to ignore the compeltion state in the Excel file
 #'
 #' @details
 #' The function performs the following steps:
@@ -30,20 +31,20 @@
 #'
 #' @export
 
-transition_modelling <- function(config = get_config()) {
+transition_modelling <- function(config = get_config(), ignore_excel_state = FALSE) {
   ### =========================================================================
   ### A- Preparation
   ### =========================================================================
 
   ensure_dir(config[["transition_model_dir"]])
   ensure_dir(config[["transition_model_eval_dir"]])
-  # load table of model specifications
-  # Import model specifications table
-  model_specs <- readxl::read_excel(config[["model_specs_path"]])
 
-  # Filter out models already completed
-  # TODO avoid using excel for recording state
-  models_specs <- model_specs[model_specs$modelling_completed == "N", ]
+  models_specs <- readxl::read_excel(config[["model_specs_path"]])
+
+  if (!ignore_excel_state) {
+    # TODO avoid using excel for recording state
+    models_specs <- dplyr::filter(models_specs, modelling_completed == "N")
+  }
 
   # split into named list
   model_list <- lapply(split(models_specs, seq_len(nrow(models_specs))), as.list)
@@ -117,7 +118,7 @@ transition_modelling <- function(config = get_config()) {
     # Now opening loop over datasets
     Modelling_outputs <- furrr::future_map(
       .x = Data_paths_for_period,
-      .options = furrr::furrr_options(seed = TRUE),
+      .options = furrr::furrr_options(seed = TRUE, scheduling = FALSE),
       .f = function(Dataset_path) {
         message("Modelling transition: ", stringr::str_remove(basename(Dataset_path), ".rds"))
 

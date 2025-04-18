@@ -4,10 +4,12 @@
 \alias{transition_modelling}
 \title{Transition Modeling for Land Use Land Cover Change}
 \usage{
-transition_modelling(config = get_config())
+transition_modelling(config = get_config(), ignore_excel_state = FALSE)
 }
 \arguments{
 \item{config}{A list containing configuration parameters}
+
+\item{ignore_excel_state}{Logical, whether to ignore the compeltion state in the Excel file}
 }
 \value{
 No explicit return value, operates through side effects (writing files)
