@@ -57,6 +57,7 @@ get_config <- function(
     EI_ints_path = file.path(tools_dir, "ei_interventions.xlsx"), # EI interventions table
     viable_transitions_lists = file.path(tools_dir, "viable_transitions_lists.rds"),
     model_lookup_path = file.path(tools_dir, "model_lookup.xlsx"),
+    glacial_area_change_xlsx = file.path(tools_dir, "glacial_area_change.xlsx"),
 
     # Paths for original data files
     ref_grid_path = file.path(data_basepath, "ref_grid.grd"),
@@ -91,6 +92,7 @@ get_config <- function(
     bioreg_zip_local = file.path(bioreg_dir, "biogeographische_regionen.zip"),
 
     # Predictor directories
+    glacial_change_path = file.path(data_basepath, "glacial_change"),
     predictors_raw_dir = predictors_raw_dir,
     ch_geoms_path = file.path(predictors_raw_dir, "ch_geoms"),
     raw_pop_dir = file.path(predictors_raw_dir, "socio_economic", "population"),
