@@ -148,7 +148,7 @@ transition_identification <- function(config = get_config()) {
     x$Trans_name <- paste(x$Initial_class, x$Final_class, sep = "_")
 
     # Subset by inclusion threshold
-    x <- x[x$Rate * 100 >= config[["inclusion_thres"]], ]
+    x <- x[x$Rate * 100 >= config[["inclusion_threshold"]], ]
 
     # Subset by transitions from non-static classes
     x <- x[x$Initial_class != "Static", ]

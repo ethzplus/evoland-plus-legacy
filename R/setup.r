@@ -79,7 +79,7 @@ get_config <- function(
     # we should first move to a coherent singular config
     data_periods = data_periods,
     regionalization = regionalization,
-    inclusion_thres = inclusion_threshold,
+    inclusion_threshold = inclusion_threshold,
 
     # Remote data sources and local paths
     arealstat_zip_remote =
@@ -108,9 +108,6 @@ get_config <- function(
     ),
     collinearity_dir = file.path(
       results_dir, "model_tuning", "predictor_selection", "grrf_embedded_selection"
-    ),
-    pred_sel_summary_dir = file.path(
-      results_dir, "model_tuning", "predictor_selection", "pred_sel_summary"
     ),
     transition_model_dir = file.path(data_basepath, "transition_models"),
     transition_model_eval_dir = file.path(

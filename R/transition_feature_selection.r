@@ -36,8 +36,7 @@ transition_feature_selection <- function(config = get_config()) {
       config[["trans_pre_pred_filter_dir"]],
       config[["collinearity_dir"]],
       config[["grrf_dir"]],
-      config[["trans_post_pred_filter_dir"]],
-      config[["pred_sel_summary_dir"]]
+      config[["trans_post_pred_filter_dir"]]
     ),
     ensure_dir
   )
