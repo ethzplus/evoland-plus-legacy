@@ -102,7 +102,7 @@ get_config <- function(
     # System configuration
     reference_crs = "epsg:2056",
 
-    # Results directories
+    # Models directories
     grrf_dir = file.path(
       results_dir, "model_tuning", "predictor_selection", "grrf_embedded_selection"
     ),
@@ -115,6 +115,9 @@ get_config <- function(
     transition_model_dir = file.path(data_basepath, "transition_models"),
     transition_model_eval_dir = file.path(
       results_dir, "transition_model_eval"
+    ),
+    prediction_models_dir = file.path(
+      results_dir, "transition_models", "prediction_models"
     )
   )
 

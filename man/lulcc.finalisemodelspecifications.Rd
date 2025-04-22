@@ -2,21 +2,40 @@
 % Please edit documentation in R/lulcc.finalisemodelspecifications.r
 \name{lulcc.finalisemodelspecifications}
 \alias{lulcc.finalisemodelspecifications}
-\title{lulcc.finalisemodelspecifications}
+\title{Finalize Model Specifications}
 \usage{
 lulcc.finalisemodelspecifications(
-  model_specs_path,
-  param_grid_path,
-  data_periods
+  model_type = "rf",
+  model_scale = "regionalized",
+  feature_selection_employed = TRUE,
+  balance_adjustment = TRUE,
+  config = get_config()
 )
 }
 \arguments{
-\item{model_specs_path}{Character, file path for table of model specifications}
-
-\item{param_grid_path}{Character, file path for grid of hyperparameters}
+\item{config}{A list of configuration parameters}
+}
+\value{
+No return value, called for side effects (creating configuration files)
 }
 \description{
-Enter optimal model specification and parameters for prediction
+This function prepares configuration files for predicting land use land cover change.
+It interactively gathers model parameters from the user and creates specification
+files for prediction based on previously completed models.
+}
+\details{
+The function performs the following steps:
+\enumerate{
+\item Loads model specifications from the provided Excel file
+\item Filters for completed model specifications
+\item Prompts user to select model type, scale, feature selection option, and balance adjustment
+\item Creates a subset of model specifications based on user inputs
+\item Sets the "modelling_completed" flag to "N" for the prediction configurations
+\item Warns if any specified data periods are not included in the filtered model specifications
+\item Saves the prediction model specifications to "tools/predict_model_specs.xlsx"
+\item Creates a parameter grid for prediction by prompting user for parameter values
+\item Saves the prediction parameter grid to "tools/predict_param-grid.xlsx"
+}
 }
 \author{
 Ben Black
