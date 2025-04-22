@@ -3,6 +3,7 @@
 export("%>%")
 export(calibration_predictor_prep)
 export(check_dinamica)
+export(deterministic_trans_prep)
 export(fetch_zenodo_predictors)
 export(get_config)
 export(get_dinamica_path)

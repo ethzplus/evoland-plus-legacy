@@ -1,10 +1,30 @@
-#############################################################################
-## Deterministic_trans_prep: Prepare spatial data for locations of deterministic
-## trans to implement during simulations
-##
-## Date: 03-05-2023
-## Author: Ben Black
-#############################################################################
+#' Process deterministic transitions (glacier meltoff)
+#'
+#' Prepares data for deterministic transitions in the land use change model. Currently
+#' only entails reading pre-treated data for where-on-the-grid glaciers will disappear.
+#'
+#' @author Ben Black
+#' @details
+#' This function performs two main tasks:
+#' 1. Preparation of general model data:
+#'    - Extracts years from historic LULC files
+#'    - Loads transition model lookup tables
+#'    - Prepares time step vectors for simulation, which incidentally are the same that
+#'      the source data have.
+#'
+#' 2. Processing of glacial change data:
+#'    - Reads glacial location data from the Farinotti et al. dataset
+#'    - Calculates glacial coverage changes for each time step and scenario
+#'    - Saves RCP-specific glacial indices for later use
+#'    - Creates a summary table of glacial areal changes across scenarios
+#'
+#' @param config A configuration list, default is retrieved from get_config()
+#'
+#' @return No direct return value. The function saves:
+#'   - RDS files of glacial change indices for each scenario
+#'   - An Excel file with glacial area change data across scenarios
+#'
+#' @export
 
 deterministic_trans_prep <- function(config = get_config()) {
   ### =========================================================================
@@ -141,7 +161,7 @@ deterministic_trans_prep <- function(config = get_config()) {
   }), idcol = "RCP")
 
   # save areal change across scenario's table
-  # FIXME this table is not the one that was committed to the repo 
+  # FIXME this table is not the one that was committed to the repo
   # - I removed that xlsx with this commit
   # - the idcol above should possibly read "Scenario"
   # - the Glacier_indices names should possibly not be named according to RCP scenarios,
