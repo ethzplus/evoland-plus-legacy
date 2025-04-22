@@ -16,20 +16,25 @@ pipe.ceval <- function(f, pa, tesdat, crit, tre = numeric()) {
   # If there are any presences in the evaluation data
   if (any(pa == 1)) {
     if (crit == "maxTSS" && length(tre) == 0) {
-      ordf <- order(f, decreasing = T) # create a vector of positions to order prediction data
+      # create a vector of positions to order prediction data
+      ordf <- order(f, decreasing = TRUE)
 
-      rdf <- f[ordf] # create a duplicate vector of prediction data in decreasing order
+      # create a duplicate vector of prediction data in decreasing order
+      rdf <- f[ordf]
 
-      opa <- pa[ordf] # create a duplicate vector of the presence/absence data ordered by the decreasing order of predictions
+      # create a duplicate vector of the presence/absence data ordered by the decreasing
+      # order of predictions
+      opa <- pa[ordf]
 
-      cpa <- cumsum(opa) # cumulative summation of vector of presence/absence records
-
+      # cumulative summation of vector of presence/absence records
+      cpa <- cumsum(opa)
 
       # Reduce to sensible range
-      nsns <- which(cpa == max(cpa)) # this is return the index positions in cpa which all have the max value in the vector
+      # this is return the index positions in cpa which all have the max value in the
+      # vector
+      nsns <- which(cpa == max(cpa))
 
       nsns <- nsns[-1] # dropping the first element of the vector
-
 
       if (length(nsns) != 0) {
         rdf <- rdf[-nsns]
@@ -38,7 +43,7 @@ pipe.ceval <- function(f, pa, tesdat, crit, tre = numeric()) {
       }
 
 
-      tsss <- apply(cbind(1:length(cpa), cpa), 1, function(x, y, z) {
+      tsss <- apply(cbind(seq_along(cpa), cpa), 1, function(x, y, z) {
         out <- tss(x[2], x[1] - x[2], z - x[2], y - x[1] - (z - x[2]))
         return(out)
       }, y = length(pa), z = sum(pa))
@@ -53,21 +58,24 @@ pipe.ceval <- function(f, pa, tesdat, crit, tre = numeric()) {
     tb <- table(factor(bina, levels = c("0", "1")), factor(pa, levels = c("0", "1")))
     tdep <- pipe.all.metrics(tb[2, 2], tb[2, 1], tb[1, 2], tb[1, 1])
 
-
-    # In the Boyce chunk below, the $Spearman.cor is subsetting the output of the function
-    # to just the boyce index correlation value, when the function normally returns a list
-    # which also includes vectors of the predicted/expected values (F) and predicted probability (HS)
-    # So if I want to plut the Boyce curves I need to set it to return all of these items and then include them
-    # in the functions overall output.
+    # In the Boyce chunk below, the $Spearman.cor is subsetting the output of the
+    # function to just the boyce index correlation value, when the function normally
+    # returns a list which also includes vectors of the predicted/expected values (F)
+    # and predicted probability (HS) So if I want to plut the Boyce curves I need to set
+    # it to return all of these items and then include them in the functions overall
+    # output.
 
     # Boyce
-    boyce <- try(ecospat.boyce(fit = f, obs = f[pa == 1], PEplot = FALSE)$Spearman.cor, TRUE)
+    boyce <- try(
+      ecospat::ecospat.boyce(fit = f, obs = f[pa == 1], PEplot = FALSE)$Spearman.cor,
+      silent = TRUE
+    )
     if (!is.numeric(boyce)) {
       boyce <- NA
     }
 
     # AUC
-    z <- prediction(f, pa)
+    z <- ROCR::prediction(predictions = f, labels = pa)
     auc <- ROCR::performance(z, measure = "auc")@y.values[[1]]
     rmse <- ROCR::performance(z, measure = "rmse")@y.values[[1]]
 
@@ -77,11 +85,16 @@ pipe.ceval <- function(f, pa, tesdat, crit, tre = numeric()) {
     # # Consensus score
     score <- mean(aucS, boyce, tdep["TSS"], trim = 0, na.rm = TRUE)
 
-
     # Return results
-    weg <- c(auc, aucS, rmse, boyce, score, tre, tdep)
-    names(weg)[1:6] <- c("AUC", "AUC.S", "RMSE", "Boyce", "Score", "threshold")
-    # names(weg)[16:17]=c("imbalance.ratio", "num_units")
+    weg <- list(
+      AUC = auc,
+      AUC.S = aucS,
+      RMSE = rmse,
+      Boyce = boyce,
+      Score = score,
+      threshold = tre,
+      all_metrics = tdep
+    )
     return(unlist(weg))
   }
 }

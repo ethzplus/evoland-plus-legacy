@@ -1,70 +1,70 @@
-#' lulcc.finalisemodelspecifications
+#' Finalize Model Specifications
 #'
-#' Enter optimal model specification and parameters for prediction
+#' This function prepares configuration files for predicting land use land cover change.
+#' It interactively gathers model parameters from the user and creates specification
+#' files for prediction based on previously completed models.
 #'
-#' @param model_specs_path Character, file path for table of model specifications
-#' @param param_grid_path Character, file path for grid of hyperparameters
 #' @author Ben Black
+#'
+#' @param config A list of configuration parameters
+#'
+#' @details
+#' The function performs the following steps:
+#' 1. Loads model specifications from the provided Excel file
+#' 2. Filters for completed model specifications
+#' 3. Prompts user to select model type, scale, feature selection option, and balance adjustment
+#' 4. Creates a subset of model specifications based on user inputs
+#' 5. Sets the "modelling_completed" flag to "N" for the prediction configurations
+#' 6. Warns if any specified data periods are not included in the filtered model specifications
+#' 7. Saves the prediction model specifications to "tools/predict_model_specs.xlsx"
+#' 8. Creates a parameter grid for prediction by prompting user for parameter values
+#' 9. Saves the prediction parameter grid to "tools/predict_param-grid.xlsx"
+#'
+#' @return No return value, called for side effects (creating configuration files)
+#'
 #' @export
 
-lulcc.finalisemodelspecifications <- function(model_specs_path, param_grid_path, data_periods) {
+lulcc.finalisemodelspecifications <- function(
+    model_type = "rf",
+    model_scale = "regionalized",
+    feature_selection_employed = TRUE,
+    balance_adjustment = TRUE,
+    config = get_config()) {
   # Load model specifications
-  model_specs <- readxl::read_excel(model_specs_path)
-
-  # filter for completed model specifcations
-  model_specs <- model_specs[model_specs$Modelling_completed == "Y", ]
-
-  # Use prompts to get specifications as input from user
-  model_type <- readline(prompt = paste0(
-    "Choose model type from: ",
-    paste(unique(model_specs$Model_type), sep = "or"),
-    ", Enter type: "
-  ))
-  model_scale <- readline(prompt = paste0(
-    "Choose model scale from: ",
-    paste(unique(model_specs$model_scale), sep = "or"),
-    ", Enter scale: "
-  ))
-  feature_selection_employed <- readline(
-    prompt = "Use transitions datasets that have undergone feature selection (TRUE or FALSE): "
-  )
-  balance_adjustment <- if (model_type == "rf") {
-    readline(prompt = "Use Tree-wise downsampling to address class imbalance: ")
-  } else {
-    "FALSE"
-  }
+  model_specs <- readxl::read_excel(config[["model_specs_path"]])
 
   # Subset model specifications by user inputs
   predict_model_specs <- model_specs[
-    model_specs$Model_type == model_type &
+    model_specs$modelling_completed == "Y" &
+      model_specs$model_type == model_type &
       model_specs$model_scale == model_scale &
-      model_specs$Feature_selection_employed == feature_selection_employed &
-      model_specs$Balance_adjustment == balance_adjustment,
+      model_specs$feature_selection_employed == feature_selection_employed &
+      model_specs$balance_adjustment == balance_adjustment,
   ]
 
-
   # change completion values to 'N'
-  predict_model_specs$Modelling_completed <- "N"
+  predict_model_specs$modelling_completed <- "N"
 
+  data_periods <- config[["data_periods"]]
   # Print a warning that not all data periods are included in the predict model specs table
-  if (all(data_periods %in% unique(predict_model_specs$data_period_name)) == FALSE) {
-    cat(paste0(
+  if (!all(data_periods %in% unique(predict_model_specs$data_period_name))) {
+    stop(
       "Warning the data period/s: ",
       paste(
         data_periods[which(!(data_periods %in% unique(predict_model_specs$data_period_name)))],
         sep = ","
       ),
       " do not have models of the desired specification completed for them
-           (i.e. Errors may have occured in model fitting or evaluation,
-           please check before continuing"
-    ))
+        (i.e. Errors may have occured in model fitting or evaluation,
+        please check before continuing"
+    )
   }
 
   # save prediction model specs
-  openxlsx::write.xlsx(predict_model_specs, file = "tools/predict_model_specs.xlsx")
+  openxlsx::write.xlsx(predict_model_specs, file = config[["predict_model_specs_path"]])
 
   # Load parameter grid
-  param_grid <- readxl::read_excel(param_grid_path, sheet = model_type)
+  param_grid <- readxl::read_excel(config[["param_grid_path"]], sheet = model_type)
 
   # create a duplicate parameter grid for prediction
   predict_param_grid <- data.frame(matrix(nrow = nrow(param_grid), ncol = ncol(param_grid)))
@@ -78,7 +78,7 @@ lulcc.finalisemodelspecifications <- function(model_specs_path, param_grid_path,
   # save prediction parameter grid
   openxlsx::write.xlsx(
     predict_param_grid,
-    file = "tools/predict_param-grid.xlsx",
+    file = config[["predict_param_grid_path"]],
     sheetName = model_type
   )
 }

@@ -60,6 +60,7 @@ stripRF <- function(cm) {
   cm
 }
 
+#' @importFrom randomForest randomForest
 #' @export
 lulcc.fitmodel <- function(trans_result = numeric(),
                            cov_data = data.frame(),
@@ -71,9 +72,12 @@ lulcc.fitmodel <- function(trans_result = numeric(),
                            mod_args = list(),
                            Downsampling) {
   # Check supplied model types
-  for (i in 1:length(mod_args)) {
+  for (i in seq_along(mod_args)) {
     if (!(mod_args[[i]]@mod %in% c("randomForest", "glm"))) {
-      warning(paste(mod_args[[i]]@mod, "not valid specifications for Random Forest model, please check and repeat."))
+      warning(
+        mod_args[[i]]@mod,
+        "not valid specifications for Random Forest model, please check and repeat."
+      )
     }
   }
 
@@ -85,35 +89,49 @@ lulcc.fitmodel <- function(trans_result = numeric(),
   for (i in 1:reps) {
     modi <- list()
     # loop over models
-    for (j in 1:length(mod_args)) {
+    for (j in seq_along(mod_args)) {
       # append data to model settings object
       mod_args[[j]]@args$data <- lis$train[[i]]
 
       if (mod_args[[j]]@mod == "glm") { # Open GLM chunk
 
         Full_glm <- do.call(mod_args[[j]]@mod, mod_args[[j]]@args) # run GLM model
-        modi[[j]] <- axe_env(stripGlm(Full_glm)) # strip unnecessary elements
+        modi[[j]] <- butcher::axe_env(stripGlm(Full_glm)) # strip unnecessary elements
       } else if (mod_args[[j]]@mod == "randomForest") { # close GLM chunk open RF chunk
 
         # set transition result as factor
-        mod_args[[j]]@args$data$transitions_result <- as.factor(mod_args[[j]]@args$data$transitions_result)
+        mod_args[[j]]@args$data$transitions_result <- as.factor(
+          mod_args[[j]]@args$data$transitions_result
+        )
 
-        if (Downsampling == TRUE) {
-          # append strata to model settings object
-          mod_args[[j]]@args$strata <- mod_args[[j]]@args$data$transitions_result # Strata uses the dependent variable column to perform stratified sampling according the frequencies given in sampsize
+        if (Downsampling) {
+          # append strata to model settings object; Strata uses the dependent variable
+          # column to perform stratified sampling according the frequencies given in
+          # sampsize
+          mod_args[[j]]@args$strata <- mod_args[[j]]@args$data$transitions_result
 
           # create sampsize argument
-          nmin <- sum(mod_args[[j]]@args$data$transitions_result == names(which.min(table(mod_args[[j]]@args$data$transitions_result)))) # get the total number of the minority class values in the dataset for downsampling
-          mod_args[[j]]@args$sampsize <- c(nmin, nmin) # create vector for stratified sampling based on the number of minority classes sampling with replacement is default
+          nmin <- sum(
+            mod_args[[j]]@args$data$transitions_result ==
+              names(which.min(table(mod_args[[j]]@args$data$transitions_result)))
+          ) # get the total number of the minority class values in the dataset for downsampling
+
+          # create vector for stratified sampling based on the number of minority
+          # classes sampling with replacement is default
+          mod_args[[j]]@args$sampsize <- c(nmin, nmin)
         }
 
         # call to randomForest function using the arguments specified, note that the vector for
         Full_rf <- do.call(mod_args[[j]]@mod, mod_args[[j]]@args)
-        modi[[j]] <- axe_env(stripRF(Full_rf)) # strip unnecessary elements
+        modi[[j]] <- butcher::axe_env(stripRF(Full_rf)) # strip unnecessary elements
       } # close RF chunk
 
       # name fitted model
-      names(modi)[j] <- ifelse(mod_args[[j]]@tag == "", paste0("model_", j), mod_args[[j]]@tag)
+      names(modi)[j] <- ifelse(
+        mod_args[[j]]@tag == "",
+        paste0("model_", j),
+        mod_args[[j]]@tag
+      )
     }
 
     fits[[i]] <- modi
@@ -123,9 +141,6 @@ lulcc.fitmodel <- function(trans_result = numeric(),
 
   # supply fitted objects
   lis$wslfi@fits <- fits
-
-  # Save
-  # ...
 
   return(lis$wslfi)
 }

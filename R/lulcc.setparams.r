@@ -12,9 +12,14 @@
 #' @author Antoine Adde (main) edited by Ben Black
 #' @export
 
-lulcc.setparams <- function(model_name, transition_result, param_grid, covariate_names, weights = 1) {
+lulcc.setparams <- function(
+    model_name,
+    transition_result,
+    param_grid,
+    covariate_names,
+    weights = 1) {
   # Import parameter table
-  param.table <- read_excel(param_grid)
+  param.table <- readxl::read_excel(param_grid)
 
   # Weighting?
   if (length(weights) == 1) {
@@ -27,8 +32,19 @@ lulcc.setparams <- function(model_name, transition_result, param_grid, covariate
 
   ## GLM
   if (model_name == "glm") {
-    form_glm <- axe_env(as.formula(paste("transitions_result~", paste(paste0(covariate_names), collapse = "+")))) # create GLM formula (axe_env ensures that the result does not link to the globalenv when saving)
-    multi_glm <- pipe.multi("glm", list(formula = form_glm, family = "binomial"), tag = paste0("glm"), weight = weighting) # append formula to other model specs
+    form_glm <- as.formula(
+      paste(
+        "transitions_result ~ ",
+        paste(covariate_names, collapse = " + ")
+      ),
+      env = emptyenv()
+    )
+    multi_glm <- pipe.multi(
+      "glm",
+      list(formula = form_glm, family = "binomial"),
+      tag = paste0("glm"),
+      weight = weighting
+    ) # append formula to other model specs
     modinp <- append(modinp, multi_glm)
   } # close GLM statement
 
@@ -41,14 +57,23 @@ lulcc.setparams <- function(model_name, transition_result, param_grid, covariate
       params_rf <- data.frame(param.table)
     }
 
-    for (p in 1:nrow(params_rf)) {
+    for (p in seq_len(nrow(params_rf))) {
       param_rf <- params_rf[p, ]
       multi_rf <- pipe.multi("randomForest", list(
-        formula = axe_env(transitions_result ~ .), # axe_env ensures that the result does not link to the globalenv when saving
+        formula = as.formula(transitions_result ~ ., env = emptyenv()),
         ntree = as.numeric(param_rf$num.trees),
         mtry = floor(sqrt(length(covariate_names))),
         nodesize = as.numeric(param_rf$min.node.size),
-        classwt = c("0" = ifelse(sum(transition_result == 1) > sum(transition_result == 0), max(weights), min(weights)), "1" = ifelse(sum(transition_result == 1) < sum(transition_result == 0), max(weights), min(weights)))
+        classwt = c(
+          "0" = ifelse(
+            sum(transition_result == 1) > sum(transition_result == 0),
+            max(weights), min(weights)
+          ),
+          "1" = ifelse(
+            sum(transition_result == 1) < sum(transition_result == 0),
+            max(weights), min(weights)
+          )
+        )
       ),
       tag = paste0("rf-", p),
       weight = weighting
