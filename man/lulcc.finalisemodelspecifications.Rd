@@ -13,7 +13,15 @@ lulcc.finalisemodelspecifications(
 )
 }
 \arguments{
-\item{config}{A list of configuration parameters}
+\item{model_type}{Character string specifying the model type}
+
+\item{model_scale}{Character string specifying the model scale}
+
+\item{feature_selection_employed}{Logical indicating whether feature selection was used}
+
+\item{balance_adjustment}{Logical indicating whether balance adjustment was applied}
+
+\item{config}{List containing configuration settings obtained from \code{\link[=get_config]{get_config()}} function}
 }
 \value{
 No return value, called for side effects (creating configuration files)
@@ -26,15 +34,12 @@ files for prediction based on previously completed models.
 \details{
 The function performs the following steps:
 \enumerate{
-\item Loads model specifications from the provided Excel file
-\item Filters for completed model specifications
-\item Prompts user to select model type, scale, feature selection option, and balance adjustment
-\item Creates a subset of model specifications based on user inputs
-\item Sets the "modelling_completed" flag to "N" for the prediction configurations
-\item Warns if any specified data periods are not included in the filtered model specifications
-\item Saves the prediction model specifications to "tools/predict_model_specs.xlsx"
-\item Creates a parameter grid for prediction by prompting user for parameter values
-\item Saves the prediction parameter grid to "tools/predict_param-grid.xlsx"
+\item Loads model specifications from the Excel file specified in config
+\item Filters model specifications based on user-provided criteria
+\item Verifies all required data periods have completed models available
+\item Creates and saves a prediction-specific model specification file
+\item Prompts the user for parameter values to create a prediction parameter grid
+\item Saves the prediction parameter grid for use in subsequent prediction steps
 }
 }
 \author{

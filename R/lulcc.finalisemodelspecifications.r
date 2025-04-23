@@ -6,19 +6,20 @@
 #'
 #' @author Ben Black
 #'
-#' @param config A list of configuration parameters
+#' @param model_type Character string specifying the model type
+#' @param model_scale Character string specifying the model scale
+#' @param feature_selection_employed Logical indicating whether feature selection was used
+#' @param balance_adjustment Logical indicating whether balance adjustment was applied
+#' @param config List containing configuration settings obtained from [get_config()] function
 #'
 #' @details
 #' The function performs the following steps:
-#' 1. Loads model specifications from the provided Excel file
-#' 2. Filters for completed model specifications
-#' 3. Prompts user to select model type, scale, feature selection option, and balance adjustment
-#' 4. Creates a subset of model specifications based on user inputs
-#' 5. Sets the "modelling_completed" flag to "N" for the prediction configurations
-#' 6. Warns if any specified data periods are not included in the filtered model specifications
-#' 7. Saves the prediction model specifications to "tools/predict_model_specs.xlsx"
-#' 8. Creates a parameter grid for prediction by prompting user for parameter values
-#' 9. Saves the prediction parameter grid to "tools/predict_param-grid.xlsx"
+#' 1. Loads model specifications from the Excel file specified in config
+#' 2. Filters model specifications based on user-provided criteria
+#' 3. Verifies all required data periods have completed models available
+#' 4. Creates and saves a prediction-specific model specification file
+#' 5. Prompts the user for parameter values to create a prediction parameter grid
+#' 6. Saves the prediction parameter grid for use in subsequent prediction steps
 #'
 #' @return No return value, called for side effects (creating configuration files)
 #'
