@@ -39,7 +39,7 @@ transition_modelling <- function(config = get_config(), ignore_excel_state = FAL
   ensure_dir(config[["transition_model_dir"]])
   ensure_dir(config[["transition_model_eval_dir"]])
 
-  models_specs <- readxl::read_excel(config[["model_specs_path"]])
+  models_specs <- readr::read_csv(config[["model_specs_path"]])
 
   if (!ignore_excel_state) {
     # TODO avoid using excel for recording state
@@ -177,17 +177,16 @@ transition_modelling <- function(config = get_config(), ignore_excel_state = FAL
 
     if (all(Modelling_check == "Success")) {
       # load model spec table and replace the values in the 'completed' column
-      model_spec_table <- readxl::read_excel(config[["model_specs_path"]])
+      model_spec_table <- readr::read_csv(config[["model_specs_path"]])
 
       # find the correct row
       model_spec_table$modelling_completed[
         model_spec_table$detail_model_tag == model_specs$detail_model_tag
       ] <- "Y"
 
-      openxlsx::write.xlsx(
+      readr::write_csv(
         model_spec_table,
-        file = config[["model_specs_path"]],
-        overwrite = TRUE
+        file = config[["model_specs_path"]]
       )
 
       message(
@@ -219,7 +218,7 @@ transition_modelling <- function(config = get_config(), ignore_excel_state = FAL
            instances (1's) or where feature selection has reduced to a single predictor variable"
         )
         # load model spec table and replace the values in the 'completed' column
-        model_spec_table <- readxl::read_excel(config[["model_specs_path"]])
+        model_spec_table <- readr::read_csv(config[["model_specs_path"]])
 
         # find the correct row
         model_spec_table$Modelling_completed[
@@ -230,10 +229,9 @@ transition_modelling <- function(config = get_config(), ignore_excel_state = FAL
         model_spec_table$Num_errors <- Num_errors
 
         # save
-        openxlsx::write.xlsx(
+        readr::write_csv(
           model_spec_table,
-          file = config[["model_specs_path"]],
-          overwrite = TRUE
+          file = config[["model_specs_path"]]
         )
       }
 

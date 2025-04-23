@@ -32,7 +32,7 @@ lulcc.finalisemodelspecifications <- function(
     balance_adjustment = TRUE,
     config = get_config()) {
   # Load model specifications
-  model_specs <- readxl::read_excel(config[["model_specs_path"]])
+  model_specs <- readr::read_csv(config[["model_specs_path"]])
 
   # Subset model specifications by user inputs
   predict_model_specs <- model_specs[
@@ -50,19 +50,19 @@ lulcc.finalisemodelspecifications <- function(
   # Print a warning that not all data periods are included in the predict model specs table
   if (!all(data_periods %in% unique(predict_model_specs$data_period_name))) {
     stop(
-      "Warning the data period/s: ",
+      "Warning, the data period/s: ",
       paste(
         data_periods[which(!(data_periods %in% unique(predict_model_specs$data_period_name)))],
-        sep = ","
+        collapse = ", "
       ),
-      " do not have models of the desired specification completed for them
-        (i.e. Errors may have occured in model fitting or evaluation,
-        please check before continuing"
+      " do not have models of the desired specification completed for them.",
+      " (i.e. Errors may have occured in model fitting or evaluation,",
+      " please check before continuing)"
     )
   }
 
   # save prediction model specs
-  openxlsx::write.xlsx(predict_model_specs, file = config[["predict_model_specs_path"]])
+  readr::write_csv(predict_model_specs, file = config[["predict_model_specs_path"]])
 
   # Load parameter grid
   param_grid <- readxl::read_excel(config[["param_grid_path"]], sheet = model_type)

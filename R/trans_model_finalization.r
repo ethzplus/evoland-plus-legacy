@@ -16,7 +16,7 @@ trans_model_finalization <- function(config = get_config()) {
   ensure_dir(model_base_folder)
 
   # load table of model specifications
-  models_specs <- readxl::read_excel(config[["predict_model_specs_path"]])
+  models_specs <- readr::read_csv(config[["predict_model_specs_path"]])
 
   # Filter for models already completed
   models_specs <- models_specs[models_specs$modelling_completed == "N", ]
@@ -133,17 +133,16 @@ trans_model_finalization <- function(config = get_config()) {
     ### =========================================================================
 
     # load model spec table and replace the values in the 'completed' column
-    model_spec_table <- readxl::read_excel(config[["predict_model_specs_path"]])
+    model_spec_table <- readr::read_csv(config[["predict_model_specs_path"]])
 
     # find the correct row
     model_spec_table$modelling_completed[
       model_spec_table$detail_model_tag == model_specs$detail_model_tag
     ] <- "Y"
 
-    openxlsx::write.xlsx(
+    readr::write_csv(
       model_spec_table,
-      file = config[["predict_model_specs_path"]],
-      overwrite = TRUE
+      file = config[["predict_model_specs_path"]]
     )
 
     message("Prediction model fitting finished \n")

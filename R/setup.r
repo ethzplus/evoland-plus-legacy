@@ -45,12 +45,12 @@ get_config <- function(
     LULC_aggregation_path = file.path(
       tools_dir, "lulc_class_aggregation.xlsx"
     ), # LULC class aggregation table
-    model_specs_path = file.path(tools_dir, "model_specs.xlsx"), # model specifications table
+    model_specs_path = file.path(tools_dir, "model_specs.csv"), # model specifications table
     param_grid_path = file.path(tools_dir, "param-grid.xlsx"), # model hyper parameter grids
     pred_table_path = file.path(tools_dir, "predictor_table.xlsx"), # predictor table
     # FIXME why are the next two repeated?
     predict_param_grid_path = file.path(tools_dir, "predict_param_grid.xlsx"),
-    predict_model_specs_path = file.path(tools_dir, "predict_model_specs.xlsx"),
+    predict_model_specs_path = file.path(tools_dir, "predict_model_specs.csv"),
     spat_ints_path = file.path(
       tools_dir, "spatial_interventions.csv"
     ), # spatial interventions table

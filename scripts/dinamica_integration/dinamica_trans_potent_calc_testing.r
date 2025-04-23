@@ -82,7 +82,7 @@ Use_interventions <- Simulation_table$spatial_interventions.string
 # Convert model mode into a string of the dates calibration period being used
 # this makes it easier to load files because they use this nomenclature
 
-Calibration_periods <- unique(readxl::read_excel(model_specs_path)[["data_period_name"]])
+Calibration_periods <- unique(readr::read_csv(model_specs_path)[["data_period_name"]])
 
 Calibration_dates <- lapply(Calibration_periods, function(period) {
   dates <- as.numeric(str_split(period, "_")[[1]])

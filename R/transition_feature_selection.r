@@ -9,7 +9,7 @@
 
 transition_feature_selection <- function(config = get_config()) {
   # Import model specifications table
-  model_specs <- readxl::read_excel(config[["model_specs_path"]])
+  model_specs <- readr::read_csv(config[["model_specs_path"]])
 
   # Filter for models with feature selection required
   Filtering_required <-
