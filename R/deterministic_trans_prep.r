@@ -160,11 +160,16 @@ deterministic_trans_prep <- function(config = get_config()) {
     return(Areal_change)
   }), idcol = "RCP")
 
-  # save areal change across scenario's table
-  # FIXME this table is not the one that was committed to the repo
-  # - I removed that xlsx with this commit
-  # - the idcol above should possibly read "Scenario"
-  # - the Glacier_indices names should possibly not be named according to RCP scenarios,
-  #   but to BAU / EI_NAT, EI_CUL, EI_SOC, GR_EX
-  xlsx::write.xlsx(Glacial_change, config[["glacial_area_change_xlsx"]], row.names = FALSE)
+  # TODO move temporary fix for mapping RCPs to Scenarios someplace more sensible
+  rcps_to_scenarios_tbl <- tibble::tribble(
+    ~Scenario, ~RCP,
+    "EI_NAT", "RCP26",
+    "EI_CUL", "RCP26",
+    "BAU", "RCP45",
+    "EI_SOC", "RCP45",
+    "GR_EX", "RCP85",
+  )
+
+  dplyr::left_join(Glacial_change, rcps_to_scenarios_tbl, by = "RCP") |>
+    xlsx::write.xlsx(config[["glacial_area_change_xlsx"]], row.names = FALSE)
 }

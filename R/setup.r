@@ -58,6 +58,7 @@ get_config <- function(
     viable_transitions_lists = file.path(tools_dir, "viable_transitions_lists.rds"),
     model_lookup_path = file.path(tools_dir, "model_lookup.xlsx"),
     glacial_area_change_xlsx = file.path(tools_dir, "glacial_area_change.xlsx"),
+    scenario_area_mods_xlsx = file.path(tools_dir, "simulation_lulc_areas_2060.xlsx"),
 
     # Paths for original data files
     ref_grid_path = file.path(data_basepath, "ref_grid.grd"),
@@ -65,6 +66,8 @@ get_config <- function(
     simulation_param_dir = file.path(allocation_pars_dir, "simulation"),
     trans_rate_table_dir = file.path(data_basepath, "transition_tables", "prepared_trans_tables"),
     trans_rates_raw_dir = file.path(data_basepath, "transition_tables", "raw_trans_tables"),
+    trans_rate_extrapol_dir = file.path(data_basepath, "transition_tables", "extrapolations"),
+    best_trans_area_tables = file.path(data_basepath, "transition_tables", "best_area_tables.rds"),
     trans_pre_pred_filter_dir = file.path(
       data_basepath, "transition_datasets", "pre_predictor_filtering"
     ),
