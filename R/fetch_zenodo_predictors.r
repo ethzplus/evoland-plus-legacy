@@ -19,7 +19,7 @@ fetch_zenodo_predictors <- function(
 
   tmpfile <- tempfile()
   curl::curl_download(
-    url = "https://zenodo.org/records/8263509/files/LULCC_CH_dat.zip",
+    url = url,
     destfile = tmpfile
   )
 
@@ -45,4 +45,34 @@ fetch_zenodo_predictors <- function(
 
   unlink(file.path(target_dir, "LULCC_CH_dat/Data/Raw/"))
   unlink(tmpfile)
+}
+
+get_employment_scenarios <- function(
+    urls = c(
+      "https://zenodo.org/api/records/4774914/files/combo.zip/content",
+      "https://zenodo.org/api/records/4774914/files/Metadata.xlsx/content",
+      "https://zenodo.org/api/records/4774914/files/référence.zip/content",
+      "https://zenodo.org/api/records/4774914/files/sensibilité_combo.zip/content",
+      "https://zenodo.org/api/records/4774914/files/ecolo.zip/content"
+    ),
+    target_dir) {
+  # WONTFIX currently, the raw data resides at the zenodo record, which will stay about
+  # as persistent as a DOI based lookup; not worth relying on the substandard zenodo
+  # API. We need to make assumptions about the data structure anyways, so let's stick
+  # with this.
+  if (missing(target_dir)) {
+    target_dir <- file.path(
+      get_config()[["raw_employment_dir"]],
+      "employment_scenarios"
+    )
+  }
+
+  purrr::walk(
+    urls,
+    \(x) lulcc.downloadunzip(
+      x,
+      save_dir = target_dir,
+      filename = stringr::str_remove(x, "/content") |> basename()
+    )
+  )
 }

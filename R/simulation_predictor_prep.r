@@ -1,50 +1,32 @@
-#############################################################################
-## Simulation_predictor_prep: Prepare predictor data lookup tables for simulation
-## time steps
-##
-## Date: 18-11-2021
-## Author: Ben Black
-#############################################################################
+#' Simulation Predictor Preparation
+#'
+#' Prepares predictor data lookup tables for simulation time steps. This includes:
+#' - Processing future economic scenarios for employment data
+#' - Preparing mechanisms for future population projections
+#' - Processing future climatic data
+#' - Creating predictor lookup tables for simulation periods
+#'
+#' @param config List containing configuration parameters, defaults to result of
+#'               [get_config()]
+#'
+#' @return None. Files are written to disk at locations specified in config.
+#'
+#' @author Ben Black
+#'
+#' @export
 
-# Supplied by master script only uncomment for testing
-# Predictor table file path
-
-simulation_predictor_prep <- function(config) {
-  # Load in the grid to use use for re-projecting the CRS and extent of predictor data
-  Ref_grid <- raster::raster(config[["ref_grid_path"]])
-
+simulation_predictor_prep <- function(config = get_config()) {
   # Fetch simulation start and end times from simulation control table
-  Simulation_control <- read.csv(config[["simctrl_tbl_path"]])
+  Simulation_control <- readr::read_csv(config[["simctrl_tbl_path"]])
   Simulation_start <- min(Simulation_control$scenario_start.real)
   Simulation_end <- max(Simulation_control$scenario_end.real)
   step_length <- unique(Simulation_control$step_length.real)
 
   # vector time steps for future predictions
-  Time_steps <- seq(Simulation_start, Simulation_end, step_length)
+  Time_steps <- seq.int(Simulation_start, Simulation_end, step_length)
 
-  # base dir for saving
-  Prepared_layers_dir <- "Data/Preds/Prepared/Layers"
-
-  ### =========================================================================
-  ### A- Preparing data from future economic scenarios
-  ### =========================================================================
-
-  # use Zenodo API service to get URLs for file downloads
-  # Get record info
-  zenodo <- ZenodoManager$new()
-  rec <- zenodo$getRecordByDOI("10.5281/zenodo.4774914")
-  files <- rec$listFiles(pretty = TRUE)
-
-  # remove files for sensitivity analysis
-  ES_data_URLs <- files[-c(5, 6), ][["download"]]
-
-  # create dir
-  ES_dir <- "Data/Preds/Raw/Socio_economic/Employment/Employment_scenarios"
-
-  # loop over URLS, downloading and unzipping
-  for (i in ES_data_URLs) {
-    lulcc.downloadunzip(url = i, save_dir = ES_dir)
-  }
+  # A- Preparing data from future economic scenarios ####
+  get_employment_scenarios()
 
   # because the future projected economic values as expressed using codes for the
   # various Spatial aggregations we need a look up table to parse them to
@@ -52,14 +34,15 @@ simulation_predictor_prep <- function(config) {
 
   # Load in the sheet of the metadata file which details the spatial aggregations (regions)
   # use read.xlsx2 to not ommit blank columns
-  Metadat_regions <- xlsx::read.xlsx2("Data/Preds/Raw/Socio_economic/Employment/Employment_scenarios/Metadata.xlsx",
+  Metadat_regions <- xlsx::read.xlsx2(
+    file.path(config[["raw_employment_dir"]], "employment_scenarios", "Metadata.xlsx"),
     sheetName = "Region"
   )
   # remove empty row
   Metadat_regions <- Metadat_regions[-c(1), ]
 
   # replace whitespaces with NA
-  Metadat_regions <- Metadat_regions %>% mutate_all(na_if, "")
+  Metadat_regions <- Metadat_regions |> dplyr::mutate_all(dplyr::na_if, "")
 
   n <- colSums(is.na(Metadat_regions)) == nrow(Metadat_regions) # identify empty columns
   cs <- cumsum(n) + 1 # create division vector assign unique number to each group of columns
@@ -100,7 +83,7 @@ simulation_predictor_prep <- function(config) {
   names(LMR_lookup) <- c("ID", "Region_name")
 
   # remove prefix of ID number
-  LMR_lookup$ID <- str_remove_all(LMR_lookup$ID, "BE")
+  LMR_lookup$ID <- stringr::str_remove_all(LMR_lookup$ID, "BE")
 
   # remove leading zeros
   LMR_lookup$ID <- sub("^0+", "", LMR_lookup$ID)
@@ -121,7 +104,8 @@ simulation_predictor_prep <- function(config) {
   )
 
   # Load sheet of metadata linking economic division numbers to category names
-  Sector_lookup <- xlsx::read.xlsx2("Data/Preds/Raw/Socio_economic/Employment/Employment_scenarios/Metadata.xlsx",
+  Sector_lookup <- xlsx::read.xlsx2(
+    file.path(config[["raw_employment_dir"]], "employment_scenarios", "Metadata.xlsx"),
     sheetName = "Industry"
   )
 
@@ -132,29 +116,43 @@ simulation_predictor_prep <- function(config) {
   names(Sector_lookup)[2] <- "Category"
 
   # Alter division column to single values
-  Sector_lookup$max_div <- as.numeric(sapply(Sector_lookup$Division, function(x) {
-    if (grepl(x, pattern = "-") == TRUE) {
-      max_value <- as.numeric(str_split(x, "-")[[1]][2])
-    } else {
-      max_value <- x
+  Sector_lookup$max_div <- sapply(
+    Sector_lookup$Division,
+    function(x) {
+      if (grepl(x, pattern = "-") == TRUE) {
+        as.numeric(stringr::str_split(x, "-")[[1]][2])
+      } else {
+        as.numeric(x)
+      }
     }
-  }))
+  )
 
   # add column with aggregated sector name
-  Sector_lookup$Sector <- sapply(Sector_lookup$max_div, function(x) {
-    Sec_test <- sapply(Sector_divisions, function(y) {
-      dplyr::between(x, y[[1]], y[[2]])
-    })
-    Sec_name <- names(which(Sec_test == TRUE))
-  })
+  Sector_lookup$Sector <- sapply(
+    Sector_lookup$max_div,
+    function(x) {
+      Sec_test <- sapply(
+        Sector_divisions, function(y) {
+          dplyr::between(x, y[[1]], y[[2]])
+        }
+      )
+      names(which(Sec_test == TRUE))
+    }
+  )
 
 
   # get file paths of future data under all scenarios
-  Econ_data_paths <- as.list(list.files("Data/Preds/Raw/Socio_economic/Employment/Employment_scenarios", full.names = TRUE))
-  names(Econ_data_paths) <- str_remove_all(list.files("Data/Preds/Raw/Socio_economic/Employment/Employment_scenarios", full.names = FALSE), ".xlsx")
+  Econ_data_paths <- as.list(list.files(
+    file.path(config[["raw_employment_dir"]], "employment_scenarios"),
+    full.names = TRUE
+  ))
+  names(Econ_data_paths) <- stringr::str_remove_all(list.files(
+    file.path(config[["raw_employment_dir"]], "employment_scenarios"),
+    full.names = FALSE
+  ), ".xlsx")
 
   # exclude the metadata file
-  Econ_data_paths$Metadata <- NULL
+  Econ_data_paths[["Metadata"]] <- NULL
 
   # The string at the start of the file name is an abbreviation of the
   # scenario name and the regional variation
@@ -182,18 +180,37 @@ simulation_predictor_prep <- function(config) {
   # Subset to which econ scenarios are required for our scenarios
 
   # get names of required scenarios from simulation control table
-  Scenario_corr <- unique(Simulation_control$econ_scenario.string)
+  Scenario_corr <-
+    Simulation_control$econ_scenario.string |>
+    stringr::str_squish() |>
+    unique()
 
   # load shapefile of labour market regions
-  LMR_shp <- sf::st_read("Data/Preds/Raw/CH_geoms/2022_GEOM_TK/03_ANAL/Gesamtfläche_gf/K4_amre_20180101_gf/K4amre_20180101gf_ch2007Poly.shp")
+  LMR_shp <- sf::st_read(
+    file.path(
+      config[["ch_geoms_path"]],
+      "2025_GEOM_TK",
+      "03_ANAL",
+      "Gesamtfläche_gf",
+      "K4_amre20190101_gf",
+      "K4amre_20190101gf_ch2007Poly.shp"
+    )
+  )
 
   # rasterize
   LMR_shp$name <- as.factor(LMR_shp$name)
-  LMR_shp$rast_ID <- seq(1:nrow(LMR_shp))
-  LMR_rast <- rasterize(LMR_shp, Ref_grid, field = "rast_ID", fun = "last", background = NA)
+  LMR_shp$rast_ID <- seq_len(nrow(LMR_shp))
+  # Load in the grid to use use for re-projecting the CRS and extent of predictor data
+  Ref_grid <- raster::raster(config[["ref_grid_path"]])
+  LMR_rast <- raster::rasterize(
+    x = LMR_shp,
+    y = Ref_grid,
+    field = "rast_ID",
+    fun = "last"
+  )
 
   # upper loop over scenario list
-  for (i in 1:length(Scenario_corr)) {
+  for (i in seq_along(Scenario_corr)) {
     # load future dataset
     Econ_dat <- readxl::read_excel(Econ_data_paths[[Scenario_corr[i]]], sheet = "Bassins d'emploi")
 
@@ -214,17 +231,22 @@ simulation_predictor_prep <- function(config) {
     })
 
     # Calculate the average annual difference
-    Region_values <- as.data.frame(Econ_dat %>% group_by(Agg_sec, Region_name, time) %>% # grouping
-      dplyr::summarize(SumFTE = sum(EmpFTE)) %>% # sum over the economic activities
-      mutate(Avg_chg_FTE = (SumFTE - lag(SumFTE)) / step_length)) %>% # calculate avg. annual change between time points
-      select(-(SumFTE))
+    Region_values <-
+      Econ_dat |>
+      # grouping
+      dplyr::group_by(Agg_sec, Region_name, time) |>
+      # sum over the economic activities
+      dplyr::summarize(SumFTE = sum(EmpFTE)) |>
+      # calculate avg. annual change between time points
+      dplyr::mutate(Avg_chg_FTE = (SumFTE - lag(SumFTE)) / step_length) |>
+      dplyr::select(-(SumFTE))
 
     # remove incomplete rows (2020 time point)
     Region_values <- Region_values[complete.cases(Region_values), ]
 
     # add ID for LMR region to match raster values
     Region_values$ID <- sapply(Region_values$Region_name, function(x) {
-      id <- LMR_shp[LMR_shp$name == x, "rast_ID"][[1]]
+      LMR_shp[LMR_shp$name == x, "rast_ID"][[1]]
     })
 
     # split by sector
@@ -233,34 +255,49 @@ simulation_predictor_prep <- function(config) {
     # loop over sectors, pivoting data to wide and creating rasters
     Future_FTE_file_paths <- lapply(Sectoral_values, function(Sector_dat) {
       # pivot to wide
-      Sector_dat_wide <- as.data.frame(Sector_dat %>% pivot_wider(
+      Sector_dat_wide <- tidyr::pivot_wider(
+        Sector_dat,
         names_from = time,
         values_from = Avg_chg_FTE,
         names_sep = "_"
-      ))
+      )
 
       # vector column indices for timepoints
       Date_cols <- which(colnames(Sector_dat_wide) %in% paste(Time_steps[-1]))
-      names(Date_cols) <- sapply(1:(length(Time_steps) - 1), function(x) {
-        paste0(Time_steps[x], "_", Time_steps[x + 1])
-      })
+      names(Date_cols) <- sapply(
+        #-1 used to exclude '2020'
+        1:(length(Time_steps) - 1),
+        function(x) {
+          paste0(Time_steps[x], "_", Time_steps[x + 1])
+        }
+      )
 
       # vector file names
-      FTE_file_names <- paste0(
-        Prepared_layers_dir, "/Socio_economic/Employment/Avg_chg_FTE_", unique(Sector_dat_wide[, "Agg_sec"]),
-        "_", names(Date_cols), "_",
-        Scenario_corr[i], ".tif"
+      fte_chg_dir <- file.path(
+        config[["prepped_lyr_path"]], "socio_economic", "employment"
+      )
+      ensure_dir(fte_chg_dir)
+
+      FTE_file_names <- file.path(
+        fte_chg_dir,
+        paste0(
+          "Avg_chg_FTE_",
+          unique(Sector_dat_wide[, "Agg_sec"]),
+          "_", names(Date_cols), "_",
+          Scenario_corr[i], ".tif"
+        )
       )
 
       # use subs to match raster values based on ID and repeat across all columns
-      Sector_rasts <- subs(LMR_rast,
-        Sector_dat_wide,
+      Sector_rasts <- raster::subs(
+        LMR_rast,
+        as.data.frame(Sector_dat_wide),
         by = "ID",
         which = Date_cols
-      ) #-1 used to exclude '2020'
+      )
 
       # save a seperate file for each layer
-      writeRaster(Sector_rasts,
+      raster::writeRaster(Sector_rasts,
         filename = FTE_file_names,
         bylayer = TRUE,
         format = "GTiff",
@@ -272,11 +309,13 @@ simulation_predictor_prep <- function(config) {
   } # close loop over scenarios
 
   # list the files match on the scenario names
-  Future_FTE_file_paths <- list.files(paste0(Prepared_layers_dir, "/Socio_economic/Employment"), full.names = TRUE, pattern = paste(Scenario_corr, collapse = "|"))
+  Future_FTE_file_paths <- list.files(
+    file.path(config[["prepped_lyr_path"]], "socio_economic", "employment"),
+    full.names = TRUE,
+    pattern = paste(Scenario_corr, collapse = "|")
+  )
 
-  ### =========================================================================
-  ### B- Preparing mechanism of future population projections
-  ### =========================================================================
+  # B- Preparing mechanism of future population projections ####
 
   # This process does not result in the creation of spatial layers of
   # future population, rather it involves modelling the relationship between
@@ -286,35 +325,48 @@ simulation_predictor_prep <- function(config) {
   # with population values then being distributed according the correct projection
   # under the scenario being simulated.
 
-  #------------------------------------------------------------------------------
-  # B.1- Prepare historic cantonal population data
-  #------------------------------------------------------------------------------
+  # B.1- Prepare historic cantonal population data ####
 
   # reload historic muni pop data produced in historic predictor prep
-  raw_mun_popdata <- readRDS("Data/Preds/Raw/Socio_economic/Population/raw_muni_pop_historic.rds")
+  raw_mun_popdata <- readRDS(file.path(
+    config[["raw_pop_dir"]], "raw_muni_pop_historic.rds"
+  ))
 
   # load kanton shapefile
-  Canton_shp <- shapefile("Data/Preds/Raw/CH_geoms/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.shp")
+  Canton_shp <- raster::shapefile(
+    file.path(config[["ch_geoms_path"]], "swissBOUNDARIES3D_1_5_TLM_KANTONSGEBIET.shp")
+  )
 
   # read in population data from html and convert to DF
-  px_data <- data.frame(read.px("https://dam-api.bfs.admin.ch/hub/api/dam/assets/23164063/master"))
+  px_data <- data.frame(pxR::read.px(
+    "https://dam-api.bfs.admin.ch/hub/api/dam/assets/23164063/master"
+  ))
 
   # subset px_data to historic cantonal population data
-  raw_can_popdata <- px_data[px_data$Demografische.Komponente == "Bestand am 31. Dezember" &
-    px_data$Staatsangehörigkeit..Kategorie. == "Staatsangehörigkeit (Kategorie) - Total" &
-    px_data$Geschlecht == "Geschlecht - Total", c(4:6)]
+  raw_can_popdata <- px_data[
+    px_data$Demografische.Komponente == "Bestand am 31. Dezember" &
+      px_data$Staatsangehörigkeit..Kategorie. == "Staatsangehörigkeit (Kategorie) - Total" &
+      px_data$Geschlecht == "Geschlecht - Total", c(4:6)
+  ]
   names(raw_can_popdata) <- c("Name_Canton", "Year", "Population")
   raw_can_popdata$Name_Canton <- as.character(raw_can_popdata$Name_Canton)
 
   # remove municipalities records by inverse-matching on the numeric contained in their name
-  raw_can_popdata <- raw_can_popdata[grep(".*?([0-9]+).*", raw_can_popdata$Name_Canton, invert = TRUE), ]
+  raw_can_popdata <- raw_can_popdata[
+    grep(".*?([0-9]+).*", raw_can_popdata$Name_Canton, invert = TRUE),
+  ]
 
   # all cantons
-  raw_can_popdata <- raw_can_popdata[grep(">>", raw_can_popdata$Name_Canton, invert = TRUE), ]
-  raw_can_popdata <- raw_can_popdata[grep(paste0(unique(Canton_shp@data[["NAME"]]), collapse = "|"), raw_can_popdata$Name_Canton), ]
+  raw_can_popdata <- raw_can_popdata[
+    grep(">>", raw_can_popdata$Name_Canton, invert = TRUE),
+  ]
+  raw_can_popdata <- raw_can_popdata[
+    grep(paste0(unique(Canton_shp@data[["NAME"]]), collapse = "|"), raw_can_popdata$Name_Canton),
+  ]
 
   # pivot to wide
-  raw_can_popdata <- raw_can_popdata %>% pivot_wider(
+  raw_can_popdata <- tidyr::pivot_wider(
+    raw_can_popdata,
     names_from = "Year",
     values_from = "Population"
   )
@@ -332,27 +384,40 @@ simulation_predictor_prep <- function(config) {
   # get the indices of columns that represent the years
   date_cols <- na.omit(as.numeric(gsub(".*?([0-9]+).*", "\\1", colnames(raw_can_popdata))))
 
-  #-------------------------------------------------------------------------------
-  # B.2- Calculate % cantonal population per municipality
-  #-------------------------------------------------------------------------------
+  # B.2- Calculate % cantonal population per municipality ####
 
   pop_percentages <- do.call(cbind, sapply(date_cols, function(year) {
     # loop over canton numbers
-    muni_percs <- rbindlist(sapply(unique(raw_can_popdata$KANTONSNUM), function(canton_num) {
-      # subset cantonal data by year
-      can_data <- raw_can_popdata[raw_can_popdata$KANTONSNUM == canton_num, c(paste(year), "KANTONSNUM")]
+    muni_percs <- data.table::rbindlist(
+      sapply(
+        unique(raw_can_popdata$KANTONSNUM),
+        function(canton_num) {
+          # subset cantonal data by year
+          can_data <- raw_can_popdata[
+            raw_can_popdata$KANTONSNUM == canton_num, c(paste(year), "KANTONSNUM")
+          ]
 
-      # subset the municipality data by kanton name and year
-      muni_data <- raw_mun_popdata[raw_mun_popdata$KANTONSNUM == can_data$KANTONSNUM, c(paste(year), "KANTONSNUM")]
-      muni_data$KANTONSNUM <- NULL
+          # subset the municipality data by kanton name and year
+          muni_data <- raw_mun_popdata[
+            raw_mun_popdata$KANTONSNUM == can_data$KANTONSNUM, c(paste(year), "KANTONSNUM")
+          ]
+          muni_data$KANTONSNUM <- NULL
 
-      # loop over municipalities
-      muni_data[[paste0("Perc_", year)]] <- as.numeric(sapply(muni_data[[paste(year)]], function(year_value) {
-        perc_value <- year_value / can_data[, paste(year)] * 100
-      }, simplify = TRUE)) # close loop over municipalities
+          # loop over municipalities
+          muni_data[[paste0("Perc_", year)]] <- as.numeric(
+            sapply(muni_data[[paste(year)]],
+              function(year_value) {
+                year_value / can_data[, paste(year)] * 100
+              },
+              simplify = TRUE
+            )
+          ) # close loop over municipalities
 
-      return(muni_data)
-    }, simplify = FALSE)) # close loop over kantons
+          return(muni_data)
+        },
+        simplify = FALSE
+      )
+    ) # close loop over kantons
 
     return(muni_percs)
   }, simplify = FALSE)) # close loop over years
@@ -361,29 +426,35 @@ simulation_predictor_prep <- function(config) {
   pop_percentages$BFS_NUM <- raw_mun_popdata$BFS_NUM
   pop_percentages$KANTONSNUM <- raw_mun_popdata$KANTONSNUM
 
-  #------------------------------------------------------------------------------
-  # B.3- Calculate % urban area per municipality
-  #------------------------------------------------------------------------------
+  # B.3- Calculate % urban area per municipality ####
 
   # Load the most recent LULC map
-  current_LULC <- raster("Data/Historic_LULC/LULC_2018_agg.gri")
+  current_LULC <- raster::raster(file.path(
+    config[["historic_lulc_basepath"]], "LULC_2018_agg.grd"
+  ))
 
   # subset to just urban cell
   Urban_rast <- current_LULC == 10
 
   # Zonal stats to get urban area per kanton
-  Canton_urban_areas <- raster::extract(Urban_rast, Canton_shp, fun = sum, na.rm = TRUE, df = TRUE)
+  Canton_urban_areas <- raster::extract(
+    Urban_rast, Canton_shp,
+    fun = sum, na.rm = TRUE, df = TRUE
+  )
 
   # append Canton ID
   Canton_urban_areas$Canton_num <- Canton_shp$KANTONSNUM
 
   # combine areas for cantons with multiple polygons
-  Canton_urban_areas <- Canton_urban_areas %>%
-    dplyr::group_by(Canton_num) %>%
-    dplyr::summarise(across(c(layer), sum))
+  Canton_urban_areas <-
+    Canton_urban_areas |>
+    dplyr::group_by(Canton_num) |>
+    dplyr::summarise(layer = sum(layer))
 
   # load the municipality shape file
-  Muni_shp <- shapefile("Data/Preds/Raw/CH_geoms/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.shp")
+  Muni_shp <- raster::shapefile(
+    file.path(config[["ch_geoms_path"]], "swissBOUNDARIES3D_1_5_TLM_HOHEITSGEBIET.shp")
+  )
 
   # filter out non-swiss municipalities
   Muni_shp <- Muni_shp[Muni_shp@data$ICC == "CH" & Muni_shp@data$OBJEKTART == "Gemeindegebiet", ]
@@ -405,15 +476,14 @@ simulation_predictor_prep <- function(config) {
     # subset municipalities to this canton number
     munis_indices <- which(Muni_urban_areas$Canton_num == i)
 
-    # loop over municipalities in the Canton and calculate their urban areas as a % of the Canton's total
+    # loop over municipalities in the Canton and calculate their urban areas as a % of
+    # the Canton's total
     for (muni in munis_indices) {
       Muni_urban_areas$Perc_urban[muni] <- (Muni_urban_areas[muni, "layer"] / Kan_urban_area) * 100
     } # close inner loop
   } # close outer loop
 
-  #------------------------------------------------------------------------------
-  # B.4- Model relationship between cantonal % population and % urban area
-  #------------------------------------------------------------------------------
+  # B.4- Model relationship between cantonal % population and % urban area ####
 
   # subset pop percentages to 2018
   Muni_percs <- pop_percentages[, c("BFS_NUM", "KANTONSNUM", "Perc_2018")]
@@ -437,17 +507,24 @@ simulation_predictor_prep <- function(config) {
   names(Canton_models) <- unique(Muni_percs$KANTONSNUM)
 
   # save models
-  saveRDS(Canton_models, "Data/Preds/Tools/Dynamic_pop_models.rds")
+  saveRDS(
+    Canton_models,
+    file.path(config[["preds_tools_dir"]], "dynamic_pop_models.rds")
+  )
 
-  ### B.5- Prepare Cantonal projections of population development
+  # B.5- Prepare Cantonal projections of population development ####
 
-  raw_data_path <- "Data/Preds/Raw/Socio_economic/Population/raw_pop_projections.xlsx"
+  raw_data_path <- file.path(config[["raw_pop_dir"]], "raw_pop_projections.xlsx")
 
   # Download the required file
-  download.file(url = "https://dam-api.bfs.admin.ch/hub/api/dam/assets/12107013/master", destfile = raw_data_path, mode = "wb")
+  download.file(
+    url = "https://dam-api.bfs.admin.ch/hub/api/dam/assets/12107013/master",
+    destfile = raw_data_path,
+    mode = "wb"
+  )
 
   # Vector existing sheet names
-  Sheet_names <- getSheetNames(raw_data_path)
+  Sheet_names <- openxlsx::getSheetNames(raw_data_path)
 
   # name the sheet names with the english names
   names(Sheet_names) <- c("Ref", "High", "Low")
@@ -459,12 +536,14 @@ simulation_predictor_prep <- function(config) {
   # the Canton names are in German they cannot be matched with the shapefile
   # to get the numbers (e.g Wallis - Valais etc.) instead load a different FSO
   # table to get the numbers
-  Canton_lookup <- openxlsx::read.xlsx("https://www.atlas.bfs.admin.ch/core/projects/13.40/xshared/xlsx/134_131.xlsx", rows = c(4:31), cols = c(2, 3))
-  Canton_lookup$Canton_num <- seq(1:nrow(Canton_lookup))
+  Canton_lookup <- openxlsx::read.xlsx(
+    "https://www.atlas.bfs.admin.ch/core/projects/13.40/xshared/xlsx/134_131.xlsx",
+    rows = c(4:31), cols = c(2, 3)
+  )
+  Canton_lookup$Canton_num <- seq_len(nrow(Canton_lookup))
 
   # loop over time steps adding sheets and adding the predictors to them
-  # i=1
-  for (i in 1:length(Sheet_names)) {
+  for (i in seq_along(Sheet_names)) {
     org_sheet_name <- Sheet_names[i]
     new_sheet_name <- names(Sheet_names)[i]
 
@@ -483,8 +562,9 @@ simulation_predictor_prep <- function(config) {
     })
 
     # replace values of non-matching names
-    tempdf[setdiff(Canton_lookup$Canton_num, tempdf$Canton_num), "Canton_num"] <- Canton_lookup$Canton_num[setdiff(Canton_lookup$Canton_num, tempdf$Canton_num)]
-    rownames(tempdf) <- 1:nrow(tempdf) # correct row names
+    tempdf[setdiff(Canton_lookup$Canton_num, tempdf$Canton_num), "Canton_num"] <-
+      Canton_lookup$Canton_num[setdiff(Canton_lookup$Canton_num, tempdf$Canton_num)]
+    rownames(tempdf) <- seq_len(nrow(tempdf)) # correct row names
 
     # check if any time-points for scenarios are missing
     Missing_years <- Time_steps[!paste(Time_steps) %in% colnames(tempdf)]
@@ -495,7 +575,7 @@ simulation_predictor_prep <- function(config) {
       tempdf[paste(Missing_years)] <- NA
 
       # loop over rows (cantons)
-      for (r in 1:nrow(tempdf)) {
+      for (r in seq_len(nrow(tempdf))) {
         row_dat <- data.frame(t(tempdf[r, year_cols]))
         names(row_dat) <- "Pred_pop"
         row_dat$year <- as.numeric(year_cols)
@@ -509,60 +589,68 @@ simulation_predictor_prep <- function(config) {
     } # close if statement
 
     # create sheet in workbook, the try() is necessary in case sheets already exist
-    try(addWorksheet(pop_proj_wb, sheetName = new_sheet_name))
+    try(openxlsx::addWorksheet(pop_proj_wb, sheetName = new_sheet_name))
 
     # write the data to the sheet
-    writeData(pop_proj_wb, sheet = new_sheet_name, x = tempdf)
+    openxlsx::writeData(pop_proj_wb, sheet = new_sheet_name, x = tempdf)
   }
   # save workbook
-  openxlsx::saveWorkbook(pop_proj_wb, "Data/Preds/Tools/Population_projections.xlsx", overwrite = TRUE)
+  openxlsx::saveWorkbook(
+    pop_proj_wb,
+    file.path(config[["preds_tools_dir"]], "population_projections.xlsx"),
+    overwrite = TRUE
+  )
 
-  ### =========================================================================
-  ### C- Preparing future climatic data
-  ### =========================================================================
+  # C- Preparing future climatic data ####
 
   # The climatic data for the future time points has been download in the script:
   # "Calibration_predictor_prep" it's native resolution is 25m so it needs to be
   # rescaled to 100m
+  # FIXME these files aren't actually downloaded in calibration_predictor_prep()
 
   # list the files of the raw climatic variables
-  Clim_var_paths <- list.files("Data/Preds/Raw/Climatic/Future", recursive = TRUE, full.names = TRUE)
+  Clim_var_paths <- list.files(
+    file.path(config[["predictors_raw_dir"]], "Climatic", "Future"),
+    recursive = TRUE,
+    full.names = TRUE,
+    pattern = ".tif$"
+  )
 
   # loop over then re-scaled and saving layers
-  Prep_clim_vars_paths <- lapply(Clim_var_paths, function(x) {
-    # alter file base name to match covariate ID from calibration period
-    file_name <- str_replace_all(basename(x), c(
-      Tave = "Average_Avg_ann_temp",
-      Prec = "Average_Avg_precip",
-      "0_degrees" = "Average_Sum_gdays_0deg",
-      "3_degrees" = "Average_Sum_gdays_3deg",
-      "5_degrees" = "Average_Sum_gdays_5deg"
-    ))
+  Prep_clim_vars_paths <- lapply(
+    Clim_var_paths,
+    function(x) {
+      # alter file base name to match covariate ID from calibration period
+      file_name <- stringr::str_replace_all(
+        basename(x),
+        c(
+          Tave = "Average_Avg_ann_temp",
+          Prec = "Average_Avg_precip",
+          "0_degrees" = "Average_Sum_gdays_0deg",
+          "3_degrees" = "Average_Sum_gdays_3deg",
+          "5_degrees" = "Average_Sum_gdays_5deg"
+        )
+      )
 
-    # vector save path
-    layer_path <- paste0(Prepared_layers_dir, "/Climatic/", file_name)
+      # vector save path
+      layer_path <- file.path(config[["prepped_lyr_path"]], "Climatic", file_name)
 
-    # load data
-    Raw_dat <- raster(x)
+      # aggregate from 25m to 100m resolution, saving to prepped layers
+      terra::rast(x) |>
+        terra::aggregate(fact = 4, fun = "mean") |>
+        terra::writeRaster(layer_path, overwrite = TRUE)
 
-    # aggregate
-    Agg_dat <- aggregate(Raw_dat, fact = 4, fun = mean)
+      return(layer_path)
+    }
+  )
 
-    # save
-    writeRaster(Agg_dat, layer_path, overwrite = TRUE)
-
-    return(layer_path)
-  })
-
-  ### =========================================================================
-  ### D- Prepare a table of info for future predictors to be added to predictor lookup table
-  ### =========================================================================
+  # D- Prepare a table of info for future predictors to be added to predictor lookup table ####
 
   # bind together vectors of file paths for future predictors that have been created
   Future_pred_paths <- unlist(c(Future_FTE_file_paths, Prep_clim_vars_paths))
 
   # load the predictor table sheet for the most recent calibration period
-  Predictor_table <- read.xlsx(pred_table_path, sheetName = "2009_2018")
+  Predictor_table <- xlsx::read.xlsx(config[["pred_table_path"]], sheetName = "2009_2018")
 
   # load the sheet of the scenario table for RCP designations
   Scenario_RCPs <- unique(Simulation_control$climate_scenario.string)
@@ -572,116 +660,124 @@ simulation_predictor_prep <- function(config) {
   Static_preds$Scenario_variant <- "All"
 
   # create DF for capturing info
-  Dynamic_preds <- data.frame(matrix(ncol = length(colnames(Static_preds)), nrow = length(Future_pred_paths)))
+  Dynamic_preds <- data.frame(
+    matrix(
+      ncol = length(colnames(Static_preds)),
+      nrow = length(Future_pred_paths)
+    )
+  )
   colnames(Dynamic_preds) <- colnames(Static_preds)
 
   # fill in column details
   Dynamic_preds[, "Prepared_data_path"] <- Future_pred_paths
-  Dynamic_preds$Predictor_category <- sapply(Dynamic_preds$Prepared_data_path, function(x) str_match(x, paste(c("Climatic", "Socio_economic"), collapse = "|"))) # instead grepl on the file path
+  Dynamic_preds$Predictor_category <- stringr::str_match(
+    tolower(Dynamic_preds$Prepared_data_path), "climatic|socio_economic"
+  )
   Dynamic_preds$Static_or_dynamic <- "Dynamic"
   Dynamic_preds$CA_category <- "Suitability"
   Dynamic_preds$Prepared <- "Y"
 
+  # the original code matched predictor_category against "Climatic" and
+  # "Socio_economic", forcing lowercase here.
+  Dynamic_preds$Scenario_variant <- dplyr::case_match(
+    Dynamic_preds$Predictor_category,
+    "climatic" ~ stringr::str_match(
+      Dynamic_preds$Prepared_data_path,
+      paste(Scenario_RCPs, collapse = "|")
+    ),
+    "socio_economic" ~ stringr::str_match(
+      Dynamic_preds$Prepared_data_path,
+      paste(Scenario_corr, collapse = "|")
+    )
+  )
 
-  Dynamic_preds$Scenario_variant <- sapply(1:nrow(Dynamic_preds), function(i) {
-    # use if/else statement based on predictor category
-    if (Dynamic_preds[i, "Predictor_category"] == "Climatic") {
-      # match on the RCP string in the file path and return the scenario name
-      # becuase multiple scenarios use the same RCP this will be a vector
-      Scenario_name <- str_match(Dynamic_preds[i, "Prepared_data_path"], paste(c(Scenario_RCPs), collapse = "|"))
-    } else if (Dynamic_preds[i, "Predictor_category"] == "Socio_economic") {
-      # match on the scenario name
-      Scenario_name <- str_match(Dynamic_preds[i, "Prepared_data_path"], paste(c(Scenario_corr), collapse = "|"))
-    }
+  Dynamic_preds$Original_resolution <- dplyr::case_match(
+    Dynamic_preds$Predictor_category,
+    "climatic" ~ "25m",
+    "socio_economic" ~ "Labour market region",
+  )
 
-    return(Scenario_name)
-  })
+  Dynamic_preds$URL <- dplyr::case_match(
+    Dynamic_preds$Predictor_category,
+    "climatic" ~ "https://zenodo.org/record/7590103#.Y-KKIpDYqUk",
+    "socio_economic" ~ "https://zenodo.org/record/4774914#.Y-KKQJDYqUn",
+  )
 
-  Dynamic_preds$Original_resolution <- sapply(1:nrow(Dynamic_preds), function(i) {
-    # use if/else statement based on predictor category
-    if (Dynamic_preds[i, "Predictor_category"] == "Climatic") {
-      res <- "25m"
-    } else if (Dynamic_preds[i, "Predictor_category"] == "Socio_economic") {
-      res <- "Labour market region"
-    }
-  })
+  Dynamic_preds$Data_citation <- dplyr::case_match(
+    Dynamic_preds$Predictor_category,
+    "climatic" ~ "Broennimann (2023)",
+    "socio_economic" ~ "Cretegny and Muller (2020)",
+  )
 
-  Dynamic_preds$URL <- sapply(1:nrow(Dynamic_preds), function(i) {
-    if (Dynamic_preds[i, "Predictor_category"] == "Climatic") {
-      "https://zenodo.org/record/7590103#.Y-KKIpDYqUk"
-    } else if (Dynamic_preds[i, "Predictor_category"] == "Socio_economic") {
-      "https://zenodo.org/record/4774914#.Y-KKQJDYqUn"
-    }
-  })
+  Dynamic_preds$Covariate_ID <- stringr::str_extract(
+    Dynamic_preds$Prepared_data_path,
+    stringr::regex(
+      paste(Predictor_table$Covariate_ID, collapse = "|"),
+      ignore_case = TRUE
+    )
+  )
 
-  Dynamic_preds$Data_citation <- sapply(1:nrow(Dynamic_preds), function(i) {
-    if (Dynamic_preds[i, "Predictor_category"] == "Climatic") {
-      "Broennimann (2023)"
-    } else if (Dynamic_preds[i, "Predictor_category"] == "Socio_economic") {
-      "Cretegny and Muller (2020)"
-    }
-  })
-
-
-  # match covariate IDs found in the predictor table to the file paths
-  Dynamic_preds$Covariate_ID <- sapply(Dynamic_preds$Prepared_data_path, function(x) {
-    var_name <- na.omit(c(str_match(x, regex(Predictor_table$Covariate_ID, ignore_case = T))))
-  })
-
-  Dynamic_preds$period <- sapply(1:nrow(Dynamic_preds), function(i) {
+  Dynamic_preds$period <- sapply(seq_len(nrow(Dynamic_preds)), function(i) {
     # seperate file path
     dat_path <- Dynamic_preds[i, "Prepared_data_path"]
 
     # vector largest numeric value contained in file path
-    largest_year <- max(as.numeric(unlist(regmatches(dat_path, gregexpr("[[:digit:]]+", dat_path)))))
+    largest_year <- max(as.numeric(unlist(
+      regmatches(
+        dat_path,
+        gregexpr("[[:digit:]]+", dat_path)
+      )
+    )))
 
     # use if/else statement based on predictor category
-    if (Dynamic_preds[i, "Predictor_category"] == "Climatic") {
+    if (Dynamic_preds[i, "Predictor_category"] == "climatic") {
       # socio_economic variables are for the period after that contained in the path
       Period <- paste0(largest_year, "_", (largest_year + step_length))
-    } else if (Dynamic_preds[i, "Predictor_category"] == "Socio_economic") {
+    } else if (Dynamic_preds[i, "Predictor_category"] == "socio_economic") {
       # socio_economic variables are for the period express in the path
       Period <- paste0((largest_year - step_length), "_", largest_year)
     }
     return(Period)
   })
 
-  # This is not 100% accurate because the climatic layers actual
-  # using only the four previous years instead of 5
-  # but for the table it is not important
+  # This is not 100% accurate because the climatic layers actual using only the four
+  # previous years instead of 5 but for the table it is not important
   Dynamic_preds$Temporal_coverage <- Dynamic_preds$period
 
-  ### =========================================================================
-  ### E- Add static/dynamic variable data to sheets  for future time points
-  ### =========================================================================
+  # E- Add static/dynamic variable data to sheets for future time points ####
 
   # loop over time steps binding static and dynamic preds
-  Combined_vars_for_time_steps <- sapply(Time_steps, function(sim_year) {
-    sim_period <- paste0(sim_year, "_", sim_year + step_length)
+  Combined_vars_for_time_steps <- sapply(
+    Time_steps, function(sim_year) {
+      sim_period <- paste0(sim_year, "_", sim_year + step_length)
 
-    # subset dynamic variables to the current time_period
-    # Dynamic_preds <- Dynamic_preds[sapply(Dynamic_preds$period, function(data_period){
-    #   dates <- as.numeric(str_split(data_period, "_")[[1]])
-    #   between(sim_year, dates[1], dates[2])
-    # }),]
-    Dynamic_preds <- Dynamic_preds[Dynamic_preds$period == sim_period, ]
+      # subset dynamic variables to the current time_period
+      Dynamic_preds <- Dynamic_preds[Dynamic_preds$period == sim_period, ]
 
-    Combined_vars <- rbind(Static_preds, Dynamic_preds)
-    Combined_vars$period <- sim_period
-    return(Combined_vars)
-  }, simplify = FALSE)
+      Combined_vars <- rbind(Static_preds, Dynamic_preds)
+      Combined_vars$period <- sim_period
+      return(Combined_vars)
+    },
+    simplify = FALSE
+  )
   names(Combined_vars_for_time_steps) <- Time_steps
 
   # load predictor_table as workbook to add sheets
-  pred_workbook <- openxlsx::loadWorkbook(file = pred_table_path)
+  pred_workbook <- openxlsx::loadWorkbook(file = config[["pred_table_path"]])
 
   # loop over time steps adding sheets and adding the predictors to them
   for (i in Time_steps) {
     # the try() is necessary in case sheets already exist
-    try(addWorksheet(pred_workbook, sheetName = i))
-    writeData(pred_workbook, sheet = paste(i), x = Combined_vars_for_time_steps[[paste(i)]])
+    try(openxlsx::addWorksheet(pred_workbook, sheetName = i))
+    # FIXME this is dangerous, what if there's already data, but the new data has fewer
+    # nrow/ncol? it won't overwrite previously populated cells
+    openxlsx::writeData(
+      pred_workbook,
+      sheet = paste(i),
+      x = Combined_vars_for_time_steps[[paste(i)]]
+    )
   }
 
   # save workbook
-  openxlsx::saveWorkbook(pred_workbook, pred_table_path, overwrite = TRUE)
+  openxlsx::saveWorkbook(pred_workbook, config[["pred_table_path"]], overwrite = TRUE)
 }

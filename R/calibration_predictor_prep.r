@@ -97,10 +97,10 @@ calibration_predictor_prep <- function(
   ### C- Predictors from raw data
   ### =========================================================================
 
-  # The static predictors with a raw data raw are those already prepared in ValPar.CH
-  # at 25m resolution because they already use a grid of the same extent and CRS
-  # processing is just aggregating to 100m. However the dynamic climatic predictors need
-  # to be aggregated from several layers.
+  # The static predictors with raw data are those already prepared in ValPar.CH at 25m
+  # resolution because they already use a grid of the same extent and CRS processing is
+  # just aggregating to 100m. However the dynamic climatic predictors need to be
+  # aggregated from several layers.
 
   # seperate the preds that have a Raw path
   Preds_raw <- Preds_to_prepare[!is.na(Preds_to_prepare$Raw_data_path), ]

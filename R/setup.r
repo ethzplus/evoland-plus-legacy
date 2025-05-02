@@ -99,6 +99,7 @@ get_config <- function(
     predictors_raw_dir = predictors_raw_dir,
     ch_geoms_path = file.path(predictors_raw_dir, "ch_geoms"),
     raw_pop_dir = file.path(predictors_raw_dir, "socio_economic", "population"),
+    raw_employment_dir = file.path(predictors_raw_dir, "socio_economic", "employment"),
     preds_tools_dir = preds_tools_dir,
     prepped_lyr_path = file.path(predictors_prepped_dir, "layers"),
     prepped_fte_dir = file.path(predictors_prepped_dir, "socio_economic", "employment"),
