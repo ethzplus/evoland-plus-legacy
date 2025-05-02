@@ -16,6 +16,7 @@ fetch_zenodo_predictors <- function(
   # structure anyways, so let's stick with this.
   # WONTFIX no2 the zip file is corrupted on zenodo, so you need to locally fix it using
   # zip -FF infile.zip --out outfile.zip
+  # FIXME in #18 by reuploading
 
   tmpfile <- tempfile()
   curl::curl_download(
@@ -35,9 +36,10 @@ fetch_zenodo_predictors <- function(
     exdir = target_dir
   )
 
+  # move files into place
   file.rename(
-    file.path(target_dir, raw_files),
-    file.path(
+    from = file.path(target_dir, raw_files),
+    to = file.path(
       target_dir,
       stringr::str_remove(raw_files, "LULCC_CH_dat/Data/Raw/")
     )
