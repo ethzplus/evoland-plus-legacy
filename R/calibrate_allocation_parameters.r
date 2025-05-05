@@ -65,104 +65,106 @@ calibrate_allocation_parameters <- function(config = get_config()) {
       )
     )
 
-    # TODO move to purrr
     # Loop over transitions
-    results <- foreach::foreach(
-      i = seq_len(nrow(transitions)),
-      .combine = rbind,
-      .packages = c("raster", "SDMTools", "igraph")
-    ) %dopar% {
-      # Identify cells in the rasters according to the 'From' and 'To' values
-      r1 <- raster::Which(yr1 == transitions[i, c("From.")])
-      r2 <- raster::Which(yr2 == transitions[i, c("To.")])
-      Final_class_in_yr1 <- raster::Which(yr1 == transitions[i, c("To.")])
+    results <- furrr::future_map(
+      seq_len(nrow(transitions)),
+      function(i) {
+        # Identify cells in the rasters according to the 'From' and 'To' values
+        r1 <- raster::Which(yr1 == transitions[i, c("From.")])
+        r2 <- raster::Which(yr2 == transitions[i, c("To.")])
+        Final_class_in_yr1 <- raster::Which(yr1 == transitions[i, c("To.")])
 
-      # multiply rasters to identify transition cells
-      r <- r1 * r2
+        # multiply rasters to identify transition cells
+        r <- r1 * r2
 
-      # identify patches of the final land use class in the yr1 raster
-      Final_yr1_patches <- raster::clump(Final_class_in_yr1, directions = 8)
-      # convert values (Patch IDs) above 0 to 1 (i.e. binary in patch (1) outside patch (0))
-      Final_yr1_patches[Final_yr1_patches > 0] <- 1
-      Final_yr1_patches[is.na(Final_yr1_patches[])] <- 0
+        # identify patches of the final land use class in the yr1 raster
+        Final_yr1_patches <- raster::clump(Final_class_in_yr1, directions = 8)
+        # convert values (Patch IDs) above 0 to 1 (i.e. binary in patch (1) outside patch (0))
+        Final_yr1_patches[Final_yr1_patches > 0] <- 1
+        Final_yr1_patches[is.na(Final_yr1_patches[])] <- 0
 
-      # identify patches of the final land use class in the yr2 raster
-      Final_yr2_patches <- raster::clump(r2, directions = 8)
-      # convert values (Patch IDs) above 0 to 2 (i.e. binary in patch (10) outside patch (0))
-      Final_yr2_patches[Final_yr2_patches > 0] <- 10
-      Final_yr2_patches[is.na(Final_yr2_patches[])] <- 0
+        # identify patches of the final land use class in the yr2 raster
+        Final_yr2_patches <- raster::clump(r2, directions = 8)
+        # convert values (Patch IDs) above 0 to 2 (i.e. binary in patch (10) outside patch (0))
+        Final_yr2_patches[Final_yr2_patches > 0] <- 10
+        Final_yr2_patches[is.na(Final_yr2_patches[])] <- 0
 
-      # Add rasters together so that:
-      # 0= not in patch in either year
-      # 1 = in patch in year 1
-      # 10 = in patch in year 2 only (i.e. new patch)
-      # 11 = in patch in both years
-      yr1_yr2_patches <- Final_yr1_patches + Final_yr2_patches
+        # Add rasters together so that:
+        # 0= not in patch in either year
+        # 1 = in patch in year 1
+        # 10 = in patch in year 2 only (i.e. new patch)
+        # 11 = in patch in both years
+        yr1_yr2_patches <- Final_yr1_patches + Final_yr2_patches
 
-      # Multiply this raster by the raster of transition cells to select only
-      # the transitoon cells in year 2 patches
-      Trans_cells_yr_patches <- r * yr1_yr2_patches
+        # Multiply this raster by the raster of transition cells to select only
+        # the transitoon cells in year 2 patches
+        Trans_cells_yr_patches <- r * yr1_yr2_patches
 
-      # test to see which 10 valued cells are adjacent to patch cells in yr1
-      # i.e. they represent expansion and not new patches.
+        # test to see which 10 valued cells are adjacent to patch cells in yr1
+        # i.e. they represent expansion and not new patches.
 
-      # create a new raster to store results in
-      expansion_or_new <- Trans_cells_yr_patches
+        # create a new raster to store results in
+        expansion_or_new <- Trans_cells_yr_patches
 
-      # Get cell numbers for those in patches in yr2 only
-      patchcells <- which(raster::values(Trans_cells_yr_patches) == 10)
+        # Get cell numbers for those in patches in yr2 only
+        patchcells <- which(raster::values(Trans_cells_yr_patches) == 10)
 
-      # loop over cells in patchs
-      for (cell in patchcells) {
-        # get the cell numbers of adjacent cells
-        ncells <- raster::adjacent(
-          Trans_cells_yr_patches,
-          cell = cell, direction = 8, include = FALSE, pairs = FALSE
-        )
+        # loop over cells in patchs
+        for (cell in patchcells) {
+          # get the cell numbers of adjacent cells
+          ncells <- raster::adjacent(
+            Trans_cells_yr_patches,
+            cell = cell, direction = 8, include = FALSE, pairs = FALSE
+          )
 
-        # sum up the values in the adjacent cells in the year 1 patches,
-        # a value of >=1 indicates that the new patch cells are directly adjacent to
-        # old patch cells and hence represent expansion
-        # a value of <1 indicates no adjacent old patch cells and hence new patch
-        Y_N <- if (sum(Final_yr1_patches[ncells], na.rm = TRUE) >= 1) {
-          10
-        } else {
-          5
+          # sum up the values in the adjacent cells in the year 1 patches,
+          # a value of >=1 indicates that the new patch cells are directly adjacent to
+          # old patch cells and hence represent expansion
+          # a value of <1 indicates no adjacent old patch cells and hence new patch
+          Y_N <- if (sum(Final_yr1_patches[ncells], na.rm = TRUE) >= 1) {
+            10
+          } else {
+            5
+          }
+
+          expansion_or_new[cell] <- Y_N
         }
 
-        expansion_or_new[cell] <- Y_N
+        # calculate the proportions of transition cells
+        # that exist in new patches vs. expansion
+        perc_expander <- (
+          raster::freq(expansion_or_new, value = 10) /
+            raster::freq(r, value = 1) * 100
+        )
+        perc_patcher <- (
+          raster::freq(expansion_or_new, value = 5) /
+            raster::freq(r, value = 1) * 100
+        )
+
+        # Calculate class statistics for patchs in rasters
+        cl.data <- SDMTools::ClassStat(r, bkgd = 0, cellsize = raster::res(r)[1])
+
+        # Mean patch area
+        mpa <- cl.data$mean.patch.area / 10000
+
+        # Standard Deviation patch area
+        sda <- cl.data$sd.patch.area / 10000
+
+        # Patch Isometry
+        iso <- cl.data$aggregation.index / 70
+
+        # Combine results
+        result <- c(
+          transitions[i, 1],
+          transitions[i, 2],
+          mpa, sda, iso, perc_expander, perc_patcher
+        )
+        return(result)
       }
-
-      # calculate the proportions of transition cells
-      # that exist in new patches vs. expansion
-      perc_expander <- (
-        raster::freq(expansion_or_new, value = 10) /
-          raster::freq(r, value = 1) * 100
-      )
-      perc_patcher <- (
-        raster::freq(expansion_or_new, value = 5) /
-          raster::freq(r, value = 1) * 100
-      )
-
-      # Calculate class statistics for patchs in rasters
-      cl.data <- SDMTools::ClassStat(r, bkgd = 0, cellsize = raster::res(r)[1])
-
-      # Mean patch area
-      mpa <- cl.data$mean.patch.area / 10000
-
-      # Standard Deviation patch area
-      sda <- cl.data$sd.patch.area / 10000
-
-      # Patch Isometry
-      iso <- cl.data$aggregation.index / 70
-
-      # Combine results
-      result <- c(transitions[i, 1], transitions[i, 2], mpa, sda, iso, perc_expander, perc_patcher)
-      return(result)
-    }
+    )
 
     # convert to DF
-    results <- as.data.frame(results)
+    results <- dplyr::bind_rows(results)
 
     # better to save seperate tables for the patch related parameters vs.
     # the % expansion params to eliminate the need to seperate when loading into Dinamica
