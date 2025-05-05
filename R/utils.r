@@ -1,4 +1,4 @@
-#' Utility functions for lulccfunspkg
+#' Utility functions for evoland
 #'
 #' Sundry functions that are often used
 #'

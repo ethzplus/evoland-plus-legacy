@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(lulccfunspkg)
+library(evoland)
 
-test_check("lulccfunspkg")
+test_check("evoland")

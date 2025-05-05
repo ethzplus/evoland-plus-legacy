@@ -56,9 +56,9 @@ run_dinamica_sims <- function() {
     # Win_logdir <- paste0(getwd(), "/", Logdir)
 
     print("Starting to run model with Dinamica EGO")
-    lulccfunspkg::check_dinamica()
+    check_dinamica()
     system2(
-      command = lulccfunspkg::get_dinamica_path(),
+      command = get_dinamica_path(),
       args = c("-disable-parallel-steps -log-level 7", Temp_model_path)
       # env = c(
       #   DINAMICA_EGO_7_LOG_PATH = Win_logdir

@@ -3,7 +3,7 @@
 \name{util}
 \alias{util}
 \alias{ensure_dir}
-\title{Utility functions for lulccfunspkg}
+\title{Utility functions for evoland}
 \usage{
 ensure_dir(dir)
 }

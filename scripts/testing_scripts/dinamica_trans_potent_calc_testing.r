@@ -41,7 +41,7 @@ result <- try({
 
   # send model tool vars to global environment
   list2env(readRDS("Tools/Model_tool_vars.rds"), .GlobalEnv)
-# FIXME actually just variables provided by lulccfunspkg::get_config() hoisted into
+# FIXME actually just variables provided by evoland::get_config() hoisted into
 # global env
 
   # Load in the grid file we are using for spatial extent and CRS
