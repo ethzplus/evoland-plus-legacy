@@ -1,27 +1,37 @@
-#############################################################################
-## Calculate_allocation_parameters: Using land use data from calibration (historic) periods
-## to calculate parameters for Dinamica's Patcher and Expander algorithmns
-## Mean patch size, patch size variance, patch isometry,
-## % of transitons in new patches vs. expansion of existing patches
-## 1. Estimate values for the allocation parameters and then apply random perturbation
-## to generate sets of values to test with monte-carlo simulation
-## 2. perform simulations with all parameter sets
-## 3. Identify best performing parameter sets and save copies of tables
-## to be used in scenario simulations
-## Date: 28/09/2022
-## Author: Ben Black
-#############################################################################
+#' Calculate_allocation_parameters:
+#'
+#' Using land use data from calibration (historic) periods to calculate parameters for
+#' Dinamica's Patcher and Expander algorithmns Mean patch size, patch size variance,
+#' patch isometry, percentage of transitons in new patches vs. expansion of existing
+#' patches
+#'
+#' @param config a list of configuration params
+#'
+#' @details
+#' 1. Estimate values for the allocation parameters and then apply random perturbation
+#' to generate sets of values to test with monte-carlo simulation
+#' 2. perform simulations with all parameter sets
+#' 3. Identify best performing parameter sets and save copies of tables
+#' to be used in scenario simulations
+#'
+#' @author Ben Black
 
 calibrate_allocation_parameters <- function(config = get_config()) {
   # A - Preparation ####
   # vector years of LULC data
   LULC_years <-
-    list.files(config[["historic_lulc_basepath"]], full.names = FALSE, pattern = ".gri") |>
+    list.files(
+      config[["historic_lulc_basepath"]],
+      full.names = FALSE, pattern = ".gri"
+    ) |>
     stringr::str_extract("\\d{4}")
 
   # Load list of historic lulc rasters
   LULC_rasters <- lapply(
-    list.files(config[["historic_lulc_basepath"]], full.names = TRUE, pattern = ".grd$"),
+    list.files(
+      config[["historic_lulc_basepath"]],
+      full.names = TRUE, pattern = ".grd$"
+    ),
     terra::rast
   )
   names(LULC_rasters) <- LULC_years
@@ -38,7 +48,9 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   for (i in 1:(length(LULC_years) - 1)) {
     LULC_change_periods[[i]] <- c(LULC_years[i], LULC_years[i + 1])
   }
-  names(LULC_change_periods) <- sapply(LULC_change_periods, function(x) paste(x[1], x[2], sep = "_"))
+  names(LULC_change_periods) <- sapply(
+    LULC_change_periods, function(x) paste(x[1], x[2], sep = "_")
+  )
 
   lulcc.periodicparametercalculation <- function(Raster_combo, Raster_stack, period_name) {
     # seperate rasters required for time period
@@ -46,11 +58,20 @@ calibrate_allocation_parameters <- function(config = get_config()) {
     yr2 <- Raster_stack[[grep(Raster_combo[2], names(Raster_stack))]]
 
     # load list of transitions
-    transitions <- read.csv(list.files("Data/Transition_tables/raw_trans_tables", full.names = TRUE, pattern = paste0(period_name, "_viable_trans")))
+    transitions <- read.csv(
+      list.files(
+        "Data/Transition_tables/raw_trans_tables",
+        full.names = TRUE, pattern = paste0(period_name, "_viable_trans")
+      )
+    )
 
     # TODO move to purrr
     # Loop over transitions
-    results <- foreach::foreach(i = seq_len(nrow(transitions)), .combine = rbind, .packages = c("raster", "SDMTools", "igraph")) %dopar% {
+    results <- foreach::foreach(
+      i = seq_len(nrow(transitions)),
+      .combine = rbind,
+      .packages = c("raster", "SDMTools", "igraph")
+    ) %dopar% {
       # Identify cells in the rasters according to the 'From' and 'To' values
       r1 <- raster::Which(yr1 == transitions[i, c("From.")])
       r2 <- raster::Which(yr2 == transitions[i, c("To.")])
@@ -94,13 +115,16 @@ calibrate_allocation_parameters <- function(config = get_config()) {
       # loop over cells in patchs
       for (cell in patchcells) {
         # get the cell numbers of adjacent cells
-        ncells <- raster::adjacent(Trans_cells_yr_patches, cell = cell, direction = 8, include = F, pairs = F)
+        ncells <- raster::adjacent(
+          Trans_cells_yr_patches,
+          cell = cell, direction = 8, include = FALSE, pairs = FALSE
+        )
 
         # sum up the values in the adjacent cells in the year 1 patches,
         # a value of >=1 indicates that the new patch cells are directly adjacent to
         # old patch cells and hence represent expansion
         # a value of <1 indicates no adjacent old patch cells and hence new patch
-        Y_N <- if (sum(Final_yr1_patches[ncells], na.rm = T) >= 1) {
+        Y_N <- if (sum(Final_yr1_patches[ncells], na.rm = TRUE) >= 1) {
           10
         } else {
           5
@@ -111,8 +135,14 @@ calibrate_allocation_parameters <- function(config = get_config()) {
 
       # calculate the proportions of transition cells
       # that exist in new patches vs. expansion
-      perc_expander <- raster::freq(expansion_or_new, value = 10) / raster::freq(r, value = 1) * 100
-      perc_patcher <- raster::freq(expansion_or_new, value = 5) / raster::freq(r, value = 1) * 100
+      perc_expander <- (
+        raster::freq(expansion_or_new, value = 10) /
+          raster::freq(r, value = 1) * 100
+      )
+      perc_patcher <- (
+        raster::freq(expansion_or_new, value = 5) /
+          raster::freq(r, value = 1) * 100
+      )
 
       # Calculate class statistics for patchs in rasters
       cl.data <- SDMTools::ClassStat(r, bkgd = 0, cellsize = raster::res(r)[1])
@@ -138,10 +168,21 @@ calibrate_allocation_parameters <- function(config = get_config()) {
     # the % expansion params to eliminate the need to seperate when loading into Dinamica
 
     # Adjust col names
-    colnames(results) <- c("From*", "To*", " Mean_Patch_Size", "Patch_Size_Variance", "Patch_Isometry", "Perc_expander", "Perc_patcher")
+    colnames(results) <- c(
+      "From*", "To*",
+      " Mean_Patch_Size", "Patch_Size_Variance", "Patch_Isometry",
+      "Perc_expander", "Perc_patcher"
+    )
 
     # save
-    readr::write_csv(results, file = paste0("Data/Allocation_parameters/Calibration/Periodic/Allocation_parameters_", period_name, ".csv"))
+    readr::write_csv(
+      results,
+      file =
+        paste0(
+          "Data/Allocation_parameters/Calibration/Periodic/Allocation_parameters_",
+          period_name, ".csv"
+        )
+    )
 
     return(results)
   }
@@ -182,13 +223,23 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   )
 
   # reload allocation parameter tables
-  Allocation_params_by_period <- lapply(list.files("Data/Allocation_parameters/Calibration/Periodic", full.names = TRUE), read.csv)
+  Allocation_params_by_period <- lapply(
+    list.files(
+      "Data/Allocation_parameters/Calibration/Periodic",
+      full.names = TRUE
+    ),
+    read.csv
+  )
   names(Allocation_params_by_period) <- config[["data_periods"]]
 
   # reloading also causes r to mess up the column names, readjust
   # Adjust col names
   Allocation_params_by_period <- lapply(Allocation_params_by_period, function(x) {
-    colnames(x) <- c("From*", "To*", " Mean_Patch_Size", "Patch_Size_Variance", "Patch_Isometry", "Perc_expander", "Perc_patcher")
+    colnames(x) <- c(
+      "From*", "To*",
+      " Mean_Patch_Size",
+      "Patch_Size_Variance", "Patch_Isometry", "Perc_expander", "Perc_patcher"
+    )
     x$Perc_expander <- x$Perc_expander / 100
     x$Perc_patcher <- x$Perc_patcher / 100
     return(x)
@@ -234,7 +285,10 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   # corresponding parameter table foreach one
   sapply(seq_along(Time_points_by_period), function(period_indices) {
     sapply(Time_points_by_period[[period_indices]], function(x) {
-      file_name <- paste0(config[["calibration_param_dir"]], "/", "v1", "/Allocation_param_table_", x, ".csv")
+      file_name <- paste0(
+        config[["calibration_param_dir"]], "/", "v1",
+        "/Allocation_param_table_", x, ".csv"
+      )
       readr::write_csv(Allocation_params_by_period[[period_indices]], file = file_name)
     })
   })
@@ -252,8 +306,11 @@ calibrate_allocation_parameters <- function(config = get_config()) {
         dir.create(paste0(calibration_param_dir, "/", Sim_name), recursive = TRUE)
 
         # random perturbation of % expander
-        # (increase of decrease value by random amount in normal distribution with mean = 0 and sd = 0.05 effectively 5% bounding)
-        param_table$Perc_expander <- param_table$Perc_expander + rnorm(length(param_table$Perc_expander), mean = 0, sd = 0.05)
+        # (increase of decrease value by random amount in normal distribution with mean
+        # = 0 and sd = 0.05 effectively 5% bounding)
+        param_table$Perc_expander <-
+          param_table$Perc_expander +
+          rnorm(length(param_table$Perc_expander), mean = 0, sd = 0.05)
 
         # if any values are greater than 1 or less than 0 then set to these values
         param_table$Perc_expander <- sapply(param_table$Perc_expander, function(x) {
@@ -271,7 +328,9 @@ calibrate_allocation_parameters <- function(config = get_config()) {
 
         # inner loop over individual time points
         sapply(Time_steps, function(x) {
-          file_name <- paste0(calibration_param_dir, "/", Sim_name, "/Allocation_param_table_", x, ".csv")
+          file_name <- paste0(
+            calibration_param_dir, "/", Sim_name, "/Allocation_param_table_", x, ".csv"
+          )
           readr::write_csv(param_table, file = file_name)
         }) # close loop over time points
       },
@@ -311,7 +370,10 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   # Perform pre-check to make sure that all element required for Dinamica modelling
   # are prepared
   Control_table_path <- paste0(getwd(), "/Tools/Calibration_control.csv")
-  Pre_check_result <- lulcc.modelprechecks(Control_table_path, Param_dir = config[["calibration_param_dir"]])
+  Pre_check_result <- lulcc.modelprechecks(
+    Control_table_path,
+    Param_dir = config[["calibration_param_dir"]]
+  )
 
   # run the dinamica model with the calibration table
   if (Pre_check_result == TRUE) {
@@ -326,7 +388,11 @@ calibrate_allocation_parameters <- function(config = get_config()) {
 
     print("Creating a copy of the Dinamica model using the current control table")
     # save a temporary copy of the model.ego file to run
-    Temp_model_path <- gsub(".ego", paste0("_calibration_", Sys.Date(), ".ego"), "Model/Dinamica_models/LULCC_CH.ego")
+    Temp_model_path <- gsub(
+      ".ego",
+      paste0("_calibration_", Sys.Date(), ".ego"),
+      "Model/Dinamica_models/LULCC_CH.ego"
+    )
     writeLines(Model_text, Temp_model_path)
 
     print("Starting to run model with Dinamica EGO")
@@ -344,21 +410,21 @@ calibrate_allocation_parameters <- function(config = get_config()) {
 
     if (any(Updated_control_tbl$completed.string == "ERROR")) {
       print(paste(
-        length(which(Updated_control_tbl$completed.string == "ERROR")), "of", nrow(Updated_control_tbl),
-        "simulations have failed to run till completion, check simulation output .txt file for details of errors"
+        length(which(
+          Updated_control_tbl$completed.string == "ERROR"
+        )), "of", nrow(Updated_control_tbl),
+        "simulations have failed to run till completion,",
+        "check simulation output .txt file for details of errors"
       ))
-      # slackr_bot('Simulation has stopped because of error')
     } else {
       # Send completion message
-      # slackr_bot('Simulation completed sucessfully')
       print("All simulations completed sucessfully")
-
-      # Delete the temporary model file
-      # unlink(Temp_model_path)
 
       # clean up log and debug files created by Dinamica as their output
       # is stored in the .txt file anyway
-      unlink(list.files(pattern = paste0(c("log_", "debug_"), collapse = "|"), full.names = TRUE))
+      unlink(list.files(
+        pattern = paste0(c("log_", "debug_"), collapse = "|"), full.names = TRUE
+      ))
     }
   } else {
     print("Some elements required for modelling are not present/incorrect,
@@ -369,8 +435,17 @@ calibrate_allocation_parameters <- function(config = get_config()) {
 
   # load the similarity values produced from the validation process inside Dinamica
   # for each simulation
-  Calibration_results <- lapply(list.files("Results/Validation", full.names = TRUE, recursive = TRUE, pattern = ".csv"), function(x) read.csv(x, header = FALSE))
-  names(Calibration_results) <- sapply(list.files("Results/Validation", full.names = FALSE, recursive = TRUE, pattern = ".csv"), function(x) stringr::str_split(x, "_")[[1]][2])
+  Calibration_results <- lapply(
+    list.files("Results/Validation",
+      full.names = TRUE, recursive = TRUE, pattern = ".csv"
+    ), function(x) read.csv(x, header = FALSE)
+  )
+  names(Calibration_results) <- sapply(
+    list.files("Results/Validation",
+      full.names = FALSE,
+      recursive = TRUE, pattern = ".csv"
+    ), function(x) stringr::str_split(x, "_")[[1]][2]
+  )
 
   # remove thhe list item that has summary in it's name
   Calibration_results <- Calibration_results[!grepl("summary", names(Calibration_results))]
@@ -403,11 +478,16 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   # in the Simulation folder
 
   # get exemplar table
-  param_table <- read.csv(list.files(paste0(config[["calibration_param_dir"]], "/", Best_sim_ID), full.names = TRUE, pattern = "2020"))
-  colnames(param_table) <- c("From*", "To*", " Mean_Patch_Size", "Patch_Size_Variance", "Patch_Isometry", "Perc_expander", "Perc_patcher")
-
-  # save a copy for the publication
-  # readr::write_csv(param_table, "publication/figures_tables/Optimal_param_table.csv")
+  param_table <- read.csv(
+    list.files(paste0(
+      config[["calibration_param_dir"]], "/", Best_sim_ID
+    ), full.names = TRUE, pattern = "2020")
+  )
+  colnames(param_table) <- c(
+    "From*", "To*",
+    " Mean_Patch_Size", "Patch_Size_Variance", "Patch_Isometry",
+    "Perc_expander", "Perc_patcher"
+  )
 
   # get simulation start and end times from simulation control table
   Simulation_control <- read.csv(config[["simctrl_tbl_path"]])
