@@ -59,6 +59,7 @@ get_config <- function(
     model_lookup_path = file.path(tools_dir, "model_lookup.xlsx"),
     glacial_area_change_xlsx = file.path(tools_dir, "glacial_area_change.xlsx"),
     scenario_area_mods_xlsx = file.path(tools_dir, "simulation_lulc_areas_2060.xlsx"),
+    calibration_control_path = file.path(tools_dir, "calibration_control.csv"),
 
     # Paths for original data files
     ref_grid_path = file.path(data_basepath, "ref_grid.grd"),
@@ -121,6 +122,11 @@ get_config <- function(
     ),
     prediction_models_dir = file.path(
       results_dir, "transition_models", "prediction_models"
+    ),
+
+    lulcc_ch_ego_path = system.file(
+      "dinamica_models", "lulcc_ch.ego",
+      package = "evoland"
     )
   )
 

@@ -39,8 +39,8 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   # B - Calculating patch size parameters for each historic period ####
 
   # create folders for results
-  ensure_dir("Data/Allocation_parameters/Simulation")
-  ensure_dir("Data/Allocation_parameters/Calibration/Periodic")
+  ensure_dir(config[["simulation_param_dir"]])
+  ensure_dir(file.path(config[["calibration_param_dir"]], "periodic"))
 
   # because each period relies on a different combination of raster layers
   # create a vector of these to run through
@@ -60,7 +60,7 @@ calibrate_allocation_parameters <- function(config = get_config()) {
     # load list of transitions
     transitions <- read.csv(
       list.files(
-        "Data/Transition_tables/raw_trans_tables",
+        config[["trans_rates_raw_dir"]],
         full.names = TRUE, pattern = paste0(period_name, "_viable_trans")
       )
     )
@@ -179,11 +179,10 @@ calibrate_allocation_parameters <- function(config = get_config()) {
     # save
     readr::write_csv(
       results,
-      file =
-        paste0(
-          "Data/Allocation_parameters/Calibration/Periodic/Allocation_parameters_",
-          period_name, ".csv"
-        )
+      file = file.path(
+        config[["calibration_param_dir"]], "periodic",
+        paste0("allocation_parameters_", period_name, ".csv")
+      )
     )
 
     return(results)
@@ -227,7 +226,7 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   # reload allocation parameter tables
   Allocation_params_by_period <- lapply(
     list.files(
-      "Data/Allocation_parameters/Calibration/Periodic",
+      file.path(config[["calibration_param_dir"]], "periodic"),
       full.names = TRUE
     ),
     read.csv
@@ -287,9 +286,11 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   # corresponding parameter table foreach one
   sapply(seq_along(Time_points_by_period), function(period_indices) {
     sapply(Time_points_by_period[[period_indices]], function(x) {
-      file_name <- paste0(
-        config[["calibration_param_dir"]], "/", "v1",
-        "/Allocation_param_table_", x, ".csv"
+      file_name <- file.path(
+        config[["calibration_param_dir"]], "v1",
+        paste0(
+          "allocation_param_table_", x, ".csv"
+        )
       )
       readr::write_csv(Allocation_params_by_period[[period_indices]], file = file_name)
     })
@@ -330,8 +331,9 @@ calibrate_allocation_parameters <- function(config = get_config()) {
 
         # inner loop over individual time points
         sapply(Time_steps, function(x) {
-          file_name <- paste0(
-            calibration_param_dir, "/", Sim_name, "/Allocation_param_table_", x, ".csv"
+          file_name <- file.path(
+            calibration_param_dir, Sim_name,
+            paste0("allocation_param_table_", x, ".csv")
           )
           readr::write_csv(param_table, file = file_name)
         }) # close loop over time points
@@ -365,72 +367,78 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   Calibration_control_table$deterministic_trans.string <- "N"
 
   # save table
-  readr::write_csv(Calibration_control_table, "Tools/Calibration_control.csv")
+  readr::write_csv(
+    Calibration_control_table,
+    config[["calibration_control_path"]]
+  )
 
   # D - Perform simulation for calibration ####
 
   # Perform pre-check to make sure that all element required for Dinamica modelling
   # are prepared
-  Control_table_path <- paste0(getwd(), "/Tools/Calibration_control.csv")
+  Control_table_path <- file.path(getwd(), config[["calibration_control_path"]])
   Pre_check_result <- lulcc.modelprechecks(
     Control_table_path,
     Param_dir = config[["calibration_param_dir"]]
   )
 
+  if (!Pre_check_result) {
+    stop(
+      "Some elements required for modelling are not present/incorrect",
+      "consult the pre-check results object"
+    )
+  }
+
   # run the dinamica model with the calibration table
-  if (Pre_check_result == TRUE) {
-    # Read in Model.ego file
-    Model_text <- try(readLines("Model/Dinamica_models/LULCC_CH.ego"))
 
-    # Replace dummy string for working directory path path
-    Model_text <- stringr::str_replace(Model_text, "=====WORK_DIR=====", getwd())
+  # Read in Model.ego file
+  Model_text <- try(readLines(config[["lulcc_ch_ego_path"]]))
 
-    # Replace dummy string for control table file path
-    Model_text <- stringr::str_replace(Model_text, "=====TABLE_PATH=====", Control_table_path)
+  # Replace dummy string for working directory path path
+  Model_text <- stringr::str_replace(Model_text, "=====WORK_DIR=====", getwd())
 
-    print("Creating a copy of the Dinamica model using the current control table")
-    # save a temporary copy of the model.ego file to run
-    Temp_model_path <- gsub(
-      ".ego",
-      paste0("_calibration_", Sys.Date(), ".ego"),
-      "Model/Dinamica_models/LULCC_CH.ego"
-    )
-    writeLines(Model_text, Temp_model_path)
+  # Replace dummy string for control table file path
+  Model_text <- stringr::str_replace(Model_text, "=====TABLE_PATH=====", Control_table_path)
 
-    print("Starting to run model with Dinamica EGO")
-    # Use a system command to run the Dinamica model
-    system2(
-      command = get_dinamica_path(),
-      # args = c("-processors 10","-memory-allocation-policy 1", Temp_model_path),
-      args = c("-disable-parallel-steps", Temp_model_path)
-    )
+  print("Creating a copy of the Dinamica model using the current control table")
+  # save a temporary copy of the model.ego file to run
+  Temp_model_path <- paste0(
+    ".ego",
+    paste0("_calibration_", Sys.Date(), ".ego"),
+    config[["lulcc_ch_ego_path"]]
+  )
+  writeLines(Model_text, Temp_model_path)
 
-    # because the simulations may fail without the system command returning an error
-    # (if the error occurs in Dinamica) then check the simulation control table to see
-    # if/how many simulations have failed
-    Updated_control_tbl <- read.csv(Control_table_path)
+  print("Starting to run model with Dinamica EGO")
+  # Use a system command to run the Dinamica model
+  system2(
+    command = get_dinamica_path(),
+    # args = c("-processors 10","-memory-allocation-policy 1", Temp_model_path),
+    args = c("-disable-parallel-steps", Temp_model_path)
+  )
 
-    if (any(Updated_control_tbl$completed.string == "ERROR")) {
-      print(paste(
-        length(which(
-          Updated_control_tbl$completed.string == "ERROR"
-        )), "of", nrow(Updated_control_tbl),
-        "simulations have failed to run till completion,",
-        "check simulation output .txt file for details of errors"
-      ))
-    } else {
-      # Send completion message
-      print("All simulations completed sucessfully")
+  # because the simulations may fail without the system command returning an error
+  # (if the error occurs in Dinamica) then check the simulation control table to see
+  # if/how many simulations have failed
+  Updated_control_tbl <- read.csv(Control_table_path)
 
-      # clean up log and debug files created by Dinamica as their output
-      # is stored in the .txt file anyway
-      unlink(list.files(
-        pattern = paste0(c("log_", "debug_"), collapse = "|"), full.names = TRUE
-      ))
-    }
+  if (any(Updated_control_tbl$completed.string == "ERROR")) {
+    print(paste(
+      length(which(
+        Updated_control_tbl$completed.string == "ERROR"
+      )), "of", nrow(Updated_control_tbl),
+      "simulations have failed to run till completion,",
+      "check simulation output .txt file for details of errors"
+    ))
   } else {
-    print("Some elements required for modelling are not present/incorrect,
-        consult the pre-check results object")
+    # Send completion message
+    print("All simulations completed sucessfully")
+
+    # clean up log and debug files created by Dinamica as their output
+    # is stored in the .txt file anyway
+    unlink(list.files(
+      pattern = paste0(c("log_", "debug_"), collapse = "|"), full.names = TRUE
+    ))
   }
 
   # E - Evaluate calibration, selecting best parameter set ####
