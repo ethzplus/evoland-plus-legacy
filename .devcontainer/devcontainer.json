@@ -1,0 +1,27 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.191.1/containers/debian
+{
+  "name": "evoland-devcontainer",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "..",
+    "args": {
+      "platform": "linux/amd64"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "git.path": "/usr/bin/git",
+        "r.rterm.linux": "/usr/local/bin/radian",
+        "r.plot.useHttpgd": true,
+        "r.bracketedPaste": true,
+        "rewrap.wrappingColumn": 88
+      },
+      "extensions": [
+        "RDebugger.r-debugger",
+        "REditorSupport.r"
+      ]
+    }
+  }
+}
