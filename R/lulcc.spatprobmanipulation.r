@@ -21,25 +21,29 @@ lulcc.spatprobmanipulation <- function(Interventions,
   Pred_prob_columns <- grep("Prob_", names(Raster_prob_values), value = TRUE)
 
   # convert probability table to raster stack
-  Prob_raster_stack <- stack(lapply(Pred_prob_columns, function(x) rasterFromXYZ(Raster_prob_values[, c("x", "y", x)])))
+  Prob_raster_stack <- stack(lapply(Pred_prob_columns, function(x) {
+    raster::rasterFromXYZ(Raster_prob_values[, c("x", "y", x)])
+  }))
   names(Prob_raster_stack@layers) <- Pred_prob_columns
 
   # convert time_step and target_classes columns back to character vectors
   Interventions$time_step <- sapply(Interventions$time_step, function(x) {
-    x <- str_remove_all(x, " ")
-    rep <- unlist(strsplit(x, ","))
+    x <- stringr::str_remove_all(x, " ")
+    unlist(strsplit(x, ","))
   }, simplify = FALSE)
 
   Interventions$target_classes <- sapply(Interventions$target_classes, function(x) {
-    x <- str_remove_all(x, " ")
-    rep <- unlist(strsplit(x, ","))
+    x <- stringr::str_remove_all(x, " ")
+    unlist(strsplit(x, ","))
   }, simplify = FALSE)
 
   # subset interventions to scenario
   Scenario_interventions <- Interventions[Interventions$scenario_id == scenario_id, ]
 
   # subset to interventions for current time point
-  Time_step_rows <- sapply(Scenario_interventions$time_step, function(x) any(grepl(Simulation_time_step, x)))
+  Time_step_rows <- sapply(Scenario_interventions$time_step, function(x) {
+    any(grepl(Simulation_time_step, x))
+  })
   Current_interventions <- Scenario_interventions[Time_step_rows, ]
 
   # loop over rows
@@ -441,12 +445,12 @@ lulcc.spatprobmanipulation <- function(Interventions,
 
       if (intervention_id == "Agri_abandonment") {
         # The predicted probability of cells to transition from agriculture to other
-        # LULC classes already uses accessibility based predictors such as
-        # distance to roads/slope however other variables e.g climaticor soil may be having
-        # a larger effect hence we should apply a simple analysis based upon the
-        # model used by Gellrich et al. 2007 that considers distance to roads,
-        # slope and distance to building zones as a measure of 'marginality' and
-        # then select the 90th percentile of pixels according to this value
+        # LULC classes already uses accessibility based predictors such as distance to
+        # roads/slope however other variables e.g climatic or soil may be having a
+        # larger effect hence we should apply a simple analysis based upon the model
+        # used by Gellrich et al. 2007 that considers distance to roads, slope and
+        # distance to building zones as a measure of 'marginality' and then select the
+        # 90th percentile of pixels according to this value
 
         # load the static predictor layers and re-scale between 0-1
 
