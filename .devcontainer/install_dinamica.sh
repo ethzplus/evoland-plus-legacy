@@ -49,8 +49,10 @@ cat << EOF > /etc/profile.d/dinamica.sh
 export LD_LIBRARY_PATH=$DINAMICA_TARGET_DIR/squashfs-root/usr/lib/:$LD_LIBRARY_PATH
 export DINAMICA_EGO_8_INSTALLATION_DIRECTORY=$DINAMICA_TARGET_DIR/squashfs-root/usr/bin
 export REGISTRY_FILE=$DINAMICA_TARGET_DIR/.dinamica_ego_8.conf
-export PATH=$DINAMICA_TARGET_DIR/squashfs-root/usr/bin:$PATH
+export PATH=$PATH:$DINAMICA_TARGET_DIR/squashfs-root/usr/bin
 EOF
+
+echo "PATH=$PATH:$DINAMICA_TARGET_DIR/squashfs-root/usr/bin" >>"${R_HOME}/etc/Renviron.site"
 
 # Cleanup
 rm "$DINAMICA_TARGET_DIR/DinamicaEGO.AppImage"
