@@ -4,12 +4,13 @@
 ## Date: 01-10-2022, 16-11-2023
 ## Author: Ben Black, Carlson Büth
 #############################################################################
+dinamica_subset_control_table <- function() {
+  # set working directory
+  setwd(wpath)
 
-# set working directory
-setwd(wpath)
+  # load control table
+  Control_table <- read.csv(Control_table_path)
 
-# load control table
-Control_table <- read.csv(Control_table_path)
-
-# subset to non-completed simulations
-Control_table <- Control_table[Control_table$completed.string == "N", ]
+  # subset to non-completed simulations
+  Control_table <- Control_table[Control_table$completed.string == "N", ]
+}

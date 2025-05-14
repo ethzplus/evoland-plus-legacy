@@ -5,8 +5,10 @@
 ## Author: Ben Black
 #############################################################################
 
-# add step length to current time step to get simulation year
-Simulated_lulc_year <- paste((time_step + step_length))
+dinamica_modify_lulc_save_path <- function() {
+  # add step length to current time step to get simulation year
+  Simulated_lulc_year <- paste((time_step + step_length))
 
-# paste together and include '.tif' as the file type
-Final_lULC_path <- paste0(LULC_base_path, Simulated_lulc_year, ".tif")
+  # paste together and include '.tif' as the file type
+  Final_lULC_path <- paste0(LULC_base_path, Simulated_lulc_year, ".tif")
+}
