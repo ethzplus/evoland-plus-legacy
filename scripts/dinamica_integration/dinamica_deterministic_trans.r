@@ -42,7 +42,7 @@ model_mode <- Simulation_table$model_mode.string
 # if the model is in simulation mode and the value in the deterministic
 # transitions column of the control table is not "N" then update the current
 # simulated LULC map with the deterministic transitions
-if (grepl("simulation", model_mode, ignore.case = TRUE) &
+if (grepl("simulation", model_mode, ignore.case = TRUE) &&
   grepl("Y", Simulation_table$deterministic_trans.string, ignore.case = TRUE)) {
   # Load simulated LULC map for time step
   Current_lulc <- raster(File_path_simulated_LULC_maps)
