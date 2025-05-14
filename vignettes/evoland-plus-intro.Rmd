@@ -1,3 +1,21 @@
+---
+title: "An Introduction to evoland-plus"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{evoland-plus-intro}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, eval = FALSE}
+library(evoland)
 #############################################################################
 ## LULCC_CH_master: Master script for whole process of LULCC data preparation,
 ## statistical modelling and preparing model inputs required by Dinamica EGO
@@ -11,9 +29,6 @@
 ## Date: 25-10-2022
 ## Author: Ben Black
 #############################################################################
-
-# presumed working dir: root of the repo
-devtools::load_all()
 
 config <- get_config()
 
@@ -84,3 +99,5 @@ spatial_interventions_prep(config = config)
 
 # M- Run Dinamica simulations over scenarios
 run_dinamica_sims(config = config)
+```
+

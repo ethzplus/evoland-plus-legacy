@@ -54,7 +54,9 @@ Suggests:
     shiny,
     shinyjs,
     viridis,
-    zen4R
+    zen4R,
+    knitr,
+    rmarkdown
 Remotes:
     cran/SDMTools,
     ssp3nc3r/ggSankeyGrad
@@ -62,3 +64,4 @@ Config/testthat/edition: 3
 Depends: 
     R (>= 4.2)
 LazyData: true
+VignetteBuilder: knitr

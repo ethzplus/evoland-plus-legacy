@@ -22,3 +22,4 @@ debug_*
 log_*
 
 .DS_Store
+inst/doc
