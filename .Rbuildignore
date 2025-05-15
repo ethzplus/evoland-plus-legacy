@@ -7,3 +7,5 @@
 ^tools$
 ^data-raw$
 suddel*
+^doc$
+^Meta$

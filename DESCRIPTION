@@ -64,4 +64,5 @@ Config/testthat/edition: 3
 Depends: 
     R (>= 4.2)
 LazyData: true
-VignetteBuilder: knitr
+VignetteBuilder:
+    quarto

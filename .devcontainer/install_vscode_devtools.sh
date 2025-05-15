@@ -17,6 +17,7 @@ install2.r --error --skipinstalled -n $NCPUS \
     languageserver \
     microbenchmark \
     profvis \
+    quarto \
     rlang
 
 # httpgd is currently off of CRAN because of c++ compiler conflicts
