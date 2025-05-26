@@ -159,7 +159,7 @@ calibrate_allocation_parameters <- function(config = get_config()) {
           transitions[i, 2],
           mpa, sda, iso, perc_expander, perc_patcher
         )
-        return(result)
+        result
       }
     )
 
@@ -185,7 +185,7 @@ calibrate_allocation_parameters <- function(config = get_config()) {
       )
     )
 
-    return(results)
+    results
   }
 
   # Apply function
@@ -235,16 +235,19 @@ calibrate_allocation_parameters <- function(config = get_config()) {
 
   # reloading also causes r to mess up the column names, readjust
   # Adjust col names
-  Allocation_params_by_period <- lapply(Allocation_params_by_period, function(x) {
-    colnames(x) <- c(
-      "From*", "To*",
-      " Mean_Patch_Size",
-      "Patch_Size_Variance", "Patch_Isometry", "Perc_expander", "Perc_patcher"
-    )
-    x$Perc_expander <- x$Perc_expander / 100
-    x$Perc_patcher <- x$Perc_patcher / 100
-    return(x)
-  })
+  Allocation_params_by_period <- lapply(
+    Allocation_params_by_period,
+    function(params_period) {
+      colnames(params_period) <- c(
+        "From*", "To*",
+        " Mean_Patch_Size",
+        "Patch_Size_Variance", "Patch_Isometry", "Perc_expander", "Perc_patcher"
+      )
+      params_period$Perc_expander <- params_period$Perc_expander / 100
+      params_period$Perc_patcher <- params_period$Perc_patcher / 100
+      params_period
+    }
+  )
 
   # because we are most interested in calibrating the patch size values for the
   # time period that will be used in simulations we will run the calibration using
@@ -260,16 +263,17 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   # seperate vector of time points into those relevant for each calibration period
   Time_points_by_period <- lapply(config[["data_periods"]], function(period) {
     dates <- as.numeric(stringr::str_split(period, "_")[[1]])
-    period_years <- Time_steps[sapply(Time_steps, function(year) {
-      if (year > dates[1] & year <= dates[2]) {
-        TRUE
-      } else if ((scenario_end - dates[2]) < step_length) {
-        TRUE
-      } else {
-        FALSE
-      }
-    })]
-    return(period_years)
+    Time_steps[
+      sapply(Time_steps, function(year) {
+        if (year > dates[1] & year <= dates[2]) {
+          TRUE
+        } else if ((scenario_end - dates[2]) < step_length) {
+          TRUE
+        } else {
+          FALSE
+        }
+      })
+    ]
   })
   names(Time_points_by_period) <- config[["data_periods"]]
 
@@ -306,7 +310,7 @@ calibrate_allocation_parameters <- function(config = get_config()) {
     mapply(
       function(Time_steps, calibration_param_dir, param_table) {
         # create folder for saving param tables for MC sim name
-        dir.create(paste0(calibration_param_dir, "/", Sim_name), recursive = TRUE)
+        dir.create(file.path(calibration_param_dir, Sim_name), recursive = TRUE)
 
         # random perturbation of % expander
         # (increase of decrease value by random amount in normal distribution with mean
@@ -376,45 +380,11 @@ calibrate_allocation_parameters <- function(config = get_config()) {
 
   # Perform pre-check to make sure that all element required for Dinamica modelling
   # are prepared
-  Control_table_path <- file.path(getwd(), config[["calibration_control_path"]])
-  Pre_check_result <- lulcc.modelprechecks(
-    Control_table_path,
-    Param_dir = config[["calibration_param_dir"]]
-  )
-
-  if (!Pre_check_result) {
-    stop(
-      "Some elements required for modelling are not present/incorrect",
-      "consult the pre-check results object"
-    )
-  }
-
-  # run the dinamica model with the calibration table
-
-  # Read in Model.ego file
-  Model_text <- try(readLines(config[["lulcc_ch_ego_path"]]))
-
-  # Replace dummy string for working directory path path
-  Model_text <- stringr::str_replace(Model_text, "=====WORK_DIR=====", getwd())
-
-  # Replace dummy string for control table file path
-  Model_text <- stringr::str_replace(Model_text, "=====TABLE_PATH=====", Control_table_path)
-
-  print("Creating a copy of the Dinamica model using the current control table")
-  # save a temporary copy of the model.ego file to run
-  Temp_model_path <- paste0(
-    ".ego",
-    paste0("_calibration_", Sys.Date(), ".ego"),
-    config[["lulcc_ch_ego_path"]]
-  )
-  writeLines(Model_text, Temp_model_path)
-
-  print("Starting to run model with Dinamica EGO")
-  # Use a system command to run the Dinamica model
-  system2(
-    command = get_dinamica_path(),
-    # args = c("-processors 10","-memory-allocation-policy 1", Temp_model_path),
-    args = c("-disable-parallel-steps", Temp_model_path)
+  withr::with_envvar(
+    c(
+      C = config[["calibration_control_path"]]
+    ),
+    run_dinamica_extrapolation()
   )
 
   # because the simulations may fail without the system command returning an error
