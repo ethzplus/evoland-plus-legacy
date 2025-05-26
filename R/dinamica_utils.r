@@ -1,87 +1,132 @@
 #' Dinamica Utility Functions
 #'
-#' Various functions to interact with Dinamica from R
+#' Functions to interact with Dinamica from R
 #'
 #' @name dinamica_utils
 NULL
 
-#' @describeIn dinamica_utils Check Dinamica is installed
+#' @describeIn dinamica_utils Execute a Dinamica .ego file using `DinamicaConsole`
+#' @param model_path Path to the .ego model file to run. Any submodels must be included
+#' in a directory of the exact form `basename("model.ego")_Submodels`,
+#' [see wiki](https://csr.ufmg.br/dinamica/dokuwiki/doku.php?id=submodels)
+#' @param disable_parallel Whether to disable parallel steps (default TRUE)
+#' @param log_level Logging level (1-7, default NULL)
+#' @param additional_args Additional arguments to pass to DinamicaConsole, see
+#' [this wiki page](https://dinamicaego.com/dokuwiki/doku.php?id=tutorial:dinamica_ego_script_language_and_console_launcher)  # nolint: line_length_linter.
+#'
 #' @export
+exec_dinamica <- function(model_path,
+                          disable_parallel = TRUE,
+                          log_level = NULL,
+                          additional_args = NULL) {
+  args <- character()
+  if (disable_parallel) {
+    args <- c(args, "-disable-parallel-steps")
+  }
+  if (!is.null(log_level)) {
+    args <- c(args, paste0("-log-level ", log_level))
+  }
+  if (!is.null(additional_args)) {
+    args <- c(args, additional_args)
+  }
+  args <- c(args, model_path)
 
-check_dinamica <- function() {
-  # install Dinamica R package from source
-  # install.packages("Model/dinamica_1.0.4.tar.gz", repos=NULL, type="source")
-
-  # TODO: Check if Dinamica EGO is already installed
-  # Diego.installed <- system(command = paste('*dinamica7* -v'))==0
-  stop("This doesn't do anything yet")
+  invisible(processx::run(
+    command = "DinamicaConsole",
+    args = args,
+    spinner = TRUE,
+    env = c(
+      "current",
+      DINAMICA_HOME = fs::path_dir(model_path)
+    )
+  ))
 }
 
-#' @describeIn dinamica_utils Get Dinamica path
+#' @describeIn dinamica_utils Run a Dinamica EGO extrapolation simulation
 #' @export
-get_dinamica_path <- function() {
-  return("C:\\Program Files\\Dinamica EGO 7\\DinamicaConsole7.exe")
-}
+run_dinamica_extrapolation <- function(
+    run_modelprechecks = TRUE,
+    config = get_config(),
+    work_dir = file.path(".", format(Sys.time(), "%Y-%m-%d %Hh%Mm%Ss"))) {
+  if (run_modelprechecks) {
+    stopifnot(lulcc.modelprechecks())
+  }
 
-#' @describeIn dinamica_utils Run a dinamica simulation set
-#' @export
-run_dinamica_sims <- function() {
-  Pre_check_result <- lulcc.modelprechecks(
-    Control_table_path,
-    Param_dir = simulation_param_dir
+  # find raw ego files with decoded R/Python code chunks
+  decoded_files <- fs::dir_ls(
+    path = system.file("dinamica_model", package = "evoland"),
+    regexp = "\\.ego-decoded$",
+    recurse = TRUE
   )
 
-  # Run the Dinamica simulation model
-  # Fail pre-check condition
-  if (Pre_check_result == FALSE) {
-    print("Some elements required for modelling are not present/incorrect,
-        consult the pre-check results object")
-  } else if (Pre_check_result == TRUE) {
-    # save a temporary copy of the model.ego file to run
-    print("Creating a copy of the Dinamica model using the current control table")
-    Temp_model_path <- gsub(
-      ".ego", paste0("_simulation_", Sys.Date(), ".ego"),
-      "model/dinamica_models/lulcc_ch.ego"
+  purrr::walk(decoded_files, function(decoded_file) {
+    # Determine relative path and new output path with .ego extension
+    rel_path <- fs::path_rel(
+      path = decoded_file,
+      start = system.file("dinamica_model", package = "evoland")
     )
-    writeLines(Model_text, Temp_model_path)
+    out_path <- fs::path_ext_set(fs::path(work_dir, rel_path), "ego")
+    fs::dir_create(fs::path_dir(out_path))
+    process_dinamica_script(decoded_file, out_path)
+  })
 
-    # vector a path for saving the output text of this simulation
-    # run which indicates any errors
-    output_path <- paste0(Sim_log_dir, "/simulation_output_", Sys.Date(), ".txt")
+  message("Starting to run model with Dinamica EGO")
+  exec_dinamica(model_path = fs::path(work_dir, "evoland.ego"))
 
-    # set environment path for Dinamica log/debug files
-    # create a temporary dir for storing the Dinamica output files
-    # Logdir <- "Model/Dinamica_models/Model_log_files"
-    # dir.create(Logdir)
-    # Win_logdir <- paste0(getwd(), "/", Logdir)
+  # because the simulations may fail without the system command returning an error
+  # (if the error occurs in Dinamica) then check the simulation control table to see
+  # if/how many simulations have failed
+  Updated_control_tbl <- read.csv(config[["simctrl_tbl_path"]])
 
-    print("Starting to run model with Dinamica EGO")
-    check_dinamica()
-    system2(
-      command = get_dinamica_path(),
-      args = c("-disable-parallel-steps -log-level 7", Temp_model_path)
-      # env = c(
-      #   DINAMICA_EGO_7_LOG_PATH = Win_logdir
-      # )
+  if (any(Updated_control_tbl$completed.string == "ERROR")) {
+    stop(
+      length(which(Updated_control_tbl$completed.string == "ERROR")),
+      "of", nrow(Updated_control_tbl),
+      "simulations have failed to run till completion, check log for details of errors"
     )
+  } else {
+    # Send completion message
+    message("All simulations completed sucessfully")
+  }
+}
 
-    # because the simulations may fail without the system command returning an error
-    # (if the error occurs in Dinamica) then check the simulation control table to see
-    # if/how many simulations have failed
-    Updated_control_tbl <- read.csv(simctrl_tbl_path)
+#' @describeIn dinamica_utils Encode or decode raw R and Python code chunks in .ego
+#' files and their submodels to/from base64
+#' @param infile Input file path
+#' @param outfile Output file path (optional)
+#' @param mode Character, either "encode" or "decode"
+process_dinamica_script <- function(infile, outfile, mode = "encode") {
+  mode <- rlang::arg_match(mode, c("encode", "decode"))
+  # read the input file as a single string
+  file_text <- readChar(infile, file.info(infile)$size)
 
-    if (any(Updated_control_tbl$completed.string == "ERROR")) {
-      message(
-        length(which(Updated_control_tbl$completed.string == "ERROR")),
-        "of", nrow(Updated_control_tbl),
-        "simulations have failed to run till completion, check log for details of errors"
+  # match the Calculate R or Python Expression blocks - guesswork involved
+  pattern <- ':= Calculate(?:Python|R)Expression "(\\X*?)" (?:\\.no )?\\{\\{'
+  # extracts both full match [,1] and capture group [,2]
+  matches <- stringr::str_match_all(file_text, pattern)[[1]]
+
+  if (nrow(matches) > 0) {
+    encoder_decoder <- ifelse(mode == "encode",
+      \(code) base64enc::base64encode(charToRaw(code)),
+      \(code) rawToChar(base64enc::base64decode(code))
+    )
+    # matches[,2] contains the captured R/python code OR base64-encoded code
+    encoded_vec <- purrr::map_chr(matches[, 2], encoder_decoder)
+    # replace each original code with its base64 encoded version
+    for (i in seq_along(encoded_vec)) {
+      file_text <- stringr::str_replace(
+        string = file_text,
+        pattern = stringr::fixed(matches[i, 2]),
+        replacement = encoded_vec[i]
       )
-    } else {
-      # Send completion message
-      print("All simulations completed sucessfully")
-
-      # Delete the temporary model file
-      # unlink(Temp_model_path)
     }
-  } # close if statement running simulation
+  }
+
+  # Write to outfile if specified, otherwise return the substituted string
+  if (!missing(outfile)) {
+    writeChar(file_text, outfile, eos = NULL)
+    invisible(outfile)
+  } else {
+    file_text
+  }
 }

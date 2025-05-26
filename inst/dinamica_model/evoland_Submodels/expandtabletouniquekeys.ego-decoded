@@ -14,7 +14,24 @@ Script {{
     constant := Table .UNBOUND;
 
     @collapsed = no
-    calculatePythonExpression475 := CalculatePythonExpression "bmV3SGVhZGVyID0gZGluYW1pY2EuaW5wdXRzWyJ0MSJdWyAwIF0KbmV3Q29sdW1uTmFtZSA9ICJVbmlxdWVJbmRleCIKd2hpbGUgbmV3Q29sdW1uTmFtZSBpbiBuZXdIZWFkZXI6CiBuZXdDb2x1bW5OYW1lICs9ICJfIgoKZm9yIGMgaW4gbmV3SGVhZGVyOgogYy5yZXBsYWNlKCAiKiIsICIiICkKCm5ld0hlYWRlci5pbnNlcnQoMCwgbmV3Q29sdW1uTmFtZSkKbmV3VGFibGUgPSBbIG5ld0hlYWRlciBdCnVuaXF1ZUluZGV4ID0gMQpmb3Igcm93SW5kZXggaW4gcmFuZ2UoMSwgbGVuKGRpbmFtaWNhLmlucHV0c1sidDEiXSkpOgogcm93ID0gZGluYW1pY2EuaW5wdXRzWyJ0MSJdWyByb3dJbmRleCBdCiByb3cuaW5zZXJ0KDAsIHVuaXF1ZUluZGV4KQogbmV3VGFibGUuYXBwZW5kKHJvdykKIHVuaXF1ZUluZGV4ICs9IDEKCmRpbmFtaWNhLm91dHB1dHNbInRhYmxlIl0gPSBuZXdUYWJsZQ==" {{
+    calculatePythonExpression475 := CalculatePythonExpression "newHeader = dinamica.inputs["t1"][ 0 ]
+newColumnName = "UniqueIndex"
+while newColumnName in newHeader:
+ newColumnName += "_"
+
+for c in newHeader:
+ c.replace( "*", "" )
+
+newHeader.insert(0, newColumnName)
+newTable = [ newHeader ]
+uniqueIndex = 1
+for rowIndex in range(1, len(dinamica.inputs["t1"])):
+ row = dinamica.inputs["t1"][ rowIndex ]
+ row.insert(0, uniqueIndex)
+ newTable.append(row)
+ uniqueIndex += 1
+
+dinamica.outputs["table"] = newTable" {{
         NumberTable constant 1;
     }};
 

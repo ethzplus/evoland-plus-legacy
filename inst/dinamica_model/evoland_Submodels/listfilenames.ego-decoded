@@ -36,7 +36,26 @@ Script {{
     @submodel.in.constant.order = 2
     filePattern := String .UNBOUND;
 
-    calculatePythonExpression13799 := CalculatePythonExpression "ZGluYW1pY2EucGFja2FnZSgiZ2xvYiIpCgpmb2xkZXIgPSBkaW5hbWljYS5pbnB1dHNbInMxIl0KZXh0ZW5zaW9uID0gZGluYW1pY2EuaW5wdXRzWyJzMiJdCgpyZWN1cnNlX3N1YmZvbGRlcnMgPSBkaW5hbWljYS5pbnB1dHNbInYxIl0gIT0gMAoKaWYgcmVjdXJzZV9zdWJmb2xkZXJzOgogICAgZnVsbF9maWxlbmFtZV9wYXR0ZXJuID0gZm9sZGVyICsgIi8qKi8iICsgZXh0ZW5zaW9uOwplbHNlOgogICAgZnVsbF9maWxlbmFtZV9wYXR0ZXJuID0gZm9sZGVyICsgIi8iICsgZXh0ZW5zaW9uOwoKZmlsZXMgPSBnbG9iLmdsb2IoZnVsbF9maWxlbmFtZV9wYXR0ZXJuLCByZWN1cnNpdmU9cmVjdXJzZV9zdWJmb2xkZXJzKQojIHNvcnQgZmlsZXMgYWxwaGFiZXRpY2FsbHkKZmlsZXMgPSBzb3J0ZWQoZmlsZXMpCmZpbGVzID0gW1siSW5kaWNlcyojcmVhbCIsICJGaWxlbmFtZXMjc3RyaW5nIl1dICsgbGlzdChlbnVtZXJhdGUoZmlsZXMsIDEpKQpwcmludCgiUHJlcGFyZWQgb3V0cHV0IGZvciBEaW5hbWljYTogIiwgZmlsZXMpCgpkaW5hbWljYS5vdXRwdXRzWyJmaWxlcyJdID0gZGluYW1pY2EucHJlcGFyZVRhYmxlKGZpbGVzLCAxKQo=" {{
+    calculatePythonExpression13799 := CalculatePythonExpression "dinamica.package("glob")
+
+folder = dinamica.inputs["s1"]
+extension = dinamica.inputs["s2"]
+
+recurse_subfolders = dinamica.inputs["v1"] != 0
+
+if recurse_subfolders:
+    full_filename_pattern = folder + "/**/" + extension;
+else:
+    full_filename_pattern = folder + "/" + extension;
+
+files = glob.glob(full_filename_pattern, recursive=recurse_subfolders)
+# sort files alphabetically
+files = sorted(files)
+files = [["Indices*#real", "Filenames#string"]] + list(enumerate(files, 1))
+print("Prepared output for Dinamica: ", files)
+
+dinamica.outputs["files"] = dinamica.prepareTable(files, 1)
+" {{
         NumberString folder 1;
 
         NumberString filePattern 2;

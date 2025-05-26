@@ -2,26 +2,54 @@
 % Please edit documentation in R/dinamica_utils.r
 \name{dinamica_utils}
 \alias{dinamica_utils}
-\alias{check_dinamica}
-\alias{get_dinamica_path}
-\alias{run_dinamica_sims}
+\alias{exec_dinamica}
+\alias{run_dinamica_extrapolation}
+\alias{process_dinamica_script}
 \title{Dinamica Utility Functions}
 \usage{
-check_dinamica()
+exec_dinamica(
+  model_path,
+  disable_parallel = TRUE,
+  log_level = NULL,
+  additional_args = NULL
+)
 
-get_dinamica_path()
+run_dinamica_extrapolation(
+  run_modelprechecks = TRUE,
+  config = get_config(),
+  work_dir = file.path(".", format(Sys.time(), "\%Y-\%m-\%d \%Hh\%Mm\%Ss"))
+)
 
-run_dinamica_sims()
+process_dinamica_script(infile, outfile, mode = "encode")
+}
+\arguments{
+\item{model_path}{Path to the .ego model file to run. Any submodels must be included
+in a directory of the exact form \verb{basename("model.ego")_Submodels},
+\href{https://csr.ufmg.br/dinamica/dokuwiki/doku.php?id=submodels}{see wiki}}
+
+\item{disable_parallel}{Whether to disable parallel steps (default TRUE)}
+
+\item{log_level}{Logging level (1-7, default NULL)}
+
+\item{additional_args}{Additional arguments to pass to DinamicaConsole, see
+\href{https://dinamicaego.com/dokuwiki/doku.php?id=tutorial:dinamica_ego_script_language_and_console_launcher}{this wiki page}  # nolint: line_length_linter.}
+
+\item{infile}{Input file path}
+
+\item{outfile}{Output file path (optional)}
+
+\item{mode}{Character, either "encode" or "decode"}
 }
 \description{
-Various functions to interact with Dinamica from R
+Functions to interact with Dinamica from R
 }
 \section{Functions}{
 \itemize{
-\item \code{check_dinamica()}: Check Dinamica is installed
+\item \code{exec_dinamica()}: Execute a Dinamica .ego file using \code{DinamicaConsole}
 
-\item \code{get_dinamica_path()}: Get Dinamica path
+\item \code{run_dinamica_extrapolation()}: Run a Dinamica EGO extrapolation simulation
 
-\item \code{run_dinamica_sims()}: Run a dinamica simulation set
+\item \code{process_dinamica_script()}: Encode or decode raw R and Python code chunks in .ego
+files and their submodels to/from base64
 
 }}

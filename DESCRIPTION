@@ -12,6 +12,7 @@ Imports:
     curl,
     data.table,
     dplyr,
+    fs,
     future,
     future.apply,
     future.callr,
@@ -24,20 +25,17 @@ Imports:
     readr,
     readxl,
     ROCR,
+    RRF,
     sf,
     stringr,
     terra,
     tidyr,
     tidyselect,
-    xlsx,
-    zip,
-    RRF
+    zip
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Suggests: 
-    testthat (>= 3.0.0),
-    usethis,
     bezier,
     corrplot,
     cowplot,
@@ -46,17 +44,20 @@ Suggests:
     ggSankeyGrad,
     ggthemes,
     htmlwidgets,
+    knitr,
     leaflet.extras,
     networkD3,
     plotly,
     png,
+    quarto,
     rjstat,
     shiny,
     shinyjs,
+    testthat (>= 3.0.0),
+    usethis,
     viridis,
-    zen4R,
-    knitr,
-    rmarkdown
+    xlsx,
+    zen4R
 Remotes:
     cran/SDMTools,
     ssp3nc3r/ggSankeyGrad

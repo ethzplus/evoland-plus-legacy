@@ -122,11 +122,6 @@ get_config <- function(
     ),
     prediction_models_dir = file.path(
       results_dir, "transition_models", "prediction_models"
-    ),
-
-    lulcc_ch_ego_path = system.file(
-      "dinamica_models", "lulcc_ch.ego",
-      package = "evoland"
     )
   )
 
