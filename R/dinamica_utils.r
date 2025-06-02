@@ -92,18 +92,41 @@ run_dinamica_extrapolation <- function(
 
 #' @describeIn dinamica_utils Encode or decode raw R and Python code chunks in .ego
 #' files and their submodels to/from base64
-#' @param infile Input file path
+#' @param infile Input file path. Treated as input if passed AsIs using `base::I()`
 #' @param outfile Output file path (optional)
 #' @param mode Character, either "encode" or "decode"
-process_dinamica_script <- function(infile, outfile, mode = "encode") {
+#' @param check Default TRUE, simple check to ensure that you're handling what you're expecting
+
+process_dinamica_script <- function(infile, outfile, mode = "encode", check = TRUE) {
   mode <- rlang::arg_match(mode, c("encode", "decode"))
-  # read the input file as a single string
-  file_text <- readChar(infile, file.info(infile)$size)
+  if (inherits(infile, "AsIs")) {
+    file_text <- infile
+  } else {
+    # read the input file as a single string
+    file_text <- readChar(infile, file.info(infile)$size)
+  }
 
   # match the Calculate R or Python Expression blocks - guesswork involved
   pattern <- ':= Calculate(?:Python|R)Expression "(\\X*?)" (?:\\.no )?\\{\\{'
   # extracts both full match [,1] and capture group [,2]
   matches <- stringr::str_match_all(file_text, pattern)[[1]]
+
+  if (check) {
+    non_base64_chars_present <- stringr::str_detect(matches[, 2], "[^A-Za-z0-9+=\\n/]")
+    if (mode == "encode" && any(!non_base64_chars_present)) {
+      stop(
+        "There are no non-base64 chars in one of the matched patterns, which seems ",
+        "unlikely for an unencoded code chunk. Override this check with ",
+        "check = FALSE if you're sure that this is an unencoded file."
+      )
+    } else if (mode == "decode" && any(non_base64_chars_present)) {
+      stop(
+        "There are non-base64 chars in one of the matched patterns, which seems ",
+        "unlikely for an encoded code chunk. Override this check with ",
+        "check = FALSE if you're sure that this is an unencoded file."
+      )
+    }
+  }
 
   if (nrow(matches) > 0) {
     encoder_decoder <- ifelse(mode == "encode",
