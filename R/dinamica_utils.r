@@ -18,7 +18,8 @@ NULL
 exec_dinamica <- function(model_path,
                           disable_parallel = TRUE,
                           log_level = NULL,
-                          additional_args = NULL) {
+                          additional_args = NULL,
+                          quiet = TRUE) {
   args <- character()
   if (disable_parallel) {
     args <- c(args, "-disable-parallel-steps")
@@ -31,15 +32,27 @@ exec_dinamica <- function(model_path,
   }
   args <- c(args, model_path)
 
-  invisible(processx::run(
-    command = "DinamicaConsole",
+  res <- processx::run(
+    command = "DinamicaConsole", # assume that $PATH is complete
     args = args,
+    error_on_status = FALSE, # handle errors within R
+    echo = !quiet,
     spinner = TRUE,
     env = c(
       "current",
       DINAMICA_HOME = fs::path_dir(model_path)
     )
-  ))
+  )
+
+  if (res[["status"]] == 0L) {
+    invisible(res)
+  } else {
+    rlang::abort(
+      "Dinamica EGO failed",
+      class = "dinamicaconsole_fail",
+      body = res[["stderr"]]
+    )
+  }
 }
 
 #' @describeIn dinamica_utils Run a Dinamica EGO extrapolation simulation

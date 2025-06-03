@@ -94,3 +94,27 @@ test_that("process_dinamica_script is idempotent", {
     sample_dinamica_script_decoded
   )
 })
+
+test_that("exec_dinamica works", {
+  tmpfile_ego <- fs::file_temp(ext = ".ego")
+  on.exit(fs::file_delete(tmpfile_ego))
+  writeChar(
+    sample_dinamica_script_encoded,
+    tmpfile_ego,
+    eos = NULL
+  )
+  expect_identical(
+    exec_dinamica(tmpfile_ego)[["status"]],
+    0L
+  )
+})
+
+test_that("exec_dinamica fails", {
+  tmpfile_ego <- fs::file_temp(ext = ".ego")
+  on.exit(fs::file_delete(tmpfile_ego))
+  process_dinamica_script(I(sample_dinamica_script_decoded), tmpfile_ego)
+  expect_error(
+    exec_dinamica(tmpfile_ego),
+    "there is no package called"
+  )
+})
