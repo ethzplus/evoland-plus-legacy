@@ -7,19 +7,21 @@ NULL
 
 #' @describeIn dinamica_utils Execute a Dinamica .ego file using `DinamicaConsole`
 #' @param model_path Path to the .ego model file to run. Any submodels must be included
-#' in a directory of the exact form `basename("model.ego")_Submodels`,
-#' [see wiki](https://csr.ufmg.br/dinamica/dokuwiki/doku.php?id=submodels)
+#' in a directory of the exact form `basename(modelpath)_ego_Submodels`, [see
+#' wiki](https://csr.ufmg.br/dinamica/dokuwiki/doku.php?id=submodels)
 #' @param disable_parallel Whether to disable parallel steps (default TRUE)
 #' @param log_level Logging level (1-7, default NULL)
 #' @param additional_args Additional arguments to pass to DinamicaConsole, see
-#' [this wiki page](https://dinamicaego.com/dokuwiki/doku.php?id=tutorial:dinamica_ego_script_language_and_console_launcher)  # nolint: line_length_linter.
+#' `DinamicaConsole -help`
+#' @param verbose Default FALSE, else prints stdout/stderr immediately
 #'
 #' @export
+
 exec_dinamica <- function(model_path,
                           disable_parallel = TRUE,
                           log_level = NULL,
                           additional_args = NULL,
-                          quiet = TRUE) {
+                          verbose = FALSE) {
   args <- character()
   if (disable_parallel) {
     args <- c(args, "-disable-parallel-steps")
@@ -33,10 +35,16 @@ exec_dinamica <- function(model_path,
   args <- c(args, model_path)
 
   res <- processx::run(
-    command = "DinamicaConsole", # assume that $PATH is complete
-    args = args,
-    error_on_status = FALSE, # handle errors within R
-    echo = !quiet,
+    # If called directly, DinamicaConsole does not flush its buffer upon SIGTERM.
+    # stdbuf -oL forces flushing the stdout buffer after every line.
+    command = "stdbuf",
+    args = c(
+      "-oL",
+      "DinamicaConsole", # assume that $PATH is complete
+      args
+    ),
+    error_on_status = FALSE,
+    echo = !verbose,
     spinner = TRUE,
     env = c(
       "current",
@@ -44,15 +52,30 @@ exec_dinamica <- function(model_path,
     )
   )
 
-  if (res[["status"]] == 0L) {
-    invisible(res)
-  } else {
-    rlang::abort(
-      "Dinamica EGO failed",
-      class = "dinamicaconsole_fail",
+  # strip ansi escape sequences. some are unmatched, permanently altering output color.
+  res[["stdout"]] <- cli::ansi_strip(res[["stdout"]])
+  res[["stderr"]] <- cli::ansi_strip(res[["stderr"]])
+
+  if (res[["status"]] != 0L) {
+    # on error first write logfile, then abort
+    logfile <- fs::path(fs::path_dir(model_path), "dinamica.log")
+    writeLines(
+      paste(
+        Sys.time(),
+        "stdout", res[["stdout"]],
+        "stderr", res[["stderr"]],
+        sep = "\n\n"
+      ),
+      logfile
+    )
+    cli::cli_abort(
+      "Rerun with verbose = TRUE to see full logs or watch {.file {logfile}}",
+      class = "dinamicaconsole_error",
       body = res[["stderr"]]
     )
   }
+
+  res
 }
 
 #' @describeIn dinamica_utils Run a Dinamica EGO extrapolation simulation
@@ -60,7 +83,8 @@ exec_dinamica <- function(model_path,
 run_dinamica_extrapolation <- function(
     run_modelprechecks = TRUE,
     config = get_config(),
-    work_dir = file.path(".", format(Sys.time(), "%Y-%m-%d %Hh%Mm%Ss"))) {
+    work_dir = file.path(".", format(Sys.time(), "%Y-%m-%d_%Hh%Mm%Ss")),
+    verbose = FALSE) {
   if (run_modelprechecks) {
     stopifnot(lulcc.modelprechecks())
   }
@@ -68,7 +92,7 @@ run_dinamica_extrapolation <- function(
   # find raw ego files with decoded R/Python code chunks
   decoded_files <- fs::dir_ls(
     path = system.file("dinamica_model", package = "evoland"),
-    regexp = "\\.ego-decoded$",
+    regexp = "evoland.*\\.ego-decoded$",
     recurse = TRUE
   )
 
@@ -83,8 +107,8 @@ run_dinamica_extrapolation <- function(
     process_dinamica_script(decoded_file, out_path)
   })
 
-  message("Starting to run model with Dinamica EGO")
-  exec_dinamica(model_path = fs::path(work_dir, "evoland.ego"))
+  cli::cli_inform("Starting to run model with Dinamica EGO")
+  exec_dinamica(model_path = fs::path(work_dir, "evoland.ego"), verbose = verbose)
 
   # because the simulations may fail without the system command returning an error
   # (if the error occurs in Dinamica) then check the simulation control table to see
