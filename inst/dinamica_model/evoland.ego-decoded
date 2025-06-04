@@ -688,36 +688,12 @@ outputString("Sim_LULC_path", Sim_final_LULC_path)
             @alias = Update control table to reflect simulation complete
             _ := Group .none {{
                 @collapsed = no
-                _ := CalculateRExpression "#############################################################################
-## Source script to update the control table after completion of simulation 
-#############################################################################
-
-### =========================================================================
-### Receive Dinamica inputs
-### =========================================================================
-
-#receive file path for control table 
-Control_table_path <- s1
-
-#receive Boolean value of whether simulation was completed successfully
-Success <- s2
-cat(Success)
-
-#receive row number of current simulation
-Simulation_num <- v1
-#Simulation_num <- 1
-
-### =========================================================================
-### Source R script
-### =========================================================================
-
-source("Scripts/Dinamica_integration/Dinamica_update_control_table.R",
-				echo=TRUE,
-				verbose=TRUE)
-
-
-
-
+                _ := CalculateRExpression "
+evoland::dinamica_update_control_table(
+    control_table_path = s1,
+    success = s2,
+    simulation_num = v1
+)
 " .no {{
                     @alias = Control table path
                     NumberString simulationControlTablePath 1;
