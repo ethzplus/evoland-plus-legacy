@@ -26,7 +26,7 @@ Script {{
     realValue1652 := RealValue 2;
 
     @collapsed = no
-    calculateRexpression1653 := CalculateRExpression "evoland::some_function_call()" .no {{
+    calculateRexpression1653 := CalculateRExpression "stop("runcible spoon")" .no {{
         NumberValue realValue1652 1;
     }};
 
@@ -68,7 +68,7 @@ test_that("process_dinamica_script decodes correctly", {
       I(sample_dinamica_script_decoded),
       mode = "encode"
     ),
-    "ZXZvbGFuZDo6c29tZV9mdW5jdGlvbl9jYWxsKCk="
+    "c3RvcCgicnVuY2libGUgc3Bvb24iKQ=="
   )
 })
 
@@ -115,6 +115,6 @@ test_that("exec_dinamica fails", {
   process_dinamica_script(I(sample_dinamica_script_decoded), tmpfile_ego)
   expect_error(
     exec_dinamica(tmpfile_ego),
-    "there is no package called"
+    "runcible spoon"
   )
 })
