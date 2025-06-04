@@ -6,26 +6,19 @@ Script {{
     @collapsed = no
     @alias = Load simulation control table
     _ := Group .none {{
-        getEnvironmentVariables := CalculateRExpression "### =========================================================================
-### source R script for getting Environmental variables
-### =========================================================================
-
-source("Scripts/Dinamica_integration/Dinamica_get_env_vars.R",
-				echo=TRUE,
-				verbose=TRUE)
-
-### =========================================================================
-### Send Dinamica outputs
-### =========================================================================
-
-#Send Simulation control table path
-outputString("Sim_control_path", Sim_control_path)
-
-#Send Simulation ID
-outputString("Work_dir", wpath)" .no {{
+        getEnvironmentVariables := CalculateRExpression "
+outputString(
+    "simctrl_tbl_path",
+    Sys.getenv("EVOLAND_CTRL_TBL_PATH", unset = "simulation_control.csv")
+)
+outputString(
+    "work_dir",
+    getwd()
+)
+" .no {{
         }};
 
-        workingDirectory := ExtractStructString getEnvironmentVariables $"(Work_dir)";
+        workingDirectory := ExtractStructString getEnvironmentVariables $"(work_dir)";
 
         simulationControlTablePath := ExtractStructString getEnvironmentVariables $"(simctrl_tbl_path)";
 
