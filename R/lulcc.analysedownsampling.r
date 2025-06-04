@@ -44,7 +44,7 @@ lulcc.analysedownsampling <- function(Comparative_table, summary_metrics) {
         axis.text = element_text(colour = "black")
       )
 
-    Change_eval_metric_plot_3d <- plot_ly(
+    Change_eval_metric_plot_3d <- plotly::plot_ly(
       data = Change_in_eval_metric, x = ~imbalance_ratio,
       y = ~num_units,
       z = ~model_diff,
@@ -54,7 +54,7 @@ lulcc.analysedownsampling <- function(Comparative_table, summary_metrics) {
       alpha = 0.8,
       colors = c("darkred", "darkolivegreen4")
     ) |>
-      layout(
+      plotly::layout(
         scene = list(
           xaxis = list(
             title = list(text = "Class imbalance (ratio minority:majority)"),

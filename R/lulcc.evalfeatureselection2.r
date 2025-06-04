@@ -50,7 +50,11 @@ lulcc.evalfeatureselection2 <- function(Predictor_table_path,
 
   # loop over summary levels
   Feature_selection_summaries <- lapply(summary_levels, function(summarize_by) {
-    FS_summary <- lulcc.analysecovselection(All_cov_names = Unique_covs, cov_selection_results = FS_results, summary_level = summarize_by)
+    FS_summary <- lulcc.analysecovselection(
+      All_pred_names = Unique_covs,
+      Filtered_predictors = FS_results,
+      summary_level = summarize_by
+    )
     if (summarize_by != "across_trans") {
       FS_summary <- lulcc.summarisecovselection(nested_list_of_trans = FS_summary, split_by = summarize_by)
     }

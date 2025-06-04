@@ -429,7 +429,7 @@ platform_data_prep <- function() {
       #   showarrow = FALSE,
       #   inherit = TRUE
       # ) %>%
-      layout(
+      plotly::layout(
         xaxis = list(
           showgrid = FALSE,
           showticklabels = FALSE

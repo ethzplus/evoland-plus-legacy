@@ -13,7 +13,10 @@
 #' @author Ben Black
 # TODO where might this be used? was @export
 
-lulcc.analysecovselection <- function(All_pred_names, Filtered_predictors, summary_level) {
+lulcc.analysecovselection <- function(
+    All_pred_names,
+    Filtered_predictors,
+    summary_level) {
   # Instantiate small functions
 
   MOCT <- function(x) {

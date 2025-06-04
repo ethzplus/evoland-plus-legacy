@@ -500,7 +500,7 @@ simulated_map_summaries <- function() {
       #   showarrow = FALSE,
       #   inherit = TRUE
       # ) %>%
-      layout(
+      plotly::layout(
         xaxis = list(
           showgrid = FALSE,
           showticklabels = FALSE
