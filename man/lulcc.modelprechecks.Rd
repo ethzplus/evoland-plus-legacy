@@ -4,7 +4,7 @@
 \alias{lulcc.modelprechecks}
 \title{LULCC_model_pre_checks}
 \usage{
-lulcc.modelprechecks(Control_table_path, Param_dir, config = get_config())
+lulcc.modelprechecks(config = get_config())
 }
 \arguments{
 \item{Control_table_path}{Chr, file path of calibration/simulation control table
@@ -12,7 +12,8 @@ lulcc.modelprechecks(Control_table_path, Param_dir, config = get_config())
 date: 03-11-2022}
 }
 \description{
-function to check that all elements required for simulation with Dinamica are prepared
+function to check that all elements required for simulation with Dinamica are
+prepared
 }
 \author{
 Ben Black

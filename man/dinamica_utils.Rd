@@ -11,34 +11,40 @@ exec_dinamica(
   model_path,
   disable_parallel = TRUE,
   log_level = NULL,
-  additional_args = NULL
+  additional_args = NULL,
+  verbose = FALSE
 )
 
 run_dinamica_extrapolation(
   run_modelprechecks = TRUE,
   config = get_config(),
-  work_dir = file.path(".", format(Sys.time(), "\%Y-\%m-\%d \%Hh\%Mm\%Ss"))
+  work_dir = file.path(".", format(Sys.time(), "\%Y-\%m-\%d_\%Hh\%Mm\%Ss")),
+  verbose = FALSE,
+  simctrl_tbl_path = fs::path("tools", "simulation_control.csv")
 )
 
-process_dinamica_script(infile, outfile, mode = "encode")
+process_dinamica_script(infile, outfile, mode = "encode", check = TRUE)
 }
 \arguments{
 \item{model_path}{Path to the .ego model file to run. Any submodels must be included
-in a directory of the exact form \verb{basename("model.ego")_Submodels},
-\href{https://csr.ufmg.br/dinamica/dokuwiki/doku.php?id=submodels}{see wiki}}
+in a directory of the exact form \verb{basename(modelpath)_ego_Submodels}, \href{https://csr.ufmg.br/dinamica/dokuwiki/doku.php?id=submodels}{see wiki}}
 
 \item{disable_parallel}{Whether to disable parallel steps (default TRUE)}
 
 \item{log_level}{Logging level (1-7, default NULL)}
 
 \item{additional_args}{Additional arguments to pass to DinamicaConsole, see
-\href{https://dinamicaego.com/dokuwiki/doku.php?id=tutorial:dinamica_ego_script_language_and_console_launcher}{this wiki page}  # nolint: line_length_linter.}
+\code{DinamicaConsole -help}}
 
-\item{infile}{Input file path}
+\item{verbose}{Default FALSE, else prints stdout/stderr immediately}
+
+\item{infile}{Input file path. Treated as input if passed AsIs using \code{base::I()}}
 
 \item{outfile}{Output file path (optional)}
 
 \item{mode}{Character, either "encode" or "decode"}
+
+\item{check}{Default TRUE, simple check to ensure that you're handling what you're expecting}
 }
 \description{
 Functions to interact with Dinamica from R

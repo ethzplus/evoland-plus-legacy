@@ -7,7 +7,6 @@
 get_config(
   scenario_names = c("BAU", "EI-NAT", "EI-CUL", "EI-SOC", "GR-EX"),
   step_length = 5L,
-  simctrl_tbl_path = "tools/simulation_control.csv",
   data_periods = c("1985_1997", "1997_2009", "2009_2018"),
   regionalization = TRUE,
   inclusion_threshold = 0.5
@@ -17,8 +16,6 @@ get_config(
 \item{scenario_names}{character vector of scenario names}
 
 \item{step_length}{integer step length for simulation}
-
-\item{simctrl_tbl_path}{character path to simulation control table}
 
 \item{data_periods}{character vector of data periods}
 
@@ -30,6 +27,8 @@ the total area of class X; a good value for this threshold is 0.5 such that if t
 number of cells transitioning <0.5\% of the total number of cells of the initial class
 then the transition is not included. The rationale for this is that the statistical
 model produced for the transition will be too weak due to high-imbalance}
+
+\item{simctrl_tbl_path}{character path to simulation control table}
 }
 \value{
 list of configuration parameters
