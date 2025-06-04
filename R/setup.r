@@ -34,7 +34,7 @@ get_config <- function(
   allocation_pars_dir <- file.path(data_basepath, "allocation_parameters")
   preds_tools_dir <- file.path(predictors_dir, "tools")
   results_dir <- file.path(data_basepath, "results")
-  tools_dir <- "tools"
+  tools_dir <- file.path(data_basepath, "tools")
 
   config <- list(
     # Base directories
@@ -76,7 +76,7 @@ get_config <- function(
     ),
 
     # Configuration parameters
-    simctrl_tbl_path = Sys.getenv("EVOLAND_CTRL_TBL_PATH", unset = "simulation_control.csv"),
+    simctrl_tbl_path = file.path(tools_dir, "simulation_control.csv"),
     step_length = step_length,
     scenario_names = scenario_names,
     # FIXME the next two used to be read from model_specs_path;
