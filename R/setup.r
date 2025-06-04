@@ -21,7 +21,6 @@
 get_config <- function(
     scenario_names = c("BAU", "EI-NAT", "EI-CUL", "EI-SOC", "GR-EX"),
     step_length = 5L,
-    simctrl_tbl_path = "tools/simulation_control.csv",
     data_periods = c("1985_1997", "1997_2009", "2009_2018"),
     regionalization = TRUE,
     inclusion_threshold = 0.5) {
@@ -77,7 +76,7 @@ get_config <- function(
     ),
 
     # Configuration parameters
-    simctrl_tbl_path = simctrl_tbl_path, # simulation control table
+    simctrl_tbl_path = Sys.getenv("EVOLAND_CTRL_TBL_PATH", unset = "simulation_control.csv"),
     step_length = step_length,
     scenario_names = scenario_names,
     # FIXME the next two used to be read from model_specs_path;
