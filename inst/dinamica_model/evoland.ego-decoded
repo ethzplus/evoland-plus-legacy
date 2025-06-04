@@ -24,43 +24,18 @@ outputString(
 
         @collapsed = no
         @alias = Subset control table to only simulations yet to be completed (i.e. modelled)
-        subsetControlTableToOnlySimulationsYetToBeCompletedIEModelled := CalculateRExpression "#############################################################################
-## Source script to subset the control table to remove simulations
-#############################################################################
-
-### =========================================================================
-### Receive Dinamica inputs
-### =========================================================================
-
-#receive control table path
-Control_table_path <- s1
-
-#receive working directory
-wpath <- s2
-
-### =========================================================================
-### Source R script for subsetting table
-### =========================================================================
-
-source("Scripts/Dinamica_integration/Dinamica_subset_control_table.R",
-				echo=TRUE,
-				verbose=TRUE)
-
-### =========================================================================
-### Send Dinamica outputs
-### =========================================================================
-
+        incompleteSimulationsRExpression := CalculateRExpression "
+tbl <- readr::read_csv(s1)
+tbl[tbl$completed.string == "N", ]
 #Send back subsetted table
-outputTable("Remaining_simulations", Control_table)" .no {{
+outputTable("remaining_simulations", tbl)
+" .no {{
             @alias = Control table path
             NumberString simulationControlTablePath 1;
-
-            @alias = work_dir
-            NumberString workingDirectory 2;
         }};
 
         @viewer.table = yes
-        subsettedControlTable := ExtractStructTable subsetControlTableToOnlySimulationsYetToBeCompletedIEModelled $"(Remaining_simulations)";
+        subsettedControlTable := ExtractStructTable incompleteSimulationsRExpression $"(remaining_simulations)";
     }};
 
     //
@@ -90,7 +65,7 @@ outputTable("Remaining_simulations", Control_table)" .no {{
                     @collapsed = no
                     @viewer.result = yes
                     initializeCurrentSimulation := CalculateRExpression "#############################################################################
-## Source script to initialize model run specifications in Dinamica  
+## Source script to initialize model run specifications in Dinamica
 #############################################################################
 
 ### =========================================================================
@@ -121,7 +96,7 @@ source("Scripts/Dinamica_integration/Dinamica_initialise.R",
 ### =========================================================================
 
 #send step length
-outputDouble("Step_length", Step_length)  
+outputDouble("Step_length", Step_length)
 
 #Send Simulation ID
 outputString("Sim_id", Simulation_ID)
@@ -135,7 +110,7 @@ outputLookupTable("simulation_time_steps", model_time_steps$Keys, model_time_ste
 #send simulated LULC folder path to Dinamica receiver: sim_lulc_folder_path
 outputString("sim_lulc_folder_path", simulated_LULC_file_path)
 
-#send initial LULC map file path to Dinamica receiver:  
+#send initial LULC map file path to Dinamica receiver:
 outputString("initial_lulc_path", save_raster_path)
 
 #send folder path as string to Dinamica receiver: Allocation_params_folder_path
@@ -182,7 +157,7 @@ outputString("trans_matrix_folder_path", Trans_rate_table_dir)
                     _ := Group .none {{
                         @collapsed = no
                         loadTransitionRateTable := CalculateRExpression "#############################################################################
-## Source script to load Scenario/time specific transition matrix 
+## Source script to load Scenario/time specific transition matrix
 #############################################################################
 
 ### =========================================================================
@@ -536,7 +511,7 @@ outputString("updated_lulc_map_path", File_path_simulated_LULC_maps)
                 _ := Group scenarioTimeStepIteration {{
                     @collapsed = no
                     calculateRexpression2508 := CalculateRExpression "#############################################################################
-## Source script to detrmine condition for 'if else' function to perform 
+## Source script to detrmine condition for 'if else' function to perform
 ## validation of simulation results
 #############################################################################
 
@@ -574,13 +549,13 @@ source("Scripts/Dinamica_integration/Dinamica_use_validation.R",
 ### =========================================================================
 
 #output validation condition
-outputDouble("Use_validation", validation_condition) 
+outputDouble("Use_validation", validation_condition)
 
 #Output result paths
 outputString("Val_map_path", Validation_map_path)
 outputString("Val_result_path", Validation_result_path)
 
-#output file path for observed map for final LULC year 
+#output file path for observed map for final LULC year
 outputString("Obs_LULC_path", Final_LULC_path)
 
 #output file path for simulated map for final LULC year
