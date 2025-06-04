@@ -9,6 +9,17 @@
       "platform": "linux/amd64"
     }
   },
+  "mounts": [
+    {
+      // cannot set this from env var, must be adjusted manually
+      "source": "/Users/jhartman/Documents/evoland-ch-data",
+      "target": "/mnt/evoland-data",
+      "type": "bind"
+    }
+  ],
+  "containerEnv": {
+    "EVOLAND_DATA_BASEPATH": "/mnt/evoland-data"
+  },
   "customizations": {
     "vscode": {
       "settings": {

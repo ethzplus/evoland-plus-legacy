@@ -26,7 +26,7 @@ get_config <- function(
     regionalization = TRUE,
     inclusion_threshold = 0.5) {
   # TODO path composition could happen here through nested lists, or e.g. json dicts?
-  data_basepath <- "data-raw" # the name "data" is taken by R package convention
+  data_basepath <- Sys.getenv("EVOLAND_DATA_BASEPATH", unset = "data-raw")
   historic_lulc_basepath <- file.path(data_basepath, "historic_lulc")
   bioreg_dir <- file.path(data_basepath, "bioregions")
   predictors_dir <- file.path(data_basepath, "preds")
