@@ -21,6 +21,7 @@ Imports:
     parallel,
     promises,
     purrr,
+    randomForest,
     raster,
     readr,
     readxl,
