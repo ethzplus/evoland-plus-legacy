@@ -44,7 +44,7 @@ exec_dinamica <- function(model_path,
       args
     ),
     error_on_status = FALSE,
-    echo = !verbose,
+    echo = verbose,
     spinner = TRUE,
     env = c(
       "current",
@@ -79,11 +79,16 @@ exec_dinamica <- function(model_path,
 }
 
 #' @describeIn dinamica_utils Run a Dinamica EGO extrapolation simulation
+#' @param run_modelprechecks bool, Validate that everything's in place for a model run.
+#' Set to false for calibration runs.
+#' @param work_dir Working dir, where to place ego files and control table
+#' @param verbose bool
+#' @param simctrl_tbl_template Path to the template simulation control table
 #' @export
 run_dinamica_extrapolation <- function(
     run_modelprechecks = TRUE,
     config = get_config(),
-    work_dir = file.path(".", format(Sys.time(), "%Y-%m-%d_%Hh%Mm%Ss")),
+    work_dir = format(Sys.time(), "%Y-%m-%d_%Hh%Mm%Ss"),
     verbose = FALSE) {
   if (run_modelprechecks) {
     stopifnot(lulcc.modelprechecks())
@@ -107,24 +112,14 @@ run_dinamica_extrapolation <- function(
     process_dinamica_script(decoded_file, out_path)
   })
 
+  # move simulation control csv into place
+  fs::file_copy(
+    config[["simtrl_tbl_path"]],
+    fs::path(work_dir, "simulation_control.csv")
+  )
+
   cli::cli_inform("Starting to run model with Dinamica EGO")
   exec_dinamica(model_path = fs::path(work_dir, "evoland.ego"), verbose = verbose)
-
-  # because the simulations may fail without the system command returning an error
-  # (if the error occurs in Dinamica) then check the simulation control table to see
-  # if/how many simulations have failed
-  Updated_control_tbl <- read.csv(config[["simctrl_tbl_path"]])
-
-  if (any(Updated_control_tbl$completed.string == "ERROR")) {
-    stop(
-      length(which(Updated_control_tbl$completed.string == "ERROR")),
-      "of", nrow(Updated_control_tbl),
-      "simulations have failed to run till completion, check log for details of errors"
-    )
-  } else {
-    # Send completion message
-    message("All simulations completed sucessfully")
-  }
 }
 
 #' @describeIn dinamica_utils Encode or decode raw R and Python code chunks in .ego

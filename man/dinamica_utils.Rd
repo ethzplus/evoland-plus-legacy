@@ -18,9 +18,8 @@ exec_dinamica(
 run_dinamica_extrapolation(
   run_modelprechecks = TRUE,
   config = get_config(),
-  work_dir = file.path(".", format(Sys.time(), "\%Y-\%m-\%d_\%Hh\%Mm\%Ss")),
-  verbose = FALSE,
-  simctrl_tbl_path = fs::path("tools", "simulation_control.csv")
+  work_dir = format(Sys.time(), "\%Y-\%m-\%d_\%Hh\%Mm\%Ss"),
+  verbose = FALSE
 )
 
 process_dinamica_script(infile, outfile, mode = "encode", check = TRUE)
@@ -36,7 +35,12 @@ in a directory of the exact form \verb{basename(modelpath)_ego_Submodels}, \href
 \item{additional_args}{Additional arguments to pass to DinamicaConsole, see
 \code{DinamicaConsole -help}}
 
-\item{verbose}{Default FALSE, else prints stdout/stderr immediately}
+\item{verbose}{bool}
+
+\item{run_modelprechecks}{bool, Validate that everything's in place for a model run.
+Set to false for calibration runs.}
+
+\item{work_dir}{Working dir, where to place ego files and control table}
 
 \item{infile}{Input file path. Treated as input if passed AsIs using \code{base::I()}}
 
@@ -45,6 +49,8 @@ in a directory of the exact form \verb{basename(modelpath)_ego_Submodels}, \href
 \item{mode}{Character, either "encode" or "decode"}
 
 \item{check}{Default TRUE, simple check to ensure that you're handling what you're expecting}
+
+\item{simctrl_tbl_template}{Path to the template simulation control table}
 }
 \description{
 Functions to interact with Dinamica from R
