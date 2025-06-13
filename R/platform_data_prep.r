@@ -21,8 +21,8 @@ platform_data_prep <- function() {
   Sankey_dir <- "Results/Sankey_tables_diagrams"
   dir.create(Sankey_dir)
 
-  # Load simulation control table
-  Simulation_control <- read.csv(simctrl_tbl_path)
+  # Load control table
+  Simulation_control <- read.csv(ctrl_tbl_path)
   Simulation_control <- Simulation_control[Simulation_control$completed.string == "Y", ]
 
   # get unique values of Simulation ID

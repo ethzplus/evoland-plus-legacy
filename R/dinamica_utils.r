@@ -83,7 +83,7 @@ exec_dinamica <- function(model_path,
 #' Set to false for calibration runs.
 #' @param work_dir Working dir, where to place ego files and control table
 #' @param verbose bool
-#' @param simctrl_tbl_template Path to the template simulation control table
+#' @param simctrl_tbl_template Path to the template control table
 #' @export
 run_dinamica_extrapolation <- function(
     run_modelprechecks = TRUE,
@@ -114,7 +114,7 @@ run_dinamica_extrapolation <- function(
 
   # move simulation control csv into place
   fs::file_copy(
-    config[["simtrl_tbl_path"]],
+    config[["ctrl_tbl_path"]],
     fs::path(work_dir, "simulation_control.csv")
   )
 

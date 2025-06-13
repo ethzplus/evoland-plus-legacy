@@ -3,7 +3,7 @@
 #' function to check that all elements required for simulation with Dinamica are
 #' prepared
 #'
-#' @param Control_table_path Chr, file path of calibration/simulation control table
+#' @param Control_table_path Chr, file path of control table
 #'
 #' date: 03-11-2022
 #' @author Ben Black
@@ -11,7 +11,7 @@
 
 lulcc.modelprechecks <- function(config = get_config()) {
   # load table
-  Simulation_table <- read.csv(config[["simctrl_tbl_path"]])
+  Simulation_table <- read.csv(config[["ctrl_tbl_path"]])
 
   # Get model mode
   model_mode <- unique(Simulation_table$model_mode.string)
@@ -192,7 +192,7 @@ lulcc.modelprechecks <- function(config = get_config()) {
       abs(Obs_LULC_years[base::which.min(abs(Obs_LULC_years - x))] - x)
     }
   )
-  names(Start_years) <- Simulation_table$simulation_id.string
+  names(Start_years) <- control_table$simulation_id.string
 
   if (any(dplyr::between(Start_years, 0, 5)) == FALSE) {
     model_pre_checks <- c(model_pre_checks, list(list(
@@ -226,7 +226,7 @@ lulcc.modelprechecks <- function(config = get_config()) {
     })
   } else if (grepl("calibration", model_mode, ignore.case = TRUE)) {
     Param_table_paths <- c(sapply(
-      unique(Simulation_table$simulation_id.string),
+      unique(control_table$simulation_id.string),
       function(Sim_ID) {
         Params_path <- paste0(
           config[["simulation_param_dir"]], "/",

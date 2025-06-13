@@ -16,8 +16,8 @@
 #' @export
 
 simulation_predictor_prep <- function(config = get_config()) {
-  # Fetch simulation start and end times from simulation control table
-  Simulation_control <- readr::read_csv(config[["simctrl_tbl_path"]])
+  # Fetch simulation start and end times from control table
+  Simulation_control <- readr::read_csv(config[["ctrl_tbl_path"]])
   Simulation_start <- min(Simulation_control$scenario_start.real)
   Simulation_end <- max(Simulation_control$scenario_end.real)
   step_length <- unique(Simulation_control$step_length.real)
@@ -179,7 +179,7 @@ simulation_predictor_prep <- function(config = get_config()) {
 
   # Subset to which econ scenarios are required for our scenarios
 
-  # get names of required scenarios from simulation control table
+  # get names of required scenarios from control table
   Scenario_corr <-
     Simulation_control$econ_scenario.string |>
     stringr::str_squish() |>

@@ -7,7 +7,7 @@
 lulcc.modelprechecks(config = get_config())
 }
 \arguments{
-\item{Control_table_path}{Chr, file path of calibration/simulation control table
+\item{Control_table_path}{Chr, file path of control table
 
 date: 03-11-2022}
 }

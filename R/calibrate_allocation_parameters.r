@@ -208,8 +208,8 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   # so they are converted in this loop
 
   # First create a lookup table to control looping over the simulations
-  Calibration_control_table <- data.frame(matrix(ncol = 11, nrow = 0))
-  colnames(Calibration_control_table) <- c(
+  calibration_control_table <- data.frame(matrix(ncol = 11, nrow = 0))
+  colnames(calibration_control_table) <- c(
     "simulation_num.",
     "scenario_id.string",
     "simulation_id.string",
@@ -355,24 +355,24 @@ calibrate_allocation_parameters <- function(config = get_config()) {
 
   # add rows for MC sim_names
   for (i in seq_along(mc_sims)) {
-    Calibration_control_table[i, "simulation_id.string"] <- mc_sims[i]
-    Calibration_control_table[i, "simulation_num."] <- i
+    calibration_control_table[i, "simulation_id.string"] <- mc_sims[i]
+    calibration_control_table[i, "simulation_num."] <- i
   }
 
   # fill in remaining columns
-  Calibration_control_table$scenario_id.string <- "CALIBRATION"
-  Calibration_control_table$scenario_start.real <- scenario_start
-  Calibration_control_table$scenario_end.real <- scenario_end
-  Calibration_control_table$step_length.real <- step_length
-  Calibration_control_table$model_mode.string <- "Calibration"
-  Calibration_control_table$parallel_tpc.string <- "N"
-  Calibration_control_table$completed.string <- "N"
-  Calibration_control_table$spatial_interventions.string <- "N"
-  Calibration_control_table$deterministic_trans.string <- "N"
+  calibration_control_table$scenario_id.string <- "CALIBRATION"
+  calibration_control_table$scenario_start.real <- scenario_start
+  calibration_control_table$scenario_end.real <- scenario_end
+  calibration_control_table$step_length.real <- step_length
+  calibration_control_table$model_mode.string <- "Calibration"
+  calibration_control_table$parallel_tpc.string <- "N"
+  calibration_control_table$completed.string <- "N"
+  calibration_control_table$spatial_interventions.string <- "N"
+  calibration_control_table$deterministic_trans.string <- "N"
 
   # save table
   readr::write_csv(
-    Calibration_control_table,
+    calibration_control_table,
     config[["calibration_control_path"]]
   )
 
@@ -382,13 +382,13 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   # are prepared
   withr::with_envvar(
     c(
-      C = config[["calibration_control_path"]]
+      CONTROL_PATH = config[["calibration_control_path"]]
     ),
-    run_dinamica_extrapolation()
+    run_dinamica_extrapolation(run_modelprechecks = FALSE)
   )
 
   # because the simulations may fail without the system command returning an error
-  # (if the error occurs in Dinamica) then check the simulation control table to see
+  # (if the error occurs in Dinamica) then check the control table to see
   # if/how many simulations have failed
   Updated_control_tbl <- read.csv(Control_table_path)
 
@@ -469,8 +469,8 @@ calibrate_allocation_parameters <- function(config = get_config()) {
     "Perc_expander", "Perc_patcher"
   )
 
-  # get simulation start and end times from simulation control table
-  Simulation_control <- read.csv(config[["simctrl_tbl_path"]])
+  # get simulation start and end times from control table
+  Simulation_control <- read.csv(config[["ctrl_tbl_path"]])
   Simulation_start <- min(Simulation_control$scenario_start.real)
   Simulation_end <- max(Simulation_control$scenario_end.real)
   Scenario_IDs <- unique(Simulation_control$scenario_id.string)

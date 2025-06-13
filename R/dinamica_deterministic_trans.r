@@ -25,13 +25,13 @@ dinamica_deterministic_trans <- function() {
   invisible(lapply(packs, require, character.only = TRUE))
 
   # load table of simulations
-  Simulation_table <- read.csv(Control_table_path)[simulation_num, ]
+  control_table <- read.csv(Control_table_path)[simulation_num, ]
 
   # Vector name of Climate scenario
   Climate_ID <- Simulation_table$climate_scenario.string
 
   # Vector ID for this run of the scenario (e.g V1)
-  simulation_id <- Simulation_table$simulation_id.string
+  simulation_id <- control_table$simulation_id.string
 
   # Define model_mode: Calibration or Simulation
   model_mode <- Simulation_table$model_mode.string

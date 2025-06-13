@@ -1,4 +1,4 @@
-#' Create a simulation control table
+#' Create a control table
 #'
 #' From master lulcc: how to prepare a sim control table
 #' User enter start and end dates for the scenarios either enter a single number
@@ -20,8 +20,8 @@ prepare_simctrl_tbl <- function(
     scenario_end = 2060L,
     step_length = 5L,
     reps = 1L) {
-  simulation_control_table <- data.frame(matrix(ncol = 11, nrow = 0))
-  colnames(simulation_control_table) <- c(
+  control_table <- data.frame(matrix(ncol = 11, nrow = 0))
+  colnames(control_table) <- c(
     "simulation_num.",
     "scenario_id.string",
     "simulation_id.string",
@@ -43,29 +43,29 @@ prepare_simctrl_tbl <- function(
 
   # expand vector of scenario names according to number of repetitions and add to table
   scenario_ids <- c(sapply(scenario_names, function(x) rep(x, reps), simplify = TRUE))
-  simulation_control_table[1:length(scenario_ids), "scenario_id.string"] <- scenario_ids
+  control_table[1:length(scenario_ids), "scenario_id.string"] <- scenario_ids
 
   # fill other columns
-  simulation_control_table$simulation_id.string <- rep(
+  control_table$simulation_id.string <- rep(
     paste0("v", seq(1, reps, 1)), length(scenario_names)
   )
-  simulation_control_table$scenario_start.real <- if (length(unique(scenario_start)) == 1) {
+  control_table$scenario_start.real <- if (length(unique(scenario_start)) == 1) {
     scenario_start
   } else {
     c(rep(scenario_start, length(scenario_names)))
   }
-  simulation_control_table$scenario_end.real <- if (length(unique(scenario_end)) == 1) {
+  control_table$scenario_end.real <- if (length(unique(scenario_end)) == 1) {
     scenario_end
   } else {
     c(rep(scenario_end, length(scenario_names)))
   }
-  simulation_control_table$step_length.real <- step_length
-  simulation_control_table$model_mode.string <- "Simulation"
-  simulation_control_table$simulation_num. <- seq(1, nrow(simulation_control_table), 1)
-  simulation_control_table$parallel_tpc.string <- "N"
-  simulation_control_table$spatial_interventions.string <- "Y"
-  simulation_control_table$deterministic_trans.string <- "Y"
-  simulation_control_table$completed.string <- "N"
+  control_table$step_length.real <- step_length
+  control_table$model_mode.string <- "Simulation"
+  control_table$simulation_num. <- seq(1, nrow(control_table), 1)
+  control_table$parallel_tpc.string <- "N"
+  control_table$spatial_interventions.string <- "Y"
+  control_table$deterministic_trans.string <- "Y"
+  control_table$completed.string <- "N"
 
-  return(simulation_control_table)
+  return(control_table)
 }

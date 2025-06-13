@@ -63,21 +63,21 @@ simulation_trans_tables_prep <- function(config = get_config()) {
     )
   ))
 
-  # load simulation control table
-  Sim_control_table <- read.csv(config[["simctrl_tbl_path"]])
+  # load control table
+  control_table <- read.csv(config[["ctrl_tbl_path"]])
 
   # vector all time steps in calibration and simulation
   All_time_steps <- seq(
     from = min(LULC_years),
-    to = max(Sim_control_table$scenario_end.real),
+    to = max(control_table$scenario_end.real),
     by = step_length
   )
 
   #### B- Create folder structure for scenario specific trans rates tables ####
 
-  # use simulation control table to get names of Scenarios
+  # use control table to get names of Scenarios
   scenario_names <-
-    Sim_control_table[["scenario_id.string"]] |>
+    control_table[["scenario_id.string"]] |>
     unique() |>
     stringr::str_squish()
 
@@ -340,8 +340,8 @@ simulation_trans_tables_prep <- function(config = get_config()) {
   Sim_time_steps <- All_time_steps[
     dplyr::between(
       All_time_steps,
-      min(Sim_control_table$scenario_start.real) + step_length,
-      max(Sim_control_table$scenario_end.real)
+      min(control_table$scenario_start.real) + step_length,
+      max(control_table$scenario_end.real)
     )
   ]
 

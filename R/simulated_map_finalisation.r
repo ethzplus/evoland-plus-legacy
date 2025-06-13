@@ -67,8 +67,8 @@ simulated_map_finalisation <- function() {
   mask_values <- unlist(Aggregation_scheme[Aggregation_scheme$NOAS04_class_ENG %in% c("Lakes", "Rivers"), "NOAS04_ID"])
   names(mask_values) <- c(20, 21)
 
-  # Load simulation control table
-  Simulation_control <- read.csv(simctrl_tbl_path)
+  # Load control table
+  Simulation_control <- read.csv(ctrl_tbl_path)
   Simulation_control <- Simulation_control[Simulation_control$completed.string == "Y", ]
 
   # get unique values of Simulation ID

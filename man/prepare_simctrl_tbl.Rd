@@ -2,7 +2,7 @@
 % Please edit documentation in R/prepare_simctrl_tbl.r
 \name{prepare_simctrl_tbl}
 \alias{prepare_simctrl_tbl}
-\title{Create a simulation control table}
+\title{Create a control table}
 \usage{
 prepare_simctrl_tbl(
   scenario_names = c("BAU", "EI-NAT", "EI-CUL", "EI-SOC", "GR-EX"),

@@ -29,14 +29,10 @@ dinamica_get_env_vars <- function() {
     "LULCC_M_CAL_PARAM_DIR" = "calibration_param_dir", # Path to calibration parameter directory
     "LULCC_M_SIM_PARAM_DIR" = "simulation_param_dir", # Path to simulation parameter directory
     "LULCC_M_RATE_TABLE_DIR" = "trans_rate_table_dir", # Path to transition rate table directory
-    "LULCC_M_SIM_CONTROL_TABLE" = "simctrl_tbl_path", # Path to simulation control table
+    "LULCC_M_SIM_CONTROL_TABLE" = "ctrl_tbl_path", # Path to control table
     "LULCC_M_SPAT_INTS_TABLE" = "spat_ints_path", # Path to spatial interventions table
     "LULCC_M_EI_INTS_TABLE" = "EI_ints_path"
   ) # Path to EI interventions table
-
-  # Get environment variables set from SLURM
-  Sys.getenv(x = names(env_var_key), names = TRUE)
-
   # list values of env_vars
   model_vars <- mget(names(env_var_key))
 

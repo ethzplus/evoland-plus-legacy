@@ -50,7 +50,7 @@ Set to false for calibration runs.}
 
 \item{check}{Default TRUE, simple check to ensure that you're handling what you're expecting}
 
-\item{simctrl_tbl_template}{Path to the template simulation control table}
+\item{simctrl_tbl_template}{Path to the template control table}
 }
 \description{
 Functions to interact with Dinamica from R

@@ -49,8 +49,8 @@ landscape_pattern_analysis <- function() {
   LSM_dir <- "Results/Landscape_pattern_analysis"
   dir.create(LSM_dir)
 
-  # Load simulation control table
-  Simulation_control <- read.csv(simctrl_tbl_path)
+  # Load control table
+  Simulation_control <- read.csv(ctrl_tbl_path)
   Simulation_control <- Simulation_control[Simulation_control$completed.string == "Y", ]
 
   # get unique values of Simulation ID

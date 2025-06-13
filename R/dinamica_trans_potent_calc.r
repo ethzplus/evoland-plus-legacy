@@ -11,7 +11,7 @@ dinamica_trans_potent_calc <- function() {
 
   # values for testing purposes
   # wpath <- "C:/Users/bblack/switchdrive/C.3_Modelling/LULCC_CH_HPC"
-  # simctrl_tbl_path <- "Tools/Simulation_control.csv"
+  # ctrl_tbl_path <- "Tools/Simulation_control.csv"
   # File_path_simulated_LULC_maps <- "Results/Dinamica_simulated_LULC/BAU/v6/simulated_LULC_scenario_BAU_simID_v6_year_"
   # model_mode <- "calibration"
   # Simulation_time_step <- 2020
@@ -42,7 +42,7 @@ dinamica_trans_potent_calc <- function() {
   Ref_grid <- raster(ref_grid_path)
 
   # load table of simulations
-  Simulation_table <- read.csv(simctrl_tbl_path)[simulation_num, ]
+  control_table <- read.csv(ctrl_tbl_path)[simulation_num, ]
 
   # Vector name of Scenario to be tested as string or numeric (i.e. "BAU" etc.)
   scenario_id <- Simulation_table$scenario_id.string
@@ -60,7 +60,7 @@ dinamica_trans_potent_calc <- function() {
   ei_intervention_id <- Simulation_table$ei_intervention_id.string
 
   # Vector an ID for this run of the scenario (e.g V1)
-  simulation_id <- Simulation_table$simulation_id.string
+  simulation_id <- control_table$simulation_id.string
 
   # Define model_mode: Calibration or Simulation
   model_mode <- Simulation_table$model_mode.string

@@ -26,13 +26,13 @@ dinamica_initialize <- function() {
   invisible(lapply(packs, require, character.only = TRUE))
 
   # load table of simulations
-  Simulation_table <- read.csv(simctrl_tbl_path)[simulation_num, ]
+  control_table <- read.csv(ctrl_tbl_path)[simulation_num, ]
 
   # Enter name of Scenario to be tested as string or numeric (i.e. "BAU" etc.)
   scenario_id <- Simulation_table$scenario_id.string
 
   # Vector simulation ID
-  simulation_id <- Simulation_table$simulation_id.string
+  simulation_id <- control_table$simulation_id.string
 
   # Vector name of Climate scenario
   Climate_ID <- Simulation_table$climate_scenario.string

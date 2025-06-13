@@ -4,7 +4,6 @@
 #'
 #' @param scenario_names character vector of scenario names
 #' @param step_length integer step length for simulation
-#' @param simctrl_tbl_path character path to simulation control table
 #' @param data_periods character vector of data periods
 #' @param regionalization logical whether to regionalize
 #' @param inclusion_threshold numeric, minimum % threshold for transition inclusion.
@@ -76,7 +75,7 @@ get_config <- function(
     ),
 
     # Configuration parameters
-    simctrl_tbl_path = file.path(tools_dir, "simulation_control.csv"),
+    ctrl_tbl_path = file.path(tools_dir, "simulation_control.csv"),
     step_length = step_length,
     scenario_names = scenario_names,
     # FIXME the next two used to be read from model_specs_path;
