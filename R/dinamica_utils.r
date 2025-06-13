@@ -75,7 +75,7 @@ exec_dinamica <- function(model_path,
     )
   }
 
-  res
+  invisible(res)
 }
 
 #' @describeIn dinamica_utils Run a Dinamica EGO extrapolation simulation
