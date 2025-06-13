@@ -6,7 +6,15 @@ set -e
 NCPUS=${NCPUS:-"-1"}
 
 apt-get update -qq
-apt-get -y --no-install-recommends install pipx git
+apt-get -y --no-install-recommends install \
+  git \
+  libfontconfig1-dev \
+  libfribidi-dev \
+  libgit2-dev \
+  libharfbuzz-dev \
+  pipx \
+  shellcheck
+
 rm -rf /var/lib/apt/lists/*
 
 PIPX_BIN_DIR=/usr/local/bin pipx install radian

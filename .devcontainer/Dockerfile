@@ -1,5 +1,5 @@
 # Pin to amd64 because Dinamica only gets distributed for that platform
-FROM --platform=amd64 ghcr.io/mmyrte/evoland:latest
+FROM ghcr.io/mmyrte/evoland:latest
 LABEL authors="Carlson Büth, Jan Hartman" \
   version="8.3" \
   description="Docker image for Dinamica EGO."

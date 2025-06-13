@@ -11,8 +11,7 @@
   },
   "mounts": [
     {
-      // could eventually replace source with ${localEnv:EVOLAND_DATA_BASEPATH}
-      "source": "/Users/jhartman/Documents/evoland-ch-data",
+      "source": "${localEnv:EVOLAND_DATA_BASEPATH}",
       "target": "/mnt/evoland-data",
       "type": "bind"
     }
