@@ -380,6 +380,7 @@ calibrate_allocation_parameters <- function(config = get_config()) {
 
   # Perform pre-check to make sure that all element required for Dinamica modelling
   # are prepared
+  # FIXME i'm trying to
   withr::with_envvar(
     c(
       CONTROL_PATH = config[["calibration_control_path"]]

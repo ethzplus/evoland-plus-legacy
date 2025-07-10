@@ -514,6 +514,7 @@ dinamica_trans_potent_calc <- function(spat_ints_path) {
           Trans_dataset_complete$Bioregion_Class_Names == Region, ]
 
         # predict using fitted model
+        # TODO this is the slowest step, ben mentioned 13mins for ~128 models
         prob_predicts <- as.data.frame(predict(Fitted_model, pred_data, type = "prob"))
         names(prob_predicts)[[2]] <- paste0("Prob_", Final_LULC)
 

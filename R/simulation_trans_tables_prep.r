@@ -422,6 +422,11 @@ simulation_trans_tables_prep <- function(config = get_config()) {
     } # close LULC class loop
   }
 
+
+  # TODO make this a clear break in the program logic
+  # This is where expert elicitation happens; that provides the expected LULC areas for
+  # the final timestep.
+
   #### F- Scenario modification of LULC coverage and transition areas ####
 
   # This process involves taking the LULC class areas in 2060 for each scenario that
