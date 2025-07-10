@@ -27,8 +27,6 @@ the total area of class X; a good value for this threshold is 0.5 such that if t
 number of cells transitioning <0.5\% of the total number of cells of the initial class
 then the transition is not included. The rationale for this is that the statistical
 model produced for the transition will be too weak due to high-imbalance}
-
-\item{simctrl_tbl_path}{character path to simulation control table}
 }
 \value{
 list of configuration parameters

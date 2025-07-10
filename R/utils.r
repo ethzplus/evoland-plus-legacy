@@ -8,4 +8,5 @@ NULL
 #' @describeIn util Ensure that a directory exists
 ensure_dir <- function(dir) {
   dir.create(dir, showWarnings = FALSE, recursive = TRUE)
+  invisible(dir)
 }

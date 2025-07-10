@@ -4,44 +4,30 @@
 @submodel.import = CreateCubeOfProbabilityMaps { { \"transitionMatrix\" : Table, \"inputFolder\" : Folder } { } { \"probabilityMapsRasterCube\" : Map } }; AllocateTransitions { { \"lanscape\" : CategoricalMap, \"probabilities\" : Map, \"transitionMatrix\" : TransitionMatrix, \"percentOfTransitionsByExpansion\" : PercentMatrix, \"patchExpansionParameters\" : TransitionFunctionParameterMatrix, \"patchGenerationParameters\" : TransitionFunctionParameterMatrix } { \"printTransitionInfo\" : BooleanValue } { \"resultingLanscape\" : CategoricalMap } }; CalcSimilarityOfDifferences { { \"initialMap\" : CategoricalMap, \"observedMap\" : CategoricalMap, \"simulatedMap\" : CategoricalMap } { \"useExponentialDecay\" : BooleanValue, \"windowSize\" : PositiveIntegerValue, \"printSimilarities\" : BooleanValue, \"exponentialDecayDivisor\" : RealValue } { \"similarityMap\" : Map, \"similarity\" : RealValue } }
 Script {{
     @collapsed = no
-    @alias = Load simulation control table
+    @alias = Load control table
     _ := Group .none {{
         getEnvironmentVariables := CalculateRExpression "
-outputString(
-    "simctrl_tbl_path",
-    Sys.getenv("EVOLAND_CTRL_TBL_PATH", unset = "simulation_control.csv")
-)
-outputString(
-    "work_dir",
-    getwd()
-)
-" .no {{
-        }};
+outputString("ctrl_tbl_path", evoland::default_ctrl_tbl_path())
+outputString("work_dir", getwd())
+        " .no {{ }};
 
         workingDirectory := ExtractStructString getEnvironmentVariables $"(work_dir)";
 
-        simulationControlTablePath := ExtractStructString getEnvironmentVariables $"(simctrl_tbl_path)";
+        simulationControlTablePath := ExtractStructString getEnvironmentVariables $"(ctrl_tbl_path)";
 
+        // Subset control table. The ForEach logic in Dinamica takes the first column
+        // for the simulationNumber, which R then uses to subset by csv row. Danger!
         @collapsed = no
         @alias = Subset control table to only simulations yet to be completed (i.e. modelled)
         incompleteSimulationsRExpression := CalculateRExpression "
-tbl <- readr::read_csv(s1)
-tbl[tbl$completed.string == "N", ]
-#Send back subsetted table
-outputTable("remaining_simulations", tbl)
-" .no {{
-            @alias = Control table path
-            NumberString simulationControlTablePath 1;
-        }};
+outputTable("remaining_simulations", evoland::get_remaining_simulations())
+        " .no {{ }};
 
         @viewer.table = yes
         subsettedControlTable := ExtractStructTable incompleteSimulationsRExpression $"(remaining_simulations)";
     }};
 
-    //
-    // ===
-    // Iterate over each row of the simulation control table performing the specifcied
-    // simulation
+    // Iterate over each row of the control table performing the extrapolation
     @collapsed = no
     @alias = Simulation iteration
     _ := ForEach subsettedControlTable subsettedControlTable {{
@@ -64,54 +50,28 @@ outputTable("remaining_simulations", tbl)
                     // Prepare maps, create folders and pass back file paths for current simulation
                     @collapsed = no
                     @viewer.result = yes
-                    initializeCurrentSimulation := CalculateRExpression "#############################################################################
-## Source script to initialize model run specifications in Dinamica
-#############################################################################
-
-### =========================================================================
-### Receive Dinamica inputs
-### =========================================================================
-
-#simulation number being performed
-Simulation_num <- v1
-
-### =========================================================================
-### source R script for getting Environmental variables
-### =========================================================================
-
-source("Scripts/Dinamica_integration/Dinamica_get_env_vars.R",
-				echo=TRUE,
-				verbose=TRUE)
-
-### =========================================================================
-### Source R script
-### =========================================================================
-
-source("Scripts/Dinamica_integration/Dinamica_initialise.R",
-				echo=TRUE,
-				verbose=TRUE)
-
-### =========================================================================
-### Send Dinamica outputs
-### =========================================================================
+                    initializeCurrentSimulation := CalculateRExpression "
+config <- evoland::get_config()
+sim_details <- evoland::get_simulation_params(simulation_id = s1)
 
 #send step length
-outputDouble("Step_length", Step_length)
+outputDouble("step_length", config[["step_length"]])
 
 #Send Simulation ID
-outputString("Sim_id", Simulation_ID)
+outputString("sim_id", sim_details[["simulation_id.string"]])
 
-#send Model mode
-outputString("Model_mode", Model_mode)
+# send Model mode
+outputString("Model_mode", sim_details[["model_mode.string"]])
 
 #send Model time step table to Dinamica receiver: simulation_time_steps
-outputLookupTable("simulation_time_steps", model_time_steps$Keys, model_time_steps$Values)
+timesteps <- evoland::get_simulation_timesteps(config = config)
+outputLookupTable("simulation_time_steps", timesteps[["key"]], timesteps[["value"]])
 
 #send simulated LULC folder path to Dinamica receiver: sim_lulc_folder_path
-outputString("sim_lulc_folder_path", simulated_LULC_file_path)
+outputString("sim_lulc_folder_path", sim_details[["sim_results_path"]])
 
 #send initial LULC map file path to Dinamica receiver:
-outputString("initial_lulc_path", save_raster_path)
+outputString("initial_lulc_path", sim_details[["initial_lulc_path"]])
 
 #send folder path as string to Dinamica receiver: Allocation_params_folder_path
 outputString("Allocation_params_folder_path", Params_folder_Dinamica)
@@ -140,7 +100,7 @@ outputString("trans_matrix_folder_path", Trans_rate_table_dir)
                     @viewer.string = yes
                     receiveFilePathForSimulatedLulcMaps := ExtractStructString initializeCurrentSimulation $"(sim_lulc_folder_path)";
 
-                    receiveSimulationId := ExtractStructString initializeCurrentSimulation $"(Sim_id)";
+                    receiveSimulationId := ExtractStructString initializeCurrentSimulation $"(sim_id)";
 
                     receiveDirectoryForTransitionMatrices := ExtractStructString initializeCurrentSimulation $"(trans_matrix_folder_path)";
                 }};
@@ -239,7 +199,7 @@ outputTable("Trans_rate_table", Trans_table)" .no {{
                         }};
 
                         @viewer.table = yes
-                        loadTableOfAllocationParameters := LoadTable {
+                        loadTableOfAllocationParameters := LoadT§able {
                             filename = modifyFilePathForAllocationParametersTableForTimeStep,
                             uniqueIdKeyColumnCreation = .ifNecessary,
                             suffixDigits = 0,
@@ -620,6 +580,7 @@ outputString("Sim_LULC_path", Sim_final_LULC_path)
                             workdir = workdir
                         };
 
+                        // can this be replaced by logic in R?
                         @viewer.similarity = yes
                         @viewer.similarityMap = yes
                         similarityMap similarity := CalcSimilarityOfDifferences {

@@ -4,20 +4,34 @@
 ## Date: 01-10-2022
 ## Author: Ben Black
 #############################################################################
-dinamica_use_validation <- function() {
+dinamica_use_validation <- function(
+    wpath = getwd(),
+    Sim_ID = character(),
+    Simulation_time_steps,
+    validation_condition,
+    Validation_map_path,
+    Validation_result_path,
+    model_mode,
+    Sim_LULC_path_gen) {
   ### =========================================================================
   ### A- Determine if validation is required
   ### =========================================================================
-
-  setwd(wpath)
 
   # If model mode is simulation then return '0' as validation is not required
   # else if calibration ,then validation is required so return '1'
   # and generate file paths for saving validation results
 
   # vector folder path for validation results
-  Val_res_folder <- paste0(wpath, "/Results/Validation/", Sim_ID)
-  Val_res_path <- paste0(Val_res_folder, "/", paste("Simulation", Sim_ID, "from", Simulation_time_steps[1, "Keys"], "to", Simulation_time_steps[nrow(Simulation_time_steps), "Values"], sep = "_"))
+  Val_res_folder <- file.path(wpath, "Results", "Validation", Sim_ID)
+  Val_res_path <- file.path(
+    Val_res_folder,
+    paste(
+      "Simulation", Sim_ID,
+      "from", Simulation_time_steps[1, "Keys"], "to",
+      Simulation_time_steps[nrow(Simulation_time_steps), "Values"],
+      sep = "_"
+    )
+  )
 
   if (grepl("simulation", model_mode, ignore.case = TRUE)) {
     validation_condition <- 0
@@ -40,13 +54,18 @@ dinamica_use_validation <- function() {
   ### =========================================================================
 
   # gather file path for observed LULC year that is closest to that of the final simulation year
-  Obs_LULC_paths <- list.files("Data/Historic_LULC", full.names = TRUE, pattern = ".grd")
+  Obs_LULC_paths <- list.files(
+    file.path("Data", "Historic_LULC"),
+    full.names = TRUE, pattern = ".grd"
+  )
 
   # extract numerics
   Obs_LULC_years <- as.numeric(gsub(".*?([0-9]+).*", "\\1", Obs_LULC_paths))
 
   # identify closest LULC year
-  desired_lulc_year <- which.min(abs(Obs_LULC_years - Simulation_time_steps[nrow(Simulation_time_steps), "Keys"]))
+  desired_lulc_year <- which.min(abs(
+    Obs_LULC_years - Simulation_time_steps[nrow(Simulation_time_steps), "Keys"]
+  ))
 
   # subset to correct LULC path
   Final_LULC_path <- Obs_LULC_paths[desired_lulc_year]
@@ -57,5 +76,9 @@ dinamica_use_validation <- function() {
   ### =========================================================================
 
   # alter file path for simulated LULC map for final simulation year
-  Sim_final_LULC_path <- paste0(Sim_LULC_path_gen, Simulation_time_steps[nrow(Simulation_time_steps), "Values"], ".tif")
+  Sim_final_LULC_path <- paste0(
+    Sim_LULC_path_gen,
+    Simulation_time_steps[nrow(Simulation_time_steps), "Values"],
+    ".tif"
+  )
 }
