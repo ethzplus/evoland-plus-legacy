@@ -72,9 +72,7 @@ get_simulation_timesteps <- function(config = get_config()) {
 }
 
 dinamica_initialize <- function(wpath, ctrl_tbl_path, simulation_num) {
-  ### =========================================================================
-  ### A- Preparation
-  ### =========================================================================
+  # A- Preparation ####
 
   # set working directory
   setwd(wpath)
@@ -122,9 +120,7 @@ dinamica_initialize <- function(wpath, ctrl_tbl_path, simulation_num) {
     sep = "/"
   )
 
-  ### =========================================================================
-  ### B- Generate table of simulation time steps
-  ### =========================================================================
+  # B- Generate table of simulation time steps ####
 
   # use start and end time to generate a lookup table of dates seperated by 5 years
   model_time_steps <- list(
@@ -132,9 +128,7 @@ dinamica_initialize <- function(wpath, ctrl_tbl_path, simulation_num) {
     Values = c(seq((scenario_start + 5), (scenario_end), step_length))
   )
 
-  ### =========================================================================
-  ### C- LULC map initialization + glacier conversion
-  ### =========================================================================
+  # C- LULC map initialization + glacier conversion ####
 
   # Check if directory for saving LULC maps exists, if not create it.
   # requires use of absolute paths
@@ -231,9 +225,7 @@ dinamica_initialize <- function(wpath, ctrl_tbl_path, simulation_num) {
     raster::writeRaster(Initial_LULC_raster, save_raster_path, overwrite = TRUE, datatype = "INT1U")
   } # close if statement for copying initial LULC raster
 
-  ### =========================================================================
-  ### D- Send allocation parameter table folder path
-  ### =========================================================================
+  # D- Send allocation parameter table folder path ####
 
   # append the suffix necessary for Dinamica to alter strings (<v1>) to the file name
   if (grepl("simulation", model_mode, ignore.case = TRUE)) {

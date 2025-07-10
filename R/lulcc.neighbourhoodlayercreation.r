@@ -3,9 +3,7 @@
 #' TODO text
 #'
 #' @author Ben Black (lulcc function), Majid Shadman Roodposhti (matrix functions)
-### =========================================================================
-### A- Instantiate small functions for neighbourhood creation
-### =========================================================================
+# A - Instantiate small functions for neighbourhood creation ####
 
 # function to set up a random pythagorean matrix generating the central values
 # of each matrix x0,0 and their corresponding decay rates

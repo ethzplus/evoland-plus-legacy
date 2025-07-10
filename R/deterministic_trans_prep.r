@@ -27,9 +27,7 @@
 #' @export
 
 deterministic_trans_prep <- function(config = get_config()) {
-  ### =========================================================================
-  ### A- Preparation
-  ### =========================================================================
+  # A- Preparation ####
   LULC_years <- gsub(
     pattern = ".*?([0-9]+).*",
     replacement = "\\1",
@@ -84,9 +82,7 @@ deterministic_trans_prep <- function(config = get_config()) {
     Sim_time_steps
   )
 
-  ### =========================================================================
-  ### B - calculate glacial change rates and wrangle indices of change locations
-  ### =========================================================================
+  # B - calculate glacial change rates and wrangle indices of change locations ####
 
   # The files provided by Farinotti et al. contained the locations
   # of glacier (1) and absence of glacier (0) according to the index of cells in

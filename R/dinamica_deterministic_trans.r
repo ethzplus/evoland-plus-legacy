@@ -6,9 +6,7 @@
 #############################################################################
 
 dinamica_deterministic_trans <- function() {
-  ### =========================================================================
-  ### A- Preparation
-  ### =========================================================================
+  # A- Preparation ####
 
   setwd(wpath)
 
@@ -36,9 +34,7 @@ dinamica_deterministic_trans <- function() {
   # Define model_mode: Calibration or Simulation
   model_mode <- Simulation_table$model_mode.string
 
-  ### =========================================================================
-  ### B- Implement deterministic glacial transitions
-  ### =========================================================================
+  # B- Implement deterministic glacial transitions ####
 
   # if the model is in simulation mode and the value in the deterministic
   # transitions column of the control table is not "N" then update the current

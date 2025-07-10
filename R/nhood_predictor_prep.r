@@ -15,9 +15,7 @@
 #' @param redo_random_matrices logical indicating whether to re-generate the random matrices
 
 nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = FALSE) {
-  ### =========================================================================
-  ### A- Preparation
-  ### =========================================================================
+  # A - Preparation ####
   # vector years of LULC data
   LULC_years <- gsub(
     ".*?([0-9]+).*",
@@ -47,10 +45,7 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
 
   purrr::walk(nhood_folder_names, ensure_dir)
 
-  ### =========================================================================
-  ### B- Generating the desired number of random matrices for testing as
-  ### focal windows for neighbourhood effect
-  ### =========================================================================
+  # B - Generate the desired number of focal windows for neighbourhood effect ####
   all_matrices_path <- file.path(
     config[["preds_tools_dir"]], "neighbourhood_matrices", "all_matrices.rds"
   )
@@ -136,9 +131,7 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
     future.seed = TRUE
   )
 
-  ### =========================================================================
-  ### D- Manage file names/details for neighbourhood layers
-  ### =========================================================================
+  # D - Manage file names/details for neighbourhood layers ####
 
   # get names of all neighbourhood layers from files
   new_nhood_names <- list.files(
@@ -202,9 +195,7 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
     )
   )
 
-  ### =========================================================================
-  ### E- Updating predictor table with layer names- updated xl.
-  ### =========================================================================
+  # E - Updating predictor table with layer names- updated xl. ####
 
   # Add additional columns to Focal details
   Focal_details$Covariate_ID <- paste0(
@@ -292,9 +283,7 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
   # save workbook
   openxlsx::saveWorkbook(Pred_table_update, config[["pred_table_path"]], overwrite = TRUE)
 
-  ### =========================================================================
-  ### F- Example plotting of nhood matrices and decay rates
-  ### =========================================================================
+  # F - Example plotting of nhood matrices and decay rates ####
 
   message(" Preparation of Neighbourhood predictor layers complete \n")
 }

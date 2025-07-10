@@ -46,9 +46,7 @@ calibration_predictor_prep <- function(
     )
   }
 
-  ### =========================================================================
-  ### B- Gather predictor information
-  ### =========================================================================
+  # B- Gather predictor information ####
 
   # The predictor table contains details of the suitability and accessibility
   # predictors in seperate sheets for the different time periods, some predictors
@@ -93,9 +91,7 @@ calibration_predictor_prep <- function(
   }
   Preds_to_prepare <- Pred_table_long[Pred_table_long$Prepared != "Y", ]
 
-  ### =========================================================================
-  ### C- Predictors from raw data
-  ### =========================================================================
+  # C- Predictors from raw data ####
 
   # The static predictors with raw data are those already prepared in ValPar.CH at 25m
   # resolution because they already use a grid of the same extent and CRS processing is
@@ -208,15 +204,11 @@ calibration_predictor_prep <- function(
     rm(raster_stack, raster_mean, Agg_dat, layer_path, temp_list)
   }
 
-  ### =========================================================================
-  ### D- Predictors from source
-  ### =========================================================================
+  # D- Predictors from source ####
   # The predictors that are prepared directly from source require different processing
   # operations as such they are grouped into seperate chunks below
 
-  ### -------------------------------------------------------------------------
-  ### D.1- Socio_economic: Employment
-  ### -------------------------------------------------------------------------
+  # D.1- Socio_economic: Employment ####
 
   # In order to have a common variable between the historic data and the future economic
   # scenarios, the variables we will derive will be:
@@ -640,9 +632,7 @@ calibration_predictor_prep <- function(
     "Prepared"
   ] <- "Y"
 
-  ### -------------------------------------------------------------------------
-  ### D.2- Biophysical: Soil, continentality and light (Descombes et al. 2020)
-  ### -------------------------------------------------------------------------
+  # D.2- Biophysical: Soil, continentality and light (Descombes et al. 2020) ####
 
   # grab url from table
   # FIXME temporarily hardcoding URL from here instead of relying on arbitrarily sorted table
@@ -722,9 +712,7 @@ calibration_predictor_prep <- function(
     Pred_table_long[Covariate_ID == Var_name, "Prepared"] <- "Y"
   }
 
-  ### -------------------------------------------------------------------------
-  ### D.3- Population
-  ### -------------------------------------------------------------------------
+  # D.3- Population ####
 
   ### Prepare municipality population data incorporating mutations
 
@@ -924,9 +912,7 @@ calibration_predictor_prep <- function(
     ] <- "Y"
   } # close if statement
 
-  ### =========================================================================
-  ### X- Update predictor table for SA predictors
-  ### =========================================================================
+  # X- Update predictor table for SA predictors ####
 
   # load predictor_table as workbook to add sheets
   Pred_table_update <- openxlsx::loadWorkbook(file = config[["pred_table_path"]])
@@ -947,9 +933,7 @@ calibration_predictor_prep <- function(
 
   message(" Preparation of Suitability and accessibility predictor layers complete")
 
-  ### =========================================================================
-  ### X- Create Neighbourhood predictors
-  ### =========================================================================
+  # X- Create Neighbourhood predictors ####
 
   # This process is lengthy so is presented in a seperate script,which includes
   # updating of the predictor table after layer creation

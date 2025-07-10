@@ -517,9 +517,7 @@ lulcc.modelprechecks <- function(config = get_config()) {
   }
 }
 
-### =========================================================================
-### I- Check functionality of spatial interventions
-### =========================================================================
+# I - Check functionality of spatial interventions ####
 
 if (FALSE) {
   # TODO either integrate in function above or remove dead code.

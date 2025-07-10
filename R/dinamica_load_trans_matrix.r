@@ -5,9 +5,7 @@
 ## Author: Ben Black
 #############################################################################
 dinamica_load_trans_matrix <- function() {
-  ### =========================================================================
-  ### A- Preparation
-  ### =========================================================================
+  # A- Preparation ####
 
   # wpath <- getwd()
   setwd(wpath)
@@ -36,9 +34,7 @@ dinamica_load_trans_matrix <- function() {
   # Define model_mode: Calibration or Simulation
   model_mode <- Simulation_table$model_mode.string
 
-  ### =========================================================================
-  ### B- Load Transition rate table and update to reflect any deterministic transitions
-  ### =========================================================================
+  # B- Load Transition rate table and update to reflect any deterministic transitions ####
 
   # use scenario ID to grab folder path of scenario specific transition tables
   Scenario_trans_table_dir <- str_replace((list.files(trans_rate_table_dir, pattern = scenario_id, full.names = TRUE)), paste0(wpath, "/"), "")

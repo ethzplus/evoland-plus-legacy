@@ -5,9 +5,7 @@
 ## Author: Ben Black, Carlson Büth
 #############################################################################
 dinamica_trans_potent_calc <- function(spat_ints_path) {
-  ### =========================================================================
-  ### A- Preparation
-  ### =========================================================================
+  # A- Preparation ####
 
   # values for testing purposes
   # wpath <- "C:/Users/bblack/switchdrive/C.3_Modelling/LULCC_CH_HPC"
@@ -119,9 +117,7 @@ dinamica_trans_potent_calc <- function(spat_ints_path) {
   cat(paste0(" - creating directory for saving probability maps: ", prob_map_folder, "\n"))
 
 
-  ### =========================================================================
-  ### B- Retrieve current LULC map and layerize
-  ### =========================================================================
+  # B- Retrieve current LULC map and layerize ####
 
   # replace Dinamica escape character in file path with current time step
   current_LULC_path <- paste0(File_path_simulated_LULC_maps, Simulation_time_step, ".tif")
@@ -143,9 +139,7 @@ dinamica_trans_potent_calc <- function(spat_ints_path) {
     LULC_rat[LULC_rat$Aggregated_ID == y, "Class_abbreviation"]
   })
 
-  ### =========================================================================
-  ### C- Load Suitability and Accessibility predictors
-  ### =========================================================================
+  # C- Load Suitability and Accessibility predictors ####
 
   # use model mode string to select correct folder
 
@@ -198,9 +192,7 @@ dinamica_trans_potent_calc <- function(spat_ints_path) {
 
   cat(paste0("Loaded Suitability and Accessibility predictors \n"))
 
-  ### =========================================================================
-  ### E- Generate dynamic predictors
-  ### =========================================================================
+  # E- Generate dynamic predictors ####
 
   #-------------------------------------------------------------------------
   # E.1- Dynamic predictors:  Municipal Population
@@ -374,9 +366,7 @@ dinamica_trans_potent_calc <- function(spat_ints_path) {
     )
   } # close if statement for dynamic predictor prep
 
-  ### =========================================================================
-  ### F- Combine LULC, SA_preds and Nhood_preds and extract to dataframe
-  ### =========================================================================
+  # F- Combine LULC, SA_preds and Nhood_preds and extract to dataframe ####
 
   cat("Stacking LULC, SA_preds and Nhood_preds \n")
 
@@ -431,9 +421,7 @@ dinamica_trans_potent_calc <- function(spat_ints_path) {
   # release memory
   rm(LULC_data, SA_pred_stack, Nhood_rasters, Trans_data_stack, xy_coordinates)
 
-  ### =========================================================================
-  ### G- Run transition potential prediction for each transition
-  ### =========================================================================
+  # G- Run transition potential prediction for each transition ####
 
   cat("Running transition potential prediction for each transition \n")
   # parralel y/n
@@ -582,9 +570,7 @@ dinamica_trans_potent_calc <- function(spat_ints_path) {
 
   cat(" - completed transition potential prediction \n")
 
-  ### =========================================================================
-  ### G- Re-scale predictions
-  ### =========================================================================
+  # G- Re-scale predictions ####
 
   cat("Re-scaling transition probabilities \n")
 
@@ -621,9 +607,7 @@ dinamica_trans_potent_calc <- function(spat_ints_path) {
   #   saveRDS(Raster_prob_values, "Data/Exemplar_data/EXP_raster_prob_values.rds")
   # }
 
-  ### =========================================================================
-  ### H- Spatial manipulations of transition probabilities
-  ### =========================================================================
+  # H- Spatial manipulations of transition probabilities ####
 
   if (grepl("simulation", model_mode, ignore.case = TRUE)) {
     # If statement to implement spatial interventions
@@ -644,9 +628,7 @@ dinamica_trans_potent_calc <- function(spat_ints_path) {
     } # close if statement for spatial interventions
   } # close simulation if statement
 
-  ### =========================================================================
-  ### I- Final rescaling
-  ### =========================================================================
+  # I- Final rescaling ####
 
   cat("Performing final re-scaling \n")
 
@@ -662,9 +644,7 @@ dinamica_trans_potent_calc <- function(spat_ints_path) {
     })
   })))
 
-  ### =========================================================================
-  ### J- Save transition rasters
-  ### =========================================================================
+  # J- Save transition rasters ####
 
   cat("Saving transition rasters \n")
 
