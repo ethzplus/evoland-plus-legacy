@@ -9,3 +9,4 @@
 suddel*
 ^doc$
 ^Meta$
+^.git$

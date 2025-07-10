@@ -17,6 +17,9 @@
 # with values of each cell labelled in the center
 #' @export
 random_pythagorean_matrix <- function(n, x, interpolation = "smooth", search = "random") {
+  # current usage in the codebase, use this as simplifying assumption
+  stopifnot(rlang::is_scalar_integerish(x))
+
   choices <- c("random", "grid")
   search <- choices[pmatch(search, choices, duplicates.ok = FALSE)]
   if (search == "random") {
