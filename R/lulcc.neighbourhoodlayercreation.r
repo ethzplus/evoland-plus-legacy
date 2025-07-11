@@ -160,8 +160,9 @@ lulcc_generatenhoodrasters <- function(
             sep = "_"
           ) # create file path for saving this layer
 
-          focal_full_path <- paste0(
-            nhood_folder_path, "/", focal_file_name, ".grd"
+          focal_full_path <- file.path(
+            nhood_folder_path,
+            paste0(focal_file_name, ".grd")
           ) # create full folder path
           raster::writeRaster(
             focal_layer,

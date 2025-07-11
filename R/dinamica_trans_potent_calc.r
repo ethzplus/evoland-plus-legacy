@@ -111,7 +111,9 @@ dinamica_trans_potent_calc <- function(spat_ints_path) {
   # and when the model is in simulation mode
 
   # create folder for saving prediction probability maps
-  prob_map_folder <- paste0(wpath, "/Results/Pred_prob_maps/", simulation_id, "/", Simulation_time_step)
+  prob_map_folder <- file.path(
+    wpath, "Results", "Pred_prob_maps", simulation_id, Simulation_time_step
+  )
   suppressWarnings(dir.create(prob_map_folder, recursive = TRUE))
 
   cat(paste0(" - creating directory for saving probability maps: ", prob_map_folder, "\n"))
@@ -350,14 +352,24 @@ dinamica_trans_potent_calc <- function(spat_ints_path) {
 
       # steps for saving of rasters if needed
       # create a folder path using simulation ID and time step
-      # Dynamic_focal_folder_path <- paste0("Data/Preds/Prepared/Stacks/Simulation/NH_preds", "/", scenario_id, "/", Simulation_time_step)
+      # Dynamic_focal_folder_path <- paste0(
+      #   "Data/Preds/Prepared/Stacks/Simulation/NH_preds",
+      #   "/", scenario_id, "/", Simulation_time_step
+      # )
 
       # create directory
       # dir.create(paste(wpath, Dynamic_focal_folder_path, sep = "/"), recursive = TRUE)
 
-      # Focal_file_name <- paste(scenario_id, Simulation_time_step, Required_focals_details[i,]$active_lulc, "nhood", Focal_matrices[Required_focals_details[i,]$matrix_id], sep = "_")
-      # Focal_full_path <- paste0(Dynamic_focal_folder_path, "/", Focal_file_name, ".grd") #create full folder path
-      # writeRaster(Focal_layer, Focal_full_path ,datatype='INT2U', overwrite=TRUE) #save layer
+      # Focal_file_name <- paste(
+      #   scenario_id, Simulation_time_step, Required_focals_details[i,]$active_lulc,
+      #   "nhood", Focal_matrices[Required_focals_details[i,]$matrix_id], sep = "_"
+      # )
+      # Focal_full_path <- paste0(
+      #   Dynamic_focal_folder_path, "/", Focal_file_name, ".grd"
+      # ) #create full folder path
+      # writeRaster(
+      #   Focal_layer, Focal_full_path ,datatype='INT2U', overwrite=TRUE
+      # ) #save layer
     }
 
     rm(
@@ -427,7 +439,10 @@ dinamica_trans_potent_calc <- function(spat_ints_path) {
   # parralel y/n
   cat(paste0("Use parallel processing: ", Use_parallel, "\n"))
 
-  # saveRDS(Trans_dataset, "Data/Spat_prob_perturb_layers/EXP_trans_dataset.rds")
+  # saveRDS(
+  #   Trans_dataset,
+  #   "Data/Spat_prob_perturb_layers/EXP_trans_dataset.rds"
+  # )
   # Trans_dataset <- readRDS("Data/Spat_prob_perturb_layers/EXP_trans_dataset.rds")
 
   # subsetting data indices for glacial modelling
@@ -556,13 +571,22 @@ dinamica_trans_potent_calc <- function(spat_ints_path) {
       names(prob_predicts)[[2]] <- paste0("Prob_", Final_LULC)
 
       # bind to ID
-      # predict_ID <- cbind(ID = pred_data[, c("ID")], prob_predicts[paste0("Prob_", Final_LULC)])
+      # predict_ID <- cbind(
+      #   ID = pred_data[, c("ID")],
+      #   prob_predicts[paste0("Prob_", Final_LULC)]
+      # )
 
       # append the predictions at the correct rows in the results df
-      # Prediction_probs[which(Prediction_probs$ID %in% predict_ID$ID), paste0("Prob_", Final_LULC)] <- predict_ID[paste0("Prob_", Final_LULC)]
+      # Prediction_probs[
+      #   which(Prediction_probs$ID %in% predict_ID$ID),
+      #   paste0("Prob_", Final_LULC)
+      # ] <- predict_ID[paste0("Prob_", Final_LULC)]
 
       # alternative method of replacing prob prediction values
-      Prediction_probs[row.names(prob_predicts), paste0("Prob_", Final_LULC)] <- prob_predicts[paste0("Prob_", Final_LULC)]
+      Prediction_probs[
+        row.names(prob_predicts),
+        paste0("Prob_", Final_LULC)
+      ] <- prob_predicts[paste0("Prob_", Final_LULC)]
     } # close loop over Models
     Non_par_end <- Sys.time()
     Non_par_time <- Non_par_end - Non_par_start # sequential time = 2.937131 mins
@@ -698,7 +722,10 @@ dinamica_trans_potent_calc <- function(spat_ints_path) {
     )
 
     # vector file path for saving probability maps
-    prob_map_path <- paste0(prob_map_folder, "/", Trans_ID, "_probability_", Initial_LULC, "_to_", Final_LULC, ".tif")
+    prob_map_path <- file.path(
+      prob_map_folder,
+      paste0(Trans_ID, "_probability_", Initial_LULC, "_to_", Final_LULC, ".tif")
+    )
 
     raster::writeRaster(Prob_raster, prob_map_path, overwrite = T)
   } # close loop over transitions
@@ -706,5 +733,7 @@ dinamica_trans_potent_calc <- function(spat_ints_path) {
   # Return the probability map folder path as a string to
   # Dinamica to indicate completion
   # Note strings must be vectorized for 'outputString to work
-  cat(paste0("Probability maps saved to: ", prob_map_folder, " (class: ", class(prob_map_folder), ") \n"))
+  cat(paste0(
+    "Probability maps saved to: ", prob_map_folder, " (class: ", class(prob_map_folder), ") \n"
+  ))
 }

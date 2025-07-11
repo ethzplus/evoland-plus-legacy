@@ -111,9 +111,9 @@ lulcc.modelprechecks <- function(config = get_config()) {
     lapply(
       Scenario_IDs,
       function(ID) {
-        generic_path <- paste0(
-          "Data/Transition_tables/prepared_trans_tables/",
-          ID, "/", ID, "_", "trans_table", "_"
+        generic_path <- file.path(
+          "Data", "Transition_tables", "prepared_trans_tables",
+          paste0(ID, "_trans_table_")
         )
         sapply(
           model_time_steps$Keys, function(y) paste0(generic_path, y, ".csv")
@@ -217,9 +217,9 @@ lulcc.modelprechecks <- function(config = get_config()) {
     Param_table_paths <- sapply(unique(Simulation_table$scenario_id.string), function(ID) {
       sapply(model_time_steps$Keys, function(x) {
         stringr::str_replace(
-          paste0(
-            config[["simulation_param_dir"]], "/",
-            ID, "/Allocation_param_table_<v1>.csv"
+          file.path(
+            config[["simulation_param_dir"]],
+            ID, "Allocation_param_table_<v1>.csv"
           ), "<v1>", paste(x)
         )
       })
@@ -228,9 +228,9 @@ lulcc.modelprechecks <- function(config = get_config()) {
     Param_table_paths <- c(sapply(
       unique(control_table$simulation_id.string),
       function(Sim_ID) {
-        Params_path <- paste0(
-          config[["simulation_param_dir"]], "/",
-          Sim_ID, "/Allocation_param_table_<v1>.csv"
+        Params_path <- file.path(
+          config[["simulation_param_dir"]],
+          Sim_ID, "Allocation_param_table_<v1>.csv"
         )
 
         # loop over time steps

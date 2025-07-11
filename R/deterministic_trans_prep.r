@@ -132,7 +132,10 @@ deterministic_trans_prep <- function(config = get_config()) {
     function(x) {
       saveRDS(
         Glacier_indices[[x]],
-        paste0(Glacial_scenario_dir, "/", x, "_glacial_change.rds")
+        file.path(
+          Glacial_scenario_dir,
+          paste0(x, "_glacial_change.rds")
+        )
       )
     }
   )

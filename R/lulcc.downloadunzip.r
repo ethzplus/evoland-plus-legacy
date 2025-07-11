@@ -17,15 +17,15 @@ lulcc.downloadunzip <- function(url, save_dir, filename = basename(url)) {
   # if file is zipped then create temp dir and extract
   if (grepl("\\.zip", filename)) {
     tmpdir <- tempdir()
-    download.file(url, paste0(tmpdir, "/", filename), mode = "wb")
+    download.file(url, file.path(tmpdir, filename), mode = "wb")
     unzip(
-      zipfile = paste0(tmpdir, "/", filename),
+      zipfile = file.path(tmpdir, filename),
       exdir = save_dir,
       # system unzip on *nix; more robust against encoding issues
       unzip = getOption("unzip")
     )
     unlink(tmpdir) # remove temp dir
   } else { # non-zipped just download
-    download.file(url, paste0(save_dir, "/", filename), mode = "wb")
+    download.file(url, file.path(save_dir, filename), mode = "wb")
   }
 }

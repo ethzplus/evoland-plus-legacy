@@ -71,7 +71,12 @@ landscape_pattern_analysis <- function() {
   names(LULC_paths) <- basename(LULC_paths)
 
   # subset LULC paths to only 2020 and 2060
-  Start_end_LULC <- LULC_paths[grepl(paste0(c(scenario_start, scenario_end), collapse = "|"), LULC_paths)]
+  Start_end_LULC <- LULC_paths[
+    grepl(
+      paste0(c(scenario_start, scenario_end), collapse = "|"),
+      LULC_paths
+    )
+  ]
 
   ### =========================================================================
   ### A- Checking implementation of deterministic transitions
@@ -89,7 +94,10 @@ landscape_pattern_analysis <- function() {
 
   # load as stack
   Final_lulc_stack <- stack(Final_raster_paths)
-  names(Final_lulc_stack) <- str_match(Final_raster_paths, paste0(scenario_names, collapse = "|"))
+  names(Final_lulc_stack) <- stringr::str_match(
+    Final_raster_paths,
+    paste0(scenario_names, collapse = "|")
+  )
 
   # get frequency tables
   Rast_freq <- freq(Final_lulc_stack, merge = TRUE)
@@ -154,8 +162,13 @@ landscape_pattern_analysis <- function() {
   })
 
   # save df of LSM info
-  saveRDS(All_lsms, paste0(LSM_dir, "/LSMs_info.rds"))
-  All_lsms <- readRDS(paste0(LSM_dir, "/LSMs_info.rds"))
+  saveRDS(
+    All_lsms,
+    file.path(LSM_dir, "LSMs_info.rds")
+  )
+  All_lsms <- readRDS(
+    file.path(LSM_dir, "LSMs_info.rds")
+  )
 
   # calculate both class level and landscape level metrics on all LULC layers
   # Do it in parallel as the metrics are time consuming
@@ -184,7 +197,7 @@ landscape_pattern_analysis <- function() {
   })
 
   LSM_res$Year <- sapply(LSM_res$path, function(x) {
-    na.omit(str_match(x, paste0(Time_steps)))
+    na.omit(stringr::str_match(x, Time_steps))
   })
 
   # exclude all results from the rivers and lakes classes
@@ -199,8 +212,8 @@ landscape_pattern_analysis <- function() {
   }, simplify = TRUE))
 
   # save table for use in publication visualisations
-  saveRDS(LSM_res, paste0(LSM_dir, "/Simulated_LULC_LSMs_results.rds"))
-  LSM_res <- readRDS(paste0(LSM_dir, "/Simulated_LULC_LSMs_results.rds"))
+  saveRDS(LSM_res, file.path(LSM_dir, "Simulated_LULC_LSMs_results.rds"))
+  LSM_res <- readRDS(file.path(LSM_dir, "Simulated_LULC_LSMs_results.rds"))
 
   ### =========================================================================
   ### B.2- Calculate landscape metrics in PAs
@@ -290,8 +303,8 @@ landscape_pattern_analysis <- function() {
   }, simplify = TRUE))
 
   # save table for use in publication visualisations
-  saveRDS(LSM_PAs, paste0(LSM_dir, "/Simulated_LULC_LSMs_PAs_results.rds"))
-  LSM_PAs <- readRDS(paste0(LSM_dir, "/Simulated_LULC_LSMs_PAs_results.rds"))
+  saveRDS(LSM_PAs, file.path(LSM_dir, "Simulated_LULC_LSMs_PAs_results.rds"))
+  LSM_PAs <- readRDS(file.path(LSM_dir, "Simulated_LULC_LSMs_PAs_results.rds"))
 
 
   ### =========================================================================
@@ -324,7 +337,18 @@ landscape_pattern_analysis <- function() {
       ) +
       scale_colour_ghibli_d("MononokeMedium")
 
-    ggsave(plot = Metric_plot, filename = paste0(LSM_dir, "/landscape_", metric_name, "_plot.tif"), device = "tiff", dpi = 300, width = 15, height = 15, units = "cm")
+    ggsave(
+      plot = Metric_plot,
+      filename = file.path(
+        LSM_dir,
+        paste0("landscape_", metric_name, "_plot.tif")
+      ),
+      device = "tiff",
+      dpi = 300,
+      width = 15,
+      height = 15,
+      units = "cm"
+    )
     return(Metric_plot)
   })
   names(lscape_plots) <- unlist(unique(LSM_res[LSM_res$level == "landscape", "metric"]))
@@ -343,7 +367,15 @@ landscape_pattern_analysis <- function() {
 
   plot(lscape_metrics_combined)
   # save plot
-  ggsave(plot = lscape_metrics_combined, filename = paste0(LSM_dir, "/LSMs_landscape_plot_portait.tif"), device = "tiff", dpi = 300, width = 15, height = 25, units = "cm")
+  ggsave(
+    plot = lscape_metrics_combined,
+    filename = file.path(LSM_dir, "LSMs_landscape_plot_portait.tif"),
+    device = "tiff",
+    dpi = 300,
+    width = 15,
+    height = 25,
+    units = "cm"
+  )
 
   ### =========================================================================
   ### D- Visualisation of LULC class level metrics
@@ -391,7 +423,12 @@ landscape_pattern_analysis <- function() {
       scale_colour_manual(name = "LULC class", values = unlist(pal))
 
 
-    ggsave(plot = Metric_plot, filename = paste0(LSM_dir, "/class_", metric_name, "_plot.tif"), device = "tiff", dpi = 300)
+    ggsave(
+      plot = Metric_plot,
+      filename = paste0(LSM_dir, "/class_", metric_name, "_plot.tif"),
+      device = "tiff",
+      dpi = 300
+    )
     # ,  width = 17, height = 17, units = "cm"
     return(Metric_plot)
   })

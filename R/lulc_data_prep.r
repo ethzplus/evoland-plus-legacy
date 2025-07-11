@@ -42,7 +42,10 @@ lulc_data_prep <- function(config, refresh_cache = FALSE) {
       method = "near"
     )
     terra::writeRaster(reprojected_raster_for_period,
-      filename = paste0(config[["rasterized_lulc_dir"]], "/", raster_name, ".tif"),
+      filename = file.path(
+        config[["rasterized_lulc_dir"]],
+        paste0(raster_name, ".tif")
+      ),
       overwrite = TRUE
     )
   }
@@ -122,9 +125,9 @@ lulc_data_prep <- function(config, refresh_cache = FALSE) {
   mapply(
     FUN = terra::writeRaster,
     x = Reclassified_rasters,
-    filename = paste0(
-      config[["historic_lulc_basepath"]], "/",
-      names(Reclassified_rasters), ".grd"
+    filename = file.path(
+      config[["historic_lulc_basepath"]],
+      paste0(names(Reclassified_rasters), ".grd")
     ),
     overwrite = TRUE
   )

@@ -460,9 +460,10 @@ calibrate_allocation_parameters <- function(config = get_config()) {
 
   # get exemplar table
   param_table <- read.csv(
-    list.files(paste0(
-      config[["calibration_param_dir"]], "/", Best_sim_ID
-    ), full.names = TRUE, pattern = "2020")
+    list.files(
+      file.path(config[["calibration_param_dir"]], Best_sim_ID),
+      full.names = TRUE, pattern = "2020"
+    )
   )
   colnames(param_table) <- c(
     "From*", "To*",
@@ -479,9 +480,9 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   # loop over scenario IDs and simulation time points creating allocation param tables
   sapply(Scenario_IDs, function(y) {
     sapply(seq(Simulation_start, Simulation_end, step_length), function(x) {
-      save_dir <- paste0(config[["simulation_param_dir"]], "/", y)
+      save_dir <- file.path(config[["simulation_param_dir"]], y)
       dir.create(save_dir, recursive = TRUE)
-      file_name <- paste0(save_dir, "/Allocation_param_table_", x, ".csv")
+      file_name <- file.path(save_dir, paste0("Allocation_param_table_", x, ".csv"))
       readr::write_csv(param_table, file = file_name)
     })
   })

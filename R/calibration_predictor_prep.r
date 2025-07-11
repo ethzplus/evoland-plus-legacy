@@ -74,7 +74,7 @@ calibration_predictor_prep <- function(
 
   # create dirs for all predictor categories
   sapply(unique(Pred_table_long[["Predictor_category"]]), function(x) {
-    ensure_dir(tolower(paste0(config[["prepped_lyr_path"]], "/", x)))
+    ensure_dir(tolower(file.path(config[["prepped_lyr_path"]], x)))
   })
 
   # seperate unprepared/prepared layers
@@ -140,11 +140,13 @@ calibration_predictor_prep <- function(
     Agg_dat <- raster::aggregate(Raw_dat, fact = 4, fun = mean)
 
     # vector save path
-    layer_path <- tolower(paste0(
-      config[["prepped_lyr_path"]], "/",
-      Preds_static_unique[i, "Predictor_category"], "/",
-      Preds_static_unique[i, "Covariate_ID"], ".tif"
-    ))
+    layer_path <- tolower(
+      file.path(
+        config[["prepped_lyr_path"]],
+        Preds_static_unique[i, "Predictor_category"],
+        paste0(Preds_static_unique[i, "Covariate_ID"], ".tif")
+      )
+    )
 
     # save
     raster::writeRaster(Agg_dat, layer_path, overwrite = TRUE)
@@ -186,11 +188,13 @@ calibration_predictor_prep <- function(
     Agg_dat <- terra::aggregate(raster_mean, fact = 4, fun = mean)
 
     # vector save path
-    layer_path <- tolower(paste0(
-      config[["prepped_lyr_path"]], "/",
-      Preds_dynamic[i, "Predictor_category"], "/",
-      Preds_dynamic[i, "Covariate_ID"], "_", Preds_dynamic[i, "period"], ".tif"
-    ))
+    layer_path <- tolower(
+      file.path(
+        config[["prepped_lyr_path"]],
+        Preds_dynamic[i, "Predictor_category"],
+        paste0(Preds_dynamic[i, "Covariate_ID"], "_", Preds_dynamic[i, "period"], ".tif")
+      )
+    )
 
     # save
     terra::writeRaster(Agg_dat, layer_path, overwrite = TRUE)
@@ -874,11 +878,11 @@ calibration_predictor_prep <- function(
     # link with spatial municipality data, rasterize and save
     Muni_save_paths <- sapply(LULC_years[1:3], function(i) {
       # file_path
-      save_path <- paste0(
-        config[["prepped_lyr_path"]], "/",
+      save_path <- file.path(
+        config[["prepped_lyr_path"]],
         unique(Preds_to_prepare[Covariate_ID == Var_name, Predictor_category]),
-        "/population/",
-        Var_name, "_", i, ".tif"
+        "population",
+        paste0(Var_name, "_", i, ".tif")
       ) |> tolower()
 
       # loop over the BFS numbers of the polygons and match to population values

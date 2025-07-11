@@ -141,14 +141,14 @@ dinamica_initialize <- function(wpath, ctrl_tbl_path, simulation_num) {
   # Create relative file path for simulated LULC maps, building on folder path
   # no need to include Dinamica's escape string because an R script is used to modify
   # for the correct time step
-  simulated_LULC_file_path <- paste0(
-    simulated_LULC_folder_path, "/",
-    "simulated_LULC_simID_", simulation_id, "_year_"
+  simulated_LULC_file_path <- file.path(
+    simulated_LULC_folder_path,
+    paste0("simulated_LULC_simID_", simulation_id, "_year_")
   )
 
   # use Simulation start time to select file path of initial LULC map
   Obs_LULC_paths <- list.files(
-    "Data/Historic_LULC",
+    file.path("Data", "Historic_LULC"),
     full.names = TRUE, pattern = ".gri"
   )
 
@@ -229,12 +229,12 @@ dinamica_initialize <- function(wpath, ctrl_tbl_path, simulation_num) {
 
   # append the suffix necessary for Dinamica to alter strings (<v1>) to the file name
   if (grepl("simulation", model_mode, ignore.case = TRUE)) {
-    Params_folder_Dinamica <- paste0(
-      simulation_param_dir, "/", scenario_id, "/Allocation_param_table_<v1>.csv"
+    Params_folder_Dinamica <- file.path(
+      simulation_param_dir, scenario_id, "Allocation_param_table_<v1>.csv"
     )
   } else if (grepl("calibration", model_mode, ignore.case = TRUE)) {
-    Params_folder_Dinamica <- paste0(
-      calibration_param_dir, "/", simulation_id, "/Allocation_param_table_<v1>.csv"
+    Params_folder_Dinamica <- file.path(
+      calibration_param_dir, simulation_id, "Allocation_param_table_<v1>.csv"
     )
   }
 }

@@ -37,10 +37,22 @@ dinamica_load_trans_matrix <- function() {
   # B- Load Transition rate table and update to reflect any deterministic transitions ####
 
   # use scenario ID to grab folder path of scenario specific transition tables
-  Scenario_trans_table_dir <- str_replace((list.files(trans_rate_table_dir, pattern = scenario_id, full.names = TRUE)), paste0(wpath, "/"), "")
+  Scenario_trans_table_dir <- stringr::str_remove(
+    list.files(
+      trans_rate_table_dir,
+      pattern = scenario_id,
+      full.names = TRUE
+    ),
+    paste0(wpath, "/"),
+  )
 
   # Use folder path to create a generic scenario specific transition matrix file path
-  Scenario_trans_table_file <- paste0(Scenario_trans_table_dir, "/", scenario_id, "_", "trans_table", "_", Simulation_year, ".csv")
+  Scenario_trans_table_file <- file.path(
+    Scenario_trans_table_dir,
+    paste0(
+      scenario_id, "_", "trans_table", "_", Simulation_year, ".csv"
+    )
+  )
 
   # load the table
   Trans_table <- read_csv(Scenario_trans_table_file)
