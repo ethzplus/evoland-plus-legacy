@@ -32,7 +32,8 @@ get_remaining_simulations <- function(ctrl_tbl_path = default_ctrl_tbl_path()) {
 #' @export
 get_simulation_params <- function(
     ctrl_tbl_path = default_ctrl_tbl_path(),
-    simulation_id = integer()) {
+    simulation_id = integer(),
+    model_mode) {
   stopifnot(rlang::is_scalar_integerish(simulation_id))
   params <-
     get_control_table(ctrl_tbl_path) |>
@@ -50,6 +51,20 @@ get_simulation_params <- function(
         "simulated_LULC_simID_", simulation_id,
         "_year_", params[["scenario_start.real"]],
         ".tif"
+      )
+    )
+
+  config <- get_config()
+
+  params[["params_folder_dinamica"]] <-
+    ifelse(
+      grepl("simulation", params[["model_mode.string"]]),
+      file.path(
+        config[["simulation_param_dir"]], params[["scenario_id.string"]],
+        "Allocation_param_table_<v1>.csv"
+      ),
+      file.path(
+        config[["calibration_param_dir"]], simulation_id, "Allocation_param_table_<v1>.csv"
       )
     )
 
@@ -74,25 +89,6 @@ get_simulation_timesteps <- function(config = get_config()) {
 dinamica_initialize <- function(wpath, ctrl_tbl_path, simulation_num) {
   # A- Preparation ####
 
-  # set working directory
-  setwd(wpath)
-
-  # Install packages if they are not already installed
-  packs <- c(
-    "data.table", "stringi", "stringr", "plyr", "readxl", "ggpubr",
-    "rlist", "tidyverse", "rstatix", "Dinamica", "raster", "openxlsx"
-  )
-
-  new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]
-
-  if (length(new.packs)) install.packages(new.packs)
-
-  # Load required packages
-  invisible(lapply(packs, require, character.only = TRUE))
-
-  # load table of simulations
-  control_table <- read.csv(ctrl_tbl_path)[simulation_num, ]
-
   # Enter name of Scenario to be tested as string or numeric (i.e. "BAU" etc.)
   scenario_id <- Simulation_table$scenario_id.string
 
@@ -112,39 +108,8 @@ dinamica_initialize <- function(wpath, ctrl_tbl_path, simulation_num) {
   # Enter duration of time step for modelling
   step_length <- Simulation_table$step_length.real
 
-  # specify save location for simulated LULC maps (replace quoted section)
-  # folder path based upon Scenario and Simulation ID's
-  simulated_LULC_folder_path <- paste(
-    wpath,
-    "Results/Dinamica_simulated_LULC", simulation_id,
-    sep = "/"
-  )
-
-  # B- Generate table of simulation time steps ####
-
-  # use start and end time to generate a lookup table of dates seperated by 5 years
-  model_time_steps <- list(
-    Keys = c(seq(scenario_start, scenario_end - 5, step_length)),
-    Values = c(seq((scenario_start + 5), (scenario_end), step_length))
-  )
-
   # C- LULC map initialization + glacier conversion ####
 
-  # Check if directory for saving LULC maps exists, if not create it.
-  # requires use of absolute paths
-  if (dir.exists(simulated_LULC_folder_path) == TRUE) {
-    "LULC folder already exists"
-  } else {
-    dir.create(simulated_LULC_folder_path, recursive = TRUE)
-  }
-
-  # Create relative file path for simulated LULC maps, building on folder path
-  # no need to include Dinamica's escape string because an R script is used to modify
-  # for the correct time step
-  simulated_LULC_file_path <- file.path(
-    simulated_LULC_folder_path,
-    paste0("simulated_LULC_simID_", simulation_id, "_year_")
-  )
 
   # use Simulation start time to select file path of initial LULC map
   Obs_LULC_paths <- list.files(
@@ -154,9 +119,6 @@ dinamica_initialize <- function(wpath, ctrl_tbl_path, simulation_num) {
 
   # extract numerics
   Obs_LULC_years <- unique(as.numeric(gsub(".*?([0-9]+).*", "\\1", Obs_LULC_paths)))
-
-  # vector file path for saving raster
-  save_raster_path <- paste0(simulated_LULC_file_path, scenario_start, ".tif")
 
   # if scenario_start year is <= 2020 then it probably hasn't been run before so we
   # need to create a copy of the initial LULC map to start the simulation with

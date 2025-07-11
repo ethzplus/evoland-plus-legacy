@@ -74,10 +74,10 @@ outputString("sim_lulc_folder_path", sim_details[["sim_results_path"]])
 outputString("initial_lulc_path", sim_details[["initial_lulc_path"]])
 
 #send folder path as string to Dinamica receiver: Allocation_params_folder_path
-outputString("Allocation_params_folder_path", Params_folder_Dinamica)
+outputString("Allocation_params_folder_path", sim_details[["params_folder_dinamica"]])
 
 #send folder path as string to Dinamica receiver: trans_matrix_folder_path
-outputString("trans_matrix_folder_path", Trans_rate_table_dir)
+outputString("trans_matrix_folder_path", config[["trans_rate_table_dir"]])
 
 " .no {{
                         @alias = Row of current simulation in table
@@ -484,7 +484,6 @@ wpath <- s4
 
 #receive table of simulation time steps
 Simulation_time_steps <- t1
-#Simultation_time_steps <- as.data.frame(model_time_steps)
 
 #receive file path of simulated LULC maps for this simulation
 Sim_LULC_path_gen <- s1
