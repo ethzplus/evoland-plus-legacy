@@ -154,5 +154,5 @@ spatial_interventions_prep(config = config)
 ## M- Run Dinamica simulations over scenarios
 
 ```{r}
-run_dinamica_extrapolation(config = config)
+run_evoland_dinamica_sim(config = config)
 ```

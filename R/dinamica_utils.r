@@ -1,6 +1,6 @@
 #' Dinamica Utility Functions
 #'
-#' Functions to interact with Dinamica from R
+#' Interact with Dinamica from R, see **Functions** section below.
 #'
 #' @name dinamica_utils
 NULL
@@ -78,19 +78,22 @@ exec_dinamica <- function(model_path,
   invisible(res)
 }
 
-#' @describeIn dinamica_utils Run a Dinamica EGO extrapolation simulation
+#' @describeIn dinamica_utils Set up evoland-specific Dinamica EGO files; execute using
+#' [exec_dinamica()]
 #' @param run_modelprechecks bool, Validate that everything's in place for a model run.
-#' Set to false for calibration runs.
+#' Will never be run if calibration.
+#' @param config List of config params
+#' @param calibration bool, Is this a calibration run?
 #' @param work_dir Working dir, where to place ego files and control table
 #' @param verbose bool
-#' @param simctrl_tbl_template Path to the template control table
 #' @export
-run_dinamica_extrapolation <- function(
+run_evoland_dinamica_sim <- function(
     run_modelprechecks = TRUE,
     config = get_config(),
     work_dir = format(Sys.time(), "%Y-%m-%d_%Hh%Mm%Ss"),
+    calibration = FALSE,
     verbose = FALSE) {
-  if (run_modelprechecks) {
+  if (run_modelprechecks && !calibration) {
     stopifnot(lulcc.modelprechecks())
   }
 
@@ -114,7 +117,11 @@ run_dinamica_extrapolation <- function(
 
   # move simulation control csv into place
   fs::file_copy(
-    config[["ctrl_tbl_path"]],
+    ifelse(
+      calibration,
+      config[["calibration_ctrl_tbl_path"]],
+      config[["ctrl_tbl_path"]]
+    ),
     fs::path(work_dir, "simulation_control.csv")
   )
 
