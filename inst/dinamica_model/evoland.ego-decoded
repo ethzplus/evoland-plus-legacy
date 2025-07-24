@@ -115,55 +115,17 @@ outputString("trans_matrix_folder_path", config[["trans_rate_table_dir"]])
 
                     @alias = Transition rate table control
                     _ := Group .none {{
+
+                        // Load Scenario/time specific transition matrix
                         @collapsed = no
-                        loadTransitionRateTable := CalculateRExpression "#############################################################################
-## Source script to load Scenario/time specific transition matrix
-#############################################################################
-
-### =========================================================================
-### Receive Dinamica inputs
-### =========================================================================
-
-#receive working directory
-wpath <- s1
-
-#receive path to control table
-Control_table_path <- s2
-
-Trans_rate_table_dir <- s3
-
-#values for testing purposes
-# Simulation_year <- "2010"
-# Simulation_num <- "1"
-
-#Receive current simulation time
-Simulation_year <- v1
-
-#simulation number being performed
-Simulation_num <- v2
-
-### =========================================================================
-### Source R script
-### =========================================================================
-
-source("Scripts/Dinamica_integration/Dinamica_load_trans_matrix.R",
-				echo=TRUE,
-				verbose=TRUE)
-
-### =========================================================================
-### Send Dinamica outputs
-### =========================================================================
-
-#Output table to Dinamica
-outputTable("Trans_rate_table", Trans_table)" .no {{
-                            @alias = Working directory
-                            NumberString workingDirectory 1;
-
-                            @alias = Control table path
-                            NumberString simulationControlTablePath 2;
-
+                        loadTransitionRateTable := CalculateRExpression "
+outputTable("trans_rate_table", evoland::dinamica_load_trans_table(
+    simulation_id = v2,
+    year = v1
+))
+" .no {{
                             @alias = transition matrix dir
-                            NumberString receiveDirectoryForTransitionMatrices 3;
+                            NumberString receiveDirectoryForTransitionMatrices 1;
 
                             @alias = Time step
                             NumberValue timeStep 1;
@@ -172,7 +134,7 @@ outputTable("Trans_rate_table", Trans_table)" .no {{
                             NumberValue simulationNumber 2;
                         }};
 
-                        transitionRatesTable := ExtractStructTable loadTransitionRateTable $"(Trans_rate_table)";
+                        transitionRatesTable := ExtractStructTable loadTransitionRateTable $"(trans_rate_table)";
                     }};
 
                     @viewer.map = yes
