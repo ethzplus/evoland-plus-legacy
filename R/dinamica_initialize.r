@@ -16,7 +16,22 @@ default_ctrl_tbl_path <- function() {
 
 #' @export
 get_control_table <- function(ctrl_tbl_path = default_ctrl_tbl_path()) {
-  readr::read_csv(ctrl_tbl_path)
+  readr::read_csv(
+    ctrl_tbl_path,
+    col_types = readr::cols(
+      simulation_num. = readr::col_integer(),
+      scenario_id.string = readr::col_character(),
+      simulation_id.string = readr::col_character(),
+      model_mode.string = readr::col_character(),
+      scenario_start.real = readr::col_double(),
+      scenario_end.real = readr::col_double(),
+      step_length.real = readr::col_double(),
+      parallel_tpc.string = readr::col_character(),
+      spatial_interventions.string = readr::col_character(),
+      deterministic_trans.string = readr::col_character(),
+      completed.string = readr::col_character()
+    )
+  )
 }
 
 # get a table of those
@@ -73,11 +88,11 @@ get_simulation_params <- function(
 
 # To be used for a lookuptable in Dinamica
 #' @export
-get_simulation_timesteps <- function(config = get_config()) {
+get_simulation_timesteps <- function(params = get_simulation_params()) {
   steps <- seq.int(
-    from = config[["scenario_start"]],
-    to = config[["scenario_end"]],
-    by = config[["step_length"]]
+    from = params[["scenario_start.real"]],
+    to = params[["scenario_end.real"]],
+    by = params[["step_length.real"]]
   )
 
   list(

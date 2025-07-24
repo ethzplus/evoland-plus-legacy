@@ -2,7 +2,7 @@
 #'
 #' This function updates the "completed" status in a control table CSV file after a simulation run.
 #'
-#' @param control_table_path Character. Path to the control table CSV file.
+#' @param ctrl_tbl_path Character. Path to the control table CSV file.
 #' @param success Character. Indicates if the simulation was successful ("TRUE") or not.
 #' @param simulation_num Integer. The simulation number to update in the control table.
 #'
@@ -17,11 +17,11 @@
 #' @export
 
 dinamica_update_control_table <- function(
-    control_table_path = character(),
+    ctrl_tbl_path = default_ctrl_tbl_path(),
     success = character(),
     simulation_num = integer()) {
   # load control and subset to simulation number
-  control_table <- readr::read_csv(control_table_path)
+  control_table <- get_control_table(ctrl_tbl_path = ctrl_tbl_path)
 
   # update value in completed column for current simulation
   if (grepl("TRUE", success, ignore.case = TRUE)) {
@@ -31,5 +31,5 @@ dinamica_update_control_table <- function(
   }
 
   # save table
-  readr::write_csv(control_table, control_table_path)
+  readr::write_csv(control_table, ctrl_tbl_path)
 }

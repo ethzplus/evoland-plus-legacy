@@ -120,6 +120,9 @@ get_config <- function(
     ),
     prediction_models_dir = file.path(
       results_dir, "transition_models", "prediction_models"
+    ),
+    validation_dir = file.path(
+      results_dir, "validation"
     )
   )
 
