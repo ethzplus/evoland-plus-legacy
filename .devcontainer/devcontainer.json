@@ -24,6 +24,7 @@
       "settings": {
         "git.path": "/usr/bin/git",
         "r.rterm.linux": "/usr/local/bin/radian",
+        "shellcheck.executablePath": "/usr/bin/shellcheck",
         "r.plot.useHttpgd": true,
         "r.bracketedPaste": true,
         "rewrap.wrappingColumn": 88
@@ -32,9 +33,7 @@
         "RDebugger.r-debugger",
         "REditorSupport.r",
         "quarto.quarto",
-        "timonwong.shellcheck",
-        // base64 is used to encode/decode R and Python code chunks in .ego files
-        "adamhartford.vscode-base64"
+        "timonwong.shellcheck"
       ]
     }
   }

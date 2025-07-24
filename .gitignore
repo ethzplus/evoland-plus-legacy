@@ -24,3 +24,5 @@ inst/doc
 # ignore potentially large files
 *.csv
 *.log
+
+renv*
