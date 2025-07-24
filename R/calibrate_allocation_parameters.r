@@ -32,7 +32,7 @@ calibrate_allocation_parameters <- function(config = get_config()) {
       config[["historic_lulc_basepath"]],
       full.names = TRUE, pattern = ".grd$"
     ),
-    terra::rast
+    raster::raster
   )
   names(LULC_rasters) <- LULC_years
 
@@ -66,8 +66,10 @@ calibrate_allocation_parameters <- function(config = get_config()) {
     )
 
     # Loop over transitions
-    results <- furrr::future_map(
+    results <- furrr::future_map_dfr(
+      # results <- purrr::map(
       seq_len(nrow(transitions)),
+      .options = furrr::furrr_options(seed = TRUE),
       function(i) {
         # Identify cells in the rasters according to the 'From' and 'To' values
         r1 <- raster::Which(yr1 == transitions[i, c("From.")])
@@ -77,6 +79,7 @@ calibrate_allocation_parameters <- function(config = get_config()) {
         # multiply rasters to identify transition cells
         r <- r1 * r2
 
+        # TODO why do we identify patches when we immediately discard their ID? does this drop single-cell patches?
         # identify patches of the final land use class in the yr1 raster
         Final_yr1_patches <- raster::clump(Final_class_in_yr1, directions = 8)
         # convert values (Patch IDs) above 0 to 1 (i.e. binary in patch (1) outside patch (0))
@@ -111,6 +114,7 @@ calibrate_allocation_parameters <- function(config = get_config()) {
 
         # loop over cells in patchs
         for (cell in patchcells) {
+          # TODO this is a relatively hot loop and may be pushed to some vectorized operations
           # get the cell numbers of adjacent cells
           ncells <- raster::adjacent(
             Trans_cells_yr_patches,
@@ -142,6 +146,8 @@ calibrate_allocation_parameters <- function(config = get_config()) {
         )
 
         # Calculate class statistics for patchs in rasters
+        # FIXME this is a pretty broken package, see if we can replace these guesses
+        # with some other package's patch metrics.
         cl.data <- SDMTools::ClassStat(r, bkgd = 0, cellsize = raster::res(r)[1])
 
         # Mean patch area
@@ -154,28 +160,21 @@ calibrate_allocation_parameters <- function(config = get_config()) {
         iso <- cl.data$aggregation.index / 70
 
         # Combine results
-        result <- c(
-          transitions[i, 1],
-          transitions[i, 2],
-          mpa, sda, iso, perc_expander, perc_patcher
+        result <- tibble::tibble_row(
+          "From*" = transitions[i, 1],
+          "To*" = transitions[i, 2],
+          " Mean_Patch_Size" = mpa,
+          "Patch_Size_Variance" = sda,
+          "Patch_Isometry" = iso,
+          "Perc_expander" = perc_expander,
+          "Perc_patcher" = perc_patcher
         )
         result
       }
-    )
-
-    # convert to DF
-    results <- dplyr::bind_rows(results)
+    ) |> dplyr::bind_rows()
 
     # better to save seperate tables for the patch related parameters vs.
     # the % expansion params to eliminate the need to seperate when loading into Dinamica
-
-    # Adjust col names
-    colnames(results) <- c(
-      "From*", "To*",
-      " Mean_Patch_Size", "Patch_Size_Variance", "Patch_Isometry",
-      "Perc_expander", "Perc_patcher"
-    )
-
     # save
     readr::write_csv(
       results,
@@ -288,6 +287,7 @@ calibrate_allocation_parameters <- function(config = get_config()) {
 
   # loop over the list of years for each time point saving a copy of the
   # corresponding parameter table foreach one
+  ensure_dir(file.path(config[["calibration_param_dir"]], "v1"))
   sapply(seq_along(Time_points_by_period), function(period_indices) {
     sapply(Time_points_by_period[[period_indices]], function(x) {
       file_name <- file.path(
@@ -373,7 +373,7 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   # save table
   readr::write_csv(
     calibration_control_table,
-    config[["calibration_control_path"]]
+    config[["calibration_ctrl_tbl_path"]]
   )
 
   # D - Perform simulation for calibration ####
@@ -387,28 +387,26 @@ calibrate_allocation_parameters <- function(config = get_config()) {
     ),
     run_dinamica_extrapolation(run_modelprechecks = FALSE)
   )
-
+  # TODO check that this is still true with processx doing the system call
   # because the simulations may fail without the system command returning an error
   # (if the error occurs in Dinamica) then check the control table to see
   # if/how many simulations have failed
-  Updated_control_tbl <- read.csv(Control_table_path)
+  updated_control_tbl <- read.csv(config[["calibration_ctrl_tbl_path"]])
 
-  if (any(Updated_control_tbl$completed.string == "ERROR")) {
-    print(paste(
-      length(which(
-        Updated_control_tbl$completed.string == "ERROR"
-      )), "of", nrow(Updated_control_tbl),
+  if (errs <- any(updated_control_tbl$completed.string == "ERROR")) {
+    message(
+      sum(errs), "of", nrow(updated_control_tbl),
       "simulations have failed to run till completion,",
       "check simulation output .txt file for details of errors"
-    ))
+    )
   } else {
     # Send completion message
-    print("All simulations completed sucessfully")
+    message("All simulations completed sucessfully")
 
     # clean up log and debug files created by Dinamica as their output
     # is stored in the .txt file anyway
     unlink(list.files(
-      pattern = paste0(c("log_", "debug_"), collapse = "|"), full.names = TRUE
+      pattern = "log_|debug_", full.names = TRUE
     ))
   }
 
@@ -416,44 +414,54 @@ calibrate_allocation_parameters <- function(config = get_config()) {
 
   # load the similarity values produced from the validation process inside Dinamica
   # for each simulation
-  Calibration_results <- lapply(
-    list.files("Results/Validation",
+  calibration_results <- lapply(
+    list.files(
+      config[["validation_dir"]],
       full.names = TRUE, recursive = TRUE, pattern = ".csv"
-    ), function(x) read.csv(x, header = FALSE)
+    ),
+    read.csv,
+    header = FALSE
   )
-  names(Calibration_results) <- sapply(
-    list.files("Results/Validation",
+  names(calibration_results) <- sapply(
+    list.files(
+      config[["validation_dir"]],
       full.names = FALSE,
       recursive = TRUE, pattern = ".csv"
-    ), function(x) stringr::str_split(x, "_")[[1]][2]
+    ),
+    function(x) stringr::str_split(x, "_")[[1]][2]
   )
 
   # remove thhe list item that has summary in it's name
-  Calibration_results <- Calibration_results[!grepl("summary", names(Calibration_results))]
+  calibration_results <- calibration_results[!grepl("summary", names(calibration_results))]
 
   # bind the list of dataframes into a single dataframe
-  Calibration_results <- data.table::rbindlist(Calibration_results, idcol = "Sim_ID")
+  calibration_results <- data.table::rbindlist(calibration_results, idcol = "Sim_ID")
 
   # rename the similarity score column
-  names(Calibration_results)[2] <- "Similarity_score"
+  names(calibration_results)[2] <- "Similarity_score"
 
   # summary statistics
-  Calibration_summary <- data.frame(
-    Mean = mean(Calibration_results$Similarity_score),
-    SD = sd(Calibration_results$Similarity_score),
-    Min = min(Calibration_results$Similarity_score),
-    Max = max(Calibration_results$Similarity_score),
-    n = length(Calibration_results$Similarity_score)
+  calibration_summary <- data.frame(
+    Mean = mean(calibration_results$Similarity_score),
+    SD = sd(calibration_results$Similarity_score),
+    Min = min(calibration_results$Similarity_score),
+    Max = max(calibration_results$Similarity_score),
+    n = length(calibration_results$Similarity_score)
   )
 
   # clean column names of summary statistics
-  colnames(Calibration_summary) <- c("Mean", "Standard Deviation", "Minimum", "Maximum")
+  colnames(calibration_summary) <- c("Mean", "Standard Deviation", "Minimum", "Maximum")
 
   # save summary statistics
-  readr::write_csv(Calibration_summary, "Results/Validation/Validation_summary.csv")
+  readr::write_csv(
+    calibration_summary,
+    file.path(config[["validation_dir"]], "validation_summary.csv")
+  )
 
   # select best performing simulation_ID
-  Best_sim_ID <- Calibration_results[which.max(Calibration_results$Similarity_score), ]$Sim_ID
+  best_sim_ID <- calibration_results[
+    which.max(calibration_results$Similarity_score),
+  ]$Sim_ID
 
   # Use this sim ID to create parameter tables for all simulation time points
   # in the Simulation folder
@@ -461,7 +469,7 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   # get exemplar table
   param_table <- read.csv(
     list.files(
-      file.path(config[["calibration_param_dir"]], Best_sim_ID),
+      file.path(config[["calibration_param_dir"]], best_sim_ID),
       full.names = TRUE, pattern = "2020"
     )
   )
@@ -472,18 +480,27 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   )
 
   # get simulation start and end times from control table
-  Simulation_control <- read.csv(config[["ctrl_tbl_path"]])
-  Simulation_start <- min(Simulation_control$scenario_start.real)
-  Simulation_end <- max(Simulation_control$scenario_end.real)
-  Scenario_IDs <- unique(Simulation_control$scenario_id.string)
+  simulation_control <- read.csv(config[["ctrl_tbl_path"]])
+  simulation_start <- min(simulation_control$scenario_start.real)
+  simulation_end <- max(simulation_control$scenario_end.real)
+  scenario_IDs <- unique(simulation_control$scenario_id.string)
 
   # loop over scenario IDs and simulation time points creating allocation param tables
-  sapply(Scenario_IDs, function(y) {
-    sapply(seq(Simulation_start, Simulation_end, step_length), function(x) {
-      save_dir <- file.path(config[["simulation_param_dir"]], y)
-      dir.create(save_dir, recursive = TRUE)
-      file_name <- file.path(save_dir, paste0("Allocation_param_table_", x, ".csv"))
-      readr::write_csv(param_table, file = file_name)
-    })
-  })
+  sapply(
+    scenario_IDs,
+    function(scenario_id) {
+      sapply(
+        seq(simulation_start, simulation_end, step_length),
+        function(simulation_year) {
+          save_dir <- file.path(config[["simulation_param_dir"]], scenario_id)
+          dir.create(save_dir, recursive = TRUE)
+          file_name <- file.path(
+            save_dir,
+            paste0("allocation_param_table_", simulation_year, ".csv")
+          )
+          readr::write_csv(param_table, file = file_name)
+        }
+      )
+    }
+  )
 }
