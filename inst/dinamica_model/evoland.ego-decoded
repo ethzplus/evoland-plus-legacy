@@ -52,7 +52,7 @@ outputTable("remaining_simulations", evoland::get_remaining_simulations())
                     @viewer.result = yes
                     initializeCurrentSimulation := CalculateRExpression "
 config <- evoland::get_config()
-sim_details <- evoland::get_simulation_params(simulation_id = s1)
+sim_details <- evoland::get_simulation_params(simulation_id = v1)
 
 #send step length
 outputDouble("step_length", config[["step_length"]])
@@ -61,10 +61,10 @@ outputDouble("step_length", config[["step_length"]])
 outputString("sim_id", sim_details[["simulation_id.string"]])
 
 # send Model mode
-outputString("Model_mode", sim_details[["model_mode.string"]])
+outputString("model_mode", sim_details[["model_mode.string"]])
 
 #send Model time step table to Dinamica receiver: simulation_time_steps
-timesteps <- evoland::get_simulation_timesteps(config = config)
+timesteps <- evoland::get_simulation_timesteps(params = sim_details)
 outputLookupTable("simulation_time_steps", timesteps[["key"]], timesteps[["value"]])
 
 #send simulated LULC folder path to Dinamica receiver: sim_lulc_folder_path
@@ -88,7 +88,7 @@ outputString("trans_matrix_folder_path", config[["trans_rate_table_dir"]])
                     receiveInitialLulcFilePath := ExtractStructString initializeCurrentSimulation $"(initial_lulc_path)";
 
                     @viewer.lookupTable = yes
-                    receiveTableOfTimeStepsDefiningLengthOfSimulation := ExtractStructLookupTable initializeCurrentSimulation $"(simulation_time_steps)";
+                    timeStepTable := ExtractStructLookupTable initializeCurrentSimulation $"(simulation_time_steps)";
 
                     stepLength := ExtractStructNumber initializeCurrentSimulation $"(step_length)";
 
@@ -106,7 +106,7 @@ outputString("trans_matrix_folder_path", config[["trans_rate_table_dir"]])
                 }};
 
                 @collapsed = no
-                scenarioTimeStepIteration := ForEach receiveTableOfTimeStepsDefiningLengthOfSimulation receiveTableOfTimeStepsDefiningLengthOfSimulation {{
+                scenarioTimeStepIteration := ForEach timeStepTable timeStepTable {{
                     step0 = step;
 
                     // Receives current model time step
@@ -199,7 +199,7 @@ outputTable("Trans_rate_table", Trans_table)" .no {{
                         }};
 
                         @viewer.table = yes
-                        loadTableOfAllocationParameters := LoadT§able {
+                        loadTableOfAllocationParameters := LoadTable {
                             filename = modifyFilePathForAllocationParametersTableForTimeStep,
                             uniqueIdKeyColumnCreation = .ifNecessary,
                             suffixDigits = 0,
@@ -489,8 +489,8 @@ Simulation_time_steps <- t1
 Sim_LULC_path_gen <- s1
 
 #receive string of Model mode
-Model_mode <- s2
-#Model_mode <- "calibration"
+model_mode <- s2
+#model_mode <- "calibration"
 
 #receive simulation ID
 Sim_ID <- s3
@@ -534,7 +534,7 @@ outputString("Sim_LULC_path", Sim_final_LULC_path)
                         NumberString workingDirectory 4;
 
                         @alias = Send table of simulation time steps
-                        NumberTable receiveTableOfTimeStepsDefiningLengthOfSimulation 1;
+                        NumberTable timeStepTable 1;
                     }};
 
                     @viewer.string = yes
@@ -618,16 +618,12 @@ outputString("Sim_LULC_path", Sim_final_LULC_path)
                 @collapsed = no
                 _ := CalculateRExpression "
 evoland::dinamica_update_control_table(
-    control_table_path = s1,
-    success = s2,
+    success = s1,
     simulation_num = v1
 )
 " .no {{
-                    @alias = Control table path
-                    NumberString simulationControlTablePath 1;
-
                     @alias = Completion boolean
-                    NumberString skipOnError1399 2;
+                    NumberString skipOnError1399 1;
 
                     @alias = Simulation number
                     NumberValue simulationNumber 1;
