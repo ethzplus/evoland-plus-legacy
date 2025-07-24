@@ -8,6 +8,7 @@ NCPUS=${NCPUS:-"-1"}
 apt-get update -qq
 apt-get -y --no-install-recommends install \
   git \
+  htop \
   libfontconfig1-dev \
   libfribidi-dev \
   libgit2-dev \
