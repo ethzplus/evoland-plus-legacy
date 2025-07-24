@@ -377,16 +377,11 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   )
 
   # D - Perform simulation for calibration ####
-
-  # Perform pre-check to make sure that all element required for Dinamica modelling
-  # are prepared
-  # FIXME i'm trying to
-  withr::with_envvar(
-    c(
-      CONTROL_PATH = config[["calibration_control_path"]]
-    ),
-    run_dinamica_extrapolation(run_modelprechecks = FALSE)
+  run_evoland_dinamica_sim(
+    calibration = TRUE,
+    verbose = TRUE
   )
+
   # TODO check that this is still true with processx doing the system call
   # because the simulations may fail without the system command returning an error
   # (if the error occurs in Dinamica) then check the control table to see
