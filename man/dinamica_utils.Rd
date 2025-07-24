@@ -3,7 +3,7 @@
 \name{dinamica_utils}
 \alias{dinamica_utils}
 \alias{exec_dinamica}
-\alias{run_dinamica_extrapolation}
+\alias{run_evoland_dinamica_sim}
 \alias{process_dinamica_script}
 \title{Dinamica Utility Functions}
 \usage{
@@ -15,10 +15,11 @@ exec_dinamica(
   verbose = FALSE
 )
 
-run_dinamica_extrapolation(
+run_evoland_dinamica_sim(
   run_modelprechecks = TRUE,
   config = get_config(),
   work_dir = format(Sys.time(), "\%Y-\%m-\%d_\%Hh\%Mm\%Ss"),
+  calibration = FALSE,
   verbose = FALSE
 )
 
@@ -38,9 +39,13 @@ in a directory of the exact form \verb{basename(modelpath)_ego_Submodels}, \href
 \item{verbose}{bool}
 
 \item{run_modelprechecks}{bool, Validate that everything's in place for a model run.
-Set to false for calibration runs.}
+Will never be run if calibration.}
+
+\item{config}{List of config params}
 
 \item{work_dir}{Working dir, where to place ego files and control table}
+
+\item{calibration}{bool, Is this a calibration run?}
 
 \item{infile}{Input file path. Treated as input if passed AsIs using \code{base::I()}}
 
@@ -49,17 +54,16 @@ Set to false for calibration runs.}
 \item{mode}{Character, either "encode" or "decode"}
 
 \item{check}{Default TRUE, simple check to ensure that you're handling what you're expecting}
-
-\item{simctrl_tbl_template}{Path to the template control table}
 }
 \description{
-Functions to interact with Dinamica from R
+Interact with Dinamica from R, see \strong{Functions} section below.
 }
 \section{Functions}{
 \itemize{
 \item \code{exec_dinamica()}: Execute a Dinamica .ego file using \code{DinamicaConsole}
 
-\item \code{run_dinamica_extrapolation()}: Run a Dinamica EGO extrapolation simulation
+\item \code{run_evoland_dinamica_sim()}: Set up evoland-specific Dinamica EGO files; execute using
+\code{\link[=exec_dinamica]{exec_dinamica()}}
 
 \item \code{process_dinamica_script()}: Encode or decode raw R and Python code chunks in .ego
 files and their submodels to/from base64
