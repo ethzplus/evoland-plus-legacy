@@ -40,6 +40,7 @@ Suggests:
     bezier,
     corrplot,
     cowplot,
+    furrr,
     ggalluvial,
     ggplot2,
     ggSankeyGrad,
@@ -60,7 +61,7 @@ Suggests:
     xlsx,
     zen4R
 Remotes:
-    cran/SDMTools,
+    mmyrte/SDMTools,
     ssp3nc3r/ggSankeyGrad
 Config/testthat/edition: 3
 Depends: 
