@@ -101,117 +101,74 @@ get_simulation_timesteps <- function(params = get_simulation_params()) {
   )
 }
 
-dinamica_initialize <- function(wpath, ctrl_tbl_path, simulation_num) {
-  # A- Preparation ####
+#' Creates the initial LULC raster and copies it into the results directory
+#' @export
+create_init_lulc_raster <- function(params = get_simulation_params()) {
+  scenario_start <- params[["scenario_start.real"]]
 
-  # Enter name of Scenario to be tested as string or numeric (i.e. "BAU" etc.)
-  scenario_id <- Simulation_table$scenario_id.string
+  closest_observation <-
+    fs::path(Sys.getenv("EVOLAND_DATA_BASEPATH"), "historic_lulc") |>
+    fs::dir_ls(glob = "*.gri") |>
+    tibble::as_tibble_col(column_name = "path") |>
+    dplyr::mutate(
+      year = stringr::str_extract(path, "([0-9]{4})") |> as.integer(),
+      how_close = abs(scenario_start - year)
+    ) |>
+    dplyr::slice_min(order_by = how_close)
 
-  # Vector simulation ID
-  simulation_id <- control_table$simulation_id.string
+  initial_lulc_raster <-
+    raster::raster(closest_observation[["path"]]) |> # cannot read *.gri files with terra
+    terra::rast()
 
-  # Vector name of Climate scenario
-  Climate_ID <- Simulation_table$climate_scenario.string
-
-  # Define model_mode: Calibration or Simulation
-  model_mode <- Simulation_table$model_mode.string
-
-  # Get start and end dates of scenario (numeric)
-  scenario_start <- Simulation_table$scenario_start.real
-  scenario_end <- Simulation_table$scenario_end.real
-
-  # Enter duration of time step for modelling
-  step_length <- Simulation_table$step_length.real
-
-  # C- LULC map initialization + glacier conversion ####
-
-
-  # use Simulation start time to select file path of initial LULC map
-  Obs_LULC_paths <- list.files(
-    file.path("Data", "Historic_LULC"),
-    full.names = TRUE, pattern = ".gri"
-  )
-
-  # extract numerics
-  Obs_LULC_years <- unique(as.numeric(gsub(".*?([0-9]+).*", "\\1", Obs_LULC_paths)))
-
-  # if scenario_start year is <= 2020 then it probably hasn't been run before so we
-  # need to create a copy of the initial LULC map to start the simulation with
-  # vice versa if scenario_start year is >2020 then the scenario may have
-  # been run previously or have been interrupted by an error so there is no need
-  # to copy the start map because one will exist but this still needs to be checked
-
-  if (scenario_start <= 2020) {
-    # Identify start year
-    LULC_start_year <- Obs_LULC_years[
-      base::which.min(abs(Obs_LULC_years - scenario_start))
-    ]
-
-    # subset to correct LULC path and load
-    Initial_LULC_raster <- raster::raster(
-      Obs_LULC_paths[grep(LULC_start_year, Obs_LULC_paths)]
-    )
-
+  if (grepl("simulation", params[["model_mode.string"]], ignore.case = TRUE)) {
     # convert raster to dataframe
-    LULC_dat <- raster::as.data.frame(Initial_LULC_raster)
+    lulc_tbl <-
+      initial_lulc_raster |>
+      terra::as.data.frame(na.rm = FALSE) |>
+      tibble::as_tibble() |>
+      tibble::rowid_to_column() |>
+      rlang::set_names(c("id", "value"))
 
-    # add ID column to dataset
-    LULC_dat$ID <- seq.int(nrow(LULC_dat))
+    # For the transition rates for glaciers to be accurate we need to make sure that the
+    # initial LULC map has the correct glacier cells according to glacial modelling
+    # using the scenario specific glacier index
+    glacier_index <-
+      fs::path(Sys.getenv("EVOLAND_DATA_BASEPATH"), "glacial_change", "scenario_indices") |>
+      fs::dir_ls(regex = params[["climate_scenario.string"]]) |>
+      readRDS() |>
+      tibble::as_tibble() |>
+      dplyr::select(tidyselect::all_of(c("ID_loc", value = scenario_start)))
 
-    # Get XY coordinates of cells
-    xy_coordinates <- raster::coordinates(Initial_LULC_raster)
+    # seperate vector of cell IDs for glacier and non-glacier cells
+    non_glacier_ids <- glacier_index |>
+      dplyr::filter(value == 0) |>
+      purrr::pluck("ID_loc")
+    glacier_ids <- glacier_index |>
+      dplyr::filter(value == 1) |>
+      purrr::pluck("ID_loc")
 
-    # cbind XY coordinates to dataframe and seperate rows where all values = NA
-    LULC_dat <- cbind(LULC_dat, xy_coordinates)
+    # replace the 1's and 0's with the correct LULC
+    lulc_tbl[lulc_tbl[["id"]] %in% non_glacier_ids, "value"] <- "Static"
+    lulc_tbl[lulc_tbl[["id"]] %in% glacier_ids, "value"] <- "Glacier"
 
-    # For the simulations in order for the transition rates for glaciers to be
-    # accurate we need to make sure that the initial LULC map has the correct
-    # number of glacier cells according to glacial modelling
-    if (grepl("simulation", model_mode, ignore.case = TRUE)) {
-      # load scenario specific glacier index
-      Glacier_index <- readRDS(file = list.files(
-        "Data/Glacial_change/Scenario_indices",
-        full.names = TRUE,
-        pattern = Climate_ID
-      ))[, c("ID_loc", paste(scenario_start))]
+    # 2nd step ensure that other glacial cells that do not match the glacier index
+    # are also changed to static so that the transition rates calculate the
+    # correct number of cell changes
+    lulc_tbl[
+      which(lulc_tbl[["value"]] == "Glacier" &
+        !(lulc_tbl[["id"]] %in% glacier_ids)),
+      "value"
+    ] <- "Static"
 
-      # seperate vector of cell IDs for glacier and non-glacer cells
-      Non_glacier_IDs <- Glacier_index[Glacier_index[[paste(scenario_start)]] == 0, "ID_loc"]
-      Glacier_IDs <- Glacier_index[Glacier_index[[paste(scenario_start)]] == 1, "ID_loc"]
+    # convert back to raster
+    terra::values(initial_lulc_raster) <- lulc_tbl[["value"]]
+  } # close if statement for glacial modification
 
-      # replace the 1's and 0's with the correct LULC
-      LULC_dat[LULC_dat$ID %in% Non_glacier_IDs, "Pixel_value"] <- 11
-      LULC_dat[LULC_dat$ID %in% Glacier_IDs, "Pixel_value"] <- 19
-
-      # 2nd step ensure that other glacial cells that do not match the glacier index
-      # are also changed to static so that the transition rates calculate the
-      # correct number of cell changes
-      LULC_dat[
-        which(LULC_dat$Pixel_value == 19 & !(LULC_dat$ID %in% Glacier_IDs)),
-        "Pixel_value"
-      ] <- 11
-
-      # convert back to raster
-      Initial_LULC_raster <- raster::rasterFromXYZ(LULC_dat[, c("x", "y", "Pixel_value")])
-    } # close if statement for glacial modification
-
-    # create a copy of the initial LULC raster files in the Simulation output folder so
-    # that it can be called within Dinamica,
-    # it should be named using the file path for simulated_LULC maps (see above) and the
-    # Simulation start year
-    raster::writeRaster(Initial_LULC_raster, save_raster_path, overwrite = TRUE, datatype = "INT1U")
-  } # close if statement for copying initial LULC raster
-
-  # D- Send allocation parameter table folder path ####
-
-  # append the suffix necessary for Dinamica to alter strings (<v1>) to the file name
-  if (grepl("simulation", model_mode, ignore.case = TRUE)) {
-    Params_folder_Dinamica <- file.path(
-      simulation_param_dir, scenario_id, "Allocation_param_table_<v1>.csv"
-    )
-  } else if (grepl("calibration", model_mode, ignore.case = TRUE)) {
-    Params_folder_Dinamica <- file.path(
-      calibration_param_dir, simulation_id, "Allocation_param_table_<v1>.csv"
-    )
-  }
+  # write to the results folder, from where dinamica will also read it
+  terra::writeRaster(
+    initial_lulc_raster,
+    filename = params[["initial_lulc_path"]],
+    overwrite = TRUE,
+    datatype = "INT1U"
+  )
 }

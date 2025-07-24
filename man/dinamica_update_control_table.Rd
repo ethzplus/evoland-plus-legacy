@@ -5,13 +5,13 @@
 \title{Update the control table after completion of simulation}
 \usage{
 dinamica_update_control_table(
-  control_table_path = character(),
+  ctrl_tbl_path = default_ctrl_tbl_path(),
   success = character(),
   simulation_num = integer()
 )
 }
 \arguments{
-\item{control_table_path}{Character. Path to the control table CSV file.}
+\item{ctrl_tbl_path}{Character. Path to the control table CSV file.}
 
 \item{success}{Character. Indicates if the simulation was successful ("TRUE") or not.}
 

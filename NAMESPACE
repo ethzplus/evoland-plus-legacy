@@ -2,6 +2,7 @@
 
 export("%>%")
 export(calibration_predictor_prep)
+export(create_init_lulc_raster)
 export(default_ctrl_tbl_path)
 export(deterministic_trans_prep)
 export(dinamica_load_trans_table)

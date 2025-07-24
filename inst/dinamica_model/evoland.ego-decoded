@@ -53,6 +53,7 @@ outputTable("remaining_simulations", evoland::get_remaining_simulations())
                     initializeCurrentSimulation := CalculateRExpression "
 config <- evoland::get_config()
 sim_details <- evoland::get_simulation_params(simulation_id = v1)
+evoland::create_init_lulc_raster(params = sim_details)
 
 #send step length
 outputDouble("step_length", config[["step_length"]])
