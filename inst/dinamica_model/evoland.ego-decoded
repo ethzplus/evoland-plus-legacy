@@ -74,8 +74,8 @@ outputString("sim_lulc_folder_path", sim_details[["sim_results_path"]])
 #send initial LULC map file path to Dinamica receiver:
 outputString("initial_lulc_path", sim_details[["initial_lulc_path"]])
 
-#send folder path as string to Dinamica receiver: Allocation_params_folder_path
-outputString("Allocation_params_folder_path", sim_details[["params_folder_dinamica"]])
+#send folder path as string to Dinamica receiver: allocation_params_folder_path
+outputString("allocation_params_folder_path", sim_details[["params_folder_dinamica"]])
 
 #send folder path as string to Dinamica receiver: trans_matrix_folder_path
 outputString("trans_matrix_folder_path", config[["trans_rate_table_dir"]])
@@ -96,7 +96,7 @@ outputString("trans_matrix_folder_path", config[["trans_rate_table_dir"]])
                     receiveModelMode := ExtractStructString initializeCurrentSimulation $"(model_mode)";
 
                     @viewer.string = yes
-                    receiveFolderPathForTablesOfAllocationAlgorithmParameters := ExtractStructString initializeCurrentSimulation $"(Allocation_params_folder_path)";
+                    allocationParamsFolderPath := ExtractStructString initializeCurrentSimulation $"(allocation_params_folder_path)";
 
                     @viewer.string = yes
                     receiveFilePathForSimulatedLulcMaps := ExtractStructString initializeCurrentSimulation $"(sim_lulc_folder_path)";
@@ -156,14 +156,15 @@ outputTable("trans_rate_table", evoland::dinamica_load_trans_table(
                     _ := Group .none {{
                         @collapsed = no
                         @viewer.result = yes
-                        modifyFilePathForAllocationParametersTableForTimeStep := CreateString receiveFolderPathForTablesOfAllocationAlgorithmParameters {{
+                        // Modify file path for allocation parameters table for time step
+                        allocationParametersPathForTimeStep := CreateString allocationParamsFolderPath {{
                             @alias = Time step
                             NumberValue timeStep 1;
                         }};
 
                         @viewer.table = yes
                         loadTableOfAllocationParameters := LoadTable {
-                            filename = modifyFilePathForAllocationParametersTableForTimeStep,
+                            filename = allocationParametersPathForTimeStep,
                             uniqueIdKeyColumnCreation = .ifNecessary,
                             suffixDigits = 0,
                             step = step0,
@@ -172,43 +173,31 @@ outputTable("trans_rate_table", evoland::dinamica_load_trans_table(
 
                         @collapsed = no
                         @viewer.result = yes
-                        splitParamTable := CalculateRExpression "#############################################################################
-## Source script to modify allocation parameter table format
-#############################################################################
+                        splitParamTable := CalculateRExpression "
+param_table <- t1
 
-### =========================================================================
-### Receive Dinamica inputs
-### =========================================================================
-
-#Receive parameter table
-Param_table <- t1
-
-### =========================================================================
-### Source R script
-### =========================================================================
-
-source("Scripts/Dinamica_integration/Dinamica_modify_param_table.R",
-       echo=TRUE,
-       verbose=TRUE)
-
-### =========================================================================
-### Send Dinamica outputs
-### =========================================================================
-
-#Output % Expansion table
-#(Note the ',2' parameter is necessary for Dinamica to register that the table has 2 key columns (From and To))
-outputTable("Expander_table", Expander_table, 2)
-outputTable("Patch_table", Patch_table, 2)
+# the third positional argument `, 2` is necessary for Dinamica to register that the
+# table has 2 key columns (From and To) - could not find documentation for this
+outputTable(
+    "expander_table", 
+    param_table[, c("From", "To", "Perc_expander")], 
+    2
+)
+outputTable(
+    "patch_table", 
+    param_table[, !(colnames(param_table) %in% c("Perc_expander", "Perc_patcher"))], 
+    2
+)
 " .no {{
                             NumberTable loadTableOfAllocationParameters 1;
                         }};
 
                         @alias = % expansion table
                         @viewer.table = yes
-                        expansionTable := ExtractStructTable splitParamTable $"(Expander_table)";
+                        expansionTable := ExtractStructTable splitParamTable $"(expander_table)";
 
                         @viewer.table = yes
-                        patchRelatedParams := ExtractStructTable splitParamTable $"(Patch_table)";
+                        patchRelatedParams := ExtractStructTable splitParamTable $"(patch_table)";
                     }};
 
                     @collapsed = no
@@ -216,7 +205,8 @@ outputTable("Patch_table", Patch_table, 2)
                     _ := Group .none {{
                         @collapsed = no
                         @alias = Transition potential R script
-                        transitionPotentialRScript := CalculateRExpression "#############################################################################
+                        transitionPotentialRScript := CalculateRExpression "
+#############################################################################
 ## Source script for transition potential calculation and modifications
 #############################################################################
 
@@ -253,7 +243,8 @@ source("Scripts/Dinamica_integration/Dinamica_trans_potent_calc.R",
 ### Send Dinamica outputs
 ### =========================================================================
 
-outputString("probmap_folder_path", prob_map_folder)" .no {{
+outputString("probmap_folder_path", prob_map_folder)
+" .no {{
                             @alias = File path for simulated LULC maps
                             NumberString receiveFilePathForSimulatedLulcMaps 2;
 
@@ -277,7 +268,8 @@ outputString("probmap_folder_path", prob_map_folder)" .no {{
                     @alias = Transition allocation
                     _ := Group .none {{
                         @collapsed = no
-                        createSimulatedLulcSavePath := CalculateRExpression "#############################################################################
+                        createSimulatedLulcSavePath := CalculateRExpression "
+#############################################################################
 ## Source script to finalize save path for simulated LULC map
 #############################################################################
 
@@ -356,7 +348,8 @@ outputString("Simulated_LULC_year", Simulated_lulc_year)
                     @alias = Implement deterministic transitions
                     _ := Group .none {{
                         @collapsed = no
-                        deterministicTransitions := CalculateRExpression "#############################################################################
+                        deterministicTransitions := CalculateRExpression "
+#############################################################################
 ## Source script implementing Deterministic transitions
 #############################################################################
 
@@ -433,7 +426,8 @@ outputString("updated_lulc_map_path", File_path_simulated_LULC_maps)
                 @alias = Calibration period validation
                 _ := Group scenarioTimeStepIteration {{
                     @collapsed = no
-                    calculateRexpression2508 := CalculateRExpression "#############################################################################
+                    calculateRexpression2508 := CalculateRExpression "
+#############################################################################
 ## Source script to detrmine condition for 'if else' function to perform
 ## validation of simulation results
 #############################################################################

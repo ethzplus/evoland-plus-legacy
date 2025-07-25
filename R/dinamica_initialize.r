@@ -79,7 +79,9 @@ get_simulation_params <- function(
         "Allocation_param_table_<v1>.csv"
       ),
       file.path(
-        config[["calibration_param_dir"]], simulation_id, "Allocation_param_table_<v1>.csv"
+        config[["calibration_param_dir"]],
+        paste0("v", simulation_id),
+        "Allocation_param_table_<v1>.csv"
       )
     )
 
