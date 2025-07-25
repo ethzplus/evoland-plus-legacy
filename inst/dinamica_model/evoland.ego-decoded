@@ -7,6 +7,7 @@ Script {{
     @alias = Load control table
     _ := Group .none {{
         getEnvironmentVariables := CalculateRExpression "
+message(Sys.time(), " - getEnvironmentVariables")
 outputString("ctrl_tbl_path", evoland::default_ctrl_tbl_path())
 outputString("work_dir", getwd())
         " .no {{ }};
@@ -20,6 +21,7 @@ outputString("work_dir", getwd())
         @collapsed = no
         @alias = Subset control table to only simulations yet to be completed (i.e. modelled)
         incompleteSimulationsRExpression := CalculateRExpression "
+message(Sys.time(), " - incompleteSimulationsRExpression")
 outputTable("remaining_simulations", evoland::get_remaining_simulations())
         " .no {{ }};
 
@@ -51,6 +53,7 @@ outputTable("remaining_simulations", evoland::get_remaining_simulations())
                     @collapsed = no
                     @viewer.result = yes
                     initializeCurrentSimulation := CalculateRExpression "
+message(Sys.time(), " - initializeCurrentSimulation")
 config <- evoland::get_config()
 sim_details <- evoland::get_simulation_params(simulation_id = v1)
 evoland::create_init_lulc_raster(params = sim_details)
@@ -68,8 +71,8 @@ outputString("model_mode", sim_details[["model_mode.string"]])
 timesteps <- evoland::get_simulation_timesteps(params = sim_details)
 outputLookupTable("simulation_time_steps", timesteps[["key"]], timesteps[["value"]])
 
-#send simulated LULC folder path to Dinamica receiver: sim_lulc_folder_path
-outputString("sim_lulc_folder_path", sim_details[["sim_results_path"]])
+#send simulated LULC folder path to Dinamica receiver: sim_results_path
+outputString("sim_results_path", sim_details[["sim_results_path"]])
 
 #send initial LULC map file path to Dinamica receiver:
 outputString("initial_lulc_path", sim_details[["initial_lulc_path"]])
@@ -99,7 +102,7 @@ outputString("trans_matrix_folder_path", config[["trans_rate_table_dir"]])
                     allocationParamsFolderPath := ExtractStructString initializeCurrentSimulation $"(allocation_params_folder_path)";
 
                     @viewer.string = yes
-                    receiveFilePathForSimulatedLulcMaps := ExtractStructString initializeCurrentSimulation $"(sim_lulc_folder_path)";
+                    receiveSimResultsPath := ExtractStructString initializeCurrentSimulation $"(sim_results_path)";
 
                     receiveSimulationId := ExtractStructString initializeCurrentSimulation $"(sim_id)";
 
@@ -120,6 +123,7 @@ outputString("trans_matrix_folder_path", config[["trans_rate_table_dir"]])
                         // Load Scenario/time specific transition matrix
                         @collapsed = no
                         loadTransitionRateTable := CalculateRExpression "
+message(Sys.time(), " - loadTransitionRateTable")
 outputTable("trans_rate_table", evoland::dinamica_load_trans_table(
     simulation_id = v2,
     year = v1
@@ -174,6 +178,7 @@ outputTable("trans_rate_table", evoland::dinamica_load_trans_table(
                         @collapsed = no
                         @viewer.result = yes
                         splitParamTable := CalculateRExpression "
+message(Sys.time(), " - splitParamTable")
 param_table <- t1
 
 # the third positional argument `, 2` is necessary for Dinamica to register that the
@@ -206,6 +211,7 @@ outputTable(
                         @collapsed = no
                         @alias = Transition potential R script
                         transitionPotentialRScript := CalculateRExpression "
+message(Sys.time(), " - transitionPotentialRScript")
 
 prob_map_folder <- evoland::dinamica_trans_potent_calc(
     simulation_num = v2,
@@ -215,7 +221,7 @@ time_step = v1
 outputString("probmap_folder_path", prob_map_folder)
 " .no {{
                             @alias = File path for simulated LULC maps
-                            NumberString receiveFilePathForSimulatedLulcMaps 2;
+                            NumberString receiveSimResultsPath 1;
 
                             @alias = time_step
                             NumberValue timeStep 1;
@@ -238,6 +244,7 @@ outputString("probmap_folder_path", prob_map_folder)
                     _ := Group .none {{
                         @collapsed = no
                         createSimulatedLulcSavePath := CalculateRExpression "
+message(Sys.time(), " - createSimulatedLulcSavePath")
 #############################################################################
 ## Source script to finalize save path for simulated LULC map
 #############################################################################
@@ -275,7 +282,7 @@ outputString("simulated_lulc_save_path", Final_lULC_path)
 outputString("Simulated_LULC_year", Simulated_lulc_year)
 " .no {{
                             @alias = Simulated LULC map base path
-                            NumberString receiveFilePathForSimulatedLulcMaps 1;
+                            NumberString receiveSimResultsPath 1;
 
                             @alias = Current time
                             NumberValue timeStep 1;
@@ -318,6 +325,7 @@ outputString("Simulated_LULC_year", Simulated_lulc_year)
                     _ := Group .none {{
                         @collapsed = no
                         deterministicTransitions := CalculateRExpression "
+message(Sys.time(), " - deterministicTransitions")
 #############################################################################
 ## Source script implementing Deterministic transitions
 #############################################################################
@@ -396,6 +404,7 @@ outputString("updated_lulc_map_path", File_path_simulated_LULC_maps)
                 _ := Group scenarioTimeStepIteration {{
                     @collapsed = no
                     calculateRexpression2508 := CalculateRExpression "
+message(Sys.time(), " - calculateRexpression2508")
 #############################################################################
 ## Source script to detrmine condition for 'if else' function to perform
 ## validation of simulation results
@@ -448,7 +457,7 @@ outputString("Sim_LULC_path", Sim_final_LULC_path)
 
 " .no {{
                         @alias = Send file path for simulated LULC map
-                        NumberString receiveFilePathForSimulatedLulcMaps 1;
+                        NumberString receiveSimResultsPath 1;
 
                         @alias = Send model mode
                         NumberString receiveModelMode 2;
@@ -543,6 +552,7 @@ outputString("Sim_LULC_path", Sim_final_LULC_path)
             _ := Group .none {{
                 @collapsed = no
                 _ := CalculateRExpression "
+message(Sys.time(), " - update control table")
 evoland::dinamica_update_control_table(
     success = s1,
     simulation_num = v1
