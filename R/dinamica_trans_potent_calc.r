@@ -1,9 +1,35 @@
-#############################################################################
-## Dinamica_trans_potent_calc: Prediction of cellular transition potential
-## using fitted statistical models and optional implementation of spatial interventions
-## Date: 25-02-2022, 09-11-2023
-## Author: Ben Black, Carlson Büth
-#############################################################################
+#' dinamica_trans_potent_calc
+#'
+#' Calculates the transition potential for land use/land cover (LULC) changes using
+#' fitted statistical models. Supports both calibration and simulation modes, and can
+#' optionally apply scenario-specific spatial interventions. Generates dynamic
+#' predictors (e.g., population, neighbourhood), predicts transition probabilities for
+#' each possible LULC transition, rescales probabilities, applies interventions if
+#' required, and saves the resulting probability maps as raster files.
+#'
+#' @param config A list containing configuration parameters and file paths. Default:
+#' result of `get_config()`.
+#' @param simulation_num Integer. Simulation ID number to select simulation parameters.
+#' @param time_step Integer. The current time step for which transition potentials are
+#' calculated.
+#'
+#' @details
+#' 1. Loads simulation parameters and configuration.
+#' 1. Loads current LULC raster and layerizes it by class.
+#' 1. Loads suitability and accessibility predictors, adapting to calibration or simulation mode.
+#' 1. In simulation mode, generates dynamic predictors such as municipal population and neighbourhood statistics.
+#' 1. Stacks all predictors and converts them to a dataframe for model prediction.
+#' 1. Loads transition models and predicts transition probabilities for each transition and region.
+#' 1. Rescales probabilities to ensure they sum to 1 for each cell.
+#' 1. Optionally applies scenario-specific spatial interventions to the probabilities.
+#' 1. Saves probability maps for each transition as raster files.
+#'
+#' @author Ben Black, Carlson Büth
+#'
+#' @seealso [lulcc.spatprobmanipulation()]
+#'
+#' @export
+
 dinamica_trans_potent_calc <- function(
     config = get_config(),
     simulation_num = integer(),
@@ -77,7 +103,7 @@ dinamica_trans_potent_calc <- function(
   # TODO this seems sketchy, because the logic at create_init_lulc_raster() constructs
   # the file path differently
   current_LULC_path <- file.path(
-    params[["sim_results_dir"]],
+    params[["sim_results_path"]],
     paste0(time_step, ".tif")
   )
 
@@ -159,15 +185,10 @@ dinamica_trans_potent_calc <- function(
 
   # E- Generate dynamic predictors ####
 
-  #-------------------------------------------------------------------------
-  # E.1- Dynamic predictors:  Municipal Population
-  #-------------------------------------------------------------------------
-
-  # for calibration the raster stacks already contain the dynamic predictor layers so there
-  # is nothing to be done
-
-  # For simulation mode
   if (grepl("simulation", params[["model_mode.string"]], ignore.case = TRUE)) {
+    # E.1- Dynamic predictors:  Municipal Population ####
+    # for calibration the raster stacks already contain the dynamic predictor layers so there
+    # is nothing to be done
     cat("Generating dynamic predictors: \n - Municipal population \n")
 
     # create population data layer
@@ -307,9 +328,7 @@ dinamica_trans_potent_calc <- function(
       Urban_rast
     )
 
-    #-------------------------------------------------------------------------
-    # E.2- Dynamic predictors: Neighbourhood predictors
-    #-------------------------------------------------------------------------
+    # E.2- Dynamic predictors: Neighbourhood predictors ####
 
     cat(" - Neighbourhood predictors \n")
 
@@ -668,4 +687,6 @@ dinamica_trans_potent_calc <- function(
   cat(paste0(
     "Probability maps saved to: ", prob_map_folder, " (class: ", class(prob_map_folder), ") \n"
   ))
+
+  prob_map_folder
 }

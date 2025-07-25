@@ -206,42 +206,11 @@ outputTable(
                         @collapsed = no
                         @alias = Transition potential R script
                         transitionPotentialRScript := CalculateRExpression "
-#############################################################################
-## Source script for transition potential calculation and modifications
-#############################################################################
 
-### =========================================================================
-### Receive Dinamica inputs
-### =========================================================================
-
-#Receive folder path for loading simulated LULC maps
-File_path_simulated_LULC_maps <- s2
-
-#Receive current simulation time
-Simulation_time_step <- v1
-
-#simulation number being performed
-Simulation_num <- v2
-
-### =========================================================================
-### source R script for getting Environmental variables
-### =========================================================================
-
-source("Scripts/Dinamica_integration/Dinamica_get_env_vars.R",
-				echo=TRUE,
-				verbose=TRUE)
-
-### =========================================================================
-### Source R script
-### =========================================================================
-
-source("Scripts/Dinamica_integration/Dinamica_trans_potent_calc.R",
-       echo=TRUE,
-       verbose=TRUE)
-
-### =========================================================================
-### Send Dinamica outputs
-### =========================================================================
+prob_map_folder <- evoland::dinamica_trans_potent_calc(
+    simulation_num = v2,
+time_step = v1
+)
 
 outputString("probmap_folder_path", prob_map_folder)
 " .no {{

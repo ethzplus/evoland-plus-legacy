@@ -47,8 +47,7 @@ get_remaining_simulations <- function(ctrl_tbl_path = default_ctrl_tbl_path()) {
 #' @export
 get_simulation_params <- function(
     ctrl_tbl_path = default_ctrl_tbl_path(),
-    simulation_id = integer(),
-    model_mode) {
+    simulation_id = integer()) {
   stopifnot(rlang::is_scalar_integerish(simulation_id))
   params <-
     get_control_table(ctrl_tbl_path) |>
