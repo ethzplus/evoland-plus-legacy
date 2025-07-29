@@ -36,6 +36,7 @@ get_config <- function(
   tools_dir <- file.path(data_basepath, "tools")
 
   config <- list(
+    data_basepath = data_basepath,
     # Base directories
     historic_lulc_basepath = historic_lulc_basepath,
 

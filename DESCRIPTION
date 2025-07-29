@@ -9,6 +9,7 @@ Authors@R:
 Description: Gather land use / land cover related functions inherited from LULCC-CH.
 License: file LICENSE
 Imports:
+    butcher,
     curl,
     data.table,
     dplyr,

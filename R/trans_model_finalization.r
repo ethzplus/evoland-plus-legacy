@@ -8,9 +8,7 @@
 #' @export
 
 trans_model_finalization <- function(config = get_config()) {
-  ### =========================================================================
-  ### A- Preparation
-  ### =========================================================================
+  # A- Preparation ####
   # Provide base folder paths for saving models for simulation
   model_base_folder <- config[["prediction_models_dir"]]
   ensure_dir(model_base_folder)
@@ -28,18 +26,16 @@ trans_model_finalization <- function(config = get_config()) {
   # Instantiate wrapper function over process of modelling prep, fitting,
   # evaluation, saving and completeness checking
   lulcc.multispectransmodelling <- function(model_specs) {
-    ### =========================================================================
-    ### A- Prepare model specifications
-    ### =========================================================================
+    # A- Prepare model specifications ####
 
     # vector model specifcations
-    Data_period <- model_specs$data_period
-    Model_type <- model_specs$model_type
-    model_scale <- model_specs$model_scale
-    Feature_selection_employed <- model_specs$feature_selection_employed
-    Correct_balance <- model_specs$balance_adjustment
+    Data_period <- model_specs[["data_period_name"]]
+    Model_type <- model_specs[["model_type"]]
+    model_scale <- model_specs[["model_scale"]]
+    Feature_selection_employed <- model_specs[["feature_selection_employed"]]
+    Correct_balance <- model_specs[["balance_adjustment"]]
 
-    message("Conducting modelling under specification ", model_specs$detail_model_tag)
+    message("Conducting modelling under specification ", model_specs[["detail_model_tag"]])
 
     # finalise folder paths
     model_folder <- file.path(model_base_folder, Data_period)
@@ -58,10 +54,15 @@ trans_model_finalization <- function(config = get_config()) {
       )
     }
 
-    ### =========================================================================
-    ### B- Performing modelling
-    ### =========================================================================
+    # B- Performing modelling ####
 
+    if ((n_workers <- future:::nbrOfWorkers()) > 4L) {
+      warning(
+        "There are currently ", n_workers, " future workers enabled. ",
+        "The following processing step is heavy on disk IO. ",
+        "If the system interrupts your workers, try running this with fewer workers."
+      )
+    }
     # Now opening loop over datasets
     Predict_model_paths <- furrr::future_map(
       .x = Data_paths_for_period,
@@ -74,9 +75,7 @@ trans_model_finalization <- function(config = get_config()) {
           paste(c(".rds", paste0("_", model_scale)), collapse = "|")
         )
 
-        ### =========================================================================
-        ### B.1 - Attach model parameters
-        ### =========================================================================
+        # B.1 - Attach model parameters ####
 
         # Attach  a list of model parameters('model_settings')
         # for each type of model specified in the parameter grid
@@ -92,9 +91,7 @@ trans_model_finalization <- function(config = get_config()) {
         Trans_dataset[["model_settings"]] <- model_settings
         rm(model_settings)
 
-        ### =========================================================================
-        ### B.2- Fit model
-        ### =========================================================================
+        # B.2- Fit model ####
 
         Downsampling_bounds <- list(lower = 0.05, upper = 60)
 
@@ -108,7 +105,7 @@ trans_model_finalization <- function(config = get_config()) {
           path = NA,
           Downsampling = (
             Correct_balance &&
-              Trans_dataset$imbalance_ratio <= Downsampling_bounds$lower |
+              Trans_dataset$imbalance_ratio <= Downsampling_bounds$lower ||
               Trans_dataset$imbalance_ratio >= Downsampling_bounds$upper
           ) # utilise downsampling based on imbalance ratio
         ), TRUE) # Supply model arguments
@@ -127,17 +124,14 @@ trans_model_finalization <- function(config = get_config()) {
       }
     )
 
-    ### =========================================================================
-    ### B.3- Update model specification table to reflect that this specification
-    ### of models is complete
-    ### =========================================================================
+    # B.3- Mark specification as complete ####
 
     # load model spec table and replace the values in the 'completed' column
     model_spec_table <- readr::read_csv(config[["predict_model_specs_path"]])
 
     # find the correct row
     model_spec_table$modelling_completed[
-      model_spec_table$detail_model_tag == model_specs$detail_model_tag
+      model_spec_table$detail_model_tag == model_specs[["detail_model_tag"]]
     ] <- "Y"
 
     readr::write_csv(
@@ -152,118 +146,52 @@ trans_model_finalization <- function(config = get_config()) {
 
   # loop wrapper function over list of models
   # TODO why are we only fitting periods two and three?
-  lapply(model_list[2:3], function(model) {
-    lulcc.multispectransmodelling(model)
-  })
+  lapply(model_list[2:3], lulcc.multispectransmodelling)
 
-  ### =========================================================================
-  ### F- create a model look up table
-  ### =========================================================================
+  # F- create a model look up table for each period ####
+  model_periods <- unique(models_specs$data_period_name)
+  model_lookups <-
+    purrr::pmap(
+      list(
+        model_period = model_periods,
+        model_base_folder = model_base_folder,
+        trans_table = readRDS(config[["viable_transitions_lists"]])
+      ),
+      make_model_lookup_table
+    ) |> purrr::set_names(model_periods)
 
-  Model_periods <- unique(models_specs$data_period_name)
+  writexl::write_xlsx(
+    model_lookups, # named list of DFs = named sheets
+    path = config[["model_lookup_path"]]
+  )
+}
 
-  # load list of viable transitions for each time period
-  Viable_transitions_lists <- readRDS(config[["viable_transitions_lists"]])
-  names(Viable_transitions_lists) <- Model_periods
-
-  # create a df with info for each period
-  Model_lookups <- lapply(Model_periods, function(x) {
-    # Get file paths for models and uncertainty tables and convert to DF adding columns
-    # for file_path, model_name, unc_table_path
-    model_df <- data.frame(
-      File_path = list.files(paste0(model_base_folder, "/", x), full.names = TRUE),
-      # FIXME better not rely on the assumption that file order is deterministic
-      Model_name = list.files(paste0(model_base_folder, "/", x), full.names = FALSE)
-    )
-    # Unc_table_path = list.files(paste0("Data/Uncertainty_tables/", x), full.names =
-    # TRUE)) #adding uncertainty table as a list object if desired
-
-    # model_region (split on 1st period)
-    model_df$Region <- sapply(
-      model_df$Model_name, function(x) stringr::str_split(x, "\\.")[[1]][1],
-      simplify = TRUE
-    )
-
-    # Initial LULC class (split on 2nd period)
-    model_df$Initial_LULC <- sapply(
-      model_df$Model_name, function(x) stringr::str_split(x, "\\.")[[1]][2],
-      simplify = TRUE
-    )
-
-    # Final LULC class (split on 3rd period)
-    model_df$Final_LULC <- sapply(
-      model_df$Model_name, function(x) stringr::str_split(x, "\\.")[[1]][3],
-      simplify = TRUE
-    )
-
-    # transition names (concatenating Initial and Final_class)
-    model_df$Trans_name <- sapply(
-      model_df$Model_name, function(x) {
-        Initial <- stringr::str_split(x, "\\.")[[1]][2]
-        Final <- stringr::str_split(x, "\\.")[[1]][3]
-        return(paste0(Initial, "_", Final))
-      },
-      simplify = TRUE
-    )
-
-    # Model_period (split on 4th period)
-    model_df$Model_period <- sapply(
-      model_df$Model_name, function(x) stringr::str_split(x, "\\.")[[1]][4],
-      simplify = TRUE
-    )
-
-    # Model_type (split on 5th period)
-    model_df$Model_type <- sapply(
-      model_df$Model_name, function(x) stringr::str_split(x, "\\.")[[1]][5],
-      simplify = TRUE
-    )
-
-    # reorder columns
-    # add "Unc_table_path" to vector if included
-    model_df <- model_df[, c(
-      "Trans_name",
-      "Region",
-      "Initial_LULC",
-      "Final_LULC",
-      "Model_type",
-      "Model_period",
-      "Model_name",
-      "File_path"
-    )]
-
-    # remove rows for persistence models which are not required by Dinamica
-    model_df <- model_df[!model_df$Initial_LULC == model_df$Final_LULC, ]
-
-    return(model_df)
-  })
-  names(Model_lookups) <- Model_periods
-  # adding ID column using lists of viable transitions
-  Model_lookups_with_ID <- mapply(
-    function(Model_lookup, trans_table) {
-      Model_lookup$Trans_ID <- sapply(
-        Model_lookup$Trans_name,
-        function(x) trans_table[trans_table$Trans_name == x, "Trans_ID"]
-      )
-      return(Model_lookup)
-    },
-    Model_lookup = Model_lookups,
-    trans_table = Viable_transitions_lists,
-    SIMPLIFY = FALSE
+#' create a df with model lookup info for each period
+make_model_lookup_table <- function(model_period, model_base_folder, trans_table) {
+  trans_table <- dplyr::transmute(
+    trans_table,
+    Trans_name = tolower(Trans_name), # because of filename case (in-)sensitivity mess
+    Trans_ID
   )
 
-  # save DFs for each periods as sheets in a xlsx.
-  unlink(config[["model_lookup_path"]])
-  mapply(
-    function(model_table, model_name) {
-      xlsx::write.xlsx(
-        model_table,
-        file = config[["model_lookup_path"]],
-        sheet = model_name,
-        row.names = FALSE,
-        append = TRUE
-      )
-    },
-    model_table = Model_lookups_with_ID,
-    model_name = names(Model_lookups_with_ID)
-  )
+  fs::path(model_base_folder, model_period) |>
+    fs::dir_ls() |>
+    fs::path_rel(config[["data_basepath"]]) |>
+    tibble::as_tibble_col("File_path") |>
+    dplyr::mutate(
+      Model_name = fs::path_file(File_path),
+      Region = stringr::str_split_i(Model_name, stringr::fixed("."), i = 1),
+      Initial_LULC = stringr::str_split_i(Model_name, stringr::fixed("."), i = 2),
+      Final_LULC = stringr::str_split_i(Model_name, stringr::fixed("."), i = 3),
+      Trans_name = paste0(Initial_LULC, "_", Final_LULC),
+      Model_period = stringr::str_split_i(Model_name, stringr::fixed("."), i = 4),
+      Model_type = stringr::str_split_i(Model_name, stringr::fixed("."), i = 5),
+    ) |>
+    # filter out persistence models not required by dinamica
+    dplyr::filter(Initial_LULC != Final_LULC) |>
+    dplyr::select(
+      Trans_name, Region, Initial_LULC, Final_LULC,
+      Model_type, Model_period, Model_name, File_path
+    ) |>
+    dplyr::left_join(trans_table, by = "Trans_name")
 }

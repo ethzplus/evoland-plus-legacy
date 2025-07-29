@@ -104,11 +104,11 @@ get_simulation_timesteps <- function(params = get_simulation_params()) {
 
 #' Creates the initial LULC raster and copies it into the results directory
 #' @export
-create_init_lulc_raster <- function(params = get_simulation_params()) {
+create_init_lulc_raster <- function(params = get_simulation_params(), config = get_config()) {
   scenario_start <- params[["scenario_start.real"]]
 
   closest_observation <-
-    fs::path(Sys.getenv("EVOLAND_DATA_BASEPATH"), "historic_lulc") |>
+    fs::path(config[["historic_lulc_basepath"]]) |>
     fs::dir_ls(glob = "*.gri") |>
     tibble::as_tibble_col(column_name = "path") |>
     dplyr::mutate(
@@ -134,7 +134,7 @@ create_init_lulc_raster <- function(params = get_simulation_params()) {
     # initial LULC map has the correct glacier cells according to glacial modelling
     # using the scenario specific glacier index
     glacier_index <-
-      fs::path(Sys.getenv("EVOLAND_DATA_BASEPATH"), "glacial_change", "scenario_indices") |>
+      fs::path(config[["glacial_change_path"]], "scenario_indices") |>
       fs::dir_ls(regex = params[["climate_scenario.string"]]) |>
       readRDS() |>
       tibble::as_tibble() |>
