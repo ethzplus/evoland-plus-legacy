@@ -83,8 +83,10 @@ calibration_predictor_prep <- function(
   } else {
     # TODO ideally, we wouldn't store state in the excel table at all.
     # just delete them or add a refresh argument to all prep functions
-    Pred_table_long$Prepared <- ifelse(
-      file.exists(Pred_table_long$Prepared_data_path),
+    Pred_table_long[["Prepared"]] <- ifelse(
+      fs::file_exists(fs::path(
+        config[["data_basepath"]], Pred_table_long$Prepared_data_path
+      )),
       "Y",
       "N"
     )
@@ -238,6 +240,7 @@ calibration_predictor_prep <- function(
   # exactly however changes are minor in the scope of the number of industries them
   # exactly
 
+  ## Download STATENT - years 2011-2020 ####
   Statent_dir <- file.path(
     config[["predictors_raw_dir"]],
     "socio_economic",
@@ -267,7 +270,6 @@ calibration_predictor_prep <- function(
     tidyr::unnest_longer(URL, values_to = "URL", indices_to = "URL_id") |>
     dplyr::distinct()
 
-  ### Statent data: only years 2011-2020
   Statent_urls <-
     statent_raw_tbl |>
     dplyr::filter(stringr::str_detect(URL_id, "^\\d+$")) |>
@@ -278,7 +280,6 @@ calibration_predictor_prep <- function(
     dplyr::distinct()
 
   if (refresh_cache) {
-    # Download and unzip all datasets
     purrr::pwalk(
       Statent_urls,
       lulcc.downloadunzip,
@@ -294,10 +295,10 @@ calibration_predictor_prep <- function(
     value = TRUE
   )
 
-  # name using numerics in paths
+  # name (year) using numerics in paths
   names(Statent_paths) <- stringr::str_extract(
-    Statent_paths,
-    pattern = "STATENT(\\d{4})",
+    fs::path_file(Statent_paths),
+    pattern = "(\\d{4})",
     group = 1L
   )
 
@@ -356,12 +357,11 @@ calibration_predictor_prep <- function(
   rm(Statent_data_by_year)
 
   # rasterize
-  Statent_brick <- terra::rast(Statent_merged, crs = config[["reference_crs"]])
-  # rensample to match extent
-  # FIXME why is it nearest neighbour instead of bilinear? not categorical data!
-  Statent_brick <- terra::resample(Statent_brick, Ref_grid, method = "near")
+  Statent_brick <-
+    terra::rast(Statent_merged, crs = config[["reference_crs"]]) |>
+    terra::resample(Ref_grid, method = "bilinear")
 
-  ### Business census data
+  ## Download Business Census - years 1995-2008 ####
   Biz_census_urls <-
     statent_raw_tbl |>
     dplyr::filter(stringr::str_detect(URL_id, "^\\d+$", negate = TRUE)) |>
@@ -438,11 +438,15 @@ calibration_predictor_prep <- function(
   BC_desc_vars <- c("X", "Y")
   names(BC_desc_vars) <- BC_desc_vars
 
-  # combine the variable ames vectors
+  # combine the variable names vectors
   BC_vars <- c(BC_desc_vars, BC_var_strings)
 
   # loop over Business census datasets
-  BC_data_by_year <- mapply(
+  BC_data_by_year <- purrr::pmap(
+    list(
+      annual_data_path = Biz_census_paths,
+      year = names(Biz_census_paths)
+    ),
     function(annual_data_path, year) {
       # load the file
       Annual_data <- readr::read_delim(annual_data_path)
@@ -466,10 +470,7 @@ calibration_predictor_prep <- function(
         }
       })
       return(Data_subset)
-    },
-    annual_data_path = Biz_census_paths,
-    year = names(Biz_census_paths),
-    SIMPLIFY = FALSE
+    }
   )
 
   # merge
@@ -481,7 +482,7 @@ calibration_predictor_prep <- function(
   BC_brick <-
     terra::rast(BC_merged, crs = "epsg:21781") |>
     terra::project(config[["reference_crs"]]) |>
-    terra::resample(Ref_grid)
+    terra::resample(Ref_grid, method = "bilinear")
 
   # Combine the two bricks together
   Data_stack <- c(Statent_brick, BC_brick)
@@ -496,6 +497,7 @@ calibration_predictor_prep <- function(
       "K4_amre20190101_gf", "K4amre_20190101gf_ch2007Poly.shp"
     )) |>
     terra::project(config[["reference_crs"]])
+  LMR_shp[["id_numeric"]] <- seq_len(length(LMR_shp)) # for later rasterization
 
   # sum data in each labour market region
   FTE_lab_market <- terra::extract(
@@ -588,36 +590,23 @@ calibration_predictor_prep <- function(
     names_sep = "_"
   )
   # rasterize
-  LMR_shp$name <- as.factor(LMR_shp$name)
-  LMR_rast <- terra::rasterize(LMR_shp, Ref_grid, field = "name")
+  LMR_rast <- terra::rasterize(LMR_shp, Ref_grid, field = "id_numeric")
 
-  FTE_rasts <- LMR_rast
-  # Mimic 'subs' functionality for multiple new layers
-  # (no new comments; just replacing the approach with terra)
-  valmat <- as.data.frame(FTE_rasts, cells = TRUE, na.rm = FALSE)
-  colnames(valmat)[2] <- "ID"
-  FTE_list <- list()
-
-  for (k in 2:ncol(LMR_values)) {
-    tmp <- valmat
-    colname_k <- colnames(LMR_values)[k]
-    matchdf <- data.frame(ID = LMR_values$ID, newval = LMR_values[[colname_k]])
-    tmp <- merge(tmp, matchdf, by = "ID", all.x = TRUE)
-    tmp <- tmp[order(tmp$cell), ]
-    newlayer <- terra::rast(FTE_rasts)
-    terra::values(newlayer) <- tmp$newval
-    FTE_list[[k - 1]] <- newlayer
-  }
-
-  FTE_rasts <- do.call(c, FTE_list)
+  FTE_rasts <- terra::subst(
+    x = LMR_rast,
+    from = LMR_values[["ID"]],
+    to = as.matrix(LMR_values[, -1])
+  )
 
   ensure_dir(config[["prepped_fte_dir"]])
 
   # vector file names
-  FTE_file_names <- file.path(
-    config[["prepped_fte_dir"]],
-    paste0("avg_chg_fte_", names(LMR_values)[2:length(LMR_values)], ".tif")
-  )
+  FTE_file_names <-
+    fs::path(
+      config[["prepped_fte_dir"]],
+      paste0("avg_chg_fte_", names(LMR_values)[2:length(LMR_values)], ".tif")
+    ) |>
+    tolower()
 
   # save a seperate file for each layer
   terra::writeRaster(
