@@ -39,7 +39,7 @@ dinamica_load_trans_table <- function(
 
   # remove glacier transition (implemented deterministically)
   if (
-    grepl("simulation", params[["model_mode.string"]], ignore.case = TRUE) &&
+    params[["is_simulation"]] &&
       grepl("Y", params[["deterministic_trans.string"]], ignore.case = TRUE)
   ) {
     # TODO remove hard-coded assumption that glacier == 19

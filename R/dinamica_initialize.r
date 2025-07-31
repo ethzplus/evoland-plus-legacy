@@ -54,18 +54,26 @@ get_simulation_params <- function(
     dplyr::filter(simulation_num. == simulation_id) |>
     as.list()
 
+  stopifnot(grepl(
+    "simulation|calibration",
+    params[["model_mode.string"]],
+    ignore.case = TRUE
+  ))
+
+  params[["is_simulation"]] <- grepl(
+    "simulation",
+    params[["model_mode.string"]],
+    ignore.case = TRUE
+  )
+
   params[["sim_results_path"]] <-
-    fs::path("results", paste0("sim_id_", simulation_id)) |>
+    fs::path("results", "lulc_maps") |>
     ensure_dir()
 
   params[["initial_lulc_path"]] <-
     fs::path(
       params[["sim_results_path"]],
-      paste0(
-        "simulated_LULC_simID_", simulation_id,
-        "_year_", params[["scenario_start.real"]],
-        ".tif"
-      )
+      paste0(params[["scenario_start.real"]], ".tif")
     )
 
   config <- get_config()
@@ -121,7 +129,7 @@ create_init_lulc_raster <- function(params = get_simulation_params(), config = g
     raster::raster(closest_observation[["path"]]) |> # cannot read *.gri files with terra
     terra::rast()
 
-  if (grepl("simulation", params[["model_mode.string"]], ignore.case = TRUE)) {
+  if (params[["is_simulation"]]) {
     # convert raster to dataframe
     lulc_tbl <-
       initial_lulc_raster |>
