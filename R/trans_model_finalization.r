@@ -150,8 +150,8 @@ trans_model_finalization <- function(config = get_config()) {
 
   # F- create a model look up table for each period ####
   model_periods <- unique(models_specs$data_period_name)
-  viable_trans_lists <- 
-    readRDS(config[["viable_transitions_lists"]]) |> 
+  viable_trans_lists <-
+    readRDS(config[["viable_transitions_lists"]]) |>
     purrr::keep_at(model_periods)
   model_lookups <-
     purrr::pmap(

@@ -905,7 +905,7 @@ calibration_predictor_prep <- function(
     ] <- "Y"
   } # close if statement
 
-  # X- Update predictor table for SA predictors ####
+  # X- Update predictor table for SA (suitability, accessibility) predictors ####
 
   # load predictor_table as workbook to add sheets
   Pred_table_update <- openxlsx::loadWorkbook(file = config[["pred_table_path"]])
