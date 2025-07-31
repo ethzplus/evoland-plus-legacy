@@ -44,7 +44,9 @@ transition_dataset_prep <- function(config = get_config()) {
   # subsetting to only the necessary columns
   preds_by_period <- lapply(predictor_tables, function(x) {
     pred_subset <- x[, c("Prepared_data_path", "Covariate_ID")]
-    pred_subset$File_name <- pred_subset$Prepared_data_path
+    pred_subset$File_name <- file.path(
+      config[["data_basepath"]], pred_subset$Prepared_data_path
+    )
     pred_subset$Prepared_data_path <- NULL
     names(pred_subset)[names(pred_subset) == "Covariate_ID"] <- "Layer_name"
     return(pred_subset)
@@ -108,10 +110,10 @@ transition_dataset_prep <- function(config = get_config()) {
 
   # read in all rasters in the list to check compatibility before stacking
   rasters_by_periods <- purrr::map(combined_paths_by_period, function(x) {
-    raster_list <- purrr::map(x$File_name, function(x) {
-      r <- terra::rast(x)
+    raster_list <- purrr::map(x$File_name, function(raster_file_name) {
+      r <- terra::rast(raster_file_name)
       if (!terra::global(r, "anynotNA")[[1]]) {
-        warning("Raster ", x, " is all NA, discarding")
+        warning("Raster ", raster_file_name, " is all NA, discarding")
         return(NULL) # discard all-NA rasters quietly
       }
       r
@@ -119,6 +121,7 @@ transition_dataset_prep <- function(config = get_config()) {
     names(raster_list) <- x$Layer_name
     purrr::compact(raster_list) # drop NULLs
   })
+  names(rasters_by_periods) <- config[["data_periods"]]
 
   ### =========================================================================
   ### C- Confirm Raster compatibility for stacking
@@ -134,25 +137,30 @@ transition_dataset_prep <- function(config = get_config()) {
     exemplar_raster = terra::rast(config[["ref_grid_path"]])
   )
 
-  # Create SpatRaster stacks for each time period
+  # Create SpatRaster stacks for each time period.
   ensure_dir(config[["prepped_pred_stacks"]])
   rasterstacks_by_periods <- mapply(
     function(raster_list, period_name) {
       # Combine layers into a single SpatRaster
       raster_stack_for_period <- terra::rast(raster_list)
-      saveRDS(
-        raster_stack_for_period,
-        file = file.path(
-          config[["prepped_pred_stacks"]],
-          paste0("pred_stack_", period_name, ".rds")
-        )
-      )
+
+      # Saving as rds doesn't work for terra objects, but these stacks aren't actually
+      # used anywhere. It's actually a good idea though, because this avoids a memory
+      # bottleneck down the line.
+      # saveRDS(
+      #   raster_stack_for_period,
+      #   file = file.path(
+      #     config[["prepped_pred_stacks"]],
+      #     paste0("pred_stack_", period_name, ".rds")
+      #   )
+      # )
       raster_stack_for_period
     },
     raster_list = rasters_by_periods,
     period_name = names(rasters_by_periods),
     SIMPLIFY = FALSE
   )
+
   rm(rasters_by_periods)
 
   ### =========================================================================
