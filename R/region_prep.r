@@ -6,8 +6,8 @@
 #' @author Ben Black
 #' @export
 
-region_prep <- function(config) {
-  dir.create(config[["bioreg_dir"]], showWarnings = FALSE, recursive = TRUE)
+region_prep <- function(config = get_config()) {
+  ensure_dir(config[["bioreg_dir"]])
 
   # Load in an exemplar Raster of the correct resolution, extent, and NAs
   lulc_mask <- terra::rast(
@@ -55,7 +55,7 @@ region_prep <- function(config) {
   # saving the raster in R's native .grd format which SHOULD preserve the attribute table
   terra::writeRaster(
     bioreg_rast,
-    filename = file.path(config[["bioreg_dir"]], "Bioreg_raster.grd"),
+    filename = file.path(config[["bioreg_dir"]], "bioreg_raster.tif"),
     overwrite = TRUE
   )
 }

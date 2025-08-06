@@ -4,7 +4,10 @@
 \alias{create_init_lulc_raster}
 \title{Creates the initial LULC raster and copies it into the results directory}
 \usage{
-create_init_lulc_raster(params = get_simulation_params())
+create_init_lulc_raster(
+  params = get_simulation_params(),
+  config = get_config()
+)
 }
 \description{
 Creates the initial LULC raster and copies it into the results directory

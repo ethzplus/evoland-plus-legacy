@@ -14,11 +14,6 @@ calibration_predictor_prep(
 \item{config}{A list object}
 }
 \description{
-Not yet clear why this script was originally called \code{calibration_predictor_prep.r} -
-100m resolution, crs and extent prepared layers are saved seperately in a
-Use predictor table to prepare predictor layers at a uniform
-100m resolution, crs and extent prepared layers are saved seperately in a
-and then combined into raster stacks for easy loading
-Date: 01-08-2021
-Author: Ben Black
+Does some predictor data preparation, relying on the xlsx file at \code{pred_table_path}
+and other assumptions specified in \code{\link[=get_config]{get_config()}}.
 }

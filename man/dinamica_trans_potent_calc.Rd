@@ -31,10 +31,13 @@ required, and saves the resulting probability maps as raster files.
 \enumerate{
 \item Loads simulation parameters and configuration.
 \item Loads current LULC raster and layerizes it by class.
-\item Loads suitability and accessibility predictors, adapting to calibration or simulation mode.
-\item In simulation mode, generates dynamic predictors such as municipal population and neighbourhood statistics.
+\item Loads suitability and accessibility predictors, adapting to calibration or
+simulation mode.
+\item In simulation mode, generates dynamic predictors such as municipal population and
+neighbourhood statistics.
 \item Stacks all predictors and converts them to a dataframe for model prediction.
-\item Loads transition models and predicts transition probabilities for each transition and region.
+\item Loads transition models and predicts transition probabilities for each transition
+and region.
 \item Rescales probabilities to ensure they sum to 1 for each cell.
 \item Optionally applies scenario-specific spatial interventions to the probabilities.
 \item Saves probability maps for each transition as raster files.

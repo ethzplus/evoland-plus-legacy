@@ -33,17 +33,19 @@ deterministic_trans_prep <- function(config = get_config()) {
     replacement = "\\1",
     x = list.files(
       config[["historic_lulc_basepath"]],
-      full.names = FALSE, pattern = ".gri"
+      full.names = FALSE,
+      pattern = ".gri"
     )
-  ) |> as.integer()
+  ) |>
+    as.integer()
 
-  data_periods <- config[["data_periods"]]
   step_length <- config[["step_length"]]
 
   # The model lookup table specifies which transitions are modelled and
   # should be used to subset the transition rates tables
 
   # Load Model lookup tables for each period and subset to just transition names
+  data_periods <- readxl::excel_sheets(config[["model_lookup_path"]])
   Periodic_trans_names <- lapply(
     data_periods,
     function(Period) {
@@ -141,32 +143,35 @@ deterministic_trans_prep <- function(config = get_config()) {
   )
 
   # calculate glacial change area per time step and combine to single DF
-  Glacial_change <- data.table::rbindlist(lapply(Glacier_indices, function(x) {
-    # calculate col sums
-    Area_per_year <- colSums(x[, 2:ncol(x)])
+  Glacial_change <- data.table::rbindlist(
+    lapply(Glacier_indices, function(x) {
+      # calculate col sums
+      Area_per_year <- colSums(x[, 2:ncol(x)])
 
-    # calculate change in area between each time point
-    Areal_change <- data.frame(t(
-      sapply(
-        1:(length(Area_per_year) - 1),
-        function(i) {
-          return(Area_per_year[i] - Area_per_year[i + 1])
-        }
-      )
-    ))
+      # calculate change in area between each time point
+      Areal_change <- data.frame(t(
+        sapply(
+          1:(length(Area_per_year) - 1),
+          function(i) {
+            return(Area_per_year[i] - Area_per_year[i + 1])
+          }
+        )
+      ))
 
-    colnames(Areal_change) <- names(Area_per_year)[2:length(Area_per_year)]
-    return(Areal_change)
-  }), idcol = "RCP")
+      colnames(Areal_change) <- names(Area_per_year)[2:length(Area_per_year)]
+      return(Areal_change)
+    }),
+    idcol = "RCP"
+  )
 
   # TODO move temporary fix for mapping RCPs to Scenarios someplace more sensible
   rcps_to_scenarios_tbl <- tibble::tribble(
     ~Scenario, ~RCP,
-    "EI_NAT", "RCP26",
-    "EI_CUL", "RCP26",
-    "BAU", "RCP45",
-    "EI_SOC", "RCP45",
-    "GR_EX", "RCP85",
+    "EI_NAT", "rcp26",
+    "EI_CUL", "rcp26",
+    "BAU", "rcp45",
+    "EI_SOC", "rcp45",
+    "GR_EX", "rcp85",
   )
 
   dplyr::left_join(Glacial_change, rcps_to_scenarios_tbl, by = "RCP") |>

@@ -1,12 +1,7 @@
 #' Preparation of Predictor Data
 #'
-#' Not yet clear why this script was originally called `calibration_predictor_prep.r` -
-#' 100m resolution, crs and extent prepared layers are saved seperately in a
-#' Use predictor table to prepare predictor layers at a uniform
-#' 100m resolution, crs and extent prepared layers are saved seperately in a
-#' and then combined into raster stacks for easy loading
-#' Date: 01-08-2021
-#' Author: Ben Black
+#' Does some predictor data preparation, relying on the xlsx file at `pred_table_path`
+#' and other assumptions specified in [get_config()].
 #'
 #' @param config A list object
 #'
@@ -42,7 +37,8 @@ calibration_predictor_prep <- function(
       # https://dam-api.bfs.admin.ch/hub/api/dam/assets/21245514/master
       url = "https://dam-api.bfs.admin.ch/hub/api/dam/assets/33807959/master",
       save_dir = config[["ch_geoms_path"]],
-      filename = paste0(basename(config[["ch_geoms_path"]]), ".zip")
+      filename = paste0(basename(config[["ch_geoms_path"]]), ".zip"),
+      force_lowercase = TRUE
     )
   }
 
@@ -64,7 +60,14 @@ calibration_predictor_prep <- function(
   # load all sheets as a list
   Pred_tables <- lapply(
     sheets,
-    function(x) readxl::read_excel(config[["pred_table_path"]], sheet = x)
+    function(x) {
+      readxl::read_excel(config[["pred_table_path"]], sheet = x) |>
+        dplyr::mutate(
+          # prepend basepath
+          Raw_data_path = fs::path(config[["data_basepath"]], Raw_data_path),
+          Prepared_data_path = fs::path(config[["data_basepath"]], Prepared_data_path)
+        )
+    }
   )
   names(Pred_tables) <- sheets
 
@@ -84,9 +87,7 @@ calibration_predictor_prep <- function(
     # TODO ideally, we wouldn't store state in the excel table at all.
     # just delete them or add a refresh argument to all prep functions
     Pred_table_long[["Prepared"]] <- ifelse(
-      fs::file_exists(fs::path(
-        config[["data_basepath"]], Pred_table_long$Prepared_data_path
-      )),
+      fs::file_exists(Pred_table_long$Prepared_data_path),
       "Y",
       "N"
     )
@@ -251,7 +252,7 @@ calibration_predictor_prep <- function(
 
   statent_raw_tbl <-
     Preds_to_prepare |>
-    dplyr::filter(stringr::str_detect(Covariate_ID, "Avg_chg_FTE")) |>
+    dplyr::filter(stringr::str_detect(Covariate_ID, "avg_chg_fte")) |>
     dplyr::select(period, URL, Raw_data_path, Prepared_data_path) |>
     dplyr::mutate(
       # extracting urls and names from "year = url, year2 = url2" format strings
@@ -283,14 +284,15 @@ calibration_predictor_prep <- function(
     purrr::pwalk(
       Statent_urls,
       lulcc.downloadunzip,
-      save_dir = Statent_dir
+      save_dir = Statent_dir,
+      force_lowercase = TRUE
     )
   }
 
   # gather the relevant files
   Statent_paths <- grep(
     list.files(Statent_dir, recursive = TRUE, full.names = TRUE, pattern = "csv"),
-    pattern = paste(c("GMDE", "NOLOC"), collapse = "|"),
+    pattern = paste(c("gmde", "noloc"), collapse = "|"),
     invert = TRUE,
     value = TRUE
   )
@@ -384,7 +386,8 @@ calibration_predictor_prep <- function(
         lulcc.downloadunzip(
           url = url,
           save_dir = file.path(Biz_census_dir, basename(filename)),
-          filename = filename
+          filename = filename,
+          force_lowercase = TRUE
         )
       }
     )
@@ -493,8 +496,8 @@ calibration_predictor_prep <- function(
   LMR_shp <-
     terra::vect(file.path(
       config[["ch_geoms_path"]],
-      "2025_GEOM_TK", "03_ANAL", "Gesamtfläche_gf",
-      "K4_amre20190101_gf", "K4amre_20190101gf_ch2007Poly.shp"
+      "2025_geom_tk", "03_anal", "gesamtfläche_gf",
+      "k4_amre20190101_gf", "k4amre_20190101gf_ch2007poly.shp"
     )) |>
     terra::project(config[["reference_crs"]])
   LMR_shp[["id_numeric"]] <- seq_len(length(LMR_shp)) # for later rasterization
@@ -601,12 +604,10 @@ calibration_predictor_prep <- function(
   ensure_dir(config[["prepped_fte_dir"]])
 
   # vector file names
-  FTE_file_names <-
-    fs::path(
-      config[["prepped_fte_dir"]],
-      paste0("avg_chg_fte_", names(LMR_values)[2:length(LMR_values)], ".tif")
-    ) |>
-    tolower()
+  FTE_file_names <- fs::path(
+    config[["prepped_fte_dir"]],
+    tolower(paste0("avg_chg_fte_", names(LMR_values)[2:length(LMR_values)], ".tif"))
+  )
 
   # save a seperate file for each layer
   terra::writeRaster(
@@ -616,14 +617,15 @@ calibration_predictor_prep <- function(
   )
 
   # update the predictor table with the file paths
+  # WARNING this relies on sortedness of Pred_table_long
   Pred_table_long[
-    grepl(Covariate_ID, pattern = "Avg_chg_FTE") & is.na(Scenario_variant),
-    "Prepared_data_path"
-  ] <- FTE_file_names
+    grepl(Covariate_ID, pattern = "avg_chg_fte") & is.na(Scenario_variant),
+    Prepared_data_path := FTE_file_names
+  ]
   Pred_table_long[
-    grepl(Covariate_ID, pattern = "Avg_chg_FTE") & is.na(Scenario_variant),
-    "Prepared"
-  ] <- "Y"
+    grepl(Covariate_ID, pattern = "avg_chg_fte") & is.na(Scenario_variant),
+    Prepared := "Y"
+  ]
 
   # D.2- Biophysical: Soil, continentality and light (Descombes et al. 2020) ####
 
@@ -640,7 +642,11 @@ calibration_predictor_prep <- function(
   # use function to download and unpack
   Biophys_dir <- file.path(config[["predictors_raw_dir"]], "biophysical")
   if (refresh_cache) {
-    lulcc.downloadunzip(url = Biophys_url, save_dir = Biophys_dir)
+    lulcc.downloadunzip(
+      url = Biophys_url,
+      save_dir = Biophys_dir,
+      force_lowercase = TRUE
+    )
   }
 
   # download metadata
@@ -671,14 +677,14 @@ calibration_predictor_prep <- function(
     Desc_name
   ]
 
-  # FIXME how on earth can we be sure these names are in the right order?
+  # WARNING how on earth can we be sure these names are in the right order?
   # Match descriptive names with the pred table and return the covariate ID
   names(Biophys_layer_names) <- unique(sapply(Biophys_desc_names, function(x) {
     Preds_to_prepare[Variable_name == x, Covariate_ID]
   }))
 
   # get layer paths
-  Biophys_paths <- lapply(Biophys_layer_names, function(x) {
+  Biophys_paths <- lapply(tolower(Biophys_layer_names), function(x) {
     list.files(Biophys_dir, full.names = TRUE, pattern = x, recursive = TRUE)
   })
 
@@ -710,7 +716,7 @@ calibration_predictor_prep <- function(
   ### Prepare municipality population data incorporating mutations
 
   # use if statement to only perform prep if layers have not already been prepared
-  if (any(stringr::str_detect(Preds_to_prepare$Covariate_ID, "Muni_pop"))) {
+  if (any(stringr::str_detect(Preds_to_prepare$Covariate_ID, "muni_pop"))) {
     # read in PX data from http and convert to DF
     px_data <- as.data.frame(pxR::read.px(
       "https://dam-api.bfs.admin.ch/hub/api/dam/assets/23164063/master"
@@ -755,22 +761,25 @@ calibration_predictor_prep <- function(
     # subset to only municipalities existing in 2021
     raw_mun_popdata <- raw_mun_popdata[raw_mun_popdata$`2021` > 0, ]
 
-    if (refresh_cache) {
+    hoheitsgebiet_path <- fs::path(
+      config[["ch_geoms_path"]],
+      # TODO check that 1_3 and 1_5 are interchangeable
+      "swissboundaries3d_1_5_tlm_hoheitsgebiet.shp"
+    )
+
+    if (refresh_cache || !fs::file_exists(hoheitsgebiet_path)) {
       # fetch municipality shape file
       lulcc.downloadunzip(
         url = paste0(
           "https://data.geo.admin.ch/ch.swisstopo.swissboundaries3d/swissboundaries3d_2021-07/",
           "swissboundaries3d_2021-07_2056_5728.shp.zip"
         ),
-        save_dir = config[["ch_geoms_path"]]
+        save_dir = config[["ch_geoms_path"]],
+        force_lowercase = TRUE
       )
     }
 
-    Muni_shp <- raster::shapefile(file.path(
-      config[["ch_geoms_path"]],
-      # TODO check that 1_3 and 1_5 are interchangeable
-      "swissBOUNDARIES3D_1_5_TLM_HOHEITSGEBIET.shp"
-    ))
+    Muni_shp <- raster::shapefile(hoheitsgebiet_path)
 
     # filter out non-swiss municipalities
     Muni_shp <- Muni_shp[
@@ -862,7 +871,7 @@ calibration_predictor_prep <- function(
     # (minus 2018 as only one layer is required for each period)
     pop_in_LULC_years <- raw_mun_popdata[, c("BFS_NUM", LULC_years[1:3])]
 
-    Var_name <- "Muni_pop"
+    Var_name <- "muni_pop"
 
     # link with spatial municipality data, rasterize and save
     Muni_save_paths <- sapply(LULC_years[1:3], function(i) {
@@ -872,7 +881,7 @@ calibration_predictor_prep <- function(
         unique(Preds_to_prepare[Covariate_ID == Var_name, Predictor_category]),
         "population",
         paste0(Var_name, "_", i, ".tif")
-      ) |> tolower()
+      )
 
       # loop over the BFS numbers of the polygons and match to population values
       Muni_shp@data[paste0("Pop_", i)] <- as.numeric(sapply(
@@ -897,12 +906,12 @@ calibration_predictor_prep <- function(
     # Add prepared path to predictor table
     Pred_table_long[
       Covariate_ID == Var_name,
-      "Prepared_data_path"
-    ] <- Muni_save_paths
+      Prepared_data_path := Muni_save_paths
+    ]
     Pred_table_long[
       Covariate_ID == Var_name,
-      "Prepared"
-    ] <- "Y"
+      Prepared := "Y"
+    ]
   } # close if statement
 
   # X- Update predictor table for SA (suitability, accessibility) predictors ####
@@ -911,7 +920,15 @@ calibration_predictor_prep <- function(
   Pred_table_update <- openxlsx::loadWorkbook(file = config[["pred_table_path"]])
   Pred_table_update <- openxlsx::createWorkbook(creator = "lulcc-ch")
 
-  # split the table back into Dfs for each period and save
+  # remove basepath, split the table back into Dfs for each period and save
+  Pred_table_long[
+    ,
+    Raw_data_path := fs::path_rel(Raw_data_path, config[["data_basepath"]])
+  ]
+  Pred_table_long[
+    ,
+    Prepared_data_path := fs::path_rel(Prepared_data_path, config[["data_basepath"]])
+  ]
   Periodic_pred_tables <- split(Pred_table_long, Pred_table_long$period)
 
   # loop over period tables adding sheets and adding the predictors to them

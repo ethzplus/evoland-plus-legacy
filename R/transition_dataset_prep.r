@@ -63,8 +63,8 @@ transition_dataset_prep <- function(config = get_config()) {
   )
 
   # extract everything that begins with / and runs to the end of the string.
-  lulc_raster_paths["Layer_name"] <-
-    lulc_raster_paths$File_name |>
+  lulc_raster_paths[["Layer_name"]] <-
+    lulc_raster_paths[["File_name"]] |>
     stringr::str_extract("(?<=/)[^/]*$") |>
     stringr::str_remove(".grd$")
 
@@ -73,7 +73,7 @@ transition_dataset_prep <- function(config = get_config()) {
   colnames(region_path) <- c("File_name", "Layer_name")
   region_path["File_name"] <- list.files(
     config[["bioreg_dir"]],
-    pattern = ".grd$", full.names = TRUE
+    pattern = ".tif$", full.names = TRUE
   )
   region_path["Layer_name"] <- "Bioregion"
 

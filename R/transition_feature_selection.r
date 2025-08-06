@@ -50,7 +50,6 @@ transition_feature_selection <- function(config = get_config()) {
     ### =========================================================================
     ### A- Preparation
     ### =========================================================================
-
     Data_period <- Dataset_details$data_period_name
     Dataset_scale <- Dataset_details$model_scale
 
@@ -64,8 +63,7 @@ transition_feature_selection <- function(config = get_config()) {
       pattern = Dataset_scale,
       full.names = TRUE
     )
-    names(Data_paths) <- sapply(Data_paths, function(x) basename(x))
-
+    names(Data_paths) <- sapply(Data_paths, basename)
 
     ### =========================================================================
     ### B- Stage 1: Collinearity based 'filter' feature selection
@@ -90,7 +88,7 @@ transition_feature_selection <- function(config = get_config()) {
               ],
               collin_weight_vector = Trans_data$collin_weights,
               embedded_weight_vector = Trans_data$embed_weights,
-              focals = c("Neighbourhood"),
+              focals = c("neighbourhood"),
               method = "GLM",
               corcut = 0.7
             )

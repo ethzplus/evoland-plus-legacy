@@ -49,7 +49,7 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
   all_matrices_path <- file.path(
     config[["preds_tools_dir"]], "neighbourhood_matrices", "all_matrices.rds"
   )
-  if (redo_random_matrices) {
+  if (redo_random_matrices || !fs::file_exists(all_matrices_path)) {
     # FIXME this looks like you could simply set the seed to be reproducible?
     # ONLY REPEAT THIS SECTION OF CODE IF YOU WISH TO REPLACE THE EXISTING RANDOM
     # MATRICES WHICH ARE CARRIED FORWARD IN THE TRANSITION MODELLING set the number of
@@ -110,11 +110,11 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
 
   # provide vector of active LULC class names
   # FIXME this should be predictor metadata, not hardcoded
-  Active_class_names <- c("Urban", "Int_AG", "Alp_Past", "Grassland", "Perm_crops")
+  Active_class_names <- c("urban", "int_ag", "alp_past", "grassland", "perm_crops")
 
   Nhood_folder_path <- file.path(
     config[["prepped_lyr_path"]],
-    "Neighbourhood"
+    "neighbourhood"
   )
 
   # mapply function over the LULC rasters and Data period names
@@ -163,7 +163,9 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
   })
 
   # reduce nested list to a single vector of layer names
-  layer_names <- Reduce(c, new_names_period_LULC)
+  layer_names <- 
+    Reduce(c, new_names_period_LULC) |> 
+    fs::path_rel(config[["data_basepath"]])
 
   # regex strings of period and active class names and matrix_IDs
   period_names_regex <- stringr::str_c(data_periods, collapse = "|")
@@ -256,7 +258,7 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
 
     # incase nhood rows already exist remove them
     Pred_table <- Pred_tables[[x]]
-    Pred_table <- Pred_table[Pred_table$Predictor_category != "Neighbourhood", ]
+    Pred_table <- Pred_table[Pred_table$Predictor_category != "neighbourhood", ]
 
     # create Unique_ID seq proceeding from last row value in pred table
     last_cov_num <- as.numeric(

@@ -6,7 +6,7 @@
 \usage{
 fetch_zenodo_predictors(
   url = "https://zenodo.org/records/8263509/files/LULCC_CH_dat.zip",
-  target_dir = "data/preds/"
+  target_dir = fs::path(Sys.getenv("EVOLAND_DATA_BASEPATH", unset = "data-raw"))
 )
 }
 \arguments{

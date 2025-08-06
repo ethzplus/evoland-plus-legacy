@@ -27,6 +27,8 @@ lulcc.splitforcovselection <- function(trans_dataset, covariate_ids) {
   )
 
   # Measure of class imbalance
+  # FIXME currently, we're passing in all-NA or all-NULL vectors, leading to warnings.
+  # we shoudl avoid processing these altogether.
   imbalance_ratio <- (
     sum(trans_result == min(trans_result)) /
       sum(trans_result == max(trans_result))

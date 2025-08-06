@@ -4,7 +4,7 @@
 \alias{lulc_data_prep}
 \title{LULC_data_prep}
 \usage{
-lulc_data_prep(config, refresh_cache = FALSE)
+lulc_data_prep(config = get_config(), refresh_cache = FALSE)
 }
 \description{
 Preparing land use land cover rasters for all historic periods in the the Swiss Areal

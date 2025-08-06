@@ -10,3 +10,6 @@ ensure_dir <- function(dir) {
   dir.create(dir, showWarnings = FALSE, recursive = TRUE)
   invisible(dir)
 }
+
+#' makes datatable-aware, so NSE works
+.datatable.aware <- TRUE

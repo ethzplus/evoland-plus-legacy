@@ -1,4 +1,4 @@
-#' lulcc.downloadunzip
+#' Download and unzip a file
 #'
 #' Download folder from URL and unzip to target directory
 #'
@@ -10,7 +10,11 @@
 #' @author Ben Black
 #' @export
 
-lulcc.downloadunzip <- function(url, save_dir, filename = basename(url)) {
+lulcc.downloadunzip <- function(
+    url = character(),
+    save_dir = character(),
+    filename = basename(url),
+    force_lowercase = FALSE) {
   # create dir
   ensure_dir(save_dir)
 
@@ -26,6 +30,25 @@ lulcc.downloadunzip <- function(url, save_dir, filename = basename(url)) {
     )
     unlink(tmpdir) # remove temp dir
   } else { # non-zipped just download
+    if (force_lowercase) filename <- tolower(filename)
     download.file(url, file.path(save_dir, filename), mode = "wb")
+  }
+
+  if (force_lowercase && grepl("\\.zip", filename)) {
+    filenames_tbl <-
+      fs::dir_info(save_dir, recurse = TRUE) |>
+      dplyr::transmute(
+        path_from = path,
+        path_intermediate = paste0(path, "_tmp"),
+        path_to = fs::path(save_dir, tolower(fs::path_rel(path, save_dir)))
+      )
+
+    purrr::pwalk(
+      filenames_tbl,
+      function(path_from, path_intermediate, path_to) {
+        fs::file_move(path_from, path_intermediate)
+        fs::file_move(path_intermediate, path_to)
+      }
+    )
   }
 }

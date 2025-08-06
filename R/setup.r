@@ -18,12 +18,12 @@
 #' @export
 
 get_config <- function(
-    scenario_names = c("BAU", "EI-NAT", "EI-CUL", "EI-SOC", "GR-EX"),
-    step_length = 5L,
-    data_periods = c("1985_1997", "1997_2009", "2009_2018"),
-    regionalization = TRUE,
-    inclusion_threshold = 0.5) {
-  # TODO path composition could happen here through nested lists, or e.g. json dicts?
+  scenario_names = c("BAU", "EI-NAT", "EI-CUL", "EI-SOC", "GR-EX"),
+  step_length = 5L,
+  data_periods = c("1985_1997", "1997_2009", "2009_2018"),
+  regionalization = TRUE,
+  inclusion_threshold = 0.5
+) {
   data_basepath <- Sys.getenv("EVOLAND_DATA_BASEPATH", unset = "data-raw")
   historic_lulc_basepath <- file.path(data_basepath, "historic_lulc")
   bioreg_dir <- file.path(data_basepath, "bioregions")
@@ -41,27 +41,26 @@ get_config <- function(
     historic_lulc_basepath = historic_lulc_basepath,
 
     # Tools files
-    LULC_aggregation_path = file.path(
-      tools_dir, "lulc_class_aggregation.xlsx"
-    ), # LULC class aggregation table
+    LULC_aggregation_path = file.path(tools_dir, "lulc_class_aggregation.xlsx"), # LULC class aggregation table
     model_specs_path = file.path(tools_dir, "model_specs.csv"), # model specifications table
     param_grid_path = file.path(tools_dir, "param-grid.xlsx"), # model hyper parameter grids
     pred_table_path = file.path(tools_dir, "predictor_table.xlsx"), # predictor table
     # FIXME why are the next two repeated?
     predict_param_grid_path = file.path(tools_dir, "predict_param_grid.xlsx"),
     predict_model_specs_path = file.path(tools_dir, "predict_model_specs.csv"),
-    spat_ints_path = file.path(
-      tools_dir, "spatial_interventions.csv"
-    ), # spatial interventions table
-    EI_ints_path = file.path(tools_dir, "ei_interventions.xlsx"), # EI interventions table
+
+    # spatial interventions table
+    spat_ints_path = file.path(tools_dir, "spatial_interventions.csv"),
+    # ecological infrastructure interventions table
+    EI_ints_path = file.path(tools_dir, "ei_interventions.xlsx"),
     viable_transitions_lists = file.path(tools_dir, "viable_transitions_lists.rds"),
     model_lookup_path = file.path(tools_dir, "model_lookup.xlsx"),
     glacial_area_change_xlsx = file.path(tools_dir, "glacial_area_change.xlsx"),
-    scenario_area_mods_xlsx = file.path(tools_dir, "simulation_lulc_areas_2060.xlsx"),
+    scenario_area_mods_csv = file.path(tools_dir, "simulation_lulc_areas_2060.csv"),
     calibration_ctrl_tbl_path = file.path(tools_dir, "calibration_control.csv"),
 
     # Paths for original data files
-    ref_grid_path = file.path(data_basepath, "ref_grid.grd"),
+    ref_grid_path = file.path(data_basepath, "ref_grid.tif"),
     calibration_param_dir = file.path(allocation_pars_dir, "calibration"),
     simulation_param_dir = file.path(allocation_pars_dir, "simulation"),
     trans_rate_table_dir = file.path(data_basepath, "transition_tables", "prepared_trans_tables"),
@@ -69,15 +68,20 @@ get_config <- function(
     trans_rate_extrapol_dir = file.path(data_basepath, "transition_tables", "extrapolations"),
     best_trans_area_tables = file.path(data_basepath, "transition_tables", "best_area_tables.rds"),
     trans_pre_pred_filter_dir = file.path(
-      data_basepath, "transition_datasets", "pre_predictor_filtering"
+      data_basepath,
+      "transition_datasets",
+      "pre_predictor_filtering"
     ),
     trans_post_pred_filter_dir = file.path(
-      data_basepath, "transition_datasets", "post_predictor_filtering"
+      data_basepath,
+      "transition_datasets",
+      "post_predictor_filtering"
     ),
 
     # Configuration parameters
     ctrl_tbl_path = file.path(tools_dir, "simulation_control.csv"),
     step_length = step_length,
+    # FIXME scenario_names is not used anywhere
     scenario_names = scenario_names,
     # FIXME the next two used to be read from model_specs_path;
     # we should first move to a coherent singular config
@@ -86,8 +90,7 @@ get_config <- function(
     inclusion_threshold = inclusion_threshold,
 
     # Remote data sources and local paths
-    arealstat_zip_remote =
-      "https://dam-api.bfs.admin.ch/hub/api/dam/assets/32376216/appendix",
+    arealstat_zip_remote = "https://dam-api.bfs.admin.ch/hub/api/dam/assets/32376216/appendix",
     arealstat_zip_local = file.path(historic_lulc_basepath, "ag-b-00.03-37-area-all-csv.zip"),
     rasterized_lulc_dir = file.path(historic_lulc_basepath, "rasterized"),
     bioreg_dir = bioreg_dir,
@@ -110,20 +113,30 @@ get_config <- function(
 
     # Models directories
     grrf_dir = file.path(
-      results_dir, "model_tuning", "predictor_selection", "grrf_embedded_selection"
+      results_dir,
+      "model_tuning",
+      "predictor_selection",
+      "grrf_embedded_selection"
     ),
     collinearity_dir = file.path(
-      results_dir, "model_tuning", "predictor_selection", "grrf_embedded_selection"
+      results_dir,
+      "model_tuning",
+      "predictor_selection",
+      "grrf_embedded_selection"
     ),
     transition_model_dir = file.path(data_basepath, "transition_models"),
     transition_model_eval_dir = file.path(
-      results_dir, "transition_model_eval"
+      results_dir,
+      "transition_model_eval"
     ),
     prediction_models_dir = file.path(
-      results_dir, "transition_models", "prediction_models"
+      results_dir,
+      "transition_models",
+      "prediction_models"
     ),
     validation_dir = file.path(
-      results_dir, "validation"
+      results_dir,
+      "validation"
     )
   )
 

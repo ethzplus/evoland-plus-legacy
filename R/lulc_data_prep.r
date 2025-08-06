@@ -5,8 +5,8 @@
 #' @author Ben Black
 #' @export
 
-lulc_data_prep <- function(config, refresh_cache = FALSE) {
-  if (refresh_cache) {
+lulc_data_prep <- function(config = get_config(), refresh_cache = FALSE) {
+  if (refresh_cache || !fs::file_exists(config[["arealstat_zip_local"]])) {
     ensure_dir(dirname(config[["arealstat_zip_local"]]))
     curl::curl_download(
       url = config[["arealstat_zip_remote"]],
@@ -21,10 +21,10 @@ lulc_data_prep <- function(config, refresh_cache = FALSE) {
   # splitting into a list of tables for separate periods
   # Keep only columns of coordinates and LULC classes under the 72 categories scheme
   AS_tables_seperate_periods <- list(
-    NOAS04_1985 = AS_table[, c("E_COORD", "N_COORD", "AS85_72")],
-    NOAS04_1997 = AS_table[, c("E_COORD", "N_COORD", "AS97_72")],
-    NOAS04_2009 = AS_table[, c("E_COORD", "N_COORD", "AS09_72")],
-    NOAS04_2018 = AS_table[, c("E_COORD", "N_COORD", "AS18_72")]
+    noas04_1985 = AS_table[, c("E_COORD", "N_COORD", "AS85_72")],
+    noas04_1997 = AS_table[, c("E_COORD", "N_COORD", "AS97_72")],
+    noas04_2009 = AS_table[, c("E_COORD", "N_COORD", "AS09_72")],
+    noas04_2018 = AS_table[, c("E_COORD", "N_COORD", "AS18_72")]
   )
   rm(AS_table)
 
@@ -101,7 +101,7 @@ lulc_data_prep <- function(config, refresh_cache = FALSE) {
 
   period_rasts <- lapply(NOAS04_list, terra::rast)
   Reclassified_rasters <- lapply(period_rasts, function(x) terra::classify(x, rcl = Agg_matrix))
-  names(Reclassified_rasters) <- c("LULC_1985_agg", "LULC_1997_agg", "LULC_2009_agg", "LULC_2018_agg")
+  names(Reclassified_rasters) <- c("lulc_1985_agg", "lulc_1997_agg", "lulc_2009_agg", "lulc_2018_agg")
 
   # add raster attribute table (rat)
   # TODO are we sure that the order is preserved when calling unique?

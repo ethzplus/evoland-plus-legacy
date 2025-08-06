@@ -10,12 +10,13 @@ transition_identification <- function(config = get_config()) {
   ### A- Preparation
   ### =========================================================================
 
-  # Extract years from LULC filenames
-  lulc_years <- gsub(
-    ".*?([0-9]+).*",
-    "\\1",
-    list.files(config[["historic_lulc_basepath"]], full.names = FALSE, pattern = ".tif$")
+  lulc_files <- fs::dir_ls(
+    config[["historic_lulc_basepath"]],
+    glob = "*.grd",
+    recurse = TRUE
   )
+  # Extract years from LULC filenames
+  lulc_years <- stringr::str_extract(lulc_files, "\\d{4}")
 
   # Read aggregation scheme externally provided
   agg_scheme <- readxl::read_excel(config[["LULC_aggregation_path"]])
@@ -40,10 +41,9 @@ transition_identification <- function(config = get_config()) {
   ### =========================================================================
 
   # Load LULC rasters with terra
-  lulc_rasters <- lapply(
-    list.files(config[["historic_lulc_basepath"]], full.names = TRUE, pattern = ".tif$"),
-    terra::rast,
-    raw = TRUE
+  lulc_rasters <- purrr::map(
+    lulc_files,
+    terra::rast
   )
   names(lulc_rasters) <- lulc_years
 
@@ -51,7 +51,10 @@ transition_identification <- function(config = get_config()) {
   lulc_areas <- lapply(lulc_rasters, terra::freq, bylayer = FALSE)
 
   # Merge area tables by LULC class value
-  lulc_areal_change <- Reduce(function(x, y) merge(x, y, by = "value"), lulc_areas)
+  suppressWarnings(
+    # suppress warning about col names being repeated
+    lulc_areal_change <- Reduce(function(x, y) merge(x, y, by = "value"), lulc_areas)
+  )
   names(lulc_areal_change)[2:5] <- names(lulc_areas)
 
   # Add LULC numeric values (Aggregated_ID) to the table

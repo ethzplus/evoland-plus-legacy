@@ -20,7 +20,10 @@ trans_model_finalization <- function(config = get_config()) {
   models_specs <- models_specs[models_specs$modelling_completed == "N", ]
 
   # split into named list
-  model_list <- lapply(split(models_specs, seq_len(nrow(models_specs))), as.list)
+  model_list <- lapply(
+    split(models_specs, seq_len(nrow(models_specs))),
+    as.list
+  )
   names(model_list) <- models_specs$detail_model_tag
 
   # Instantiate wrapper function over process of modelling prep, fitting,
@@ -35,7 +38,10 @@ trans_model_finalization <- function(config = get_config()) {
     Feature_selection_employed <- model_specs[["feature_selection_employed"]]
     Correct_balance <- model_specs[["balance_adjustment"]]
 
-    message("Conducting modelling under specification ", model_specs[["detail_model_tag"]])
+    message(
+      "Conducting modelling under specification ",
+      model_specs[["detail_model_tag"]]
+    )
 
     # finalise folder paths
     model_folder <- file.path(model_base_folder, Data_period)
@@ -45,26 +51,30 @@ trans_model_finalization <- function(config = get_config()) {
     Data_paths_for_period <- if (Feature_selection_employed) {
       list.files(
         file.path(config[["trans_post_pred_filter_dir"]], Data_period),
-        pattern = model_scale, full.names = TRUE
+        pattern = model_scale,
+        full.names = TRUE
       )
     } else {
       list.files(
         file.path(config[["trans_post_pred_filter_dir"]], Data_period),
-        pattern = model_scale, full.names = TRUE
+        pattern = model_scale,
+        full.names = TRUE
       )
     }
 
     # B- Performing modelling ####
 
-    if ((n_workers <- future:::nbrOfWorkers()) > 4L) {
+    if ((n_workers <- future:::nbrOfWorkers()) > 6L) {
       warning(
-        "There are currently ", n_workers, " future workers enabled. ",
+        "There are currently ",
+        n_workers,
+        " future workers enabled. ",
         "The following processing step is heavy on disk IO. ",
         "If the system interrupts your workers, try running this with fewer workers."
       )
     }
-    # Now opening loop over datasets
-    Predict_model_paths <- furrr::future_map(
+    # Loop over datasets, side effect of walk: write out model
+    furrr::future_walk(
       .x = Data_paths_for_period,
       .options = furrr::furrr_options(seed = TRUE, scheduling = FALSE),
       .f = function(Dataset_path) {
@@ -96,26 +106,35 @@ trans_model_finalization <- function(config = get_config()) {
         Downsampling_bounds <- list(lower = 0.05, upper = 60)
 
         # Fit model
-        mod <- try(lulcc.fitmodel(
-          trans_result = Trans_dataset$trans_result, # transitions data
-          cov_data = Trans_dataset$cov_data, # covariate data
-          replicatetype = "none", # cross-validation strategy
-          reps = 1, # Number of replicates
-          mod_args = Trans_dataset$model_settings,
-          path = NA,
-          Downsampling = (
-            Correct_balance &&
+        mod <- try(
+          lulcc.fitmodel(
+            trans_result = Trans_dataset$trans_result, # transitions data
+            cov_data = Trans_dataset$cov_data, # covariate data
+            replicatetype = "none", # cross-validation strategy
+            reps = 1, # Number of replicates
+            mod_args = Trans_dataset$model_settings,
+            path = NA,
+            # utilise downsampling based on imbalance ratio
+            Downsampling = (Correct_balance &&
               Trans_dataset$imbalance_ratio <= Downsampling_bounds$lower ||
-              Trans_dataset$imbalance_ratio >= Downsampling_bounds$upper
-          ) # utilise downsampling based on imbalance ratio
-        ), TRUE) # Supply model arguments
+              Trans_dataset$imbalance_ratio >= Downsampling_bounds$upper)
+          ),
+          silent = TRUE
+        ) # Supply model arguments
 
         # extract only the part of the model that is needed (see below)
         model_extract <- mod@fits[["replicate_01"]][[1]]
 
         # save in final model location
         model_save_path <- paste0(
-          model_folder, "/", Trans_name, ".", Data_period, ".", Model_type, ".rds"
+          model_folder,
+          "/",
+          Trans_name,
+          ".",
+          Data_period,
+          ".",
+          Model_type,
+          ".rds"
         )
         saveRDS(model_extract, model_save_path)
 
@@ -140,13 +159,13 @@ trans_model_finalization <- function(config = get_config()) {
     )
 
     message("Prediction model fitting finished \n")
-
-    return(Predict_model_paths)
   } # close wrapper function
 
   # loop wrapper function over list of models
-  # TODO why are we only fitting periods two and three?
-  lapply(model_list[2:3], lulcc.multispectransmodelling)
+  purrr::walk(
+    .x = model_list,
+    .f = lulcc.multispectransmodelling
+  )
 
   # F- create a model look up table for each period ####
   model_periods <- unique(models_specs$data_period_name)
@@ -161,7 +180,8 @@ trans_model_finalization <- function(config = get_config()) {
         trans_table = viable_trans_lists
       ),
       make_model_lookup_table
-    ) |> purrr::set_names(model_periods)
+    ) |>
+    purrr::set_names(model_periods)
 
   writexl::write_xlsx(
     model_lookups, # named list of DFs = named sheets
@@ -170,7 +190,12 @@ trans_model_finalization <- function(config = get_config()) {
 }
 
 #' create a df with model lookup info for each period
-make_model_lookup_table <- function(model_period, model_base_folder, trans_table) {
+make_model_lookup_table <- function(
+  model_period,
+  model_base_folder,
+  trans_table,
+  config = get_config()
+) {
   trans_table <- dplyr::transmute(
     trans_table,
     Trans_name = tolower(Trans_name), # because of filename case (in-)sensitivity mess
@@ -193,8 +218,14 @@ make_model_lookup_table <- function(model_period, model_base_folder, trans_table
     # filter out persistence models not required by dinamica
     dplyr::filter(Initial_LULC != Final_LULC) |>
     dplyr::select(
-      Trans_name, Region, Initial_LULC, Final_LULC,
-      Model_type, Model_period, Model_name, File_path
+      Trans_name,
+      Region,
+      Initial_LULC,
+      Final_LULC,
+      Model_type,
+      Model_period,
+      Model_name,
+      File_path
     ) |>
     dplyr::left_join(trans_table, by = "Trans_name")
 }

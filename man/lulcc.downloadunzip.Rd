@@ -2,9 +2,14 @@
 % Please edit documentation in R/lulcc.downloadunzip.r
 \name{lulcc.downloadunzip}
 \alias{lulcc.downloadunzip}
-\title{lulcc.downloadunzip}
+\title{Download and unzip a file}
 \usage{
-lulcc.downloadunzip(url, save_dir, filename = basename(url))
+lulcc.downloadunzip(
+  url = character(),
+  save_dir = character(),
+  filename = basename(url),
+  force_lowercase = FALSE
+)
 }
 \arguments{
 \item{url}{character string url to download folder from
