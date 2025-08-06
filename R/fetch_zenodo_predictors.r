@@ -10,7 +10,7 @@
 
 fetch_zenodo_predictors <- function(
     url = "https://zenodo.org/records/8263509/files/LULCC_CH_dat.zip",
-    target_dir = "data/preds/") {
+    target_dir = fs::path(Sys.getenv("EVOLAND_DATA_BASEPATH", unset = "data-raw"))) {
   # WONTFIX currently, the raw data resides at the zenodo record, which will stay about
   # as persistent as a DOI based lookup. We need to make assumptions about the data
   # structure anyways, so let's stick with this.
@@ -24,28 +24,11 @@ fetch_zenodo_predictors <- function(
     destfile = tmpfile
   )
 
-  raw_files <-
-    zip::zip_list(tmpfile) |>
-    purrr::pluck("filename") |>
-    # TODO are these files enough for reproducibility?
-    purrr::keep(stringr::str_detect, pattern = "Data/Raw")
-
   zip::unzip(
     zipfile = tmpfile,
-    files = raw_files,
     exdir = target_dir
   )
 
-  # move files into place
-  file.rename(
-    from = file.path(target_dir, raw_files),
-    to = file.path(
-      target_dir,
-      stringr::str_remove(raw_files, "LULCC_CH_dat/Data/Raw/")
-    )
-  )
-
-  unlink(file.path(target_dir, "LULCC_CH_dat/Data/Raw/"))
   unlink(tmpfile)
 }
 
