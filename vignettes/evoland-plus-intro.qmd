@@ -63,7 +63,6 @@ lulc_data_prep()
 ## Prepare raster of Swiss Bioregions
 
 ```{r}
-#' TODO Document why this was prepared. None of the produced files seem to be referenced in the current codebase.
 region_prep()
 ```
 

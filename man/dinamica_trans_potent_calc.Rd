@@ -2,6 +2,7 @@
 % Please edit documentation in R/dinamica_trans_potent_calc.r
 \name{dinamica_trans_potent_calc}
 \alias{dinamica_trans_potent_calc}
+\alias{normalize_over_cols}
 \title{dinamica_trans_potent_calc}
 \usage{
 dinamica_trans_potent_calc(
@@ -9,6 +10,8 @@ dinamica_trans_potent_calc(
   simulation_num = integer(),
   time_step = integer()
 )
+
+normalize_over_cols(dt, cols)
 }
 \arguments{
 \item{config}{A list containing configuration parameters and file paths. Default:
@@ -18,6 +21,11 @@ result of \code{get_config()}.}
 
 \item{time_step}{Integer. The current time step for which transition potentials are
 calculated.}
+
+\item{dt}{a data.table}
+
+\item{cols}{character vector of columns
+This function is called for the side effect on the dt argument.}
 }
 \description{
 Calculates the transition potential for land use/land cover (LULC) changes using
@@ -43,6 +51,12 @@ and region.
 \item Saves probability maps for each transition as raster files.
 }
 }
+\section{Functions}{
+\itemize{
+\item \code{normalize_over_cols()}: Normalize a set of columns such that the sum
+of probabilities does not exceed 1.
+
+}}
 \seealso{
 \code{\link[=lulcc.spatprobmanipulation]{lulcc.spatprobmanipulation()}}
 }
