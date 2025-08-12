@@ -1,48 +1,30 @@
-#############################################################################
-## Dinamica_deterministic_trans: Implement deterministic transitions
-## following statistical transition potential during during simulation step
-## Date: 03-05-2023
-## Author: Ben Black
-#############################################################################
+#' dinamica_deterministic_trans
+#'
+#' Implement deterministic transitions following statistical transition potential during
+#' during simulation step
+#'
+#' @param simulated_lulc_save_path Path (char) passed in from Dinamica
+#' @param simulation_id integerish
+#' @param simulated_lulc_year integerish
+#' @param config list of config options
+#'
+#' @author Ben Black
+#' 
+#' @export
 
-dinamica_deterministic_trans <- function() {
-  # A- Preparation ####
+dinamica_deterministic_trans <- function(
+    simulated_lulc_save_path,
+    simulation_id,
+    simulated_lulc_year,
+    config = get_config()) {
+  params <- get_simulation_params(simulation_id = simulation_id)
 
-  setwd(wpath)
-
-  # Vector packages for loading
-  packs <- c(
-    "data.table", "raster", "tidyverse", "stringr", "readr", "xlsx",
-    "Dinamica", "readxl"
-  )
-
-  new.packs <- packs[!(packs %in% installed.packages()[, "Package"])]
-  if (length(new.packs)) install.packages(new.packs)
-
-  # Load required packages
-  invisible(lapply(packs, require, character.only = TRUE))
-
-  # load table of simulations
-  control_table <- read.csv(Control_table_path)[simulation_num, ]
-
-  # Vector name of Climate scenario
-  Climate_ID <- Simulation_table$climate_scenario.string
-
-  # Vector ID for this run of the scenario (e.g V1)
-  simulation_id <- control_table$simulation_id.string
-
-  # Define model_mode: Calibration or Simulation
-  model_mode <- Simulation_table$model_mode.string
-
-  # B- Implement deterministic glacial transitions ####
-
-  # if the model is in simulation mode and the value in the deterministic
-  # transitions column of the control table is not "N" then update the current
-  # simulated LULC map with the deterministic transitions
-  if (grepl("simulation", model_mode, ignore.case = TRUE) &&
-    grepl("Y", Simulation_table$deterministic_trans.string, ignore.case = TRUE)) {
+  if (
+    params[["is_simulation"]] &&
+      grepl("Y", params[["deterministic_trans.string"]], ignore.case = TRUE)
+  ) {
     # Load simulated LULC map for time step
-    Current_lulc <- raster(File_path_simulated_LULC_maps)
+    Current_lulc <- raster::raster(simulated_lulc_save_path)
 
     # convert raster to dataframe
     LULC_dat <- raster::as.data.frame(Current_lulc)
@@ -54,29 +36,37 @@ dinamica_deterministic_trans <- function() {
     LULC_dat$ID <- seq.int(nrow(LULC_dat))
 
     # Get XY coordinates of cells
-    xy_coordinates <- coordinates(Current_lulc)
+    xy_coordinates <- raster::coordinates(Current_lulc)
 
     # cbind XY coordinates to dataframe and seperate rows where all values = NA
     LULC_dat <- cbind(LULC_dat, xy_coordinates)
 
     # load scenario specific glacier index
-    Glacier_index <- readRDS(file = list.files("Data/Glacial_change/Scenario_indices",
-      full.names = TRUE,
-      pattern = Climate_ID
-    ))[, c("ID_loc", paste(Simulated_lulc_year))]
+    Glacier_index <- readRDS(
+      file = list.files(
+        fs::path(config[["glacial_change_path"]], "scenario_indices"),
+        full.names = TRUE,
+        pattern = params[["climate_scenario.string"]]
+      )
+    )[, c("ID_loc", simulated_lulc_year)]
 
     # seperate vector of cell IDs for glacier and non-glacer cells
-    Non_glacier_IDs <- Glacier_index[Glacier_index[[paste(Simulated_lulc_year)]] == 0, "ID_loc"]
-    Glacier_IDs <- Glacier_index[Glacier_index[[paste(Simulated_lulc_year)]] == 1, "ID_loc"]
+    Non_glacier_IDs <- Glacier_index[Glacier_index[[paste(simulated_lulc_year)]] == 0, "ID_loc"]
+    Glacier_IDs <- Glacier_index[Glacier_index[[paste(simulated_lulc_year)]] == 1, "ID_loc"]
 
     # replace the 1's and 0's with the correct LULC
     LULC_dat[LULC_dat$ID %in% Non_glacier_IDs, Value_col] <- 11
     LULC_dat[LULC_dat$ID %in% Glacier_IDs, Value_col] <- 19
 
     # convert back to raster
-    Updated_raster <- rasterFromXYZ(LULC_dat[, c("x", "y", Value_col)])
+    Updated_raster <- raster::rasterFromXYZ(LULC_dat[, c("x", "y", Value_col)])
 
     # save updated LULC raster
-    writeRaster(Updated_raster, File_path_simulated_LULC_maps, overwrite = TRUE, datatype = "INT1U")
+    raster::writeRaster(
+      Updated_raster,
+      simulated_lulc_save_path,
+      overwrite = TRUE,
+      datatype = "INT1U"
+    )
   }
 }

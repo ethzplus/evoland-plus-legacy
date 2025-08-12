@@ -8,13 +8,10 @@ Script {{
     _ := Group .none {{
         getEnvironmentVariables := CalculateRExpression "
 message(Sys.time(), " - getEnvironmentVariables")
-outputString("ctrl_tbl_path", evoland::default_ctrl_tbl_path())
 outputString("work_dir", getwd())
         " .no {{ }};
 
         workingDirectory := ExtractStructString getEnvironmentVariables $"(work_dir)";
-
-        simulationControlTablePath := ExtractStructString getEnvironmentVariables $"(ctrl_tbl_path)";
 
         // Subset control table. The ForEach logic in Dinamica takes the first column
         // for the simulationNumber, which R then uses to subset by csv row. Danger!
@@ -22,6 +19,7 @@ outputString("work_dir", getwd())
         @alias = Subset control table to only simulations yet to be completed (i.e. modelled)
         incompleteSimulationsRExpression := CalculateRExpression "
 message(Sys.time(), " - incompleteSimulationsRExpression")
+# TODO remove this [1,] subset
 outputTable("remaining_simulations", evoland::get_remaining_simulations()[1,])
         " .no {{ }};
 
@@ -295,69 +293,31 @@ outputDouble("simulated_lulc_year", simulated_lulc_year)
                     @alias = Implement deterministic transitions
                     _ := Group .none {{
                         @collapsed = no
-                        deterministicTransitions := CalculateRExpression "
+                        _ := CalculateRExpression "
 message(Sys.time(), " - deterministicTransitions")
-#############################################################################
-## Source script implementing Deterministic transitions
-#############################################################################
 
-### =========================================================================
-### Receive information from Dinamica
-### =========================================================================
+evoland::dinamica_deterministic_trans(
+    simulated_lulc_save_path = s1,
+    simulation_id = v1,
+    simulated_lulc_year = v2
+)
 
-#Receive file path for loading simulated LULC maps
-File_path_simulated_LULC_maps <- s1
-
-#receive working directory
-wpath <- s2
-
-#Receive current simulation time
-simulated_lulc_year <- s3
-
-#control table path
-Control_table_path <- s4
-
-#simulation number being performed
-Simulation_num <- v2
-
-### =========================================================================
-### Source R script
-### =========================================================================
-
-source("Scripts/Dinamica_integration/Dinamica_deterministic_trans.R",
-				echo=TRUE,
-				verbose=TRUE)
-
-### =========================================================================
-### Send output to Dinamica
-### =========================================================================
-
-#send file path to dinamica
-outputString("updated_lulc_map_path", File_path_simulated_LULC_maps)
 " .no {{
                             @alias = Simulated LULC save path
                             NumberString simulatedLulcSavePath 1;
 
-                            @alias = Working directory
-                            NumberString workingDirectory 2;
+                            @alias = Simulation number
+                            NumberValue simulationNumber 1;
 
                             @alias = Simulated LULC year
-                            NumberString simulatedLulcYear 3;
-
-                            @alias = File path for control table
-                            NumberString simulationControlTablePath 4;
-
-                            @alias = Simulation number
-                            NumberValue simulationNumber 2;
+                            NumberValue simulatedLulcYear 2;
                         }};
-
-                        updatedLulcMapPath := ExtractStructString deterministicTransitions $"(updated_lulc_map_path)";
 
                         //
                         // ===
                         // Load simulated LULC map that has had deterministic transition incorporated
                         loadUpdatedLulcMap := LoadCategoricalMap {
-                            filename = updatedLulcMapPath,
+                            filename = simulatedLulcSavePath,
                             nullValue = .none,
                             storageMode = .default,
                             suffixDigits = 0,
