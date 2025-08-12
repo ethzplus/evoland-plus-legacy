@@ -250,7 +250,7 @@ final_lulc_path <- paste0(s1, simulated_lulc_year, ".tif")
 
 outputString("simulated_lulc_save_path", final_lulc_path)
 #output the simulated map year for use in the implementation of deterministic transitions
-outputString("simulated_lulc_year", simulated_lulc_year)
+outputDouble("simulated_lulc_year", simulated_lulc_year)
 " .no {{
                             @alias = Simulated LULC map base path
                             NumberString receiveSimResultsPath 1;
@@ -264,7 +264,7 @@ outputString("simulated_lulc_year", simulated_lulc_year)
 
                         @viewer.string = yes
                         simulatedLulcSavePath := ExtractStructString createSimulatedLulcSavePath $"(simulated_lulc_save_path)";                        
-                        simulatedLulcYear := ExtractStructString createSimulatedLulcSavePath $"(simulated_lulc_year)";
+                        simulatedLulcYear := ExtractStructNumber createSimulatedLulcSavePath $"(simulated_lulc_year)";
 
                         @viewer.resultingLanscape = yes
                         allocateTransitions1454 := AllocateTransitions {
