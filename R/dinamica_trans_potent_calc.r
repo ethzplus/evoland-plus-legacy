@@ -46,13 +46,6 @@ dinamica_trans_potent_calc <- function(
   # implement spatial interventions
   Use_interventions <- params[["spatial_interventions.string"]]
 
-  message(
-    "Starting transition potential calculation for ", params[["model_mode.string"]], ": ",
-    params[["simulation_id.string"]], ", with scenario: ", params[["scenario_id.string"]],
-    ", at time step: ", time_step
-  )
-  message(" - loading maps from: ", params[["sim_results_path"]], "\n")
-
   # Convert model mode into a string of the dates calibration period being used
   # this makes it easier to load files because they use this nomenclature
 
@@ -87,6 +80,40 @@ dinamica_trans_potent_calc <- function(
     calibration_periods[length(calibration_periods)]
   }
 
+  # create folder for saving prediction probability maps
+  prob_map_folder <-
+    fs::path("results", "pred_prob_maps", time_step) |>
+    ensure_dir()
+
+  # load model look up
+  model_lookup <-
+    readxl::read_excel(
+      config[["model_lookup_path"]],
+      sheet = period_tag
+    ) |>
+    dplyr::rename_with(tolower) |>
+    dplyr::mutate(file_path = fs::path(config[["data_basepath"]], file_path))
+
+  if (
+    (no_predicted_maps <- length(fs::dir_ls(prob_map_folder))) ==
+      length(unique(model_lookup[["trans_id"]]))
+  ) {
+    message(
+      "Found ", no_predicted_maps, " predicted probability maps at ", prob_map_folder,
+      "\n\tSkipping transition potential calculation."
+    )
+    return(prob_map_folder)
+  }
+
+  message(
+    "Starting transition potential calculation for ", params[["model_mode.string"]], ": ",
+    params[["simulation_id.string"]], ", with scenario: ", params[["scenario_id.string"]],
+    ", at time step: ", time_step
+  )
+  message(" - loading maps from: ", params[["sim_results_path"]])
+
+
+
   # B- Retrieve current LULC map and layerize ####
 
   current_LULC_path <- fs::path(
@@ -107,8 +134,6 @@ dinamica_trans_potent_calc <- function(
     dplyr::distinct() |>
     dplyr::arrange(Aggregated_ID)
 
-  message("Layerizing current LULC map: ", current_LULC_path)
-
   # layerize data - one column for each LULC class. depends
   trans_dataset_list <- list()
   trans_dataset_list[["lulc_data_dt"]] <-
@@ -119,6 +144,8 @@ dinamica_trans_potent_calc <- function(
     data.table::as.data.table(key = "id")
 
   # C- Load Suitability and Accessibility predictors ####
+
+  message("Loading Suitability and Accessibility predictors")
 
   prepared_data_dt_path <- fs::path(
     config[["prepped_pred_stacks"]],
@@ -167,9 +194,9 @@ dinamica_trans_potent_calc <- function(
     )
   }
 
-  message("Loaded Suitability and Accessibility predictors")
+  message(" - Loaded Suitability and Accessibility predictors")
 
-  # E- Generate dynamic predictors ####
+  # E- Dynamic predictors ####
 
   if (params[["is_simulation"]]) {
     stop("not implemented")
@@ -177,9 +204,8 @@ dinamica_trans_potent_calc <- function(
     trans_dataset_list[["nhood_dt"]] <- model_neigh_preds()
   }
 
-  # F- Combine LULC, SA_preds and Nhood_preds and extract to dataframe ####
+  # F- Regionalization ####
 
-  message("Stacking LULC, SA_preds and Nhood_preds")
   if (config[["regionalization"]]) {
     trans_dataset_list[["bioregion_dt"]] <-
       fs::path(config[["bioreg_dir"]], "bioreg_raster.tif") |>
@@ -198,23 +224,12 @@ dinamica_trans_potent_calc <- function(
   )
   trans_dataset_complete[, idx_complete_cases := seq_len(.N)]
 
-  message(" - Converted raster stack to dataframe")
+  message(" - Reduced all transition datasets to a single data.table")
 
   # release memory
   rm(trans_dataset_list)
 
   # G- Run transition potential prediction for each transition ####
-  message("Running transition potential prediction for each transition")
-
-  # load model look up
-  model_lookup <-
-    readxl::read_excel(
-      config[["model_lookup_path"]],
-      sheet = period_tag
-    ) |>
-    dplyr::rename_with(tolower) |>
-    dplyr::mutate(file_path = fs::path(config[["data_basepath"]], file_path))
-
   # remove transitions if they are being implemented deterministically
   if (
     params[["is_simulation"]] &&
@@ -234,10 +249,9 @@ dinamica_trans_potent_calc <- function(
     prediction_probs[[col]] <- 0
   }
 
-  message(" - Created dataframe for storing prediction probabilities")
-
   # G2 Actual transition potential computation ####
   # loop over models
+  message("Running transition potential prediction")
   t1 <- proc.time()
   for (mod_params in split(model_lookup, seq_len(nrow(model_lookup)))) {
     fitted_model <- readRDS(mod_params[["file_path"]])
@@ -267,10 +281,12 @@ dinamica_trans_potent_calc <- function(
   # G3- Re-scale predictions ####
   # loop over rows and re-scale probability values so that they sum to 1
   message("Re-scaling transition probabilities")
+  options(datatable.verbose = TRUE)
   normalize_over_cols(
     dt = prediction_probs,
     cols = final_lulc_prob_cols
   )
+  options(datatable.verbose = FALSE)
 
   # Get XY coordinates of cells
   xy_coordinates <-
@@ -320,16 +336,6 @@ dinamica_trans_potent_calc <- function(
     dplyr::distinct(trans_id, final_lulc, initial_lulc) |>
     (\(x) split(x, seq_len(nrow(x))))()
 
-  # create folder for saving prediction probability maps
-  prob_map_folder <-
-    fs::path("results", "pred_prob_maps", time_step) |>
-    ensure_dir()
-
-  message(
-    " - creating directory for saving probability maps: ",
-    prob_map_folder
-  )
-
   # Loop over unique trans using details to subset data and save Rasters
   for (trans_params in unique_trans) {
     message(" - Preparing layer ", trans_params[["trans_id"]])
@@ -349,6 +355,12 @@ dinamica_trans_potent_calc <- function(
       value = 0
     )
 
+    data.table::setnames(
+      x = trans_raster_values,
+      old = paste0("prob_", final_lulc),
+      new = paste0("prob_", initial_lulc, "_to_", final_lulc)
+    )
+
     # rasterize and save using Initial and Final class names
     prob_raster <- terra::rast(
       trans_raster_values,
@@ -366,7 +378,12 @@ dinamica_trans_potent_calc <- function(
     )
 
     # defaults to LZW compression
-    terra::writeRaster(prob_raster, prob_map_path, overwrite = TRUE)
+    terra::writeRaster(
+      x = prob_raster,
+      filename = prob_map_path,
+      overwrite = TRUE,
+      NAflag = -999 # because dinamica cannot handle nan
+    )
   } # close loop over transitions
 
   # Return the probability map folder path as a string to

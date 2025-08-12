@@ -394,7 +394,8 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   # D - Perform simulation for calibration ####
   run_evoland_dinamica_sim(
     calibration = TRUE,
-    verbose = TRUE
+    verbose = TRUE,
+    work_dir = "calibration"
   )
 
   # TODO check that this is still true with processx doing the system call

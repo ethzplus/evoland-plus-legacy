@@ -122,7 +122,8 @@ run_evoland_dinamica_sim <- function(
       config[["calibration_ctrl_tbl_path"]],
       config[["ctrl_tbl_path"]]
     ),
-    fs::path(work_dir, "simulation_control.csv")
+    fs::path(work_dir, "simulation_control.csv"),
+    overwrite = TRUE
   )
 
   cli::cli_inform("Starting to run model with Dinamica EGO")
