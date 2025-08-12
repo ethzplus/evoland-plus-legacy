@@ -78,6 +78,7 @@ get_simulation_params <- function(
 
   config <- get_config()
 
+  # todo take out this distinction?
   params[["params_folder_dinamica"]] <-
     ifelse(
       grepl("simulation", params[["model_mode.string"]]),
@@ -105,8 +106,8 @@ get_simulation_timesteps <- function(params = get_simulation_params()) {
   )
 
   list(
-    key = steps[-1],
-    value = steps[-length(steps)]
+    key = steps[-length(steps)],
+    value = steps[-1]
   )
 }
 
