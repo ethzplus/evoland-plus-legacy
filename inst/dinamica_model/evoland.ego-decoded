@@ -334,73 +334,30 @@ evoland::dinamica_deterministic_trans(
                 @alias = Calibration period validation
                 _ := Group scenarioTimeStepIteration {{
                     @collapsed = no
-                    calculateRexpression2508 := CalculateRExpression "
-message(Sys.time(), " - calculateRexpression2508")
-#############################################################################
-## Source script to detrmine condition for 'if else' function to perform
-## validation of simulation results
-#############################################################################
+                    validateCalibration := CalculateRExpression "
+message(Sys.time(), " - validateCalibration")
+validation_params <- evoland::dinamica_use_validation(
+    simulation_id = v1,
+    sim_results_path = s1
+)
 
-### =========================================================================
-### Receive info from Dinamica
-### =========================================================================
+# double as bool: 0 -> don't validate, 1 -> do validate
+outputDouble("Use_validation", validation_params[["validation_condition"]])
 
-#receive working directory
-wpath <- s4
+# where to write validation results
+outputString("Val_map_path", validation_params[["Validation_map_path"]])
+outputString("Val_result_path", validation_params[["Validation_result_path"]])
 
-#receive table of simulation time steps
-Simulation_time_steps <- t1
-
-#receive file path of simulated LULC maps for this simulation
-Sim_LULC_path_gen <- s1
-
-#receive string of Model mode
-model_mode <- s2
-#model_mode <- "calibration"
-
-#receive simulation ID
-Sim_ID <- s3
-
-### =========================================================================
-### Source R script
-### =========================================================================
-
-source("Scripts/Dinamica_integration/Dinamica_use_validation.R",
-				echo=TRUE,
-				verbose=TRUE)
-
-### =========================================================================
-### Send Dinamica outputs
-### =========================================================================
-
-#output validation condition
-outputDouble("Use_validation", validation_condition)
-
-#Output result paths
-outputString("Val_map_path", Validation_map_path)
-outputString("Val_result_path", Validation_result_path)
-
-#output file path for observed map for final LULC year
-outputString("Obs_LULC_path", Final_LULC_path)
-
-#output file path for simulated map for final LULC year
-outputString("Sim_LULC_path", Sim_final_LULC_path)
-
+# final observed and simulated years, respectively
+outputString("Obs_LULC_path", validation_params[["Final_LULC_path"]])
+outputString("Sim_LULC_path", validation_params[["Sim_final_LULC_path"]])
 " .no {{
+                        @alias = Send simulation ID
+                        NumberValue simulationNumber 1;
+
                         @alias = Send file path for simulated LULC map
                         NumberString receiveSimResultsPath 1;
 
-                        @alias = Send model mode
-                        NumberString receiveModelMode 2;
-
-                        @alias = Send simulation ID
-                        NumberString receiveSimulationId 3;
-
-                        @alias = working directory
-                        NumberString workingDirectory 4;
-
-                        @alias = Send table of simulation time steps
-                        NumberTable timeStepTable 1;
                     }};
 
                     @viewer.string = yes
