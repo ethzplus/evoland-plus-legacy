@@ -9,7 +9,7 @@
 #' @param config list of config options
 #'
 #' @author Ben Black
-#' 
+#'
 #' @export
 
 dinamica_deterministic_trans <- function(

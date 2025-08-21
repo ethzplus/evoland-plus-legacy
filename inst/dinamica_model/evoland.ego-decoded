@@ -19,8 +19,7 @@ outputString("work_dir", getwd())
         @alias = Subset control table to only simulations yet to be completed (i.e. modelled)
         incompleteSimulationsRExpression := CalculateRExpression "
 message(Sys.time(), " - incompleteSimulationsRExpression")
-# TODO remove this [1,] subset
-outputTable("remaining_simulations", evoland::get_remaining_simulations()[1,])
+outputTable("remaining_simulations", evoland::get_remaining_simulations())
         " .no {{ }};
 
         @viewer.table = yes
@@ -56,31 +55,21 @@ config <- evoland::get_config()
 sim_details <- evoland::get_simulation_params(simulation_id = v1)
 evoland::create_init_lulc_raster(params = sim_details)
 
-#send step length
+# step length to construct simulatedLulcSavePath
 outputDouble("step_length", config[["step_length"]])
 
-#Send Simulation ID
-outputString("sim_id", sim_details[["simulation_id.string"]])
-
-# send Model mode
-outputString("model_mode", sim_details[["model_mode.string"]])
-
-#send Model time step table to Dinamica receiver: simulation_time_steps
+# lookup table to iterate over (timeStepTable)
 timesteps <- evoland::get_simulation_timesteps(params = sim_details)
 outputLookupTable("simulation_time_steps", timesteps[["key"]], timesteps[["value"]])
 
-#send simulated LULC folder path to Dinamica receiver: sim_results_path
+# send simulated LULC folder path to Dinamica receiver: sim_results_path
 outputString("sim_results_path", sim_details[["sim_results_path"]])
 
-#send initial LULC map file path to Dinamica receiver:
+# send initial LULC map file path to Dinamica receiver:
 outputString("initial_lulc_path", sim_details[["initial_lulc_path"]])
 
-#send folder path as string to Dinamica receiver: allocation_params_folder_path
+# send folder path as string to Dinamica receiver: allocation_params_folder_path
 outputString("allocation_params_folder_path", sim_details[["params_folder_dinamica"]])
-
-#send folder path as string to Dinamica receiver: trans_matrix_folder_path
-outputString("trans_matrix_folder_path", config[["trans_rate_table_dir"]])
-
 " .no {{
                         @alias = Row of current simulation in table
                         NumberValue simulationNumber 1;
@@ -94,17 +83,11 @@ outputString("trans_matrix_folder_path", config[["trans_rate_table_dir"]])
 
                     stepLength := ExtractStructNumber initializeCurrentSimulation $"(step_length)";
 
-                    receiveModelMode := ExtractStructString initializeCurrentSimulation $"(model_mode)";
-
                     @viewer.string = yes
                     allocationParamsFolderPath := ExtractStructString initializeCurrentSimulation $"(allocation_params_folder_path)";
 
                     @viewer.string = yes
                     receiveSimResultsPath := ExtractStructString initializeCurrentSimulation $"(sim_results_path)";
-
-                    receiveSimulationId := ExtractStructString initializeCurrentSimulation $"(sim_id)";
-
-                    receiveDirectoryForTransitionMatrices := ExtractStructString initializeCurrentSimulation $"(trans_matrix_folder_path)";
                 }};
 
                 @collapsed = no
@@ -127,9 +110,6 @@ outputTable("trans_rate_table", evoland::dinamica_load_trans_table(
     year = v1
 ))
 " .no {{
-                            @alias = transition matrix dir
-                            NumberString receiveDirectoryForTransitionMatrices 1;
-
                             @alias = Time step
                             NumberValue timeStep 1;
 
@@ -218,15 +198,9 @@ prob_map_folder <- evoland::dinamica_trans_potent_calc(
 
 outputString("probmap_folder_path", prob_map_folder)
 " .no {{
-                            @alias = File path for simulated LULC maps
-                            NumberString receiveSimResultsPath 1;
-
                             @alias = time_step
                             NumberValue timeStep 1;
 
-                            //
-                            // ===
-                            // Row of current simulation in table
                             @alias = Current simulation number
                             NumberValue simulationNumber 2;
                         }};
@@ -244,7 +218,10 @@ outputString("probmap_folder_path", prob_map_folder)
                         createSimulatedLulcSavePath := CalculateRExpression "
 message(Sys.time(), " - createSimulatedLulcSavePath")
 simulated_lulc_year <- v1 + v2
-final_lulc_path <- paste0(s1, simulated_lulc_year, ".tif")
+final_lulc_path <- file.path(
+    s1,
+    paste0(simulated_lulc_year, ".tif")
+)
 
 outputString("simulated_lulc_save_path", final_lulc_path)
 #output the simulated map year for use in the implementation of deterministic transitions
@@ -361,21 +338,21 @@ outputString("Sim_LULC_path", validation_params[["Sim_final_LULC_path"]])
                     }};
 
                     @viewer.string = yes
-                    receiveFilePathOfObservedLulcMapForLastYearOfSimulation := ExtractStructString calculateRexpression2508 $"(Obs_LULC_path)";
+                    filePathLastObservedLulcYear := ExtractStructString validateCalibration $"(Obs_LULC_path)";
 
-                    receiveValidationResultSavePath := ExtractStructString calculateRexpression2508 $"(Val_result_path)";
+                    filePathValidationResults := ExtractStructString validateCalibration $"(Val_result_path)";
 
-                    receiveFilePathOfSimulatedLulcMap := ExtractStructString calculateRexpression2508 $"(Sim_LULC_path)";
+                    filePathLastSimulatedLulcYear := ExtractStructString validateCalibration $"(Sim_LULC_path)";
 
                     // returning 0 does not initiate validation, returning 1 does
                     @viewer.number = yes
-                    ifThenCondition := ExtractStructNumber calculateRexpression2508 $"(Use_validation)";
+                    useValidationCondition := ExtractStructNumber validateCalibration $"(Use_validation)";
 
-                    receiveValidationMapSavePath := ExtractStructString calculateRexpression2508 $"(Val_map_path)";
+                    filePathValidationMap := ExtractStructString validateCalibration $"(Val_map_path)";
 
-                    _ := IfThen ifThenCondition .none {{
+                    _ := IfThen useValidationCondition .none {{
                         loadObservedLulcMapForFinalYearOfSimulation := LoadCategoricalMap {
-                            filename = receiveFilePathOfObservedLulcMapForLastYearOfSimulation,
+                            filename = filePathLastObservedLulcYear,
                             nullValue = .none,
                             storageMode = .default,
                             suffixDigits = 0,
@@ -394,7 +371,7 @@ outputString("Sim_LULC_path", validation_params[["Sim_final_LULC_path"]])
                         };
 
                         loadSimulatedLulcMap := LoadCategoricalMap {
-                            filename = receiveFilePathOfSimulatedLulcMap,
+                            filename = filePathLastSimulatedLulcYear,
                             nullValue = .none,
                             storageMode = .default,
                             suffixDigits = 0,
@@ -417,7 +394,7 @@ outputString("Sim_LULC_path", validation_params[["Sim_final_LULC_path"]])
 
                         SaveTextFile {
                             text = similarity,
-                            filename = receiveValidationResultSavePath,
+                            filename = filePathValidationResults,
                             suffixDigits = 2,
                             step = step,
                             workdir = workdir
@@ -425,7 +402,7 @@ outputString("Sim_LULC_path", validation_params[["Sim_final_LULC_path"]])
 
                         SaveMap {
                             map = similarityMap,
-                            filename = receiveValidationMapSavePath,
+                            filename = filePathValidationMap,
                             suffixDigits = 2,
                             step = step,
                             useCompression = .yes,

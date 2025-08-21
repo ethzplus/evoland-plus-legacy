@@ -80,7 +80,14 @@ get_simulation_params <- function(
   )
 
   params[["sim_results_path"]] <-
-    fs::path("results", "lulc_maps") |>
+    fs::path(
+      "results",
+      # simulation_id.string is _almost_ redundant with scenario_id.string, but too much
+      # effort to prise them appart
+      params[["scenario_id.string"]],
+      params[["simulation_id.string"]],
+      "lulc_maps"
+    ) |>
     ensure_dir()
 
   params[["initial_lulc_path"]] <-
@@ -91,18 +98,20 @@ get_simulation_params <- function(
 
   config <- get_config()
 
-  # todo take out this distinction?
+  # the <v1> is a placeholder that the Dinamica CreateString functor replaces with the
+  # integer timestep in format YYYY
   params[["params_folder_dinamica"]] <-
     ifelse(
-      grepl("simulation", params[["model_mode.string"]]),
+      params[["is_simulation"]],
       file.path(
-        config[["simulation_param_dir"]], params[["scenario_id.string"]],
-        "Allocation_param_table_<v1>.csv"
+        config[["simulation_param_dir"]],
+        params[["scenario_id.string"]],
+        "allocation_param_table_<v1>.csv"
       ),
       file.path(
         config[["calibration_param_dir"]],
-        paste0("v", simulation_id),
-        "Allocation_param_table_<v1>.csv"
+        params[["simulation_id.string"]],
+        "allocation_param_table_<v1>.csv"
       )
     )
 
@@ -131,7 +140,7 @@ create_init_lulc_raster <- function(params = get_simulation_params(), config = g
 
   closest_observation <-
     fs::path(config[["historic_lulc_basepath"]]) |>
-    fs::dir_ls(glob = "*.gri") |>
+    fs::dir_ls(glob = "*.grd") |>
     tibble::as_tibble_col(column_name = "path") |>
     dplyr::mutate(
       year = stringr::str_extract(path, "([0-9]{4})") |> as.integer(),
@@ -140,9 +149,10 @@ create_init_lulc_raster <- function(params = get_simulation_params(), config = g
     dplyr::slice_min(order_by = how_close)
 
   initial_lulc_raster <-
-    raster::raster(closest_observation[["path"]]) |> # cannot read *.gri files with terra
-    terra::rast()
+    terra::rast(closest_observation[["path"]])
 
+  # if simulation, then we need to overwrite arealstatistik glacier values with those
+  # from the glacier model
   if (params[["is_simulation"]]) {
     # convert raster to dataframe
     lulc_tbl <-

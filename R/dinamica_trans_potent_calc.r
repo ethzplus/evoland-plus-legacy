@@ -82,7 +82,13 @@ dinamica_trans_potent_calc <- function(
 
   # create folder for saving prediction probability maps
   prob_map_folder <-
-    fs::path("results", "pred_prob_maps", time_step) |>
+    fs::path(
+      "results",
+      params[["scenario_id.string"]],
+      params[["simulation_id.string"]],
+      "pred_prob_maps",
+      time_step
+    ) |>
     ensure_dir()
 
   # load model look up
