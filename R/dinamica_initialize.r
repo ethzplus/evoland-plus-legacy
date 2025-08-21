@@ -16,7 +16,7 @@ default_ctrl_tbl_path <- function() {
 
 #' @export
 get_control_table <- function(ctrl_tbl_path = default_ctrl_tbl_path()) {
-  readr::read_csv(
+  tbl <- readr::read_csv(
     ctrl_tbl_path,
     col_types = readr::cols(
       simulation_num. = readr::col_integer(),
@@ -32,6 +32,19 @@ get_control_table <- function(ctrl_tbl_path = default_ctrl_tbl_path()) {
       completed.string = readr::col_character()
     )
   )
+
+  if (
+    !is.null(tbl[["ei_intervention_id.string"]]) &&
+      !all(is.na(tbl[["ei_intervention_id.string"]]))
+  ) {
+    # hard error for safety's sake
+    stop(
+      "The ei_intervention_id.string does nothing. ",
+      "Empty or remove the column to proceed."
+    )
+  }
+
+  tbl
 }
 
 # get a table of those

@@ -51,8 +51,6 @@ get_config <- function(
 
     # spatial interventions table
     spat_ints_path = file.path(tools_dir, "spatial_interventions.csv"),
-    # ecological infrastructure interventions table
-    EI_ints_path = file.path(tools_dir, "ei_interventions.xlsx"),
     viable_transitions_lists = file.path(tools_dir, "viable_transitions_lists.rds"),
     model_lookup_path = file.path(tools_dir, "model_lookup.xlsx"),
     glacial_area_change_xlsx = file.path(tools_dir, "glacial_area_change.xlsx"),
