@@ -13,7 +13,8 @@ NULL
 #' @param log_level Logging level (1-7, default NULL)
 #' @param additional_args Additional arguments to pass to DinamicaConsole, see
 #' `DinamicaConsole -help`
-#' @param verbose Default FALSE, else prints stdout/stderr immediately
+#' @param write_logfile bool, write stdout&stderr to a file?
+#' @param echo bool, direct echo to console?
 #'
 #' @export
 
@@ -21,7 +22,8 @@ exec_dinamica <- function(model_path,
                           disable_parallel = TRUE,
                           log_level = NULL,
                           additional_args = NULL,
-                          verbose = FALSE) {
+                          write_logfile = TRUE,
+                          echo = FALSE) {
   args <- character()
   if (disable_parallel) {
     args <- c(args, "-disable-parallel-steps")
@@ -34,6 +36,32 @@ exec_dinamica <- function(model_path,
   }
   args <- c(args, model_path)
 
+  if (write_logfile) {
+    logfile_path <- fs::path(
+      fs::path_dir(model_path),
+      format(Sys.time(), "%Y-%m-%d_%Hh%Mm%Ss_dinamica.log")
+    )
+    cli::cli_inform(
+      "Logging to {.file {logfile_path}}"
+    )
+    logfile_con <- file(
+      description = logfile_path,
+      open = "a"
+    )
+    on.exit(close(logfile_con))
+    # callback should have irrelevant overhead versus launching a shell, tee-ing a pipe,
+    # and stripping escape sequences with sed
+    stdout_cb <- function(chunk, process) {
+      cli::ansi_strip(chunk) |>
+        cat(file = logfile_con)
+    }
+  } else {
+    # register empty callback
+    stdout_cb <- function(chunk, process) {
+      NULL
+    }
+  }
+
   res <- processx::run(
     # If called directly, DinamicaConsole does not flush its buffer upon SIGTERM.
     # stdbuf -oL forces flushing the stdout buffer after every line.
@@ -44,7 +72,9 @@ exec_dinamica <- function(model_path,
       args
     ),
     error_on_status = FALSE,
-    echo = verbose,
+    echo = echo,
+    stdout_callback = stdout_cb,
+    stderr_callback = stdout_cb,
     spinner = TRUE,
     env = c(
       "current",
@@ -52,24 +82,12 @@ exec_dinamica <- function(model_path,
     )
   )
 
-  # strip ansi escape sequences. some are unmatched, permanently altering output color.
-  res[["stdout"]] <- cli::ansi_strip(res[["stdout"]])
-  res[["stderr"]] <- cli::ansi_strip(res[["stderr"]])
-
   if (res[["status"]] != 0L) {
-    # on error first write logfile, then abort
-    logfile <- fs::path(fs::path_dir(model_path), "dinamica.log")
-    writeLines(
-      paste(
-        Sys.time(),
-        "stdout", res[["stdout"]],
-        "stderr", res[["stderr"]],
-        sep = "\n\n"
-      ),
-      logfile
-    )
     cli::cli_abort(
-      "Rerun with verbose = TRUE to see full logs or watch {.file {logfile}}",
+      c(
+        "Dinamica registered an error.",
+        "Rerun with echo = TRUE write_logfile = TRUE to see what went wrong."
+      ),
       class = "dinamicaconsole_error",
       body = res[["stderr"]]
     )
@@ -85,14 +103,14 @@ exec_dinamica <- function(model_path,
 #' @param config List of config params
 #' @param calibration bool, Is this a calibration run?
 #' @param work_dir Working dir, where to place ego files and control table
-#' @param verbose bool
+#' @param ... passed to [exec_dinamica()]
 #' @export
 run_evoland_dinamica_sim <- function(
     run_modelprechecks = TRUE,
     config = get_config(),
     work_dir = format(Sys.time(), "%Y-%m-%d_%Hh%Mm%Ss"),
     calibration = FALSE,
-    verbose = FALSE) {
+    ...) {
   if (run_modelprechecks && !calibration) {
     stopifnot(lulcc.modelprechecks())
   }
@@ -127,7 +145,10 @@ run_evoland_dinamica_sim <- function(
   )
 
   cli::cli_inform("Starting to run model with Dinamica EGO")
-  exec_dinamica(model_path = fs::path(work_dir, "evoland.ego"), verbose = verbose)
+  exec_dinamica(
+    model_path = fs::path(work_dir, "evoland.ego"),
+    ...
+  )
 }
 
 #' @describeIn dinamica_utils Encode or decode raw R and Python code chunks in .ego

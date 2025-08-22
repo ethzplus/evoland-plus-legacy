@@ -107,6 +107,10 @@ test_that("exec_dinamica works", {
     exec_dinamica(tmpfile_ego)[["status"]],
     0L
   )
+  testthat::expect_output(
+    exec_dinamica(tmpfile_ego, echo = TRUE, write_logfile = FALSE),
+    "Running model script"
+  )
 })
 
 test_that("exec_dinamica fails", {

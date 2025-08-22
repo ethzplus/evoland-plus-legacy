@@ -12,7 +12,8 @@ exec_dinamica(
   disable_parallel = TRUE,
   log_level = NULL,
   additional_args = NULL,
-  verbose = FALSE
+  write_logfile = TRUE,
+  echo = FALSE
 )
 
 run_evoland_dinamica_sim(
@@ -20,7 +21,7 @@ run_evoland_dinamica_sim(
   config = get_config(),
   work_dir = format(Sys.time(), "\%Y-\%m-\%d_\%Hh\%Mm\%Ss"),
   calibration = FALSE,
-  verbose = FALSE
+  ...
 )
 
 process_dinamica_script(infile, outfile, mode = "encode", check = TRUE)
@@ -36,7 +37,9 @@ in a directory of the exact form \verb{basename(modelpath)_ego_Submodels}, \href
 \item{additional_args}{Additional arguments to pass to DinamicaConsole, see
 \code{DinamicaConsole -help}}
 
-\item{verbose}{bool}
+\item{write_logfile}{bool, write stdout&stderr to a file?}
+
+\item{echo}{bool, direct echo to console?}
 
 \item{run_modelprechecks}{bool, Validate that everything's in place for a model run.
 Will never be run if calibration.}
@@ -46,6 +49,8 @@ Will never be run if calibration.}
 \item{work_dir}{Working dir, where to place ego files and control table}
 
 \item{calibration}{bool, Is this a calibration run?}
+
+\item{...}{passed to \code{\link[=exec_dinamica]{exec_dinamica()}}}
 
 \item{infile}{Input file path. Treated as input if passed AsIs using \code{base::I()}}
 
