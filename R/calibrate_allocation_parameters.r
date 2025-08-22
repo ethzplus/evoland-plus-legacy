@@ -392,93 +392,68 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   )
 
   # D - Perform simulation for calibration ####
+  # TODO replace this with a canonical directory, env var?
+  work_dir <- "/mnt/calibration"
   run_evoland_dinamica_sim(
     calibration = TRUE,
-    verbose = TRUE,
-    work_dir = "calibration"
+    work_dir = work_dir
   )
 
   # TODO check that this is still true with processx doing the system call
   # because the simulations may fail without the system command returning an error
   # (if the error occurs in Dinamica) then check the control table to see
   # if/how many simulations have failed
-  updated_control_tbl <- read.csv(config[["calibration_ctrl_tbl_path"]])
+  updated_control_tbl <- read.csv(
+    fs::path(work_dir, default_ctrl_tbl_path())
+  )
 
-  if (errs <- any(updated_control_tbl$completed.string == "ERROR")) {
-    message(
+  if (errs <- sum(updated_control_tbl$completed.string == "ERROR")) {
+    stop(
       sum(errs),
-      "of",
+      " of ",
       nrow(updated_control_tbl),
-      "simulations have failed to run till completion,",
-      "check simulation output .txt file for details of errors"
+      " simulations have failed to run till completion, go check the logs."
     )
-  } else {
-    # Send completion message
-    message("All simulations completed sucessfully")
-
-    # clean up log and debug files created by Dinamica as their output
-    # is stored in the .txt file anyway
-    unlink(list.files(
-      pattern = "log_|debug_",
-      full.names = TRUE
-    ))
   }
 
   # E - Evaluate calibration, selecting best parameter set ####
 
   # load the similarity values produced from the validation process inside Dinamica
   # for each simulation
-  calibration_results <- lapply(
-    list.files(
-      config[["validation_dir"]],
-      full.names = TRUE,
-      recursive = TRUE,
-      pattern = ".csv"
-    ),
-    read.csv,
-    header = FALSE
-  )
-  names(calibration_results) <- sapply(
-    list.files(
-      config[["validation_dir"]],
-      full.names = FALSE,
-      recursive = TRUE,
-      pattern = ".csv"
-    ),
-    function(x) stringr::str_split(x, "_")[[1]][2]
-  )
-
-  # remove thhe list item that has summary in it's name
-  calibration_results <- calibration_results[!grepl("summary", names(calibration_results))]
-
-  # bind the list of dataframes into a single dataframe
-  calibration_results <- data.table::rbindlist(calibration_results, idcol = "Sim_ID")
-
-  # rename the similarity score column
-  names(calibration_results)[2] <- "Similarity_score"
+  calibration_results <-
+    fs::dir_ls(
+      path = work_dir,
+      glob = "**/similarity_value*.csv", # grandparent folder is simulation_id
+      recurse = TRUE
+    ) |>
+    rlang::set_names(\(x) stringr::str_split_i(x, "/", -3)) |> # get simulation_id from folder name
+    purrr::map(
+      readr::read_csv, # these files are actually just a float without header
+      col_names = "similarity_value",
+      col_types = "d"
+    ) |>
+    dplyr::bind_rows(.id = "simulation_id") |>
+    dplyr::filter(simulation_id != "summary")
 
   # summary statistics
   calibration_summary <- data.frame(
-    Mean = mean(calibration_results$Similarity_score),
-    SD = sd(calibration_results$Similarity_score),
-    Min = min(calibration_results$Similarity_score),
-    Max = max(calibration_results$Similarity_score),
-    n = length(calibration_results$Similarity_score)
+    Mean = mean(calibration_results[["similarity_value"]]),
+    `Standard Deviation` = sd(calibration_results[["similarity_value"]]),
+    Minimum = min(calibration_results[["similarity_value"]]),
+    Maximum = max(calibration_results[["similarity_value"]]),
+    n = length(calibration_results[["similarity_value"]])
   )
-
-  # clean column names of summary statistics
-  colnames(calibration_summary) <- c("Mean", "Standard Deviation", "Minimum", "Maximum")
 
   # save summary statistics
   readr::write_csv(
     calibration_summary,
-    file.path(config[["validation_dir"]], "validation_summary.csv")
+    file.path(work_dir, "validation_summary.csv")
   )
 
   # select best performing simulation_ID
   best_sim_ID <- calibration_results[
-    which.max(calibration_results$Similarity_score),
-  ]$Sim_ID
+    which.max(calibration_results[["similarity_value"]]),
+  ][["simulation_id"]]
 
   # Use this sim ID to create parameter tables for all simulation time points
   # in the Simulation folder
@@ -502,7 +477,7 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   )
 
   # get simulation start and end times from control table
-  simulation_control <- read.csv(config[["ctrl_tbl_path"]])
+  simulation_control <- readr::read_csv(config[["ctrl_tbl_path"]])
   simulation_start <- min(simulation_control$scenario_start.real)
   simulation_end <- max(simulation_control$scenario_end.real)
   scenario_IDs <- unique(simulation_control$scenario_id.string)
@@ -515,7 +490,7 @@ calibrate_allocation_parameters <- function(config = get_config()) {
         seq(simulation_start, simulation_end, step_length),
         function(simulation_year) {
           save_dir <- file.path(config[["simulation_param_dir"]], scenario_id)
-          dir.create(save_dir, recursive = TRUE)
+          ensure_dir(save_dir)
           file_name <- file.path(
             save_dir,
             paste0("allocation_param_table_", simulation_year, ".csv")

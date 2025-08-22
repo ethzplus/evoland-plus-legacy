@@ -287,12 +287,10 @@ dinamica_trans_potent_calc <- function(
   # G3- Re-scale predictions ####
   # loop over rows and re-scale probability values so that they sum to 1
   message("Re-scaling transition probabilities")
-  options(datatable.verbose = TRUE)
   normalize_over_cols(
     dt = prediction_probs,
     cols = final_lulc_prob_cols
   )
-  options(datatable.verbose = FALSE)
 
   # Get XY coordinates of cells
   xy_coordinates <-
@@ -617,6 +615,7 @@ model_neigh_preds <- function(config, period_tag) {
 #' @param cols character vector of columns
 #' This function is called for the side effect on the dt argument.
 normalize_over_cols <- function(dt, cols) {
+  # FIXME in non-interactive mode, R sometimes chooses to copy this data table
   dt[,
     prob_totals := rowSums(.SD), # need intermediary for filtering
     .SDcols = cols
