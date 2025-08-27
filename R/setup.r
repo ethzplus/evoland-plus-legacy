@@ -135,6 +135,9 @@ get_config <- function(
     validation_dir = file.path(
       results_dir,
       "validation"
+    ),
+    spat_prob_perturb_path = file.path(
+      data_basepath, "spat_prob_perturb"
     )
   )
 
