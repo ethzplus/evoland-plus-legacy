@@ -14,6 +14,11 @@
       "source": "${localEnv:EVOLAND_DATA_BASEPATH}",
       "target": "/mnt/evoland-data",
       "type": "bind"
+    },
+    {
+      "source": "${localEnv:EVOLAND_CALIBRATION_DIR}",
+      "target": "/mnt/calibration",
+      "type": "bind"
     }
   ],
   "containerEnv": {

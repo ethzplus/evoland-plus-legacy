@@ -142,12 +142,14 @@ calibrate_allocation_parameters <- function(config = get_config()) {
 
         # calculate the proportions of transition cells
         # that exist in new patches vs. expansion
-        perc_expander <- (raster::freq(expansion_or_new, value = 10) /
-          raster::freq(r, value = 1) *
-          100)
-        perc_patcher <- (raster::freq(expansion_or_new, value = 5) /
-          raster::freq(r, value = 1) *
-          100)
+        perc_expander <- (
+          raster::freq(expansion_or_new, value = 10) /
+            raster::freq(r, value = 1) * 100
+        )
+        perc_patcher <- (
+          raster::freq(expansion_or_new, value = 5) /
+            raster::freq(r, value = 1) * 100
+        )
 
         # Calculate class statistics for patchs in rasters
         # FIXME this is a pretty broken package, see if we can replace these guesses
@@ -392,14 +394,12 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   )
 
   # D - Perform simulation for calibration ####
-  # TODO replace this with a canonical directory, env var?
-  work_dir <- "/mnt/calibration"
+  work_dir <- Sys.getenv("EVOLAND_CALIBRATION_DIR", unset = "calibration")
   run_evoland_dinamica_sim(
     calibration = TRUE,
     work_dir = work_dir
   )
 
-  # TODO check that this is still true with processx doing the system call
   # because the simulations may fail without the system command returning an error
   # (if the error occurs in Dinamica) then check the control table to see
   # if/how many simulations have failed
