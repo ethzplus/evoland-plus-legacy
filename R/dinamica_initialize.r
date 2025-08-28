@@ -55,17 +55,25 @@ get_remaining_simulations <- function(ctrl_tbl_path = default_ctrl_tbl_path()) {
     dplyr::relocate(simulation_num.)
 }
 
-# get parameters for a given simulation run (scenario) given a control table
-# path and a single integer simulation id
+# get parameters for a given simulation run (scenario) given a control table path and a
+# single integer simulation id; has side effect of creating lulc_maps dir
 #' @export
 get_simulation_params <- function(
     ctrl_tbl_path = default_ctrl_tbl_path(),
     simulation_id = integer()) {
   stopifnot(rlang::is_scalar_integerish(simulation_id))
+
   params <-
     get_control_table(ctrl_tbl_path) |>
     dplyr::filter(simulation_num. == simulation_id) |>
     as.list()
+
+  if (!rlang::is_scalar_integerish(params[["simulation_num."]])) {
+    stop(
+      "No simulation matching the requested simulation_id ",
+      "(check simulation_num in control table)"
+    )
+  }
 
   stopifnot(grepl(
     "simulation|calibration",
@@ -79,9 +87,15 @@ get_simulation_params <- function(
     ignore.case = TRUE
   )
 
+  if (fs::is_absolute_path(ctrl_tbl_path)) {
+    resultsdir <- fs::path(fs::path_dir(ctrl_tbl_path), "results")
+  } else {
+    resultsdir <- "results"
+  }
+
   params[["sim_results_path"]] <-
     fs::path(
-      "results",
+      resultsdir,
       # simulation_id.string is _almost_ redundant with scenario_id.string, but too much
       # effort to prise them appart
       params[["scenario_id.string"]],

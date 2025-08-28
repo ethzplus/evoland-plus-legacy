@@ -536,11 +536,35 @@ simulation_predictor_prep <- function(config = get_config()) {
   # the Canton names are in German they cannot be matched with the shapefile
   # to get the numbers (e.g Wallis - Valais etc.) instead load a different FSO
   # table to get the numbers
-  Canton_lookup <- openxlsx::read.xlsx(
-    "https://www.atlas.bfs.admin.ch/core/projects/13.40/xshared/xlsx/134_131.xlsx",
-    rows = c(4:31), cols = c(2, 3)
+  Canton_lookup <- tibble::tribble(
+    ~X2, ~Canton_num,
+    "Zürich", 1,
+    "Bern", 2,
+    "Luzern", 3,
+    "Uri", 4,
+    "Schwyz", 5,
+    "Obwalden", 6,
+    "Nidwalden", 7,
+    "Glarus", 8,
+    "Zug", 9,
+    "Freiburg", 10,
+    "Solothurn", 11,
+    "Basel-Stadt", 12,
+    "Basel-Landschaft", 13,
+    "Schaffhausen", 14,
+    "Appenzell A.Rh.", 15,
+    "Appenzell I.Rh.", 16,
+    "St. Gallen", 17,
+    "Graubünden", 18,
+    "Aargau", 19,
+    "Thurgau", 20,
+    "Tessin", 21,
+    "Waadt", 22,
+    "Wallis", 23,
+    "Neuenburg", 24,
+    "Genf", 25,
+    "Jura", 26
   )
-  Canton_lookup$Canton_num <- seq_len(nrow(Canton_lookup))
 
   # loop over time steps adding sheets and adding the predictors to them
   for (i in seq_along(Sheet_names)) {
@@ -624,8 +648,8 @@ simulation_predictor_prep <- function(config = get_config()) {
       file_name <- stringr::str_replace_all(
         basename(x),
         c(
-          Tave = "Average_Avg_ann_temp",
-          Prec = "Average_Avg_precip",
+          tave = "Average_Avg_ann_temp",
+          prec = "Average_Avg_precip",
           "0_degrees" = "Average_Sum_gdays_0deg",
           "3_degrees" = "Average_Sum_gdays_3deg",
           "5_degrees" = "Average_Sum_gdays_5deg"
@@ -669,7 +693,10 @@ simulation_predictor_prep <- function(config = get_config()) {
   colnames(Dynamic_preds) <- colnames(Static_preds)
 
   # fill in column details
-  Dynamic_preds[, "Prepared_data_path"] <- Future_pred_paths
+  Dynamic_preds[, "Prepared_data_path"] <- fs::path_rel(
+    Future_pred_paths,
+    start = config[["data_basepath"]]
+  )
   Dynamic_preds$Predictor_category <- stringr::str_match(
     tolower(Dynamic_preds$Prepared_data_path), "climatic|socio_economic"
   )
@@ -769,11 +796,10 @@ simulation_predictor_prep <- function(config = get_config()) {
   for (i in Time_steps) {
     # the try() is necessary in case sheets already exist
     try(openxlsx::addWorksheet(pred_workbook, sheetName = i))
-    # FIXME this is dangerous, what if there's already data, but the new data has fewer
-    # nrow/ncol? it won't overwrite previously populated cells
+    # FIXME this actually just throws an error, you can't overwrite an existing table
     openxlsx::writeData(
       pred_workbook,
-      sheet = paste(i),
+      sheet = paste0(i, "_", i + step_length),
       x = Combined_vars_for_time_steps[[paste(i)]]
     )
   }

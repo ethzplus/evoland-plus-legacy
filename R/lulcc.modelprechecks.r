@@ -11,7 +11,7 @@
 
 lulcc.modelprechecks <- function(config = get_config()) {
   # load table
-  Simulation_table <- read.csv(config[["ctrl_tbl_path"]])
+  Simulation_table <- readr::read_csv(config[["ctrl_tbl_path"]])
 
   # Get model mode
   model_mode <- unique(Simulation_table$model_mode.string)
@@ -112,7 +112,8 @@ lulcc.modelprechecks <- function(config = get_config()) {
       Scenario_IDs,
       function(ID) {
         generic_path <- file.path(
-          "Data", "Transition_tables", "prepared_trans_tables",
+          config[["trans_rate_table_dir"]],
+          ID,
           paste0(ID, "_trans_table_")
         )
         sapply(
@@ -180,7 +181,10 @@ lulcc.modelprechecks <- function(config = get_config()) {
   ### =========================================================================
 
   # vector historic lulc file paths
-  Obs_LULC_paths <- list.files("Data/Historic_LULC", full.names = TRUE, pattern = ".gri")
+  Obs_LULC_paths <- list.files(
+    config[["historic_lulc_basepath"]],
+    full.names = TRUE, pattern = ".gri"
+  )
 
   # extract numerics
   Obs_LULC_years <- unique(as.numeric(gsub(".*?([0-9]+).*", "\\1", Obs_LULC_paths)))
@@ -192,7 +196,7 @@ lulcc.modelprechecks <- function(config = get_config()) {
       abs(Obs_LULC_years[base::which.min(abs(Obs_LULC_years - x))] - x)
     }
   )
-  names(Start_years) <- control_table$simulation_id.string
+  names(Start_years) <- Simulation_table$simulation_id.string
 
   if (any(dplyr::between(Start_years, 0, 5)) == FALSE) {
     model_pre_checks <- c(model_pre_checks, list(list(
@@ -312,7 +316,10 @@ lulcc.modelprechecks <- function(config = get_config()) {
     viable_trans_list <- viable_trans_lists[[Period]]
 
     # load model look up table
-    Model_lookup <- openxlsx::read.xlsx("Tools/Model_lookup.xlsx", sheet = Period)
+    Model_lookup <- openxlsx::read.xlsx(
+      config[["model_lookup_path"]],
+      sheet = Period
+    )
 
     # vector unique trans IDs
     unique_trans_IDs <- sort(unique(Model_lookup$Trans_ID))
@@ -341,10 +348,12 @@ lulcc.modelprechecks <- function(config = get_config()) {
   # Check 2: that all model files contained in the look up table exist
   All_models_exist <- unlist(sapply(Period_names, function(Period) {
     # load model look up table
-    Model_lookup <- xlsx::read.xlsx("Tools/Model_lookup.xlsx", sheetName = Period)
+    Model_lookup <- xlsx::read.xlsx(config[["model_lookup_path"]], sheetName = Period)
 
     # loop over model file paths
-    sapply(Model_lookup$File_path, function(x) file.exists(x))
+    sapply(
+      fs::path(config[["data_basepath"]], Model_lookup$File_path), file.exists
+    )
   }))
 
   if (all(All_models_exist) == FALSE) {
@@ -368,7 +377,7 @@ lulcc.modelprechecks <- function(config = get_config()) {
   # Use results from the end of feature selection
   # to get a list of unique predictors across all models
   SA_preds <- lapply(
-    list.files("Results/Model_tuning/Predictor_selection/GRRF_embedded_selection",
+    list.files(config[["grrf_dir"]],
       full.names = TRUE,
       recursive = TRUE
     ), function(x) {
@@ -384,7 +393,7 @@ lulcc.modelprechecks <- function(config = get_config()) {
   )
   names(SA_preds) <- sapply(
     list.files(
-      "Results/Model_tuning/Predictor_selection/GRRF_embedded_selection",
+      config[["grrf_dir"]],
       recursive = TRUE
     ),
     function(x) stringr::str_split_i(x, "/", 1)
@@ -481,12 +490,12 @@ lulcc.modelprechecks <- function(config = get_config()) {
   Pred_raster_paths <- unique(unlist(sapply(Pred_sheets, function(Sheet) {
     # load predictor sheet
     Predictor_table <- openxlsx::read.xlsx(config[["pred_table_path"]], sheet = Sheet)
-    Predictor_table$Prepared_data_path
+    fs::path(config[["data_basepath"]], Predictor_table$Prepared_data_path)
   }, simplify = TRUE)))
 
 
   # check if they exist
-  All_pred_rasters_exist <- sapply(Pred_raster_paths, function(x) file.exists(x))
+  All_pred_rasters_exist <- sapply(Pred_raster_paths, file.exists)
   if (any(All_pred_rasters_exist == FALSE)) {
     model_pre_checks <- c(model_pre_checks, list(list(
       check = "missing_pred_rasters",
@@ -498,15 +507,16 @@ lulcc.modelprechecks <- function(config = get_config()) {
     )))
   }
 
-
-
   # check that there are no duplicates
-  No_duplicate_preds <- sapply(Pred_sheets, function(Sheet) {
-    # load predictor table
-    Predictor_table <- openxlsx::read.xlsx(config[["pred_table_path"]], sheet = Sheet)
+  No_duplicate_preds <- sapply(
+    Pred_sheets, function(Sheet) {
+      # load predictor table
+      Predictor_table <- openxlsx::read.xlsx(config[["pred_table_path"]], sheet = Sheet)
+      any(duplicated(cbind(Predictor_table$Covariate_ID, Predictor_table$Scenario)))
+    },
+    simplify = TRUE
+  )
 
-    any(duplicated(cbind(Predictor_table$Covariate_ID, Predictor_table$Scenario)))
-  }, simplify = TRUE)
   if (any(No_duplicate_preds) == TRUE) {
     model_pre_checks <- c(model_pre_checks, list(list(
       check = "duplicate_predictors",
@@ -515,24 +525,25 @@ lulcc.modelprechecks <- function(config = get_config()) {
       result = No_duplicate_preds
     )))
   }
+
+  model_pre_checks
 }
 
-# I - Check functionality of spatial interventions ####
-
+# This section of code was unreachable when I found it, might need some work to
+# integrate it into the function above.
 if (FALSE) {
-  # TODO either integrate in function above or remove dead code.
   if (grepl("simulation", model_mode, ignore.case = TRUE)) {
     # load table of scenario interventions
-    Interventions <- read.csv(config[["spat_ints_path"]])
+    Interventions <- readr::read_csv2(config[["spat_ints_path"]])
 
     # convert time_step and target_classes columns back to character vectors
     Interventions$time_step <- sapply(Interventions$time_step, function(x) {
-      x <- str_remove_all(x, " ")
+      x <- stringr::str_remove_all(x, " ")
       rep <- unlist(strsplit(x, ","))
     }, simplify = FALSE)
 
     Interventions$target_classes <- sapply(Interventions$target_classes, function(x) {
-      x <- str_remove_all(x, " ")
+      x <- stringr::str_remove_all(x, " ")
       rep <- unlist(strsplit(x, ","))
     }, simplify = FALSE)
 
