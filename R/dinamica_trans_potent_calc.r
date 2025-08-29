@@ -414,11 +414,6 @@ dinamica_trans_potent_calc <- function(
 
 
 model_municip_pop <- function(current_LULC_raster, config, params, time_step) {
-  current_LULC_raster <- terra::rast("~/Documents/calibration/results/CALIBRATION/v1/lulc_maps/2010.tif")
-  config <- get_config()
-  params <- get_simulation_params(ctrl_tbl_path = "/Users/jhartman/Documents/calibration/simulation_control.csv", simulation_id = 4L)
-  time_step <- 2022
-
   # E.1- Dynamic predictors:  Municipal Population; for calibration the raster stacks
   # already contain the dynamic predictor layers so there is nothing to be done
   message("Generating dynamic predictors: - Municipal population")
