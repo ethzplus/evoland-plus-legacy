@@ -977,7 +977,7 @@ spatial_interventions_prep <- function(config = get_config()) {
         next
       }
     }
-    if (length(l$chosen) == 0 & !l$stop) {
+    if (length(l$chosen) == 0 && !l$stop) {
       stop("No solutions!")
     }
 

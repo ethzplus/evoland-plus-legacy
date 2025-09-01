@@ -56,7 +56,7 @@ get_remaining_simulations <- function(ctrl_tbl_path = default_ctrl_tbl_path()) {
 }
 
 # get parameters for a given simulation run (scenario) given a control table path and a
-# single integer simulation id; has side effect of creating lulc_maps dir
+# single integer simulation ID_loc; has side effect of creating lulc_maps dir
 #' @export
 get_simulation_params <- function(
     ctrl_tbl_path = default_ctrl_tbl_path(),
@@ -181,7 +181,7 @@ create_init_lulc_raster <- function(params = get_simulation_params(), config = g
     # using the scenario specific glacier index
     glacier_index <-
       fs::path(config[["glacial_change_path"]], "scenario_indices") |>
-      fs::dir_ls(regex = params[["climate_scenario.string"]]) |>
+      fs::dir_ls(regex = params[["climate_scenario.string"]], ignore.case = TRUE) |>
       readRDS() |>
       tibble::as_tibble() |>
       dplyr::select(tidyselect::all_of(c("ID_loc", value = scenario_start)))
@@ -195,8 +195,8 @@ create_init_lulc_raster <- function(params = get_simulation_params(), config = g
       purrr::pluck("ID_loc")
 
     # replace the 1's and 0's with the correct LULC
-    lulc_tbl[lulc_tbl[["id"]] %in% non_glacier_ids, "value"] <- "Static"
-    lulc_tbl[lulc_tbl[["id"]] %in% glacier_ids, "value"] <- "Glacier"
+    lulc_tbl[lulc_tbl[["id"]] %in% non_glacier_ids, "value"] <- "static"
+    lulc_tbl[lulc_tbl[["id"]] %in% glacier_ids, "value"] <- "glacier"
 
     # 2nd step ensure that other glacial cells that do not match the glacier index
     # are also changed to static so that the transition rates calculate the
@@ -205,7 +205,7 @@ create_init_lulc_raster <- function(params = get_simulation_params(), config = g
       which(lulc_tbl[["value"]] == "Glacier" &
         !(lulc_tbl[["id"]] %in% glacier_ids)),
       "value"
-    ] <- "Static"
+    ] <- "static"
 
     # convert back to raster
     terra::values(initial_lulc_raster) <- lulc_tbl[["value"]]

@@ -43,9 +43,6 @@ dinamica_trans_potent_calc <- function(
     stop("Removed support for parallelisation at this stage")
   }
 
-  # implement spatial interventions
-  Use_interventions <- params[["spatial_interventions.string"]]
-
   # Convert model mode into a string of the dates calibration period being used
   # this makes it easier to load files because they use this nomenclature
 
@@ -118,10 +115,7 @@ dinamica_trans_potent_calc <- function(
   )
   message(" - loading maps from: ", params[["sim_results_path"]])
 
-
-
   # B- Retrieve current LULC map and layerize ####
-
   current_LULC_path <- fs::path(
     params[["sim_results_path"]],
     paste0(time_step, ".tif")
@@ -150,7 +144,6 @@ dinamica_trans_potent_calc <- function(
     data.table::as.data.table(key = "id")
 
   # C- Load Suitability and Accessibility predictors ####
-
   message("Loading Suitability and Accessibility predictors")
 
   prepared_data_dt_path <- fs::path(
@@ -205,7 +198,7 @@ dinamica_trans_potent_calc <- function(
   # E- Dynamic predictors ####
 
   if (params[["is_simulation"]]) {
-    stop("not implemented")
+    message("Generating dynamic predictors:")
     trans_dataset_list[["pop_raster_dt"]] <- model_municip_pop(
       current_LULC_raster = current_LULC_raster,
       config = config,
@@ -221,8 +214,8 @@ dinamica_trans_potent_calc <- function(
   }
 
   # F- Regionalization ####
-
   if (config[["regionalization"]]) {
+    message("Adding regionalization")
     trans_dataset_list[["bioregion_dt"]] <-
       fs::path(config[["bioreg_dir"]], "bioreg_raster.tif") |>
       terra::rast() |>
@@ -232,6 +225,7 @@ dinamica_trans_potent_calc <- function(
   }
 
   # reduce all previously made tables by inner joining into a single table
+  message("Combining all predictors")
   trans_dataset_complete <- purrr::reduce(
     trans_dataset_list,
     function(x, y) {
@@ -318,10 +312,15 @@ dinamica_trans_potent_calc <- function(
   raster_prob_values <- prediction_probs[xy_coordinates]
 
   # H- Spatial manipulations of transition probabilities ####
-  if (params[["is_simulation"]] && Use_interventions == "Y") {
-    message("Applying spatial interventions")
+  if (
+    params[["is_simulation"]] &&
+      params[["spatial_interventions.string"]] == "Y"
+  ) {
     # load table of scenario interventions
-    Interventions <- readr::read_csv(config[["spat_ints_path"]])
+    Interventions <- readr::read_csv2(
+      config[["spat_ints_path"]],
+      col_types = "cccccdcc"
+    )
 
     # Use function to perform manipulation of spatial transition probabilities
     # according to scenario-specific interventions
@@ -416,7 +415,7 @@ dinamica_trans_potent_calc <- function(
 model_municip_pop <- function(current_LULC_raster, config, params, time_step) {
   # E.1- Dynamic predictors:  Municipal Population; for calibration the raster stacks
   # already contain the dynamic predictor layers so there is nothing to be done
-  message("Generating dynamic predictors: - Municipal population")
+  message(" - Municipal population")
   # create population data layer
   # subset current LULC to just urban cells
   Urban_rast <- current_LULC_raster == 10
@@ -577,6 +576,7 @@ model_neigh_preds <- function(current_LULC_raster, config, period_tag, lulc_rat)
 
   # Loop over details of focal layers required creating a list of rasters from the
   # current LULC map
+  message(" - Neighbourhood predictors: focals")
   Nhood_rasters <- list()
   for (i in seq_len(nrow(Required_focals_details))) {
     # vector active class names
@@ -609,6 +609,7 @@ model_neigh_preds <- function(current_LULC_raster, config, period_tag, lulc_rat)
   }
 
 
+  message(" - Neighbourhood predictors: reducing")
   out <-
     purrr::map2(
       Nhood_rasters,
