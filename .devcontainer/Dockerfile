@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 dinamica-ego:latest
+FROM --platform=linux/amd64 ghcr.io/mmyrte/evoland:latest
 LABEL authors="Carlson Büth, Jan Hartman" \
   version="8.3" \
   description="Docker image for Dinamica EGO."

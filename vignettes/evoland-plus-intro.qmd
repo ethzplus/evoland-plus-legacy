@@ -154,5 +154,7 @@ spatial_interventions_prep()
 ## M- Run Dinamica simulations over scenarios
 
 ```{r}
-run_evoland_dinamica_sim()
+run_evoland_dinamica_sim(
+  work_dir = Sys.getenv("EVOLAND_SIMULATION_DIR", unset = "simulation")
+)
 ```
