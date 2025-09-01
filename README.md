@@ -1,26 +1,28 @@
 # Project Overview
 
-`evoland-plus` is a software project that aims to integrate statistical land use/land cover change (LULCC).
+> [!IMPORTANT]
+> This repository has reached a point where its feature set and interface should remain stable.
+> @mmyrte will continue his efforts at [evoland-plus](https://github.com/ethzplus/evoland-plus/).
+> See the [wiki for an overview](https://github.com/ethzplus/evoland-plus/wiki) of that project.
+
+`evoland-plus` is a software project that uses statistics to model land use/land cover change (LULCC).
 It is based on the [LULCC-CH-private](https://github.com/blenback/LULCC-CH-private) project, but to achieve expanding analytical goals, it is being remodelled into an R package.
-Part of the workflow (that is: the LULCC extrapolation) relies on a coupling of R to [Dinamica EGO](https://dinamicaego.com/).
+Part of the workflow (that is: the LULCC allocation) relies on a coupling of R to [Dinamica EGO](https://dinamicaego.com/).
 
 ## How do I get set up?
 
 To ease development and deployment, the many software dependencies are managed in a [devcontainer](.devcontainer/devcontainer.json), which in turn is built by [rocker-geospatial-dinamica](https://github.com/ethzplus/rocker-geospatial-dinamica).
 This is particularly well integrated with VS Code, [see the docs](https://code.visualstudio.com/docs/devcontainers/containers).
-If you prefer to work in a native `renv` environment, you're welcome to use `renv::init()`.
+If you prefer to work in a native `renv` environment, you're welcome to use `renv::init()` from the project's base directory, which should ask you how to discover dependencies.
 You will be given a nice prompt where to read the project dependencies from.
-Just go with the [`DESCRIPTION`](./DESCRIPTION), since you would otherwise end up installing loads of seldom-used packages - you can always instal those later.
-
-> [!CAUTION]
-> This repository is undergoing heavy modifications; don't expect feature or interface stability.
-> If you write any logic that depends on the package's current state, you should clearly reference the exact commit you base your work on.
+I suggest you go with the [`DESCRIPTION`](./DESCRIPTION), since you would otherwise end up installing some seldom-used packages - you can always install those later.
 
 ## To Do
 
+This repository is now in a state where it should be stable.
+However, there is an effort going on at [evoland-plus](https://github.com/ethzplus/evoland-plus) to wrap the logic here into a more consistent format, where data is managed by a database instead of folder structures and individual files with sensitive naming schemes.
 TODOs are being tracked in [this GitHub project](https://github.com/orgs/ethzplus/projects/1) and the [issues](issues) on this repository.
-TODO and FIXME comments are used to indicate problematic places throughout the codebase.
-Generally, the codebase will be factored into smaller pieces until individual pieces of logic become unit-testable.
+TODO, FIXME, and WARNING comments are used throughout the codebase; if you encounter a problem with a specific section of code, chances are that the scripts do not generalize well outside of the analytic domain they were written for.
 
 ## History of the repo
 
