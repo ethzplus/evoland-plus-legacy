@@ -7,8 +7,8 @@ Script {{
     @alias = Load control table
     _ := Group .none {{
         getEnvironmentVariables := CalculateRExpression "
-message(Sys.time(), " - getEnvironmentVariables")
-outputString("work_dir", getwd())
+            message(Sys.time(), " - getEnvironmentVariables")
+            outputString("work_dir", getwd())
         " .no {{ }};
 
         workingDirectory := ExtractStructString getEnvironmentVariables $"(work_dir)";
@@ -18,8 +18,8 @@ outputString("work_dir", getwd())
         @collapsed = no
         @alias = Subset control table to only simulations yet to be completed (i.e. modelled)
         incompleteSimulationsRExpression := CalculateRExpression "
-message(Sys.time(), " - incompleteSimulationsRExpression")
-outputTable("remaining_simulations", evoland::get_remaining_simulations())
+            message(Sys.time(), " - incompleteSimulationsRExpression")
+            outputTable("remaining_simulations", evoland::get_remaining_simulations())
         " .no {{ }};
 
         @viewer.table = yes
@@ -50,27 +50,27 @@ outputTable("remaining_simulations", evoland::get_remaining_simulations())
                     @collapsed = no
                     @viewer.result = yes
                     initializeCurrentSimulation := CalculateRExpression "
-message(Sys.time(), " - initializeCurrentSimulation")
-config <- evoland::get_config()
-sim_details <- evoland::get_simulation_params(simulation_id = v1)
-evoland::create_init_lulc_raster(params = sim_details)
+                        message(Sys.time(), " - initializeCurrentSimulation")
+                        config <- evoland::get_config()
+                        sim_details <- evoland::get_simulation_params(simulation_id = v1)
+                        evoland::create_init_lulc_raster(params = sim_details)
 
-# step length to construct simulatedLulcSavePath
-outputDouble("step_length", config[["step_length"]])
+                        # step length to construct simulatedLulcSavePath
+                        outputDouble("step_length", config[["step_length"]])
 
-# lookup table to iterate over (timeStepTable)
-timesteps <- evoland::get_simulation_timesteps(params = sim_details)
-outputLookupTable("simulation_time_steps", timesteps[["key"]], timesteps[["value"]])
+                        # lookup table to iterate over (timeStepTable)
+                        timesteps <- evoland::get_simulation_timesteps(params = sim_details)
+                        outputLookupTable("simulation_time_steps", timesteps[["key"]], timesteps[["value"]])
 
-# send simulated LULC folder path to Dinamica receiver: sim_results_path
-outputString("sim_results_path", sim_details[["sim_results_path"]])
+                        # send simulated LULC folder path to Dinamica receiver: sim_results_path
+                        outputString("sim_results_path", sim_details[["sim_results_path"]])
 
-# send initial LULC map file path to Dinamica receiver:
-outputString("initial_lulc_path", sim_details[["initial_lulc_path"]])
+                        # send initial LULC map file path to Dinamica receiver:
+                        outputString("initial_lulc_path", sim_details[["initial_lulc_path"]])
 
-# send folder path as string to Dinamica receiver: allocation_params_folder_path
-outputString("allocation_params_folder_path", sim_details[["params_folder_dinamica"]])
-" .no {{
+                        # send folder path as string to Dinamica receiver: allocation_params_folder_path
+                        outputString("allocation_params_folder_path", sim_details[["params_folder_dinamica"]])
+                    " .no {{
                         @alias = Row of current simulation in table
                         NumberValue simulationNumber 1;
                     }};
@@ -104,12 +104,12 @@ outputString("allocation_params_folder_path", sim_details[["params_folder_dinami
                         // Load Scenario/time specific transition matrix
                         @collapsed = no
                         loadTransitionRateTable := CalculateRExpression "
-message(Sys.time(), " - loadTransitionRateTable")
-outputTable("trans_rate_table", evoland::dinamica_load_trans_table(
-    simulation_id = v2,
-    year = v1
-))
-" .no {{
+                            message(Sys.time(), " - loadTransitionRateTable")
+                            outputTable("trans_rate_table", evoland::dinamica_load_trans_table(
+                                simulation_id = v2,
+                                year = v1
+                            ))
+                        " .no {{
                             @alias = Time step
                             NumberValue timeStep 1;
 
@@ -156,22 +156,22 @@ outputTable("trans_rate_table", evoland::dinamica_load_trans_table(
                         @collapsed = no
                         @viewer.result = yes
                         splitParamTable := CalculateRExpression "
-message(Sys.time(), " - splitParamTable")
-param_table <- t1
+                            message(Sys.time(), " - splitParamTable")
+                            param_table <- t1
 
-# the third positional argument `, 2` is necessary for Dinamica to register that the
-# table has 2 key columns (From and To) - could not find documentation for this
-outputTable(
-    "expander_table", 
-    param_table[, c("From", "To", "Perc_expander")], 
-    2
-)
-outputTable(
-    "patch_table", 
-    param_table[, !(colnames(param_table) %in% c("Perc_expander", "Perc_patcher"))], 
-    2
-)
-" .no {{
+                            # the third positional argument `, 2` is necessary for Dinamica to register that the
+                            # table has 2 key columns (From and To) - could not find documentation for this
+                            outputTable(
+                                "expander_table", 
+                                param_table[, c("From", "To", "Perc_expander")], 
+                                2
+                            )
+                            outputTable(
+                                "patch_table", 
+                                param_table[, !(colnames(param_table) %in% c("Perc_expander", "Perc_patcher"))], 
+                                2
+                            )
+                        " .no {{
                             NumberTable loadTableOfAllocationParameters 1;
                         }};
 
@@ -189,15 +189,15 @@ outputTable(
                         @collapsed = no
                         @alias = Transition potential R script
                         transitionPotentialRScript := CalculateRExpression "
-message(Sys.time(), " - transitionPotentialRScript")
+                            message(Sys.time(), " - transitionPotentialRScript")
 
-prob_map_folder <- evoland::dinamica_trans_potent_calc(
-    simulation_num = v2,
-    time_step = v1
-)
+                            prob_map_folder <- evoland::dinamica_trans_potent_calc(
+                                simulation_num = v2,
+                                time_step = v1
+                            )
 
-outputString("probmap_folder_path", prob_map_folder)
-" .no {{
+                            outputString("probmap_folder_path", prob_map_folder)
+                        " .no {{
                             @alias = time_step
                             NumberValue timeStep 1;
 
@@ -216,17 +216,17 @@ outputString("probmap_folder_path", prob_map_folder)
                     _ := Group .none {{
                         @collapsed = no
                         createSimulatedLulcSavePath := CalculateRExpression "
-message(Sys.time(), " - createSimulatedLulcSavePath")
-simulated_lulc_year <- v1 + v2
-final_lulc_path <- file.path(
-    s1,
-    paste0(simulated_lulc_year, ".tif")
-)
+                            message(Sys.time(), " - createSimulatedLulcSavePath")
+                            simulated_lulc_year <- v1 + v2
+                            final_lulc_path <- file.path(
+                                s1,
+                                paste0(simulated_lulc_year, ".tif")
+                            )
 
-outputString("simulated_lulc_save_path", final_lulc_path)
-#output the simulated map year for use in the implementation of deterministic transitions
-outputDouble("simulated_lulc_year", simulated_lulc_year)
-" .no {{
+                            outputString("simulated_lulc_save_path", final_lulc_path)
+                            #output the simulated map year for use in the implementation of deterministic transitions
+                            outputDouble("simulated_lulc_year", simulated_lulc_year)
+                        " .no {{
                             @alias = Simulated LULC map base path
                             NumberString receiveSimResultsPath 1;
 
@@ -271,15 +271,14 @@ outputDouble("simulated_lulc_year", simulated_lulc_year)
                     _ := Group .none {{
                         @collapsed = no
                         _ := CalculateRExpression "
-message(Sys.time(), " - deterministicTransitions")
+                            message(Sys.time(), " - deterministicTransitions")
 
-evoland::dinamica_deterministic_trans(
-    simulated_lulc_save_path = s1,
-    simulation_id = v1,
-    simulated_lulc_year = v2
-)
-
-" .no {{
+                            evoland::dinamica_deterministic_trans(
+                                simulated_lulc_save_path = s1,
+                                simulation_id = v1,
+                                simulated_lulc_year = v2
+                            )
+                        " .no {{
                             @alias = Simulated LULC save path
                             NumberString simulatedLulcSavePath 1;
 
@@ -312,23 +311,23 @@ evoland::dinamica_deterministic_trans(
                 _ := Group scenarioTimeStepIteration {{
                     @collapsed = no
                     validateCalibration := CalculateRExpression "
-message(Sys.time(), " - validateCalibration")
-validation_params <- evoland::dinamica_use_validation(
-    simulation_id = v1,
-    sim_results_path = s1
-)
+                        message(Sys.time(), " - validateCalibration")
+                        validation_params <- evoland::dinamica_use_validation(
+                            simulation_id = v1,
+                            sim_results_path = s1
+                        )
 
-# double as bool: 0 -> don't validate, 1 -> do validate
-outputDouble("Use_validation", validation_params[["validation_condition"]])
+                        # double as bool: 0 -> don't validate, 1 -> do validate
+                        outputDouble("Use_validation", validation_params[["validation_condition"]])
 
-# where to write validation results
-outputString("Val_map_path", validation_params[["Validation_map_path"]])
-outputString("Val_result_path", validation_params[["Validation_result_path"]])
+                        # where to write validation results
+                        outputString("Val_map_path", validation_params[["Validation_map_path"]])
+                        outputString("Val_result_path", validation_params[["Validation_result_path"]])
 
-# final observed and simulated years, respectively
-outputString("Obs_LULC_path", validation_params[["Final_LULC_path"]])
-outputString("Sim_LULC_path", validation_params[["Sim_final_LULC_path"]])
-" .no {{
+                        # final observed and simulated years, respectively
+                        outputString("Obs_LULC_path", validation_params[["Final_LULC_path"]])
+                        outputString("Sim_LULC_path", validation_params[["Sim_final_LULC_path"]])
+                    " .no {{
                         @alias = Send simulation ID
                         NumberValue simulationNumber 1;
 
@@ -417,12 +416,12 @@ outputString("Sim_LULC_path", validation_params[["Sim_final_LULC_path"]])
             _ := Group .none {{
                 @collapsed = no
                 _ := CalculateRExpression "
-message(Sys.time(), " - update control table")
-evoland::dinamica_update_control_table(
-    success = s1,
-    simulation_num = v1
-)
-" .no {{
+                    message(Sys.time(), " - update control table")
+                    evoland::dinamica_update_control_table(
+                        success = s1,
+                        simulation_num = v1
+                    )
+                " .no {{
                     @alias = Completion boolean
                     NumberString skipOnError1399 1;
 
