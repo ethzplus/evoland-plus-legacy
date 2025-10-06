@@ -8,27 +8,17 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-::: {.callout-note}
-This vignette is based on the original
-[`LULCC_CH_master.R`](https://github.com/ethzplus/evoland-with-baggage/blob/e2c7819adbcfa1446befef77e7ea5d5e0cb250c0/scripts/lulcc_ch_master.r)
-script, which had the primary function of calling each of the steps of the modelling
-pipeline in turn. Almost every step is somewhat expensive to run; hence, the results are
-always saved to disk. This poses a challenge, as integration tests are unfeasible.
+::: callout-note
+This vignette is based on the original [`LULCC_CH_master.R`](https://github.com/ethzplus/evoland-with-baggage/blob/e2c7819adbcfa1446befef77e7ea5d5e0cb250c0/scripts/lulcc_ch_master.r) script, which had the primary function of calling each of the steps of the modelling pipeline in turn. Almost every step is somewhat expensive to run; hence, the results are always saved to disk. This poses a challenge, as integration tests are unfeasible.
 
-There is cache management in place, but it currently relies on CSV and Excel files that
-indicate the state of completion of individual modelling steps. This may not be
-perfectly reliable, so for now, the best approach is that you familiarize yourself with
-the files under the tools directory.
+There is cache management in place, but it currently relies on CSV and Excel files that indicate the state of completion of individual modelling steps. This may not be perfectly reliable, so for now, the best approach is that you familiarize yourself with the files under the tools directory.
 :::
 
-This script shows the whole process of LULCC data preparation, statistical modelling and
-preparing model inputs required by Dinamica EGO. Note: The scripts must be sourced in the
-order presented in order to work. Adjust the `model_specs` table to:
+This script shows the whole process of LULCC data preparation, statistical modelling and preparing model inputs required by Dinamica EGO. Note: The scripts must be sourced in the order presented in order to work. Adjust the `model_specs` table to:
 
-1. Control the time periods to be modelled
-2. Specify the statistical modelling technique
-3. Indicate whether or not regionalized datasets and models should be created
-
+1.  Control the time periods to be modelled
+2.  Specify the statistical modelling technique
+3.  Indicate whether or not regionalized datasets and models should be created
 
 ## Get set up
 
@@ -36,14 +26,13 @@ order presented in order to work. Adjust the `model_specs` table to:
 # Install if that hasn't happened yet.
 # remotes::install_github("ethzplus/evoland-with-baggage")
 # or, if you've cloned locally and want to get your hands dirty
-# devtools::load_all()
-library(evoland)
+devtools::load_all()
+#library(evoland)
 ```
 
 ## Download and unpack data
 
-Zenodo currently hosts a single zip file including all the raw data needed for reproducing some [Valpar.CH](https://valpar.ch/) specific models.
-The data should be available on Zenodo, but you could also just point the function at a local file:
+Zenodo currently hosts a single zip file including all the raw data needed for reproducing some [Valpar.CH](https://valpar.ch/) specific models. The data should be available on Zenodo, but you could also just point the function at a local file:
 
 ```{r}
 fetch_zenodo_predictors(url = "file:///some/path/evoland-ch-data.zip")
@@ -60,7 +49,7 @@ fetch_zenodo_predictors(url = "file:///some/path/evoland-ch-data.zip")
 lulc_data_prep()
 ```
 
-## Prepare raster of Swiss Bioregions
+## Prepare raster of regions used in analysis
 
 ```{r}
 region_prep()
@@ -98,15 +87,10 @@ transition_modelling()
 
 ## G- Summarizing model validation results
 
-::: {.callout-warning}
-There was a `source("Transition_model_evaluation.R")` call, but that file that wasn't in
-the codebase that I took over.
+::: callout-warning
+There was a `source("Transition_model_evaluation.R")` call, but that file that wasn't in the codebase that I took over.
 
-Without having seen it, its name implies that it was run on the comprehensive set of
-models that are calculated in the previous step. I _did_ find a file called
-`Model_evaluation.R` which I'm committing together with these lines as
-`R/transition_model_evaluation.r` with the slight adaptation of encapsulating its logic
-in a function of the same name.
+Without having seen it, its name implies that it was run on the comprehensive set of models that are calculated in the previous step. I *did* find a file called `Model_evaluation.R` which I'm committing together with these lines as `R/transition_model_evaluation.r` with the slight adaptation of encapsulating its logic in a function of the same name.
 :::
 
 ## Adjust contents of model_specs table to only optimal specifications
@@ -121,7 +105,7 @@ lulcc.finalisemodelspecifications()
 trans_model_finalization()
 ```
 
-## I- Prepare data for deterministic transitions (e.g glacier -> Non-glacier)
+## I- Prepare data for deterministic transitions (e.g glacier -\> Non-glacier)
 
 ```{r}
 deterministic_trans_prep()

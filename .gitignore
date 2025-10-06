@@ -9,6 +9,8 @@ data-raw
 results
 debug_*
 log_*
+data
+preparation
 
 # ignore cached DinamicEGO appimages
 *.AppImage
@@ -24,5 +26,6 @@ inst/doc
 # ignore potentially large files
 *.csv
 *.log
+*.tif
 
 renv*

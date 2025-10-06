@@ -20,14 +20,14 @@
 get_config <- function(
   scenario_names = c("BAU", "EI-NAT", "EI-CUL", "EI-SOC", "GR-EX"),
   step_length = 5L,
-  data_periods = c("1985_1997", "1997_2009", "2009_2018"),
+  data_periods = c("2010_2014", "2014_2018", "2018_2022"),
   regionalization = TRUE,
   inclusion_threshold = 0.5
 ) {
-  data_basepath <- Sys.getenv("EVOLAND_DATA_BASEPATH", unset = "data-raw")
-  historic_lulc_basepath <- file.path(data_basepath, "historic_lulc")
-  bioreg_dir <- file.path(data_basepath, "bioregions")
-  predictors_dir <- file.path(data_basepath, "preds")
+  data_basepath <- Sys.getenv("EVOLAND_DATA_BASEPATH", unset = "data")
+  historic_lulc_basepath <- file.path(data_basepath, "lulc")
+  bioreg_dir <- file.path(data_basepath, "regionalization")
+  predictors_dir <- file.path(data_basepath, "predictors")
   predictors_prepped_dir <- file.path(predictors_dir, "prepared")
   predictors_raw_dir <- file.path(predictors_dir, "raw")
   allocation_pars_dir <- file.path(data_basepath, "allocation_parameters")
@@ -41,7 +41,7 @@ get_config <- function(
     historic_lulc_basepath = historic_lulc_basepath,
 
     # Tools files
-    LULC_aggregation_path = file.path(tools_dir, "lulc_class_aggregation.xlsx"), # LULC class aggregation table
+    LULC_aggregation_path = file.path(tools_dir, "lulc_schema.json"), # LULC class aggregation table
     model_specs_path = file.path(tools_dir, "model_specs.csv"), # model specifications table
     param_grid_path = file.path(tools_dir, "param-grid.xlsx"), # model hyper parameter grids
     pred_table_path = file.path(tools_dir, "predictor_table.xlsx"), # predictor table
@@ -58,7 +58,7 @@ get_config <- function(
     calibration_ctrl_tbl_path = file.path(tools_dir, "calibration_control.csv"),
 
     # Paths for original data files
-    ref_grid_path = file.path(data_basepath, "ref_grid.tif"),
+    ref_grid_path = file.path(data_basepath, "spatial_reference_grid", "ref_grid.tif"),
     calibration_param_dir = file.path(allocation_pars_dir, "calibration"),
     simulation_param_dir = file.path(allocation_pars_dir, "simulation"),
     trans_rate_table_dir = file.path(data_basepath, "transition_tables", "prepared_trans_tables"),
@@ -90,7 +90,8 @@ get_config <- function(
     # Remote data sources and local paths
     arealstat_zip_remote = "https://dam-api.bfs.admin.ch/hub/api/dam/assets/32376216/appendix",
     arealstat_zip_local = file.path(historic_lulc_basepath, "ag-b-00.03-37-area-all-csv.zip"),
-    rasterized_lulc_dir = file.path(historic_lulc_basepath, "rasterized"),
+    rasterized_lulc_dir = file.path(historic_lulc_basepath, "original"),
+    aggregated_lulc_dir = file.path(historic_lulc_basepath, "aggregated"),
     bioreg_dir = bioreg_dir,
     bioreg_zip_remote = "https://data.geo.admin.ch/ch.bafu.biogeographische_regionen/data.zip",
     bioreg_zip_local = file.path(bioreg_dir, "biogeographische_regionen.zip"),
