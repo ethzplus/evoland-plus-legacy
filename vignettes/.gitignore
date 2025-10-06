@@ -1,4 +1,7 @@
 *.html
 *.R
+*.tif
 
 /.quarto/
+data/
+results/
