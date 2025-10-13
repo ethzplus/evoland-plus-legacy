@@ -10,7 +10,7 @@ vignette: >
 
 ::: {.callout-note}
 This vignette is based on the original
-[`LULCC_CH_master.R`](https://github.com/ethzplus/evoland-with-baggage/blob/e2c7819adbcfa1446befef77e7ea5d5e0cb250c0/scripts/lulcc_ch_master.r)
+[`LULCC_CH_master.R`](https://github.com/ethzplus/evoland-plus-legacy/blob/e2c7819adbcfa1446befef77e7ea5d5e0cb250c0/scripts/lulcc_ch_master.r)
 script, which had the primary function of calling each of the steps of the modelling
 pipeline in turn. Almost every step is somewhat expensive to run; hence, the results are
 always saved to disk. This poses a challenge, as integration tests are unfeasible.
@@ -34,7 +34,7 @@ order presented in order to work. Adjust the `model_specs` table to:
 
 ```{r setup}
 # Install if that hasn't happened yet.
-# remotes::install_github("ethzplus/evoland-with-baggage")
+# remotes::install_github("ethzplus/evoland-plus-legacy")
 # or, if you've cloned locally and want to get your hands dirty
 # devtools::load_all()
 library(evoland)

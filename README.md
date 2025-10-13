@@ -27,7 +27,6 @@ TODO, FIXME, and WARNING comments are used throughout the codebase; if you encou
 ## History of the repo
 
 The commit history is rewritten (using [git-filter-repo](https://github.com/newren/git-filter-repo)) to omit large binary files above 1MiB and made all paths lowercase to avoid trouble with case insensitive file systems.
-Yet, there may be historic commits in there that we don't want to keep - hence the "with-baggage" moniker.
 
 A bit of guesswork has gone into the reconstruction of file names and paths: occasionally, you may find a file that was referenced in some place but committed to the repository under a different name.
 Where I was reasonably confident that two paths should match up, I changed either the reference or renamed the referred object.
