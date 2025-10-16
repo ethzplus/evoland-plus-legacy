@@ -14,14 +14,23 @@
 #' @param config list of configuration parameters
 #' @param redo_random_matrices logical indicating whether to re-generate the random matrices
 
-nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = FALSE) {
+nhood_predictor_prep <- function(
+  config = get_config(),
+  redo_random_matrices = TRUE,
+  refresh_cache = FALSE
+) {
   # A - Preparation ####
   # vector years of LULC data
   LULC_years <- gsub(
     ".*?([0-9]+).*",
     "\\1",
-    list.files(config[["historic_lulc_basepath"]], full.names = FALSE, pattern = ".gri")
+    list.files(
+      config[["aggregated_lulc_dir"]],
+      full.names = FALSE,
+      pattern = ".tif"
+    )
   )
+  LULC_years <- sort(unique(as.numeric(LULC_years)))
 
   # create a list of the data/modelling periods
   LULC_change_periods <- c()
@@ -38,7 +47,10 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
 
   # create folders required
   nhood_folder_names <- c(
-    file.path(config[["preds_tools_dir"]], "neighbourhood_details_for_dynamic_updating"),
+    file.path(
+      config[["preds_tools_dir"]],
+      "neighbourhood_details_for_dynamic_updating"
+    ),
     file.path(config[["preds_tools_dir"]], "neighbourhood_matrices"),
     file.path(config[["prepped_lyr_path"]], "neighbourhood")
   )
@@ -47,7 +59,9 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
 
   # B - Generate the desired number of focal windows for neighbourhood effect ####
   all_matrices_path <- file.path(
-    config[["preds_tools_dir"]], "neighbourhood_matrices", "all_matrices.rds"
+    config[["preds_tools_dir"]],
+    "neighbourhood_matrices",
+    "all_matrices.rds"
   )
   if (redo_random_matrices || !fs::file_exists(all_matrices_path)) {
     # FIXME this looks like you could simply set the seed to be reproducible?
@@ -58,16 +72,23 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
     # col size)
     matrix_sizes <- c(11, 9, 7, 5, 3) # (11x11; 9x9; 7x7; 5x5; 3x3)
 
-    # Specify how many random decay rate  matrices should be created for each size
+    # Specify how many random decay rate matrices should be created for each size
     nw <- 5 # How many random matrices to create for each matrix size below
 
     # Create matrices
     All_matrices <- lapply(matrix_sizes, function(matrix_dim) {
       matrix_list_single_size <- random_pythagorean_matrix(
-        n = nw, x = matrix_dim,
-        interpolation = "smooth", search = "random"
+        n = nw,
+        x = matrix_dim,
+        interpolation = "smooth",
+        search = "random"
       )
-      names(matrix_list_single_size) <- c(paste0("n", matrix_dim, "_", seq(1:nw)))
+      names(matrix_list_single_size) <- c(paste0(
+        "n",
+        matrix_dim,
+        "_",
+        seq(1:nw)
+      ))
       return(matrix_list_single_size)
     })
 
@@ -93,42 +114,81 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
   # Load rasters of LULC data for historic periods (adjust list as necessary)
   # FIXME until here, LULC_years is a vector, from here on out it's a list
   LULC_years <- lapply(
-    stringr::str_extract_all(stringr::str_replace_all(data_periods, "_", " "), "\\d+"),
+    stringr::str_extract_all(
+      stringr::str_replace_all(data_periods, "_", " "),
+      "\\d+"
+    ),
     function(x) x[[1]]
   )
   names(LULC_years) <- paste0("LULC_", LULC_years)
 
   LULC_rasters <- lapply(LULC_years, function(x) {
-    LULC_pattern <- glob2rx(paste0("*", x, "*grd")) # generate regex
-    raster::raster(
-      list.files(config[["historic_lulc_basepath"]],
+    LULC_pattern <- glob2rx(paste0("*", x, "*tif")) # generate regex
+    terra::rast(
+      list.files(
+        config[["aggregated_lulc_dir"]],
         full.names = TRUE,
         pattern = LULC_pattern
       )
     )
   })
 
-  # provide vector of active LULC class names
-  # FIXME this should be predictor metadata, not hardcoded
-  Active_class_names <- c("urban", "int_ag", "alp_past", "grassland", "perm_crops")
+  # load the LULC scheme, disable simplification so nested lists remain lists
+  scheme <- jsonlite::fromJSON(
+    config[["LULC_aggregation_path"]],
+    simplifyVector = FALSE
+  )
 
+  # get the values of class_name where nhood_class == FALSE
+  Active_classes <- lapply(scheme, function(x) {
+    if (isTRUE(x$nhood_class)) {
+      return(x$class_name)
+    } else {
+      return(NA)
+    }
+  })
+  Active_classes <- Active_classes[!is.na(Active_classes)]
+
+  # namee the active classes with their pixel values from the value field
+  names(Active_classes) <- lapply(
+    Active_classes,
+    function(x) {
+      scheme[[which(sapply(scheme, function(y) y$class_name == x))]]$value
+    }
+  )
+
+  # create folder path to save neighbourhood rasters
   Nhood_folder_path <- file.path(
     config[["prepped_lyr_path"]],
     "neighbourhood"
   )
+  ensure_dir(Nhood_folder_path)
 
   # mapply function over the LULC rasters and Data period names
   # saves rasters to file and return list of focal layer names
-  future.apply::future_mapply(
-    lulcc_generatenhoodrasters,
+  # mapply(
+  #   lulcc_generatenhoodrasters,
+  #   lulc_raster = LULC_rasters,
+  #   data_period = data_periods,
+  #   MoreArgs = list(
+  #     neighbourhood_matrices = All_matrices,
+  #     active_lulc_classes = Active_classes,
+  #     nhood_folder_path = Nhood_folder_path
+  #   )
+  # )
+
+  # parrallel alternative
+  mapply(
+    lulcc_generatenhoodrasters_parallel,
     lulc_raster = LULC_rasters,
     data_period = data_periods,
     MoreArgs = list(
       neighbourhood_matrices = All_matrices,
-      active_lulc_class_names = Active_class_names,
-      nhood_folder_path = Nhood_folder_path
-    ),
-    future.seed = TRUE
+      active_lulc_classes = Active_classes,
+      nhood_folder_path = Nhood_folder_path,
+      ncores = parallel::detectCores() - 4,
+      refresh_cache = refresh_cache
+    )
   )
 
   # D - Manage file names/details for neighbourhood layers ####
@@ -136,24 +196,30 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
   # get names of all neighbourhood layers from files
   new_nhood_names <- list.files(
     path = Nhood_folder_path,
-    pattern = ".grd",
+    pattern = ".tif",
     full.names = TRUE
   )
 
   # split by period
-  new_names_by_period <- lapply(data_periods, function(x) grep(x, new_nhood_names, value = TRUE))
+  new_names_by_period <- lapply(data_periods, function(x) {
+    grep(x, new_nhood_names, value = TRUE)
+  })
   names(new_names_by_period) <- data_periods
 
   # function to do numerical re-ordering
   numerical.reorder <- function(period_names) {
     split_to_identifier <- sapply(strsplit(period_names, "nhood_n"), "[[", 2)
-    split_nsize <- as.numeric(sapply(strsplit(split_to_identifier, "_"), "[[", 1))
+    split_nsize <- as.numeric(sapply(
+      strsplit(split_to_identifier, "_"),
+      "[[",
+      1
+    ))
     period_names[order(split_nsize, decreasing = TRUE)]
   }
 
   # use grepl over each period names to extract names by LULC class and then re-order
   new_names_period_LULC <- lapply(new_names_by_period, function(x) {
-    LULC_class_names <- lapply(Active_class_names, function(LULC_class_name) {
+    LULC_class_names <- lapply(Active_classes, function(LULC_class_name) {
       grep(LULC_class_name, x, value = TRUE)
     })
 
@@ -163,13 +229,13 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
   })
 
   # reduce nested list to a single vector of layer names
-  layer_names <- 
-    Reduce(c, new_names_period_LULC) |> 
+  layer_names <-
+    Reduce(c, new_names_period_LULC) |>
     fs::path_rel(config[["data_basepath"]])
 
   # regex strings of period and active class names and matrix_IDs
   period_names_regex <- stringr::str_c(data_periods, collapse = "|")
-  class_names_regex <- stringr::str_c(Active_class_names, collapse = "|")
+  class_names_regex <- stringr::str_c(Active_classes, collapse = "|")
   matrix_id_regex <- stringr::str_c(names(All_matrices), collapse = "|")
 
   # create data.frame to store details of neighbourhood layers to be used when layers
@@ -180,19 +246,30 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
     ),
     c("layer_name", "period", "active_lulc", "matrix_id")
   )
-  Focal_details$Prepared_data_path <- layer_names
+  Focal_details$path <- layer_names
   Focal_details$layer_name <- stringr::str_remove_all(
-    stringr::str_remove_all(layer_names, paste0(Nhood_folder_path, "/")), ".grd"
+    stringr::str_remove_all(layer_names, paste0(Nhood_folder_path, "/")),
+    ".tif"
   )
-  Focal_details$period <- stringr::str_extract(Focal_details$layer_name, period_names_regex)
-  Focal_details$active_lulc <- stringr::str_extract(Focal_details$layer_name, class_names_regex)
-  Focal_details$matrix_id <- stringr::str_extract(Focal_details$layer_name, matrix_id_regex)
+  Focal_details$period <- stringr::str_extract(
+    Focal_details$layer_name,
+    period_names_regex
+  )
+  Focal_details$active_lulc <- stringr::str_extract(
+    Focal_details$layer_name,
+    class_names_regex
+  )
+  Focal_details$matrix_id <- stringr::str_extract(
+    Focal_details$layer_name,
+    matrix_id_regex
+  )
 
   # save dataframe to use as a look up table in dynamic focal layer creation.
   saveRDS(
     Focal_details,
     file.path(
-      config[["preds_tools_dir"]], "neighbourhood_details_for_dynamic_updating",
+      config[["preds_tools_dir"]],
+      "neighbourhood_details_for_dynamic_updating",
       "focal_layer_lookup.rds"
     )
   )
@@ -200,20 +277,24 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
   # E - Updating predictor table with layer names- updated xl. ####
 
   # Add additional columns to Focal details
-  Focal_details$Covariate_ID <- paste0(
-    Focal_details$active_lulc, "_nhood_", Focal_details$matrix_id
+  Focal_details$pred_name <- paste0(
+    Focal_details$active_lulc,
+    "_nhood_",
+    Focal_details$matrix_id
   )
-  Focal_details$CA_category <- "Neighbourhood"
+  Focal_details$pred_category <- "Neighbourhood"
   Focal_details$Predictor_category <- "Neighbourhood"
-  Focal_details$Variable_name <- mapply(
+  Focal_details$clean_name <- mapply(
     function(LULC_class, MID) {
       width <- stringr::str_remove(stringr::str_split(MID, "_")[[1]][1], "n")
       version <- stringr::str_split(MID, "_")[[1]][2]
       paste0(
         LULC_class,
         " Neighbourhood effect matrix (size: ",
-        width, "x",
-        width, "cells; random central value and decay rate version:",
+        width,
+        "x",
+        width,
+        "cells; random central value and decay rate version:",
         version
       )
     },
@@ -221,7 +302,7 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
     MID = Focal_details$matrix_id,
     SIMPLIFY = TRUE
   )
-  Focal_details$Static_or_dynamic <- "Dynamic"
+  Focal_details$static_or_dynamic <- "Dynamic"
   Focal_details$Prepared <- "Y"
   Focal_details$Original_resolution <- "100m"
   Focal_details$Temporal_coverage <- sapply(
@@ -230,9 +311,9 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
   )
   Focal_details$Data_citation <- NA
   Focal_details$URL <- NA
-  Focal_details$Temporal_resolution <- Focal_details$period
+  Focal_details$period <- Focal_details$period
   Focal_details$Raw_data_path <- NA
-  Focal_details$Scenario_variant <- NA
+  Focal_details$scenario_variant <- NA
 
   # split focal_details by period
   Periodic_focal_details <- split(Focal_details, Focal_details$period)
@@ -248,13 +329,17 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
   names(Pred_tables) <- sheets
 
   # load predictor_table as workbook to add sheets
-  Pred_table_update <- openxlsx::loadWorkbook(file = config[["pred_table_path"]])
+  Pred_table_update <- openxlsx::loadWorkbook(
+    file = config[["pred_table_path"]]
+  )
 
   # loop over periods and add the rows of focal details table to the correct table of the pred table
   lapply(names(Periodic_focal_details), function(x) {
     # subset to Focal table to columns of pred table
     Period_table <- Periodic_focal_details[[x]]
-    Period_table <- Period_table[, which(colnames(Period_table) %in% colnames(Pred_tables[[x]]))]
+    Period_table <- Period_table[, which(
+      colnames(Period_table) %in% colnames(Pred_tables[[x]])
+    )]
 
     # incase nhood rows already exist remove them
     Pred_table <- Pred_tables[[x]]
@@ -263,7 +348,8 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
     # create Unique_ID seq proceeding from last row value in pred table
     last_cov_num <- as.numeric(
       stringr::str_remove(
-        tail(c(Pred_table$Unique_ID), n = 1), "cov_"
+        tail(c(Pred_table$Unique_ID), n = 1),
+        "cov_"
       )
     )
     Period_table$Unique_ID <- paste0(
@@ -274,7 +360,10 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
     combined_table <- rbind(Pred_table, Period_table)
 
     # add table to worksheet, try() is necessary in case sheets already exist
-    if (length((tbl_name <- openxlsx::getTables(Pred_table_update, sheet = x))) == 1) {
+    if (
+      length((tbl_name <- openxlsx::getTables(Pred_table_update, sheet = x))) ==
+        1
+    ) {
       openxlsx::removeTable(Pred_table_update, sheet = x, table = tbl_name)
     } else if (length(tbl_name) > 1) {
       stop("Multiple tables found in sheet ", x)
@@ -283,7 +372,11 @@ nhood_predictor_prep <- function(config = get_config(), redo_random_matrices = F
   })
 
   # save workbook
-  openxlsx::saveWorkbook(Pred_table_update, config[["pred_table_path"]], overwrite = TRUE)
+  openxlsx::saveWorkbook(
+    Pred_table_update,
+    config[["pred_table_path"]],
+    overwrite = TRUE
+  )
 
   # F - Example plotting of nhood matrices and decay rates ####
 
