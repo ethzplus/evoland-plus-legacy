@@ -21,7 +21,8 @@ transition_feature_selection <- function(config = get_config()) {
   # Add tag column
   Filtering_required$tag <- paste0(
     Filtering_required$data_period_name,
-    "_", Filtering_required$model_scale
+    "_",
+    Filtering_required$model_scale
   )
 
   # Split into named list
@@ -55,7 +56,10 @@ transition_feature_selection <- function(config = get_config()) {
 
     # Load the predictor data table that will be used to identify the categories of covariates
     # and perform collinearity testing seperately
-    Predictor_table <- openxlsx::read.xlsx(config[["pred_table_path"]], sheet = Data_period)
+    Predictor_table <- openxlsx::read.xlsx(
+      config[["pred_table_path"]],
+      sheet = Data_period
+    )
 
     # vector file paths for the data for the period specified
     Data_paths <- list.files(
@@ -83,8 +87,8 @@ transition_feature_selection <- function(config = get_config()) {
             lulcc.filtersel(
               transition_result = Trans_data$trans_result,
               cov_data = Trans_data$cov_data,
-              categories = Predictor_table$CA_category[
-                Predictor_table$Covariate_ID %in% names(Trans_data$cov_data)
+              categories = Predictor_table$pred_category[
+                Predictor_table$pred_name %in% names(Trans_data$cov_data)
               ],
               collin_weight_vector = Trans_data$collin_weights,
               embedded_weight_vector = Trans_data$embed_weights,
@@ -94,7 +98,12 @@ transition_feature_selection <- function(config = get_config()) {
             )
           },
           error = function(e) {
-            warning(paste("Collinearity filtering failed for dataset:", z, "\n", e))
+            warning(paste(
+              "Collinearity filtering failed for dataset:",
+              z,
+              "\n",
+              e
+            ))
             return(NULL)
           }
         )
@@ -105,7 +114,8 @@ transition_feature_selection <- function(config = get_config()) {
           Save_dir <- file.path(config[["collinearity_dir"]], Data_period)
           dir.create(Save_dir, recursive = TRUE, showWarnings = FALSE)
           Save_path_collinearity <- file.path(
-            Save_dir, paste0(Dataset_name, "_collin_filtered.rds")
+            Save_dir,
+            paste0(Dataset_name, "_collin_filtered.rds")
           )
           saveRDS(Collin_filtered_data, Save_path_collinearity)
 
@@ -144,7 +154,12 @@ transition_feature_selection <- function(config = get_config()) {
             )
           },
           error = function(e) {
-            warning(paste("GRRF feature selection failed for dataset:", x, "\n", e))
+            warning(paste(
+              "GRRF feature selection failed for dataset:",
+              x,
+              "\n",
+              e
+            ))
             return(NULL)
           }
         )
@@ -155,7 +170,11 @@ transition_feature_selection <- function(config = get_config()) {
           Save_dir <- file.path(config[["grrf_dir"]], Data_period)
           dir.create(Save_dir, recursive = TRUE, showWarnings = FALSE)
           Save_path_grrf <- file.path(
-            Save_dir, paste0(gsub("_collin_filtered", "", Dataset_name), "_GRRF_filtered.rds")
+            Save_dir,
+            paste0(
+              gsub("_collin_filtered", "", Dataset_name),
+              "_GRRF_filtered.rds"
+            )
           )
           saveRDS(GRRF_filtered_data, Save_path_grrf)
           return(Save_path_grrf)
@@ -180,9 +199,16 @@ transition_feature_selection <- function(config = get_config()) {
     Filtered_predictors <- lapply(GRRF_selection_results, function(x) {
       if (!is.null(x)) {
         list(
-          collinearity_preds = colnames(readRDS(x)[["covdata_collinearity_filtered"]]),
+          collinearity_preds = colnames(readRDS(x)[[
+            "covdata_collinearity_filtered"
+          ]]),
           GRRF_preds = tryCatch(readRDS(x)[["var"]], error = function(e) {
-            warning(paste("Failed to extract GRRF predictors from:", x, "\n", e))
+            warning(paste(
+              "Failed to extract GRRF predictors from:",
+              x,
+              "\n",
+              e
+            ))
             return(NULL)
           })
         )
@@ -192,7 +218,9 @@ transition_feature_selection <- function(config = get_config()) {
     })
 
     # Remove NULL entries
-    Filtered_predictors <- Filtered_predictors[!sapply(Filtered_predictors, is.null)]
+    Filtered_predictors <- Filtered_predictors[
+      !sapply(Filtered_predictors, is.null)
+    ]
 
     # Rename with transition names
     names(Filtered_predictors) <- names(GRRF_selection_results)
@@ -212,10 +240,16 @@ transition_feature_selection <- function(config = get_config()) {
       if (!is.null(Pred_names)) {
         existing_preds <- Pred_names[Pred_names %in% names(Pre_PS_dat$cov_data)]
         if (length(existing_preds) > 0) {
-          Pre_PS_dat$cov_data <- Pre_PS_dat$cov_data[, existing_preds, drop = FALSE]
+          Pre_PS_dat$cov_data <- Pre_PS_dat$cov_data[,
+            existing_preds,
+            drop = FALSE
+          ]
           colnames(Pre_PS_dat$cov_data) <- existing_preds
         } else {
-          warning(paste("No matching predictors found for dataset:", Data_paths[[i]]))
+          warning(paste(
+            "No matching predictors found for dataset:",
+            Data_paths[[i]]
+          ))
         }
       }
 
@@ -223,9 +257,15 @@ transition_feature_selection <- function(config = get_config()) {
       Post_PS_dat <- Pre_PS_dat
 
       # Save the filtered dataset
-      Post_PS_dir <- file.path(config[["trans_post_pred_filter_dir"]], Data_period)
+      Post_PS_dir <- file.path(
+        config[["trans_post_pred_filter_dir"]],
+        Data_period
+      )
       dir.create(Post_PS_dir, recursive = TRUE, showWarnings = FALSE)
-      Post_PS_dat_save_path <- file.path(Post_PS_dir, paste0(basename(Data_paths[[i]])))
+      Post_PS_dat_save_path <- file.path(
+        Post_PS_dir,
+        paste0(basename(Data_paths[[i]]))
+      )
       saveRDS(Post_PS_dat, Post_PS_dat_save_path)
 
       gc()
@@ -238,13 +278,17 @@ transition_feature_selection <- function(config = get_config()) {
     ### =========================================================================
 
     # Identify focal variables
-    Focal_preds_remaining <- unique(unlist(lapply(Filtered_predictors, function(x) {
-      grep("nhood", x[["GRRF_preds"]], value = TRUE)
-    })))
+    Focal_preds_remaining <- unique(unlist(lapply(
+      Filtered_predictors,
+      function(x) {
+        grep("nhood", x[["GRRF_preds"]], value = TRUE)
+      }
+    )))
 
     # Load focal layer look up table
     Focal_lookup <- readRDS(file.path(
-      config[["preds_tools_dir"]], "neighbourhood_details_for_dynamic_updating",
+      config[["preds_tools_dir"]],
+      "neighbourhood_details_for_dynamic_updating",
       "focal_layer_lookup.rds"
     ))
 
@@ -254,14 +298,21 @@ transition_feature_selection <- function(config = get_config()) {
     # Subset the focal look up table by the list of focals required for the
     # transition models for this period
     Focal_subset <- Focal_lookup[
-      grep(paste(Focal_preds_remaining, collapse = "|"), Focal_lookup$layer_name),
+      grep(
+        paste(Focal_preds_remaining, collapse = "|"),
+        Focal_lookup$layer_name
+      ),
     ]
 
     # Save the Focal layer details for this period
-    saveRDS(Focal_subset, file.path(
-      config[["preds_tools_dir"]], "neighbourhood_details_for_dynamic_updating",
-      paste0(Data_period, "_", Dataset_scale, "_focals_for_updating.rds")
-    ))
+    saveRDS(
+      Focal_subset,
+      file.path(
+        config[["preds_tools_dir"]],
+        "neighbourhood_details_for_dynamic_updating",
+        paste0(Data_period, "_", Dataset_scale, "_focals_for_updating.rds")
+      )
+    )
 
     message("Focal layers identified for updating during simulation")
 
@@ -270,7 +321,9 @@ transition_feature_selection <- function(config = get_config()) {
   } # close wrapper function
 
   # Apply feature selection to all required datasets
-  lapply(Datasets_for_PS, function(x) lulcc.featureselection(Dataset_details = x))
+  lapply(Datasets_for_PS, function(x) {
+    lulcc.featureselection(Dataset_details = x)
+  })
 
   message("Covariate selection complete")
 }

@@ -10,3 +10,5 @@ suddel*
 ^doc$
 ^Meta$
 ^.git$
+^[.]?air[.]toml$
+^\.vscode$

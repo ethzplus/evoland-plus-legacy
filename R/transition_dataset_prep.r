@@ -43,12 +43,13 @@ transition_dataset_prep <- function(config = get_config()) {
 
   # subsetting to only the necessary columns
   preds_by_period <- lapply(predictor_tables, function(x) {
-    pred_subset <- x[, c("Prepared_data_path", "Covariate_ID")]
+    pred_subset <- x[, c("path", "pred_name")]
     pred_subset$File_name <- file.path(
-      config[["data_basepath"]], pred_subset$Prepared_data_path
+      config[["data_basepath"]],
+      pred_subset$path
     )
-    pred_subset$Prepared_data_path <- NULL
-    names(pred_subset)[names(pred_subset) == "Covariate_ID"] <- "Layer_name"
+    pred_subset$path <- NULL
+    names(pred_subset)[names(pred_subset) == "pred_name"] <- "Layer_name"
     return(pred_subset)
   })
 
@@ -59,7 +60,11 @@ transition_dataset_prep <- function(config = get_config()) {
   lulc_raster_paths <- data.frame(matrix(ncol = 2, nrow = 4))
   colnames(lulc_raster_paths) <- c("File_name", "Layer_name")
   lulc_raster_paths["File_name"] <- as.data.frame(
-    list.files(config[["historic_lulc_basepath"]], pattern = ".grd$", full.names = TRUE)
+    list.files(
+      config[["historic_lulc_basepath"]],
+      pattern = ".grd$",
+      full.names = TRUE
+    )
   )
 
   # extract everything that begins with / and runs to the end of the string.
@@ -72,8 +77,9 @@ transition_dataset_prep <- function(config = get_config()) {
   region_path <- data.frame(matrix(ncol = 2, nrow = 1))
   colnames(region_path) <- c("File_name", "Layer_name")
   region_path["File_name"] <- list.files(
-    config[["bioreg_dir"]],
-    pattern = ".tif$", full.names = TRUE
+    config[["reg_dir"]],
+    pattern = ".tif$",
+    full.names = TRUE
   )
   region_path["Layer_name"] <- "Bioregion"
 
@@ -103,7 +109,9 @@ transition_dataset_prep <- function(config = get_config()) {
     )
   } else {
     combined_paths_by_period <- mapply(
-      rbind, preds_by_period, lulc_paths_by_period,
+      rbind,
+      preds_by_period,
+      lulc_paths_by_period,
       SIMPLIFY = FALSE
     )
   }
@@ -181,7 +189,11 @@ transition_dataset_prep <- function(config = get_config()) {
 }
 
 
-process_period_transitions <- function(period, rasterstacks_by_periods, config) {
+process_period_transitions <- function(
+  period,
+  rasterstacks_by_periods,
+  config
+) {
   # Convert SpatRaster to data.frame including coordinates
   # Cannot take advantage of sparsity because the distances to roads, lakes, rivers is
   # computed for the entire domain; all others are about half that
@@ -190,7 +202,8 @@ process_period_transitions <- function(period, rasterstacks_by_periods, config) 
   trans_data <-
     terra::as.data.frame(
       rasterstacks_by_periods[[paste(period)]],
-      xy = TRUE, na.rm = FALSE
+      xy = TRUE,
+      na.rm = FALSE
     ) |>
     tibble::as_tibble(rownames = "Num_ID") |>
     # this also drops NAs, not what Ben implemented, but possibly what he intended
@@ -213,7 +226,9 @@ process_period_transitions <- function(period, rasterstacks_by_periods, config) 
   # occur at a sufficient rate.
   # read in list of viable transition for period
   # created in script 'Transition_identification'
-  viable_trans_list <- readRDS(config[["viable_transitions_lists"]])[[paste(period)]]
+  viable_trans_list <- readRDS(config[["viable_transitions_lists"]])[[paste(
+    period
+  )]]
 
   # loop over viable transitions and add column for each to the data with the values:
   # 1: If the row is positive for the given transition: If both Initial and Final
@@ -229,16 +244,16 @@ process_period_transitions <- function(period, rasterstacks_by_periods, config) 
     openxlsx::read.xlsx(config[["pred_table_path"]], sheet = period) |>
     tibble::as_tibble() |>
     # FIXME? silently filtering here on the presumption that the warning above suffices
-    dplyr::filter(Covariate_ID %in% names(trans_data))
+    dplyr::filter(pred_name %in% names(trans_data))
 
   # seperate transition related columns
-  trans_rel_cols <- trans_data[
-    ,
+  trans_rel_cols <- trans_data[,
     c("Num_ID", "Initial_class", "Final_class")
   ]
 
   # create empty list for results
-  trans_df <- matrix(NA_integer_,
+  trans_df <- matrix(
+    NA_integer_,
     nrow = nrow(trans_rel_cols),
     ncol = nrow(viable_trans_list)
   ) |>
@@ -252,33 +267,46 @@ process_period_transitions <- function(period, rasterstacks_by_periods, config) 
     f <- viable_trans_list[row_i, "Initial_class"]
     t <- viable_trans_list[row_i, "Final_class"]
     trans_df[
-      which(trans_rel_cols$Initial_class == f &
-        trans_rel_cols$Final_class == t), row_i
+      which(
+        trans_rel_cols$Initial_class == f &
+          trans_rel_cols$Final_class == t
+      ),
+      row_i
     ] <- 1L
     trans_df[
-      which(trans_rel_cols$Initial_class == f &
-        trans_rel_cols$Final_class != t), row_i
+      which(
+        trans_rel_cols$Initial_class == f &
+          trans_rel_cols$Final_class != t
+      ),
+      row_i
     ] <- 0L
   }
 
   # Combine each transition column with predictor/info cols
-  binarized_trans_datasets <- lapply(viable_trans_list[, "Trans_name"], function(trans_name) {
-    trans_data_combined <- tidyr::drop_na(dplyr::bind_cols(
-      # the order of these columns is relied upon in lulcc.splitforcovselection
-      trans_dataset = trans_data,
-      trans_df[, trans_name]
-    ))
+  binarized_trans_datasets <- lapply(
+    viable_trans_list[, "Trans_name"],
+    function(trans_name) {
+      trans_data_combined <- tidyr::drop_na(dplyr::bind_cols(
+        # the order of these columns is relied upon in lulcc.splitforcovselection
+        trans_dataset = trans_data,
+        trans_df[, trans_name]
+      ))
 
-    # TODO check if this is necessary; the tibble being joined should already have this colname
-    names(trans_data_combined)[ncol(trans_data_combined)] <- trans_name
-    trans_data_combined
-  })
+      # TODO check if this is necessary; the tibble being joined should already have this colname
+      names(trans_data_combined)[ncol(trans_data_combined)] <- trans_name
+      trans_data_combined
+    }
+  )
 
   # Rename datasets using period to split LULC classes
   names(binarized_trans_datasets) <- sapply(
     seq_len(nrow(viable_trans_list)),
     function(i) {
-      paste0(viable_trans_list[i, "Initial_class"], "/", viable_trans_list[i, "Final_class"])
+      paste0(
+        viable_trans_list[i, "Initial_class"],
+        "/",
+        viable_trans_list[i, "Final_class"]
+      )
     }
   )
 
@@ -293,12 +321,16 @@ process_period_transitions <- function(period, rasterstacks_by_periods, config) 
     # Reverse order of name components
     names(binarized_trans_datasets_regionalized) <- sapply(
       strsplit(names(binarized_trans_datasets_regionalized), "\\."),
-      function(x) stringr::str_replace_all(paste(x[2], x[1], sep = "."), "/", ".")
+      function(x) {
+        stringr::str_replace_all(paste(x[2], x[1], sep = "."), "/", ".")
+      }
     )
   }
 
   names(binarized_trans_datasets) <- stringr::str_replace_all(
-    names(binarized_trans_datasets), "/", "."
+    names(binarized_trans_datasets),
+    "/",
+    "."
   )
   rm(trans_df, trans_data, trans_rel_cols)
 
@@ -311,30 +343,38 @@ process_period_transitions <- function(period, rasterstacks_by_periods, config) 
   trans_datasets_full <- lapply(binarized_trans_datasets, function(x) {
     lulcc.splitforcovselection(
       trans_dataset = x,
-      covariate_ids = predictor_table$Covariate_ID
+      covariate_ids = predictor_table$pred_name
     )
   })
   rm(binarized_trans_datasets)
 
   if (config[["regionalization"]]) {
-    trans_datasets_regionalized <- lapply(binarized_trans_datasets_regionalized, function(x) {
-      lulcc.splitforcovselection(
-        trans_dataset = x,
-        covariate_ids = predictor_table$Covariate_ID
-      )
-    })
+    trans_datasets_regionalized <- lapply(
+      binarized_trans_datasets_regionalized,
+      function(x) {
+        lulcc.splitforcovselection(
+          trans_dataset = x,
+          covariate_ids = predictor_table$pred_name
+        )
+      }
+    )
     rm(binarized_trans_datasets_regionalized)
 
     #  Remove regional datasets without sufficient transitions
     trans_datasets_regionalized <- trans_datasets_regionalized[
-      sapply(trans_datasets_regionalized, function(x) sum(x[["trans_result"]] == 1)) > 5
+      sapply(trans_datasets_regionalized, function(x) {
+        sum(x[["trans_result"]] == 1)
+      }) >
+        5
     ]
   }
 
   # Save datasets
   sapply(names(trans_datasets_full), function(dataset_name) {
     full_save_path <- file.path(
-      config[["trans_pre_pred_filter_dir"]], period, paste0(dataset_name, "_full_ch.rds")
+      config[["trans_pre_pred_filter_dir"]],
+      period,
+      paste0(dataset_name, "_full_ch.rds")
     )
     saveRDS(trans_datasets_full[[paste(dataset_name)]], full_save_path)
   })
@@ -342,9 +382,14 @@ process_period_transitions <- function(period, rasterstacks_by_periods, config) 
   if (config[["regionalization"]]) {
     sapply(names(trans_datasets_regionalized), function(dataset_name) {
       full_save_path <- file.path(
-        config[["trans_pre_pred_filter_dir"]], period, paste0(dataset_name, "_regionalized.rds")
+        config[["trans_pre_pred_filter_dir"]],
+        period,
+        paste0(dataset_name, "_regionalized.rds")
       )
-      saveRDS(trans_datasets_regionalized[[paste(dataset_name)]], full_save_path)
+      saveRDS(
+        trans_datasets_regionalized[[paste(dataset_name)]],
+        full_save_path
+      )
     })
   }
 

@@ -1,0 +1,2458 @@
+aspect:
+  clean_name: aspect
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/aspect.tif
+  grouping: terrain
+  description: Derived from NASADEM data
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001
+  raw_data_dir: terrain
+  raw_filename: masked_dem.tif
+elevation:
+  clean_name: elevation
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/elevation.tif
+  grouping: terrain
+  description: Derived from NASADEM data
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001
+  raw_data_dir: terrain
+  raw_filename: masked_dem.tif
+slope:
+  clean_name: slope
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/slope.tif
+  grouping: terrain
+  description: Derived from NASADEM data
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001
+  raw_data_dir: terrain
+  raw_filename: masked_dem.tif
+roughness:
+  clean_name: roughness
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/roughness.tif
+  grouping: terrain
+  description: Derived from NASADEM data
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001
+  raw_data_dir: terrain
+  raw_filename: masked_dem.tif
+TPI:
+  clean_name: TPI
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/TPI.tif
+  grouping: terrain
+  description: Derived from NASADEM data
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001
+  raw_data_dir: terrain
+  raw_filename: masked_dem.tif
+TRI:
+  clean_name: TRI
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/TRI.tif
+  grouping: terrain
+  description: Derived from NASADEM data
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001
+  raw_data_dir: terrain
+  raw_filename: masked_dem.tif
+dist_to_dams:
+  clean_name: dist_to_dams
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/dist_to_dams.tif
+  grouping: hydrological
+  description: 'Distance to dams layer – source: ANA Peru hydrological data.'
+  date: 20381.0
+  author: Your Name
+  wfs_url: https://geosnirh.ana.gob.pe/server/services/Público/Presas/MapServer/WFSServer?version=2.0.0&service=WFS&request=GetCapabilities
+  download_url: https://geosnirh.ana.gob.pe/Repositorio/Shape/Presas.zip
+  raw_data_dir: hydrological/dams
+  raw_filename: presas.shp
+dist_to_lakes:
+  clean_name: dist_to_lakes
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/dist_to_lakes.tif
+  grouping: hydrological
+  description: 'Distance to lakes layer – source: ANA Peru hydrological data.'
+  date: 20381.0
+  author: Your Name
+  wfs_url: https://geosnirh.ana.gob.pe/server/services/Público/Lagunas/MapServer/WFSServer?version=2.0.0&service=WFS&request=GetCapabilities
+  download_url: https://geosnirh.ana.gob.pe/Repositorio/Shape/Lagunas.zip
+  raw_data_dir: hydrological/lakes
+  raw_filename: lagunas.shp
+dist_to_rivers:
+  clean_name: dist_to_rivers
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/dist_to_rivers.tif
+  grouping: hydrological
+  description: 'Distance to rivers layer – source: ANA Peru hydrological data.'
+  date: 20381.0
+  author: Your Name
+  wfs_url: https://geosnirh.ana.gob.pe/server/services/Público/Rios/MapServer/WFSServer?version=2.0.0&service=WFS&request=GetCapabilities
+  download_url: https://geosnirh.ana.gob.pe/Repositorio/Shape/Rios.zip
+  raw_data_dir: hydrological/rivers
+  raw_filename: rios.shp
+dist_to_wells:
+  clean_name: dist_to_wells
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/dist_to_wells.tif
+  grouping: hydrological
+  description: 'Distance to wells layer – source: ANA Peru hydrological data.'
+  date: 20381.0
+  author: Your Name
+  wfs_url: https://geosnirh.ana.gob.pe/server/services/Público/Pozos/MapServer/WFSServer?version=2.0.0&service=WFS&request=GetCapabilities
+  download_url: https://geosnirh.ana.gob.pe/Repositorio/Shape/Pozos.zip
+  raw_data_dir: hydrological/wells
+  raw_filename: pozos.shp
+dist_to_reservoirs:
+  clean_name: dist_to_reservoirs
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/dist_to_reservoirs.tif
+  grouping: hydrological
+  description: 'Distance to reservoirs layer – source: ANA Peru hydrological data.'
+  date: 20381.0
+  author: Your Name
+  wfs_url: https://geosnirh.ana.gob.pe/server/services/Público/Reservorios/MapServer/WFSServer?version=2.0.0&service=WFS&request=GetCapabilities
+  download_url: https://geosnirh.ana.gob.pe/Repositorio/Shape/Reservorios.zip
+  raw_data_dir: hydrological/reservoirs
+  raw_filename: reservorios.shp
+low_intensity_agricultural_areas_nhood_n11_1:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 1)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n11_1_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 1)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n11_2:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 2)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n11_2_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 2)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n11_3:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 3)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n11_3_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 3)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n11_4:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 4)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n11_4_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 4)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n11_5:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 5)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n11_5_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 5)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n9_1:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 1)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n9_1_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 1)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n9_2:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 2)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n9_2_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 2)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n9_3:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 3)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n9_3_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 3)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n9_4:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 4)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n9_4_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 4)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n9_5:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 5)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n9_5_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 5)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n7_1:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 1)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n7_1_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 1)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n7_2:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 2)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n7_2_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 2)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n7_3:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 3)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n7_3_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 3)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n7_4:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 4)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n7_4_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 4)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n7_5:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 5)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n7_5_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 5)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n5_1:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 1)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n5_1_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 1)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n5_2:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 2)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n5_2_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 2)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n5_3:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 3)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n5_3_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 3)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n5_4:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 4)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n5_4_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 4)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n5_5:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 5)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n5_5_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 5)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n3_1:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 1)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n3_1_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 1)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n3_2:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 2)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n3_2_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 2)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n3_3:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 3)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n3_3_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 3)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n3_4:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 4)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n3_4_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 4)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+low_intensity_agricultural_areas_nhood_n3_5:
+  clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 5)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/low_intensity_agricultural_areas_nhood_n3_5_2018_2022.tif
+  grouping: neighbourhood
+  description: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 5)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n11_1:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 1)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n11_1_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 1)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n11_2:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 2)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n11_2_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 2)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n11_3:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 3)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n11_3_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 3)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n11_4:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 4)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n11_4_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 4)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n11_5:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 5)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n11_5_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    11x11 cells; random central value and decay rate version: 5)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n9_1:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 1)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n9_1_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 1)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n9_2:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 2)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n9_2_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 2)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n9_3:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 3)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n9_3_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 3)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n9_4:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 4)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n9_4_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 4)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n9_5:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 5)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n9_5_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    9x9 cells; random central value and decay rate version: 5)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n7_1:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 1)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n7_1_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 1)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n7_2:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 2)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n7_2_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 2)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n7_3:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 3)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n7_3_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 3)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n7_4:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 4)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n7_4_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 4)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n7_5:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 5)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n7_5_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    7x7 cells; random central value and decay rate version: 5)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n5_1:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 1)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n5_1_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 1)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n5_2:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 2)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n5_2_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 2)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n5_3:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 3)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n5_3_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 3)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n5_4:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 4)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n5_4_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 4)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n5_5:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 5)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n5_5_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    5x5 cells; random central value and decay rate version: 5)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n3_1:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 1)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n3_1_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 1)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n3_2:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 2)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n3_2_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 2)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n3_3:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 3)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n3_3_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 3)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n3_4:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 4)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n3_4_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 4)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+high_intensity_agricultural_areas_nhood_n3_5:
+  clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 5)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/high_intensity_agricultural_areas_nhood_n3_5_2018_2022.tif
+  grouping: neighbourhood
+  description: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
+    3x3 cells; random central value and decay rate version: 5)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n11_1:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 11x11
+    cells; random central value and decay rate version: 1)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n11_1_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 11x11
+    cells; random central value and decay rate version: 1)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n11_2:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 11x11
+    cells; random central value and decay rate version: 2)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n11_2_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 11x11
+    cells; random central value and decay rate version: 2)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n11_3:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 11x11
+    cells; random central value and decay rate version: 3)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n11_3_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 11x11
+    cells; random central value and decay rate version: 3)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n11_4:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 11x11
+    cells; random central value and decay rate version: 4)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n11_4_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 11x11
+    cells; random central value and decay rate version: 4)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n11_5:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 11x11
+    cells; random central value and decay rate version: 5)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n11_5_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 11x11
+    cells; random central value and decay rate version: 5)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n9_1:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 9x9 cells;
+    random central value and decay rate version: 1)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n9_1_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 9x9 cells;
+    random central value and decay rate version: 1)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n9_2:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 9x9 cells;
+    random central value and decay rate version: 2)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n9_2_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 9x9 cells;
+    random central value and decay rate version: 2)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n9_3:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 9x9 cells;
+    random central value and decay rate version: 3)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n9_3_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 9x9 cells;
+    random central value and decay rate version: 3)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n9_4:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 9x9 cells;
+    random central value and decay rate version: 4)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n9_4_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 9x9 cells;
+    random central value and decay rate version: 4)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n9_5:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 9x9 cells;
+    random central value and decay rate version: 5)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n9_5_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 9x9 cells;
+    random central value and decay rate version: 5)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n7_1:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 7x7 cells;
+    random central value and decay rate version: 1)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n7_1_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 7x7 cells;
+    random central value and decay rate version: 1)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n7_2:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 7x7 cells;
+    random central value and decay rate version: 2)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n7_2_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 7x7 cells;
+    random central value and decay rate version: 2)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n7_3:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 7x7 cells;
+    random central value and decay rate version: 3)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n7_3_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 7x7 cells;
+    random central value and decay rate version: 3)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n7_4:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 7x7 cells;
+    random central value and decay rate version: 4)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n7_4_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 7x7 cells;
+    random central value and decay rate version: 4)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n7_5:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 7x7 cells;
+    random central value and decay rate version: 5)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n7_5_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 7x7 cells;
+    random central value and decay rate version: 5)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n5_1:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 5x5 cells;
+    random central value and decay rate version: 1)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n5_1_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 5x5 cells;
+    random central value and decay rate version: 1)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n5_2:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 5x5 cells;
+    random central value and decay rate version: 2)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n5_2_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 5x5 cells;
+    random central value and decay rate version: 2)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n5_3:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 5x5 cells;
+    random central value and decay rate version: 3)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n5_3_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 5x5 cells;
+    random central value and decay rate version: 3)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n5_4:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 5x5 cells;
+    random central value and decay rate version: 4)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n5_4_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 5x5 cells;
+    random central value and decay rate version: 4)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n5_5:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 5x5 cells;
+    random central value and decay rate version: 5)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n5_5_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 5x5 cells;
+    random central value and decay rate version: 5)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n3_1:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 3x3 cells;
+    random central value and decay rate version: 1)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n3_1_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 3x3 cells;
+    random central value and decay rate version: 1)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n3_2:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 3x3 cells;
+    random central value and decay rate version: 2)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n3_2_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 3x3 cells;
+    random central value and decay rate version: 2)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n3_3:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 3x3 cells;
+    random central value and decay rate version: 3)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n3_3_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 3x3 cells;
+    random central value and decay rate version: 3)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n3_4:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 3x3 cells;
+    random central value and decay rate version: 4)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n3_4_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 3x3 cells;
+    random central value and decay rate version: 4)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+built_up_and_barren_lands_nhood_n3_5:
+  clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 3x3 cells;
+    random central value and decay rate version: 5)'
+  pred_category: Neighbourhood
+  static_or_dynamic: dynamic
+  metadata: ~
+  scenario_variant: .na.character
+  period: '2018'
+  path: predictors/prepared/layers/neighbourhood/built_up_and_barren_lands_nhood_n3_5_2018_2022.tif
+  grouping: neighbourhood
+  description: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 3x3 cells;
+    random central value and decay rate version: 5)'
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: ~
+  raw_data_dir: ~
+dist_to_primary_roads:
+  wfs_url: ~
+  download_url: https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001
+  raw_data_dir: terrain
+  clean_name: dist to primary roads
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: '{{ prepped_terrain_paths.dist_to_primary_roads }}'
+  grouping: terrain
+  description: Distance to primary roads – derived from NASADEM data.
+  date: YYYY-MM-DD
+  author: Your Name
+dist_to_secondary_roads:
+  wfs_url: ~
+  download_url: https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001
+  raw_data_dir: terrain
+  clean_name: dist to secondary roads
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: '{{ prepped_terrain_paths.dist_to_secondary_roads }}'
+  grouping: terrain
+  description: Distance to secondary roads – derived from NASADEM data.
+  date: YYYY-MM-DD
+  author: Your Name
+bdod_0-5cm_mean:
+  clean_name: bdod 0-5cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_bdod_0-5cm_mean.tif
+  grouping: soil
+  description: bdod 0-5cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/bulk_density
+  raw_filename: bdod_0-5cm_mean.tif
+bdod_5-15cm_mean:
+  clean_name: bdod 5-15cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_bdod_5-15cm_mean.tif
+  grouping: soil
+  description: bdod 5-15cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/bulk_density
+  raw_filename: bdod_5-15cm_mean.tif
+bdod_15-30cm_mean:
+  clean_name: bdod 15-30cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_bdod_15-30cm_mean.tif
+  grouping: soil
+  description: bdod 15-30cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/bulk_density
+  raw_filename: bdod_15-30cm_mean.tif
+bdod_30-60cm_mean:
+  clean_name: bdod 30-60cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_bdod_30-60cm_mean.tif
+  grouping: soil
+  description: bdod 30-60cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/bulk_density
+  raw_filename: bdod_30-60cm_mean.tif
+bdod_60-100cm_mean:
+  clean_name: bdod 60-100cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_bdod_60-100cm_mean.tif
+  grouping: soil
+  description: bdod 60-100cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/bulk_density
+  raw_filename: bdod_60-100cm_mean.tif
+bdod_100-200cm_mean:
+  clean_name: bdod 100-200cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_bdod_100-200cm_mean.tif
+  grouping: soil
+  description: bdod 100-200cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/bulk_density
+  raw_filename: bdod_100-200cm_mean.tif
+cec_0-5cm_mean:
+  clean_name: cec 0-5cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_cec_0-5cm_mean.tif
+  grouping: soil
+  description: cec 0-5cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/cation_exchange_capacity
+  raw_filename: cec_0-5cm_mean.tif
+cec_5-15cm_mean:
+  clean_name: cec 5-15cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_cec_5-15cm_mean.tif
+  grouping: soil
+  description: cec 5-15cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/cation_exchange_capacity
+  raw_filename: cec_5-15cm_mean.tif
+cec_15-30cm_mean:
+  clean_name: cec 15-30cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_cec_15-30cm_mean.tif
+  grouping: soil
+  description: cec 15-30cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/cation_exchange_capacity
+  raw_filename: cec_15-30cm_mean.tif
+cec_30-60cm_mean:
+  clean_name: cec 30-60cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_cec_30-60cm_mean.tif
+  grouping: soil
+  description: cec 30-60cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/cation_exchange_capacity
+  raw_filename: cec_30-60cm_mean.tif
+cec_60-100cm_mean:
+  clean_name: cec 60-100cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_cec_60-100cm_mean.tif
+  grouping: soil
+  description: cec 60-100cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/cation_exchange_capacity
+  raw_filename: cec_60-100cm_mean.tif
+cec_100-200cm_mean:
+  clean_name: cec 100-200cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_cec_100-200cm_mean.tif
+  grouping: soil
+  description: cec 100-200cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/cation_exchange_capacity
+  raw_filename: cec_100-200cm_mean.tif
+clay_0-5cm_mean:
+  clean_name: clay 0-5cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_clay_0-5cm_mean.tif
+  grouping: soil
+  description: clay 0-5cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/clay_content
+  raw_filename: clay_0-5cm_mean.tif
+clay_5-15cm_mean:
+  clean_name: clay 5-15cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_clay_5-15cm_mean.tif
+  grouping: soil
+  description: clay 5-15cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/clay_content
+  raw_filename: clay_5-15cm_mean.tif
+clay_15-30cm_mean:
+  clean_name: clay 15-30cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_clay_15-30cm_mean.tif
+  grouping: soil
+  description: clay 15-30cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/clay_content
+  raw_filename: clay_15-30cm_mean.tif
+clay_30-60cm_mean:
+  clean_name: clay 30-60cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_clay_30-60cm_mean.tif
+  grouping: soil
+  description: clay 30-60cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/clay_content
+  raw_filename: clay_30-60cm_mean.tif
+clay_60-100cm_mean:
+  clean_name: clay 60-100cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_clay_60-100cm_mean.tif
+  grouping: soil
+  description: clay 60-100cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/clay_content
+  raw_filename: clay_60-100cm_mean.tif
+clay_100-200cm_mean:
+  clean_name: clay 100-200cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_clay_100-200cm_mean.tif
+  grouping: soil
+  description: clay 100-200cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/clay_content
+  raw_filename: clay_100-200cm_mean.tif
+cfvo_0-5cm_mean:
+  clean_name: cfvo 0-5cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_cfvo_0-5cm_mean.tif
+  grouping: soil
+  description: cfvo 0-5cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/coarse_fragments_volumetric
+  raw_filename: cfvo_0-5cm_mean.tif
+cfvo_5-15cm_mean:
+  clean_name: cfvo 5-15cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_cfvo_5-15cm_mean.tif
+  grouping: soil
+  description: cfvo 5-15cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/coarse_fragments_volumetric
+  raw_filename: cfvo_5-15cm_mean.tif
+cfvo_15-30cm_mean:
+  clean_name: cfvo 15-30cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_cfvo_15-30cm_mean.tif
+  grouping: soil
+  description: cfvo 15-30cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/coarse_fragments_volumetric
+  raw_filename: cfvo_15-30cm_mean.tif
+cfvo_30-60cm_mean:
+  clean_name: cfvo 30-60cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_cfvo_30-60cm_mean.tif
+  grouping: soil
+  description: cfvo 30-60cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/coarse_fragments_volumetric
+  raw_filename: cfvo_30-60cm_mean.tif
+cfvo_60-100cm_mean:
+  clean_name: cfvo 60-100cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_cfvo_60-100cm_mean.tif
+  grouping: soil
+  description: cfvo 60-100cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/coarse_fragments_volumetric
+  raw_filename: cfvo_60-100cm_mean.tif
+cfvo_100-200cm_mean:
+  clean_name: cfvo 100-200cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_cfvo_100-200cm_mean.tif
+  grouping: soil
+  description: cfvo 100-200cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/coarse_fragments_volumetric
+  raw_filename: cfvo_100-200cm_mean.tif
+nitrogen_0-5cm_mean:
+  clean_name: nitrogen 0-5cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_nitrogen_0-5cm_mean.tif
+  grouping: soil
+  description: nitrogen 0-5cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/nitrogen
+  raw_filename: nitrogen_0-5cm_mean.tif
+nitrogen_5-15cm_mean:
+  clean_name: nitrogen 5-15cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_nitrogen_5-15cm_mean.tif
+  grouping: soil
+  description: nitrogen 5-15cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/nitrogen
+  raw_filename: nitrogen_5-15cm_mean.tif
+nitrogen_15-30cm_mean:
+  clean_name: nitrogen 15-30cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_nitrogen_15-30cm_mean.tif
+  grouping: soil
+  description: nitrogen 15-30cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/nitrogen
+  raw_filename: nitrogen_15-30cm_mean.tif
+nitrogen_30-60cm_mean:
+  clean_name: nitrogen 30-60cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_nitrogen_30-60cm_mean.tif
+  grouping: soil
+  description: nitrogen 30-60cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/nitrogen
+  raw_filename: nitrogen_30-60cm_mean.tif
+nitrogen_60-100cm_mean:
+  clean_name: nitrogen 60-100cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_nitrogen_60-100cm_mean.tif
+  grouping: soil
+  description: nitrogen 60-100cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/nitrogen
+  raw_filename: nitrogen_60-100cm_mean.tif
+nitrogen_100-200cm_mean:
+  clean_name: nitrogen 100-200cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_nitrogen_100-200cm_mean.tif
+  grouping: soil
+  description: nitrogen 100-200cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/nitrogen
+  raw_filename: nitrogen_100-200cm_mean.tif
+ocd_0-5cm_mean:
+  clean_name: ocd 0-5cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_ocd_0-5cm_mean.tif
+  grouping: soil
+  description: ocd 0-5cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/organic_carbon_density
+  raw_filename: ocd_0-5cm_mean.tif
+ocd_5-15cm_mean:
+  clean_name: ocd 5-15cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_ocd_5-15cm_mean.tif
+  grouping: soil
+  description: ocd 5-15cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/organic_carbon_density
+  raw_filename: ocd_5-15cm_mean.tif
+ocd_15-30cm_mean:
+  clean_name: ocd 15-30cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_ocd_15-30cm_mean.tif
+  grouping: soil
+  description: ocd 15-30cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/organic_carbon_density
+  raw_filename: ocd_15-30cm_mean.tif
+ocd_30-60cm_mean:
+  clean_name: ocd 30-60cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_ocd_30-60cm_mean.tif
+  grouping: soil
+  description: ocd 30-60cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/organic_carbon_density
+  raw_filename: ocd_30-60cm_mean.tif
+ocd_60-100cm_mean:
+  clean_name: ocd 60-100cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_ocd_60-100cm_mean.tif
+  grouping: soil
+  description: ocd 60-100cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/organic_carbon_density
+  raw_filename: ocd_60-100cm_mean.tif
+ocd_100-200cm_mean:
+  clean_name: ocd 100-200cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_ocd_100-200cm_mean.tif
+  grouping: soil
+  description: ocd 100-200cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/organic_carbon_density
+  raw_filename: ocd_100-200cm_mean.tif
+ocs_0-30cm_mean:
+  clean_name: ocs 0-30cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_ocs_0-30cm_mean.tif
+  grouping: soil
+  description: ocs 0-30cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/organic_carbon_stock
+  raw_filename: ocs_0-30cm_mean.tif
+sand_0-5cm_mean:
+  clean_name: sand 0-5cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_sand_0-5cm_mean.tif
+  grouping: soil
+  description: sand 0-5cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/sand_content
+  raw_filename: sand_0-5cm_mean.tif
+sand_5-15cm_mean:
+  clean_name: sand 5-15cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_sand_5-15cm_mean.tif
+  grouping: soil
+  description: sand 5-15cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/sand_content
+  raw_filename: sand_5-15cm_mean.tif
+sand_15-30cm_mean:
+  clean_name: sand 15-30cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_sand_15-30cm_mean.tif
+  grouping: soil
+  description: sand 15-30cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/sand_content
+  raw_filename: sand_15-30cm_mean.tif
+sand_30-60cm_mean:
+  clean_name: sand 30-60cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_sand_30-60cm_mean.tif
+  grouping: soil
+  description: sand 30-60cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/sand_content
+  raw_filename: sand_30-60cm_mean.tif
+sand_60-100cm_mean:
+  clean_name: sand 60-100cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_sand_60-100cm_mean.tif
+  grouping: soil
+  description: sand 60-100cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/sand_content
+  raw_filename: sand_60-100cm_mean.tif
+sand_100-200cm_mean:
+  clean_name: sand 100-200cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_sand_100-200cm_mean.tif
+  grouping: soil
+  description: sand 100-200cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/sand_content
+  raw_filename: sand_100-200cm_mean.tif
+silt_0-5cm_mean:
+  clean_name: silt 0-5cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_silt_0-5cm_mean.tif
+  grouping: soil
+  description: silt 0-5cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/silt_content
+  raw_filename: silt_0-5cm_mean.tif
+silt_5-15cm_mean:
+  clean_name: silt 5-15cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_silt_5-15cm_mean.tif
+  grouping: soil
+  description: silt 5-15cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/silt_content
+  raw_filename: silt_5-15cm_mean.tif
+silt_15-30cm_mean:
+  clean_name: silt 15-30cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_silt_15-30cm_mean.tif
+  grouping: soil
+  description: silt 15-30cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/silt_content
+  raw_filename: silt_15-30cm_mean.tif
+silt_30-60cm_mean:
+  clean_name: silt 30-60cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_silt_30-60cm_mean.tif
+  grouping: soil
+  description: silt 30-60cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/silt_content
+  raw_filename: silt_30-60cm_mean.tif
+silt_60-100cm_mean:
+  clean_name: silt 60-100cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_silt_60-100cm_mean.tif
+  grouping: soil
+  description: silt 60-100cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/silt_content
+  raw_filename: silt_60-100cm_mean.tif
+silt_100-200cm_mean:
+  clean_name: silt 100-200cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_silt_100-200cm_mean.tif
+  grouping: soil
+  description: silt 100-200cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/silt_content
+  raw_filename: silt_100-200cm_mean.tif
+soc_0-5cm_mean:
+  clean_name: soc 0-5cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_soc_0-5cm_mean.tif
+  grouping: soil
+  description: soc 0-5cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/soil_organic_carbon_content
+  raw_filename: soc_0-5cm_mean.tif
+soc_5-15cm_mean:
+  clean_name: soc 5-15cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_soc_5-15cm_mean.tif
+  grouping: soil
+  description: soc 5-15cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/soil_organic_carbon_content
+  raw_filename: soc_5-15cm_mean.tif
+soc_15-30cm_mean:
+  clean_name: soc 15-30cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_soc_15-30cm_mean.tif
+  grouping: soil
+  description: soc 15-30cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/soil_organic_carbon_content
+  raw_filename: soc_15-30cm_mean.tif
+soc_30-60cm_mean:
+  clean_name: soc 30-60cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_soc_30-60cm_mean.tif
+  grouping: soil
+  description: soc 30-60cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/soil_organic_carbon_content
+  raw_filename: soc_30-60cm_mean.tif
+soc_60-100cm_mean:
+  clean_name: soc 60-100cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_soc_60-100cm_mean.tif
+  grouping: soil
+  description: soc 60-100cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/soil_organic_carbon_content
+  raw_filename: soc_60-100cm_mean.tif
+soc_100-200cm_mean:
+  clean_name: soc 100-200cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_soc_100-200cm_mean.tif
+  grouping: soil
+  description: soc 100-200cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/soil_organic_carbon_content
+  raw_filename: soc_100-200cm_mean.tif
+ph_0-5cm_mean:
+  clean_name: ph 0-5cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_ph_0-5cm_mean.tif
+  grouping: soil
+  description: ph 0-5cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/soil_ph
+  raw_filename: ph_0-5cm_mean.tif
+ph_5-15cm_mean:
+  clean_name: ph 5-15cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_ph_5-15cm_mean.tif
+  grouping: soil
+  description: ph 5-15cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/soil_ph
+  raw_filename: ph_5-15cm_mean.tif
+ph_15-30cm_mean:
+  clean_name: ph 15-30cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_ph_15-30cm_mean.tif
+  grouping: soil
+  description: ph 15-30cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/soil_ph
+  raw_filename: ph_15-30cm_mean.tif
+ph_30-60cm_mean:
+  clean_name: ph 30-60cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_ph_30-60cm_mean.tif
+  grouping: soil
+  description: ph 30-60cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/soil_ph
+  raw_filename: ph_30-60cm_mean.tif
+ph_60-100cm_mean:
+  clean_name: ph 60-100cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_ph_60-100cm_mean.tif
+  grouping: soil
+  description: ph 60-100cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/soil_ph
+  raw_filename: ph_60-100cm_mean.tif
+ph_100-200cm_mean:
+  clean_name: ph 100-200cm mean
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/soil_ph_100-200cm_mean.tif
+  grouping: soil
+  description: ph 100-200cm mean – derived from SoilGrids dataset.
+  date: 20381.0
+  author: Your Name
+  wfs_url: ~
+  download_url: https://www.soilgrids.org
+  raw_data_dir: soil/soil_ph
+  raw_filename: ph_100-200cm_mean.tif
+

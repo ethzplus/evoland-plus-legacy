@@ -21,18 +21,18 @@ calibrate_allocation_parameters <- function(config = get_config()) {
   # vector years of LULC data
   LULC_years <-
     list.files(
-      config[["historic_lulc_basepath"]],
+      config[["aggregated_lulc_dir"]],
       full.names = FALSE,
-      pattern = ".gri"
+      pattern = ".tif"
     ) |>
     stringr::str_extract("\\d{4}")
 
   # Load list of historic lulc rasters
   LULC_rasters <- lapply(
     list.files(
-      config[["historic_lulc_basepath"]],
+      config[["aggregated_lulc_dir"]],
       full.names = TRUE,
-      pattern = ".grd$"
+      pattern = ".tif"
     ),
     raster::raster
   )

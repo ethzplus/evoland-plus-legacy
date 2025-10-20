@@ -8,39 +8,82 @@
 #' @export
 
 calibration_predictor_prep <- function(
-    config = get_config(),
-    refresh_cache = FALSE,
-    ignore_excel = FALSE) {
+  config = get_config(),
+  refresh_cache = FALSE,
+  ignore_excel = FALSE
+) {
+  temp_dir <- "E:/terra_temp"
+  ensure_dir(temp_dir)
+
+  # Set temp directory for terra to another drive
+  # because the default is on C: which often has limited space
+  terra_temp <- "E:/terra_temp"
+  ensure_dir(terra_temp)
+
+  terra::terraOptions(
+    memfrac = 0.5, # limit in-memory cache usage
+    tempdir = terra_temp, # directory for temporary files
+    progress = 1,
+    todisk = TRUE
+  )
+
   # Load in the grid to use use for re-projecting the CRS and extent of predictor data
   Ref_grid <- terra::rast(config[["ref_grid_path"]])
 
   # vector years of LULC data
   LULC_years <-
-    list.files(config[["historic_lulc_basepath"]], full.names = FALSE, pattern = ".gri") |>
+    list.files(
+      config[["aggregated_lulc_dir"]],
+      full.names = FALSE,
+      pattern = ".tif"
+    ) |>
     gsub(pattern = ".*?([0-9]+).*", replacement = "\\1", x = _)
 
   # create a list of the data/modelling periods
-  LULC_change_periods <- list()
+  modelling_periods <- list()
   for (i in 1:(length(LULC_years) - 1)) {
-    LULC_change_periods[[i]] <- c(LULC_years[i], LULC_years[i + 1])
+    modelling_periods[[i]] <- c(LULC_years[i], LULC_years[i + 1])
   }
-  names(LULC_change_periods) <- sapply(
-    LULC_change_periods,
+  names(modelling_periods) <- sapply(
+    modelling_periods,
     function(x) paste(x[1], x[2], sep = "_")
   )
 
-  if (refresh_cache) {
-    # download basic map geometries for Switzerland
-    lulcc.downloadunzip(
-      # This was using the 2022 URL but that zip had encoding issues. Only one
-      # "arbeitsmarktregion" changed afaik.
-      # https://dam-api.bfs.admin.ch/hub/api/dam/assets/21245514/master
-      url = "https://dam-api.bfs.admin.ch/hub/api/dam/assets/33807959/master",
-      save_dir = config[["ch_geoms_path"]],
-      filename = paste0(basename(config[["ch_geoms_path"]]), ".zip"),
-      force_lowercase = TRUE
-    )
-  }
+  # get values of each of the four years preceding the first entry in each of modelling_periods
+  pre_modelling_years <- sapply(
+    modelling_periods,
+    function(x) as.character(as.integer(x[1]) - 4:1),
+    simplify = FALSE
+  )
+
+  # create base directory for prepared predictor layers
+  ensure_dir(config[["prepped_lyr_path"]])
+
+  # prepare topographical predictors
+  terrain_pred_prep(config = config, refresh_cache = refresh_cache)
+
+  # prepare soil predictors
+  soil_pred_prep(
+    config = config,
+    refresh_cache = refresh_cache,
+    terra_temp = temp_dir
+  )
+
+  # prepare distance based predictors
+
+  # Prepare lulc neighbourhood based predictors
+  nhood_predictor_prep(
+    config = config,
+    refresh_cache = refresh_cache,
+    redo_random_matrices = FALSE
+  )
+
+  # hydrological predictors
+  hydrological_pred_prep(
+    config = config,
+    refresh_cache = refresh_cache,
+    terra_temp = terra_temp
+  )
 
   # B- Gather predictor information ####
 
@@ -50,9 +93,6 @@ calibration_predictor_prep <- function(
   # In terms of preparations some predictors are prepared by downloading the data
   # direct from raw and then processing with others being standardized
   # from existing raw data
-
-  # create base directory for prepared predictor layers
-  ensure_dir(config[["prepped_lyr_path"]])
 
   # get names of sheets to loop over
   sheets <- readxl::excel_sheets(config[["pred_table_path"]])
@@ -65,7 +105,10 @@ calibration_predictor_prep <- function(
         dplyr::mutate(
           # prepend basepath
           Raw_data_path = fs::path(config[["data_basepath"]], Raw_data_path),
-          Prepared_data_path = fs::path(config[["data_basepath"]], Prepared_data_path)
+          path = fs::path(
+            config[["data_basepath"]],
+            path
+          )
         )
     }
   )
@@ -87,7 +130,7 @@ calibration_predictor_prep <- function(
     # TODO ideally, we wouldn't store state in the excel table at all.
     # just delete them or add a refresh argument to all prep functions
     Pred_table_long[["Prepared"]] <- ifelse(
-      fs::file_exists(Pred_table_long$Prepared_data_path),
+      fs::file_exists(Pred_table_long$path),
       "Y",
       "N"
     )
@@ -105,12 +148,18 @@ calibration_predictor_prep <- function(
   Preds_raw <- Preds_to_prepare[!is.na(Preds_to_prepare$Raw_data_path), ]
 
   # First process the static predictors
-  Preds_static <- Preds_raw[Preds_raw$Static_or_dynamic == "static", ]
+  Preds_static <- Preds_raw[Preds_raw$static_or_dynamic == "static", ]
 
   # reduce to unique predictors
   Preds_static_unique <- Preds_static[
-    !duplicated(Preds_static$Covariate_ID),
-    c("Covariate_ID", "Predictor_category", "URL", "Raw_data_path", "Prepared_data_path")
+    !duplicated(Preds_static$pred_name),
+    c(
+      "pred_name",
+      "Predictor_category",
+      "URL",
+      "Raw_data_path",
+      "path"
+    )
   ]
 
   # FIXME all the valpar datasets have artifacts around their borders
@@ -147,7 +196,7 @@ calibration_predictor_prep <- function(
       file.path(
         config[["prepped_lyr_path"]],
         Preds_static_unique[i, "Predictor_category"],
-        paste0(Preds_static_unique[i, "Covariate_ID"], ".tif")
+        paste0(Preds_static_unique[i, "pred_name"], ".tif")
       )
     )
 
@@ -156,11 +205,11 @@ calibration_predictor_prep <- function(
 
     #  add the prepared path to the table
     Pred_table_long[
-      Pred_table_long$Covariate_ID == Preds_static_unique[i, "Covariate_ID"],
-      "Prepared_data_path"
+      Pred_table_long$pred_name == Preds_static_unique[i, "pred_name"],
+      "path"
     ] <- layer_path
     Pred_table_long[
-      Pred_table_long$Covariate_ID == Preds_static_unique[i, "Covariate_ID"],
+      Pred_table_long$pred_name == Preds_static_unique[i, "pred_name"],
       "Prepared"
     ] <- "Y"
 
@@ -171,12 +220,12 @@ calibration_predictor_prep <- function(
   # TODO these are apparently only the climatic predictors from broennimann, CHclim25
   # https://zenodo.org/communities/chclim25 which we want to ditch for CHELSA
   # Process the dynamic predictors
-  Preds_dynamic <- Preds_raw[Preds_raw$Static_or_dynamic == "dynamic", ]
+  Preds_dynamic <- Preds_raw[Preds_raw$static_or_dynamic == "dynamic", ]
 
   # Loop over the predictors, Calculating periodic averages for each
   # re-scaling the rasters, saving and updating predictor table
   for (i in seq_len(nrow(Preds_dynamic))) {
-    message("Processing: ", Preds_dynamic[i, "Covariate_ID"])
+    message("Processing: ", Preds_dynamic[i, "pred_name"])
     # read in rasters as stack
     temp_list <- lapply(
       list.files(Preds_dynamic[i, "Raw_data_path"], full.names = TRUE),
@@ -195,7 +244,12 @@ calibration_predictor_prep <- function(
       file.path(
         config[["prepped_lyr_path"]],
         Preds_dynamic[i, "Predictor_category"],
-        paste0(Preds_dynamic[i, "Covariate_ID"], "_", Preds_dynamic[i, "period"], ".tif")
+        paste0(
+          Preds_dynamic[i, "pred_name"],
+          "_",
+          Preds_dynamic[i, "period"],
+          ".tif"
+        )
       )
     )
 
@@ -203,10 +257,20 @@ calibration_predictor_prep <- function(
     terra::writeRaster(Agg_dat, layer_path, overwrite = TRUE)
 
     # add the prepared path to the table
-    Pred_table_long[which(Pred_table_long$Covariate_ID == Preds_dynamic[i, "Covariate_ID"] &
-      Pred_table_long$period == Preds_dynamic[i, "period"]), "Prepared_data_path"] <- layer_path
-    Pred_table_long[which(Pred_table_long$Covariate_ID == Preds_dynamic[i, "Covariate_ID"] &
-      Pred_table_long$period == Preds_dynamic[i, "period"]), "Prepared"] <- "Y"
+    Pred_table_long[
+      which(
+        Pred_table_long$pred_name == Preds_dynamic[i, "pred_name"] &
+          Pred_table_long$period == Preds_dynamic[i, "period"]
+      ),
+      "path"
+    ] <- layer_path
+    Pred_table_long[
+      which(
+        Pred_table_long$pred_name == Preds_dynamic[i, "pred_name"] &
+          Pred_table_long$period == Preds_dynamic[i, "period"]
+      ),
+      "Prepared"
+    ] <- "Y"
 
     rm(raster_stack, raster_mean, Agg_dat, layer_path, temp_list)
   }
@@ -252,21 +316,20 @@ calibration_predictor_prep <- function(
 
   statent_raw_tbl <-
     Preds_to_prepare |>
-    dplyr::filter(stringr::str_detect(Covariate_ID, "avg_chg_fte")) |>
-    dplyr::select(period, URL, Raw_data_path, Prepared_data_path) |>
+    dplyr::filter(stringr::str_detect(pred_name, "avg_chg_fte")) |>
+    dplyr::select(period, URL, Raw_data_path, path) |>
     dplyr::mutate(
       # extracting urls and names from "year = url, year2 = url2" format strings
-      URL =
-        stringr::str_split(URL, ",") |>
-          purrr::map(stringr::str_squish) |>
-          purrr::map(function(x) {
-            parts <-
-              stringr::str_split_fixed(x, "=", n = 2)
-            rlang::set_names(
-              stringr::str_trim(parts[, 2]),
-              stringr::str_trim(parts[, 1])
-            )
-          })
+      URL = stringr::str_split(URL, ",") |>
+        purrr::map(stringr::str_squish) |>
+        purrr::map(function(x) {
+          parts <-
+            stringr::str_split_fixed(x, "=", n = 2)
+          rlang::set_names(
+            stringr::str_trim(parts[, 2]),
+            stringr::str_trim(parts[, 1])
+          )
+        })
     ) |>
     tidyr::unnest_longer(URL, values_to = "URL", indices_to = "URL_id") |>
     dplyr::distinct()
@@ -291,7 +354,12 @@ calibration_predictor_prep <- function(
 
   # gather the relevant files
   Statent_paths <- grep(
-    list.files(Statent_dir, recursive = TRUE, full.names = TRUE, pattern = "csv"),
+    list.files(
+      Statent_dir,
+      recursive = TRUE,
+      full.names = TRUE,
+      pattern = "csv"
+    ),
     pattern = paste(c("gmde", "noloc"), collapse = "|"),
     invert = TRUE,
     value = TRUE
@@ -323,7 +391,8 @@ calibration_predictor_prep <- function(
     "Vollzeitäquivalente Sektor 3"
   )
   Statent_var_IDs <- Statent_metadata[
-    which(Statent_metadata$Name %in% Statent_var_names), "ID"
+    which(Statent_metadata$Name %in% Statent_var_names),
+    "ID"
   ]
 
   # Provide clean names
@@ -341,7 +410,10 @@ calibration_predictor_prep <- function(
 
       readr::read_delim(
         file = annual_data_path,
-        col_select = tidyselect::all_of(c(Statent_desc_vars, statent_var_ids_yr)),
+        col_select = tidyselect::all_of(c(
+          Statent_desc_vars,
+          statent_var_ids_yr
+        )),
         show_col_types = FALSE,
         progress = FALSE
       )
@@ -375,8 +447,11 @@ calibration_predictor_prep <- function(
 
   # specify dir and download datasets
   Biz_census_dir <- file.path(
-    config[["predictors_raw_dir"]], "socio_economic", "employment",
-    "historic_employment", "business_census"
+    config[["predictors_raw_dir"]],
+    "socio_economic",
+    "employment",
+    "historic_employment",
+    "business_census"
   )
 
   if (refresh_cache) {
@@ -410,7 +485,6 @@ calibration_predictor_prep <- function(
     stringr::str_extract("bz(\\d{2})", group = 1) |>
     as.integer() |>
     (\(x) ifelse(x > 90, x + 1900, x + 2000))()
-
 
   if (FALSE) {
     # TODO this is used to find some variable names that are then just hardcoded. not
@@ -455,15 +529,17 @@ calibration_predictor_prep <- function(
       Annual_data <- readr::read_delim(annual_data_path)
 
       # subset to just the required variables
-      Data_subset <- Annual_data[
-        ,
+      Data_subset <- Annual_data[,
         grepl(pattern = paste(c(BC_vars), collapse = "|"), names(Annual_data))
       ]
 
       # rename the sectoral columns appending year
       names(Data_subset) <- sapply(names(Data_subset), function(y) {
         new_name <- names(BC_vars)[
-          which(BC_vars %in% stringr::str_match(pattern = paste(c(BC_vars), collapse = "|"), y))
+          which(
+            BC_vars %in%
+              stringr::str_match(pattern = paste(c(BC_vars), collapse = "|"), y)
+          )
         ]
 
         if (grepl(new_name, pattern = "Sec")) {
@@ -496,16 +572,21 @@ calibration_predictor_prep <- function(
   LMR_shp <-
     terra::vect(file.path(
       config[["ch_geoms_path"]],
-      "2025_geom_tk", "03_anal", "gesamtfläche_gf",
-      "k4_amre20190101_gf", "k4amre_20190101gf_ch2007poly.shp"
+      "2025_geom_tk",
+      "03_anal",
+      "gesamtfläche_gf",
+      "k4_amre20190101_gf",
+      "k4amre_20190101gf_ch2007poly.shp"
     )) |>
     terra::project(config[["reference_crs"]])
   LMR_shp[["id_numeric"]] <- seq_len(length(LMR_shp)) # for later rasterization
 
   # sum data in each labour market region
   FTE_lab_market <- terra::extract(
-    Data_stack, LMR_shp,
-    fun = sum, na.rm = TRUE
+    Data_stack,
+    LMR_shp,
+    fun = sum,
+    na.rm = TRUE
   )
   FTE_lab_market$name <- LMR_shp$name
 
@@ -514,11 +595,12 @@ calibration_predictor_prep <- function(
 
   # loop over sector numbers separating data and perform linear model based interpolation
   Sector_extrapolations <- lapply(
-    sector_nums, function(x) {
+    sector_nums,
+    function(x) {
       Sector_string <- paste0("Sec", x, "_")
-      Sector_data <- FTE_lab_market[
-        ,
-        which(grepl(colnames(FTE_lab_market),
+      Sector_data <- FTE_lab_market[,
+        which(grepl(
+          colnames(FTE_lab_market),
           pattern = paste(c(Sector_string, "ID", "name"), collapse = "|")
         ))
       ]
@@ -550,7 +632,8 @@ calibration_predictor_prep <- function(
           i,
           paste0(Sector_string, Interpolate_years)
         ] <- sapply(
-          Interpolate_years, function(y) round(coef(mod)[1] + coef(mod)[2] * y, 0)
+          Interpolate_years,
+          function(y) round(coef(mod)[1] + coef(mod)[2] * y, 0)
         ) # close loop over interpolation years
       } # close loop over rows
       return(Sector_data)
@@ -562,27 +645,35 @@ calibration_predictor_prep <- function(
   # the number of years to get an average annual rate of change for each period
   # because this can also be calculated for the future projected data
 
-  # Outer loop over LULC_change_periods
-  Period_sector_values <- data.table::rbindlist(lapply(
-    LULC_change_periods, function(period_dates) {
-      # calc period length
-      Duration <- abs(diff(as.numeric(period_dates)))
+  # Outer loop over modelling_periods
+  Period_sector_values <- data.table::rbindlist(
+    lapply(
+      modelling_periods,
+      function(period_dates) {
+        # calc period length
+        Duration <- abs(diff(as.numeric(period_dates)))
 
-      # Inner loop over sector_extrapolations
-      data.table::rbindlist(mapply(
-        function(Sector_data, Sector_name, period_dates) {
-          # subset data
-          dat <- Sector_data[, paste0(Sector_name, "_", period_dates)]
-          Sector_data$Avg.diff <- (dat[, 1] - dat[, 2]) / Duration
-          return(Sector_data[, c("ID", "name", "Avg.diff")])
-        },
-        Sector_data = Sector_extrapolations,
-        Sector_name = names(Sector_extrapolations),
-        MoreArgs = list(period_dates = period_dates),
-        SIMPLIFY = FALSE
-      ), idcol = "Sector", fill = TRUE)
-    }
-  ), idcol = "Period") # close outer loop
+        # Inner loop over sector_extrapolations
+        data.table::rbindlist(
+          mapply(
+            function(Sector_data, Sector_name, period_dates) {
+              # subset data
+              dat <- Sector_data[, paste0(Sector_name, "_", period_dates)]
+              Sector_data$Avg.diff <- (dat[, 1] - dat[, 2]) / Duration
+              return(Sector_data[, c("ID", "name", "Avg.diff")])
+            },
+            Sector_data = Sector_extrapolations,
+            Sector_name = names(Sector_extrapolations),
+            MoreArgs = list(period_dates = period_dates),
+            SIMPLIFY = FALSE
+          ),
+          idcol = "Sector",
+          fill = TRUE
+        )
+      }
+    ),
+    idcol = "Period"
+  ) # close outer loop
 
   # pivot to wide
   LMR_values <- tidyr::pivot_wider(
@@ -606,7 +697,11 @@ calibration_predictor_prep <- function(
   # vector file names
   FTE_file_names <- fs::path(
     config[["prepped_fte_dir"]],
-    tolower(paste0("avg_chg_fte_", names(LMR_values)[2:length(LMR_values)], ".tif"))
+    tolower(paste0(
+      "avg_chg_fte_",
+      names(LMR_values)[2:length(LMR_values)],
+      ".tif"
+    ))
   )
 
   # save a seperate file for each layer
@@ -619,11 +714,11 @@ calibration_predictor_prep <- function(
   # update the predictor table with the file paths
   # WARNING this relies on sortedness of Pred_table_long
   Pred_table_long[
-    grepl(Covariate_ID, pattern = "avg_chg_fte") & is.na(Scenario_variant),
-    Prepared_data_path := FTE_file_names
+    grepl(pred_name, pattern = "avg_chg_fte") & is.na(scenario_variant),
+    path := FTE_file_names
   ]
   Pred_table_long[
-    grepl(Covariate_ID, pattern = "avg_chg_fte") & is.na(Scenario_variant),
+    grepl(pred_name, pattern = "avg_chg_fte") & is.na(scenario_variant),
     Prepared := "Y"
   ]
 
@@ -654,7 +749,8 @@ calibration_predictor_prep <- function(
     openxlsx::read.xlsx(paste0(
       "https://www.envidat.ch/dataset/4ab13d14-6f96-41fd-96b0-b3ea45278b3d/resource",
       "/81c046c3-8d1d-45bc-a833-7d8240cebd12/download/predictors_description.xlsx"
-    )) |> data.table::as.data.table()
+    )) |>
+    data.table::as.data.table()
 
   # clean required column names
   names(Biophys_meta)[1:3] <- c("Layer_name", "Abbrev", "Desc_name")
@@ -664,7 +760,8 @@ calibration_predictor_prep <- function(
 
   # get layer names using variable names
   Biophys_var_names <- unique(Preds_to_prepare[
-    Data_citation == "Descombes et al. 2020", Variable_name
+    Data_citation == "Descombes et al. 2020",
+    clean_name
   ])
   Biophys_layer_names <- Biophys_meta[
     Biophys_meta$Desc_name %in% Biophys_var_names,
@@ -680,7 +777,7 @@ calibration_predictor_prep <- function(
   # WARNING how on earth can we be sure these names are in the right order?
   # Match descriptive names with the pred table and return the covariate ID
   names(Biophys_layer_names) <- unique(sapply(Biophys_desc_names, function(x) {
-    Preds_to_prepare[Variable_name == x, Covariate_ID]
+    Preds_to_prepare[clean_name == x, pred_name]
   }))
 
   # get layer paths
@@ -694,7 +791,8 @@ calibration_predictor_prep <- function(
     Var_name <- names(Biophys_paths)[i]
     Raw_dat <- terra::rast(Var_path)
     Prepped_dat <- terra::project(
-      Raw_dat, terra::crs(Ref_grid),
+      Raw_dat,
+      terra::crs(Ref_grid),
       res = terra::res(Ref_grid)
     )
     Prepped_dat_resamp <- terra::resample(Prepped_dat, Ref_grid)
@@ -702,13 +800,18 @@ calibration_predictor_prep <- function(
       file.path(
         config[["prepped_lyr_path"]],
         unique(Preds_to_prepare[
-          Covariate_ID == Var_name, Predictor_category
+          pred_name == Var_name,
+          Predictor_category
         ]),
         paste0(Var_name, ".tif")
-      ) |> tolower()
+      ) |>
+      tolower()
     terra::writeRaster(Prepped_dat_resamp, layer_path, overwrite = TRUE)
-    Pred_table_long[Covariate_ID == Var_name, "Prepared_data_path"] <- layer_path
-    Pred_table_long[Covariate_ID == Var_name, "Prepared"] <- "Y"
+    Pred_table_long[
+      pred_name == Var_name,
+      "path"
+    ] <- layer_path
+    Pred_table_long[pred_name == Var_name, "Prepared"] <- "Y"
   }
 
   # D.3- Population ####
@@ -716,12 +819,11 @@ calibration_predictor_prep <- function(
   ### Prepare municipality population data incorporating mutations
 
   # use if statement to only perform prep if layers have not already been prepared
-  if (any(stringr::str_detect(Preds_to_prepare$Covariate_ID, "muni_pop"))) {
+  if (any(stringr::str_detect(Preds_to_prepare$pred_name, "muni_pop"))) {
     # read in PX data from http and convert to DF
     px_data <- as.data.frame(pxR::read.px(
       "https://dam-api.bfs.admin.ch/hub/api/dam/assets/23164063/master"
     ))
-
 
     # subset to desired rows based on conditions:
     # Total population on 1st of January;
@@ -729,33 +831,44 @@ calibration_predictor_prep <- function(
     # Total population (Men and Women)
     raw_mun_popdata <- px_data[
       px_data$Demografische.Komponente == "Bestand am 31. Dezember" &
-        px_data$Staatsangehörigkeit..Kategorie. == "Staatsangehörigkeit (Kategorie) - Total" &
+        px_data$Staatsangehörigkeit..Kategorie. ==
+          "Staatsangehörigkeit (Kategorie) - Total" &
         px_data$Geschlecht == "Geschlecht - Total",
     ]
 
     # Identify municipalities records by matching on the numeric contained in their name
     raw_mun_popdata <- raw_mun_popdata[
-      grepl(".*?([0-9]+).*", raw_mun_popdata$Kanton.......Bezirk........Gemeinde.........),
+      grepl(
+        ".*?([0-9]+).*",
+        raw_mun_popdata$Kanton.......Bezirk........Gemeinde.........
+      ),
       c(4:6)
     ]
     names(raw_mun_popdata) <- c("Name_Municipality", "Year", "Population")
-    raw_mun_popdata <- raw_mun_popdata |> tidyr::pivot_wider(
-      names_from = "Year",
-      values_from = "Population"
-    )
+    raw_mun_popdata <- raw_mun_popdata |>
+      tidyr::pivot_wider(
+        names_from = "Year",
+        values_from = "Population"
+      )
     # Remove the periods in the name column
     raw_mun_popdata$Name_Municipality <- gsub(
-      "[......]", "", as.character(raw_mun_popdata$Name_Municipality)
+      "[......]",
+      "",
+      as.character(raw_mun_popdata$Name_Municipality)
     )
 
     # Seperate BFS number from name
     raw_mun_popdata$BFS_NUM <- as.numeric(gsub(
-      ".*?([0-9]+).*", "\\1", raw_mun_popdata$Name_Municipality
+      ".*?([0-9]+).*",
+      "\\1",
+      raw_mun_popdata$Name_Municipality
     ))
 
     # Remove BFS number from name
     raw_mun_popdata$Name_Municipality <- gsub(
-      "[[:digit:]]", "", raw_mun_popdata$Name_Municipality
+      "[[:digit:]]",
+      "",
+      raw_mun_popdata$Name_Municipality
     )
 
     # subset to only municipalities existing in 2021
@@ -803,11 +916,16 @@ calibration_predictor_prep <- function(
 
     # rename columns
     colnames(muni_mutations) <- c(
-      "Mutation_Number", "Pre_canton_ID",
-      "Pre_District_num", "Pre_BFS_num",
-      "Pre_muni_name", "Post_canton_ID",
-      "Post_district_num", "Post_BFS_num",
-      "Post_muni_name", "Change_date"
+      "Mutation_Number",
+      "Pre_canton_ID",
+      "Pre_District_num",
+      "Pre_BFS_num",
+      "Pre_muni_name",
+      "Post_canton_ID",
+      "Post_district_num",
+      "Post_BFS_num",
+      "Post_muni_name",
+      "Change_date"
     )
 
     # identify which municipalities have mutations associated with them
@@ -820,7 +938,10 @@ calibration_predictor_prep <- function(
 
     for (i in seq_len(nrow(raw_mun_popdata))) {
       if (!is.na(mutation_index[i])) {
-        raw_mun_popdata$BFS_NUM[[i]] <- muni_mutations[[mutation_index[[i]], "Post_BFS_num"]]
+        raw_mun_popdata$BFS_NUM[[i]] <- muni_mutations[[
+          mutation_index[[i]],
+          "Post_BFS_num"
+        ]]
       }
     }
 
@@ -829,7 +950,11 @@ calibration_predictor_prep <- function(
 
     if (length(unique(raw_mun_popdata$BFS_NUM)) != nrow(raw_mun_popdata)) {
       # get the indices of columns that represent the years
-      Time_points <- na.omit(as.numeric(gsub(".*?([0-9]+).*", "\\1", colnames(raw_mun_popdata))))
+      Time_points <- na.omit(as.numeric(gsub(
+        ".*?([0-9]+).*",
+        "\\1",
+        colnames(raw_mun_popdata)
+      )))
 
       # create a empty df for results
       Muni_pop_final <- as.data.frame(matrix(
@@ -845,7 +970,10 @@ calibration_predictor_prep <- function(
       for (j in Time_points) {
         for (i in seq_along(unique(raw_mun_popdata$BFS_NUM))) {
           Muni_pop_final[i, paste(j)] <- sum(
-            raw_mun_popdata[raw_mun_popdata$BFS_NUM == Muni_pop_final[i, "BFS_NUM"], paste(j)]
+            raw_mun_popdata[
+              raw_mun_popdata$BFS_NUM == Muni_pop_final[i, "BFS_NUM"],
+              paste(j)
+            ]
           )
         }
       }
@@ -878,14 +1006,15 @@ calibration_predictor_prep <- function(
       # file_path
       save_path <- file.path(
         config[["prepped_lyr_path"]],
-        unique(Preds_to_prepare[Covariate_ID == Var_name, Predictor_category]),
+        unique(Preds_to_prepare[pred_name == Var_name, Predictor_category]),
         "population",
         paste0(Var_name, "_", i, ".tif")
       )
 
       # loop over the BFS numbers of the polygons and match to population values
       Muni_shp@data[paste0("Pop_", i)] <- as.numeric(sapply(
-        Muni_shp@data$BFS_NUMMER, function(Muni_num) {
+        Muni_shp@data$BFS_NUMMER,
+        function(Muni_num) {
           as.numeric(
             pop_in_LULC_years[pop_in_LULC_years$BFS_NUM == Muni_num, paste(i)]
           )
@@ -894,7 +1023,11 @@ calibration_predictor_prep <- function(
       ))
 
       # rasterize
-      pop_rast <- terra::rasterize(terra::vect(Muni_shp), Ref_grid, field = paste0("Pop_", i))
+      pop_rast <- terra::rasterize(
+        terra::vect(Muni_shp),
+        Ref_grid,
+        field = paste0("Pop_", i)
+      )
 
       # save
       ensure_dir(dirname(save_path))
@@ -905,11 +1038,11 @@ calibration_predictor_prep <- function(
 
     # Add prepared path to predictor table
     Pred_table_long[
-      Covariate_ID == Var_name,
-      Prepared_data_path := Muni_save_paths
+      pred_name == Var_name,
+      path := Muni_save_paths
     ]
     Pred_table_long[
-      Covariate_ID == Var_name,
+      pred_name == Var_name,
       Prepared := "Y"
     ]
   } # close if statement
@@ -917,17 +1050,20 @@ calibration_predictor_prep <- function(
   # X- Update predictor table for SA (suitability, accessibility) predictors ####
 
   # load predictor_table as workbook to add sheets
-  Pred_table_update <- openxlsx::loadWorkbook(file = config[["pred_table_path"]])
+  Pred_table_update <- openxlsx::loadWorkbook(
+    file = config[["pred_table_path"]]
+  )
   Pred_table_update <- openxlsx::createWorkbook(creator = "lulcc-ch")
 
   # remove basepath, split the table back into Dfs for each period and save
-  Pred_table_long[
-    ,
+  Pred_table_long[,
     Raw_data_path := fs::path_rel(Raw_data_path, config[["data_basepath"]])
   ]
-  Pred_table_long[
-    ,
-    Prepared_data_path := fs::path_rel(Prepared_data_path, config[["data_basepath"]])
+  Pred_table_long[,
+    path := fs::path_rel(
+      path,
+      config[["data_basepath"]]
+    )
   ]
   Periodic_pred_tables <- split(Pred_table_long, Pred_table_long$period)
 
@@ -935,19 +1071,21 @@ calibration_predictor_prep <- function(
   for (i in names(Periodic_pred_tables)) {
     # the try() is necessary in case sheets already exist
     try(openxlsx::addWorksheet(Pred_table_update, sheetName = paste(i)))
-    openxlsx::writeDataTable(Pred_table_update, sheet = paste(i), x = Periodic_pred_tables[[i]])
+    openxlsx::writeDataTable(
+      Pred_table_update,
+      sheet = paste(i),
+      x = Periodic_pred_tables[[i]]
+    )
   }
 
   # save workbook
-  openxlsx::saveWorkbook(Pred_table_update, config[["pred_table_path"]], overwrite = TRUE)
+  openxlsx::saveWorkbook(
+    Pred_table_update,
+    config[["pred_table_path"]],
+    overwrite = TRUE
+  )
 
-  message(" Preparation of Suitability and accessibility predictor layers complete")
-
-  # X- Create Neighbourhood predictors ####
-
-  # This process is lengthy so is presented in a seperate script,which includes
-  # updating of the predictor table after layer creation
-
-  # raw script
-  nhood_predictor_prep()
+  message(
+    " Preparation of Suitability and accessibility predictor layers complete"
+  )
 }

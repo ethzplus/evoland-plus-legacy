@@ -249,7 +249,8 @@ lulcc_generatenhoodrasters_parallel <- function(
   data_period,
   nhood_folder_path,
   ncores = parallel::detectCores() - 1,
-  refresh = FALSE
+  refresh = FALSE,
+  temp_dir = tempdir()
 ) {
   library(terra)
   library(future)
@@ -267,12 +268,10 @@ lulcc_generatenhoodrasters_parallel <- function(
     dir.create(nhood_folder_path, recursive = TRUE)
   }
 
-  ensure_dir("E:/terra_temp")
-
   # Set terra options for efficient disk use
   terraOptions(
-    tempdir = "E:/terra_temp", # change this to your large, fast drive
-    threads = ncores
+    threads = ncores,
+    tempdir = temp_dir,
   )
 
   # Loop over classes sequentially

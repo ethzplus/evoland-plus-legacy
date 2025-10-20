@@ -14,27 +14,42 @@
 #' @author Ben Black
 # TODO where might this be used? was @export
 
-lulcc.evalfeatureselection <- function(Predictor_table_path,
-                                       data_period_name,
-                                       Dataset_scale,
-                                       Pre_FS_folder,
-                                       FS_results_folder,
-                                       summary_levels) {
+lulcc.evalfeatureselection <- function(
+  Predictor_table_path,
+  data_period_name,
+  Dataset_scale,
+  Pre_FS_folder,
+  FS_results_folder,
+  summary_levels
+) {
   ### =========================================================================
   ### A - Load results
   ### =========================================================================
 
   # load covariate table to use the names for splitting
-  Covariate_table <- data.table(read.xlsx(Predictor_table_path, sheet = paste0(data_period_name)))
+  Covariate_table <- data.table(read.xlsx(
+    Predictor_table_path,
+    sheet = paste0(data_period_name)
+  ))
 
   # load in results of 2 step covariate selection
-  Feature_selection_results <- unlist(readRDS(list.files(FS_results_folder, full.names = TRUE, pattern = paste0(data_period_name, "_combined"))), recursive = FALSE)
+  Feature_selection_results <- unlist(
+    readRDS(list.files(
+      FS_results_folder,
+      full.names = TRUE,
+      pattern = paste0(data_period_name, "_combined")
+    )),
+    recursive = FALSE
+  )
 
   # Within the Feature_selection results convert the dataframe of embedded covariate selection results into just a vector of the variables selected.
   FS_results <- lapply(Feature_selection_results, function(x) {
     collinearity_filtered_covs <- x[["collinearity_filtered_covs"]]
     GRRF_embedded_selected_covs <- x[["GRRF_embedded_selected_covs"]][, 1]
-    output <- list(collinearity_filtered_covs = collinearity_filtered_covs, GRRF_embedded_selected_covs = GRRF_embedded_selected_covs)
+    output <- list(
+      collinearity_filtered_covs = collinearity_filtered_covs,
+      GRRF_embedded_selected_covs = GRRF_embedded_selected_covs
+    )
     return(output)
   })
 
@@ -45,11 +60,18 @@ lulcc.evalfeatureselection <- function(Predictor_table_path,
   ### B - extract a list of all unique covariates in transitions datasets
   ### =========================================================================
 
-  Pre_selection_data <- unlist(readRDS(list.files(Pre_FS_folder, full.names = TRUE, pattern = dataset_regex)), recursive = FALSE)
+  Pre_selection_data <- unlist(
+    readRDS(list.files(
+      Pre_FS_folder,
+      full.names = TRUE,
+      pattern = dataset_regex
+    )),
+    recursive = FALSE
+  )
 
   Unique_covs <- lapply(Pre_selection_data, function(x) {
     # Identify the covariate data
-    cov_data <- x[, .SD, .SDcols = Covariate_table$Covariate_ID]
+    cov_data <- x[, .SD, .SDcols = Covariate_table$pred_name]
 
     # remove cols which only have 1 unique value
     cov_data <- Filter(function(x) (length(unique(x)) > 2), cov_data)
@@ -73,32 +95,84 @@ lulcc.evalfeatureselection <- function(Predictor_table_path,
       summary_level = summarize_by
     )
     if (summarize_by != "across_trans") {
-      FS_summary <- lulcc.summarisecovselection(nested_list_of_trans = FS_summary, split_by = summarize_by)
+      FS_summary <- lulcc.summarisecovselection(
+        nested_list_of_trans = FS_summary,
+        split_by = summarize_by
+      )
     }
     return(FS_summary)
   })
 
   # rename
-  names(Feature_selection_summaries) <- lapply(summary_levels, function(x) paste0("FS_summary_by_", x))
+  names(Feature_selection_summaries) <- lapply(summary_levels, function(x) {
+    paste0("FS_summary_by_", x)
+  })
 
   # save results
-  saveRDS(Feature_selection_summaries, file = paste0("Results/Model_tuning/Covariate_selection/Cov_selection_summaries/", data_period_name, "_", Dataset_scale, "_feature_selection_summary"))
+  saveRDS(
+    Feature_selection_summaries,
+    file = paste0(
+      "Results/Model_tuning/Covariate_selection/Cov_selection_summaries/",
+      data_period_name,
+      "_",
+      Dataset_scale,
+      "_feature_selection_summary"
+    )
+  )
 
   # final bar chart from summary
-  Collin_results <- Feature_selection_summaries[["FS_summary_by_Bioregion"]][["Cov_occurence_summary"]][["Cov_occurence_tables"]][["Cov_occurence_after_collinearity_selection"]][, c("Covariate", "total_occurences")]
-  embedded_results <- Feature_selection_summaries[["FS_summary_by_Bioregion"]][["Cov_occurence_summary"]][["Cov_occurence_tables"]][["Cov_occurence_after_embedded_selection"]][, c("Covariate", "total_occurences")]
+  Collin_results <- Feature_selection_summaries[["FS_summary_by_Bioregion"]][[
+    "Cov_occurence_summary"
+  ]][["Cov_occurence_tables"]][[
+    "Cov_occurence_after_collinearity_selection"
+  ]][, c("Covariate", "total_occurences")]
+  embedded_results <- Feature_selection_summaries[["FS_summary_by_Bioregion"]][[
+    "Cov_occurence_summary"
+  ]][["Cov_occurence_tables"]][["Cov_occurence_after_embedded_selection"]][, c(
+    "Covariate",
+    "total_occurences"
+  )]
 
-  Combined_results <- merge(Collin_results, embedded_results, by = "Covariate", all.x = TRUE)
+  Combined_results <- merge(
+    Collin_results,
+    embedded_results,
+    by = "Covariate",
+    all.x = TRUE
+  )
   Combined_results[is.na(Combined_results)] <- 0
   colnames(Combined_results) <- c("covariate", "Collinearity", "Embedded")
-  Filtered_results <- Combined_results[(Combined_results$Collinearity > 10 | Combined_results$Embedded > 10), ]
+  Filtered_results <- Combined_results[
+    (Combined_results$Collinearity > 10 | Combined_results$Embedded > 10),
+  ]
 
-  Long_results <- pivot_longer(Filtered_results, cols = c("Collinearity", "Embedded"), names_to = "FS_stage", values_to = "num_covs")
-  Long_results$Clean_cov_name <- str_remove_all(Covariate_table$Covariate_ID[match(Long_results$covariate, Covariate_table$Layer_name)], paste(c("_mean_100m", "_100m", "_nhood"), collapse = "|"))
-  Long_results$cov_group <- Covariate_table$CA_category[match(Long_results$covariate, Covariate_table$Layer_name)]
+  Long_results <- pivot_longer(
+    Filtered_results,
+    cols = c("Collinearity", "Embedded"),
+    names_to = "FS_stage",
+    values_to = "num_covs"
+  )
+  Long_results$Clean_cov_name <- str_remove_all(
+    Covariate_table$pred_name[match(
+      Long_results$covariate,
+      Covariate_table$Layer_name
+    )],
+    paste(c("_mean_100m", "_100m", "_nhood"), collapse = "|")
+  )
+  Long_results$cov_group <- Covariate_table$pred_category[match(
+    Long_results$covariate,
+    Covariate_table$Layer_name
+  )]
 
   FS_predictor_frequency_bar_chart <-
-    Long_results |> ggplot(aes(y = fct_reorder(Clean_cov_name, num_covs, .desc = FALSE), x = num_covs, fill = FS_stage), alpha = 0.5) +
+    Long_results |>
+    ggplot(
+      aes(
+        y = fct_reorder(Clean_cov_name, num_covs, .desc = FALSE),
+        x = num_covs,
+        fill = FS_stage
+      ),
+      alpha = 0.5
+    ) +
     geom_bar(position = position_dodge(), stat = "identity") +
     scale_fill_discrete(
       type = ghibli_palettes$TotoroMedium[5:6],
@@ -130,5 +204,17 @@ lulcc.evalfeatureselection <- function(Predictor_table_path,
 
   dir.create("Results/Figures/Covariate_selection", recursive = TRUE)
 
-  ggsave(plot = FS_predictor_frequency_bar_chart, filename = paste0("Results/Figures/Covariate_selection/", data_period_name, "_bar_plot_frq_cov_occurence"), device = "tiff", dpi = 300, width = 28, height = 20, units = "cm")
+  ggsave(
+    plot = FS_predictor_frequency_bar_chart,
+    filename = paste0(
+      "Results/Figures/Covariate_selection/",
+      data_period_name,
+      "_bar_plot_frq_cov_occurence"
+    ),
+    device = "tiff",
+    dpi = 300,
+    width = 28,
+    height = 20,
+    units = "cm"
+  )
 } # close wrapper function

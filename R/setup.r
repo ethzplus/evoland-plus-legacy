@@ -24,9 +24,12 @@ get_config <- function(
   regionalization = TRUE,
   inclusion_threshold = 0.5
 ) {
-  data_basepath <- Sys.getenv("EVOLAND_DATA_BASEPATH", unset = "data")
+  data_basepath <- Sys.getenv(
+    "EVOLAND_DATA_BASEPATH",
+    unset = "E:/NASCENT-LULCC"
+  )
   historic_lulc_basepath <- file.path(data_basepath, "lulc")
-  bioreg_dir <- file.path(data_basepath, "regionalization")
+  reg_dir <- file.path(data_basepath, "regionalization")
   predictors_dir <- file.path(data_basepath, "predictors")
   predictors_prepped_dir <- file.path(predictors_dir, "prepared")
   predictors_raw_dir <- file.path(predictors_dir, "raw")
@@ -44,27 +47,53 @@ get_config <- function(
     LULC_aggregation_path = file.path(tools_dir, "lulc_schema.json"), # LULC class aggregation table
     model_specs_path = file.path(tools_dir, "model_specs.csv"), # model specifications table
     param_grid_path = file.path(tools_dir, "param-grid.xlsx"), # model hyper parameter grids
-    pred_table_path = file.path(tools_dir, "predictor_table.xlsx"), # predictor table
+    pred_table_path = file.path("inst", "pred_data.yaml"),
     # FIXME why are the next two repeated?
     predict_param_grid_path = file.path(tools_dir, "predict_param_grid.xlsx"),
     predict_model_specs_path = file.path(tools_dir, "predict_model_specs.csv"),
 
     # spatial interventions table
     spat_ints_path = file.path(tools_dir, "spatial_interventions.csv"),
-    viable_transitions_lists = file.path(tools_dir, "viable_transitions_lists.rds"),
+    viable_transitions_lists = file.path(
+      tools_dir,
+      "viable_transitions_lists.rds"
+    ),
     model_lookup_path = file.path(tools_dir, "model_lookup.xlsx"),
     glacial_area_change_xlsx = file.path(tools_dir, "glacial_area_change.xlsx"),
-    scenario_area_mods_csv = file.path(tools_dir, "simulation_lulc_areas_2060.csv"),
+    scenario_area_mods_csv = file.path(
+      tools_dir,
+      "simulation_lulc_areas_2060.csv"
+    ),
     calibration_ctrl_tbl_path = file.path(tools_dir, "calibration_control.csv"),
 
     # Paths for original data files
-    ref_grid_path = file.path(data_basepath, "spatial_reference_grid", "ref_grid.tif"),
+    ref_grid_path = file.path(
+      data_basepath,
+      "spatial_reference_grid",
+      "ref_grid.tif"
+    ),
     calibration_param_dir = file.path(allocation_pars_dir, "calibration"),
     simulation_param_dir = file.path(allocation_pars_dir, "simulation"),
-    trans_rate_table_dir = file.path(data_basepath, "transition_tables", "prepared_trans_tables"),
-    trans_rates_raw_dir = file.path(data_basepath, "transition_tables", "raw_trans_tables"),
-    trans_rate_extrapol_dir = file.path(data_basepath, "transition_tables", "extrapolations"),
-    best_trans_area_tables = file.path(data_basepath, "transition_tables", "best_area_tables.rds"),
+    trans_rate_table_dir = file.path(
+      data_basepath,
+      "transition_tables",
+      "prepared_trans_tables"
+    ),
+    trans_rates_raw_dir = file.path(
+      data_basepath,
+      "transition_tables",
+      "raw_trans_tables"
+    ),
+    trans_rate_extrapol_dir = file.path(
+      data_basepath,
+      "transition_tables",
+      "extrapolations"
+    ),
+    best_trans_area_tables = file.path(
+      data_basepath,
+      "transition_tables",
+      "best_area_tables.rds"
+    ),
     trans_pre_pred_filter_dir = file.path(
       data_basepath,
       "transition_datasets",
@@ -88,23 +117,29 @@ get_config <- function(
     inclusion_threshold = inclusion_threshold,
 
     # Remote data sources and local paths
-    arealstat_zip_remote = "https://dam-api.bfs.admin.ch/hub/api/dam/assets/32376216/appendix",
-    arealstat_zip_local = file.path(historic_lulc_basepath, "ag-b-00.03-37-area-all-csv.zip"),
     rasterized_lulc_dir = file.path(historic_lulc_basepath, "original"),
     aggregated_lulc_dir = file.path(historic_lulc_basepath, "aggregated"),
-    bioreg_dir = bioreg_dir,
+    reg_dir = reg_dir,
     bioreg_zip_remote = "https://data.geo.admin.ch/ch.bafu.biogeographische_regionen/data.zip",
-    bioreg_zip_local = file.path(bioreg_dir, "biogeographische_regionen.zip"),
+    bioreg_zip_local = file.path(reg_dir, "biogeographische_regionen.zip"),
 
     # Predictor directories
     glacial_change_path = file.path(data_basepath, "glacial_change"),
     predictors_raw_dir = predictors_raw_dir,
     ch_geoms_path = file.path(predictors_raw_dir, "ch_geoms"),
     raw_pop_dir = file.path(predictors_raw_dir, "socio_economic", "population"),
-    raw_employment_dir = file.path(predictors_raw_dir, "socio_economic", "employment"),
+    raw_employment_dir = file.path(
+      predictors_raw_dir,
+      "socio_economic",
+      "employment"
+    ),
     preds_tools_dir = preds_tools_dir,
     prepped_lyr_path = file.path(predictors_prepped_dir, "layers"),
-    prepped_fte_dir = file.path(predictors_prepped_dir, "socio_economic", "employment"),
+    prepped_fte_dir = file.path(
+      predictors_prepped_dir,
+      "socio_economic",
+      "employment"
+    ),
     prepped_pred_stacks = file.path(predictors_prepped_dir, "stacks"),
 
     # System configuration
@@ -138,7 +173,8 @@ get_config <- function(
       "validation"
     ),
     spat_prob_perturb_path = file.path(
-      data_basepath, "spat_prob_perturb"
+      data_basepath,
+      "spat_prob_perturb"
     )
   )
 

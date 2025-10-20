@@ -7,7 +7,7 @@
 lulcc_generatenhoodrasters(
   lulc_raster,
   neighbourhood_matrices,
-  active_lulc_class_names,
+  active_lulc_classes,
   data_period,
   nhood_folder_path
 )
@@ -17,7 +17,7 @@ lulcc_generatenhoodrasters(
 
 \item{neighbourhood_matrices}{List of matrices defining different neighborhood configurations}
 
-\item{active_lulc_class_names}{Character vector of active LULC class names to process}
+\item{active_lulc_classes}{Character vector of active LULC class names to process}
 
 \item{data_period}{String indicating the time period of the data}
 

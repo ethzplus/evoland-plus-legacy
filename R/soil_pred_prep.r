@@ -22,6 +22,15 @@ soil_pred_prep <- function(config = get_config(), refresh_cache = FALSE) {
   # }
   ensure_dir(config[["prepped_lyr_path"]])
 
+  terra_temp <- "E:/terra_temp"
+  ensure_dir(terra_temp)
+
+  # Use large disk for temp files
+  terra::terraOptions(tempdir = terra_temp)
+
+  # Increase memory limit (in MB)
+  terra::terraOptions(memfrac = 0.8) # Use up to 80% of available RAM
+
   # list all files in the raw soil predictor directory
   raw_soil_files <- list.files(
     file.path(config[["predictors_raw_dir"]], "soil"),
@@ -32,9 +41,6 @@ soil_pred_prep <- function(config = get_config(), refresh_cache = FALSE) {
 
   # name using basename
   names(raw_soil_files) <- tools::file_path_sans_ext(basename(raw_soil_files))
-
-  # subset to last entry for test purposes
-  raw_soil_files <- raw_soil_files[length(raw_soil_files) - 2]
 
   # loop over each passing to align_raster_to_ref function and save the output
 
@@ -65,7 +71,8 @@ soil_pred_prep <- function(config = get_config(), refresh_cache = FALSE) {
     align_to_ref(
       x = f,
       ref = config[["ref_grid_path"]],
-      filename = out_path
+      filename = out_path,
+      tempdir = terra_temp
     )
     end_time <- Sys.time()
     message(paste(

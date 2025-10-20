@@ -2,13 +2,13 @@
 % Please edit documentation in R/region_prep.r
 \name{region_prep}
 \alias{region_prep}
-\title{Bioregion Preparation: region_prep}
+\title{Region Preparation: region_prep}
 \usage{
 region_prep(config = get_config())
 }
 \description{
-Preparing Rasters of Bioregions in Switzerland to sub-divide data for regional
-modelling This script is adapted from the process of Gerecke et al. 2019
+Preparing Rasters of regions in Peru based upon the ecoregions classification from 2017 to sub-divide data for regional
+modelling 
 }
 \author{
 Ben Black

@@ -16,8 +16,9 @@
 
 nhood_predictor_prep <- function(
   config = get_config(),
-  redo_random_matrices = TRUE,
-  refresh_cache = FALSE
+  redo_random_matrices = FALSE,
+  refresh_cache = FALSE,
+  terra_temp = tempdir()
 ) {
   # A - Preparation ####
   # vector years of LULC data
@@ -187,7 +188,8 @@ nhood_predictor_prep <- function(
       active_lulc_classes = Active_classes,
       nhood_folder_path = Nhood_folder_path,
       ncores = parallel::detectCores() - 4,
-      refresh_cache = refresh_cache
+      refresh_cache = refresh_cache,
+      tempdir = terra_temp
     )
   )
 
@@ -315,70 +317,47 @@ nhood_predictor_prep <- function(
   Focal_details$Raw_data_path <- NA
   Focal_details$scenario_variant <- NA
 
-  # split focal_details by period
-  Periodic_focal_details <- split(Focal_details, Focal_details$period)
-
-  # get names of sheets to loop over
-  sheets <- readxl::excel_sheets(config[["pred_table_path"]])
-
-  # load all sheets as a list
-  Pred_tables <- lapply(
-    sheets,
-    function(x) openxlsx::read.xlsx(config[["pred_table_path"]], sheet = x)
-  )
-  names(Pred_tables) <- sheets
-
-  # load predictor_table as workbook to add sheets
-  Pred_table_update <- openxlsx::loadWorkbook(
-    file = config[["pred_table_path"]]
-  )
-
-  # loop over periods and add the rows of focal details table to the correct table of the pred table
-  lapply(names(Periodic_focal_details), function(x) {
-    # subset to Focal table to columns of pred table
-    Period_table <- Periodic_focal_details[[x]]
-    Period_table <- Period_table[, which(
-      colnames(Period_table) %in% colnames(Pred_tables[[x]])
-    )]
-
-    # incase nhood rows already exist remove them
-    Pred_table <- Pred_tables[[x]]
-    Pred_table <- Pred_table[Pred_table$Predictor_category != "neighbourhood", ]
-
-    # create Unique_ID seq proceeding from last row value in pred table
-    last_cov_num <- as.numeric(
-      stringr::str_remove(
-        tail(c(Pred_table$Unique_ID), n = 1),
-        "cov_"
-      )
+  # Loop over each row in Focal_details
+  apply(Focal_details, 1, function(row) {
+    # Construct clean_name following your previous logic
+    width <- stringr::str_remove(
+      stringr::str_split(row["matrix_id"], "_")[[1]][1],
+      "n"
     )
-    Period_table$Unique_ID <- paste0(
-      "cov_",
-      seq(last_cov_num + 1, last_cov_num + nrow(Period_table))
+    version <- stringr::str_split(row["matrix_id"], "_")[[1]][2]
+    clean_name <- paste0(
+      row["active_lulc"],
+      " Neighbourhood effect matrix (size: ",
+      width,
+      "x",
+      width,
+      " cells; random central value and decay rate version: ",
+      version,
+      ")"
     )
-    # bind together
-    combined_table <- rbind(Pred_table, Period_table)
 
-    # add table to worksheet, try() is necessary in case sheets already exist
-    if (
-      length((tbl_name <- openxlsx::getTables(Pred_table_update, sheet = x))) ==
-        1
-    ) {
-      openxlsx::removeTable(Pred_table_update, sheet = x, table = tbl_name)
-    } else if (length(tbl_name) > 1) {
-      stop("Multiple tables found in sheet ", x)
-    }
-    openxlsx::writeData(Pred_table_update, sheet = x, x = combined_table)
+    # Call the generic YAML update function
+    update_predictor_yaml(
+      yaml_file = config[["pred_table_path"]],
+      pred_name = row["pred_name"],
+      clean_name = clean_name,
+      pred_category = "Neighbourhood",
+      static_or_dynamic = "dynamic",
+      metadata = NULL,
+      scenario_variant = row["scenario_variant"],
+      period = row["Temporal_coverage"], # from your previous column
+      path = row["path"],
+      grouping = "neighbourhood",
+      description = clean_name, # you can customize description
+      date = Sys.Date(),
+      author = "Your Name",
+      wfs_url = NULL,
+      download_url = NULL,
+      raw_data_dir = NULL,
+      raw_data_filename = NULL
+    )
   })
-
-  # save workbook
-  openxlsx::saveWorkbook(
-    Pred_table_update,
-    config[["pred_table_path"]],
-    overwrite = TRUE
-  )
-
-  # F - Example plotting of nhood matrices and decay rates ####
+  message("Updated predictor YAML with neighbourhood layers \n")
 
   message(" Preparation of Neighbourhood predictor layers complete \n")
 }

@@ -34,9 +34,10 @@
 #' @export
 
 dinamica_trans_potent_calc <- function(
-    config = get_config(),
-    simulation_num = integer(),
-    time_step = integer()) {
+  config = get_config(),
+  simulation_num = integer(),
+  time_step = integer()
+) {
   params <- get_simulation_params(simulation_id = simulation_num)
 
   if (grepl("y", params[["parallel_tpc.string"]], ignore.case = TRUE)) {
@@ -102,16 +103,24 @@ dinamica_trans_potent_calc <- function(
       length(unique(model_lookup[["trans_id"]]))
   ) {
     message(
-      "Found ", no_predicted_maps, " predicted probability maps at ", prob_map_folder,
+      "Found ",
+      no_predicted_maps,
+      " predicted probability maps at ",
+      prob_map_folder,
       "\n\tSkipping transition potential calculation."
     )
     return(prob_map_folder)
   }
 
   message(
-    "Starting transition potential calculation for ", params[["model_mode.string"]], ": ",
-    params[["simulation_id.string"]], ", with scenario: ", params[["scenario_id.string"]],
-    ", at time step: ", time_step
+    "Starting transition potential calculation for ",
+    params[["model_mode.string"]],
+    ": ",
+    params[["simulation_id.string"]],
+    ", with scenario: ",
+    params[["scenario_id.string"]],
+    ", at time step: ",
+    time_step
   )
   message(" - loading maps from: ", params[["sim_results_path"]])
 
@@ -159,15 +168,15 @@ dinamica_trans_potent_calc <- function(
       config[["pred_table_path"]] |>
       readxl::read_excel(sheet = period_tag) |>
       dplyr::mutate(
-        Prepared_data_path = fs::path(
+        path = fs::path(
           config[["data_basepath"]],
-          Prepared_data_path
+          path
         )
       )
     prepared_data_dt <-
       purrr::map2(
-        prepared_data_metatbl$Prepared_data_path,
-        prepared_data_metatbl$Covariate_ID,
+        prepared_data_metatbl$path,
+        prepared_data_metatbl$pred_name,
         function(path, name) {
           terra::rast(path) |>
             terra::as.data.frame(cells = TRUE, na.rm = TRUE) |>
@@ -217,7 +226,7 @@ dinamica_trans_potent_calc <- function(
   if (config[["regionalization"]]) {
     message("Adding regionalization")
     trans_dataset_list[["bioregion_dt"]] <-
-      fs::path(config[["bioreg_dir"]], "bioreg_raster.tif") |>
+      fs::path(config[["reg_dir"]], "bioreg_raster.tif") |>
       terra::rast() |>
       terra::as.data.frame(cells = TRUE, na.rm = TRUE) |>
       rlang::set_names(c("id", "Bioregion")) |>
@@ -284,8 +293,11 @@ dinamica_trans_potent_calc <- function(
 
   t2 <- proc.time() - t1
   message(
-    "Took ", t2[["elapsed"]], "s to complete the transition potential calculation for ",
-    nrow(model_lookup), " models"
+    "Took ",
+    t2[["elapsed"]],
+    "s to complete the transition potential calculation for ",
+    nrow(model_lookup),
+    " models"
   )
 
   # G3- Re-scale predictions ####
@@ -384,9 +396,12 @@ dinamica_trans_potent_calc <- function(
     prob_map_path <- fs::path(
       prob_map_folder,
       paste0(
-        trans_params[["trans_id"]], "_probability_",
-        initial_lulc, "_to_",
-        final_lulc, ".tif"
+        trans_params[["trans_id"]],
+        "_probability_",
+        initial_lulc,
+        "_to_",
+        final_lulc,
+        ".tif"
       )
     )
 
@@ -422,13 +437,18 @@ model_municip_pop <- function(current_LULC_raster, config, params, time_step) {
 
   # load canton shapefile
   Canton_shp <- terra::vect(
-    fs::path(config[["ch_geoms_path"]], "swissboundaries3d_1_5_tlm_kantonsgebiet.shp")
+    fs::path(
+      config[["ch_geoms_path"]],
+      "swissboundaries3d_1_5_tlm_kantonsgebiet.shp"
+    )
   )
 
   # Zonal stats to get urban area per kanton
   Canton_urban_areas <- terra::extract(
-    Urban_rast, Canton_shp,
-    fun = sum, na.rm = TRUE
+    Urban_rast,
+    Canton_shp,
+    fun = sum,
+    na.rm = TRUE
   )
 
   # append Kanton ID
@@ -442,7 +462,10 @@ model_municip_pop <- function(current_LULC_raster, config, params, time_step) {
 
   # load the municipality shape file
   Muni_shp <- terra::vect(
-    fs::path(config[["ch_geoms_path"]], "swissboundaries3d_1_5_tlm_hoheitsgebiet.shp")
+    fs::path(
+      config[["ch_geoms_path"]],
+      "swissboundaries3d_1_5_tlm_hoheitsgebiet.shp"
+    )
   )
 
   # filter out non-swiss municipalities
@@ -452,7 +475,12 @@ model_municip_pop <- function(current_LULC_raster, config, params, time_step) {
 
   # Zonal stats to get number of Urban cells per Municipality polygon
   # sum is used as a function because urban cells = 1 all others = 0
-  Muni_urban_areas <- terra::extract(Urban_rast, Muni_shp, fun = sum, na.rm = TRUE)
+  Muni_urban_areas <- terra::extract(
+    Urban_rast,
+    Muni_shp,
+    fun = sum,
+    na.rm = TRUE
+  )
 
   # append Kanton and Municipality IDs
   Muni_urban_areas$Canton_num <- Muni_shp$KANTONSNUM
@@ -462,15 +490,21 @@ model_municip_pop <- function(current_LULC_raster, config, params, time_step) {
   # loop over kanton numbers and calculate municipality urban areas as a % of canton urban area
   for (i in Canton_urban_areas$Canton_num) {
     # vector kanton urban area
-    Can_urban_area <- as.numeric(Canton_urban_areas[Canton_urban_areas$Canton_num == i, "layer"])
+    Can_urban_area <- as.numeric(Canton_urban_areas[
+      Canton_urban_areas$Canton_num == i,
+      "layer"
+    ])
 
     # subset municipalities to this canton number
     munis_indices <- which(Muni_urban_areas$Canton_num == i)
 
     # calculate urban areas as a % of the Canton's total
-    Muni_urban_areas$Perc_urban[munis_indices] <- (
-      Muni_urban_areas[munis_indices, "lulc_name"] / Can_urban_area
-    ) * 100
+    Muni_urban_areas$Perc_urban[munis_indices] <- (Muni_urban_areas[
+      munis_indices,
+      "lulc_name"
+    ] /
+      Can_urban_area) *
+      100
   }
 
   # estimate % of predicted cantonal population per municipality
@@ -512,7 +546,10 @@ model_municip_pop <- function(current_LULC_raster, config, params, time_step) {
 
   for (i in unique(Muni_urban_areas$Canton_num)) {
     # subset to predicted cantonal population percentages
-    Canton_dat <- Muni_urban_areas[Muni_urban_areas$Canton_num == i, "Perc_urban"]
+    Canton_dat <- Muni_urban_areas[
+      Muni_urban_areas$Canton_num == i,
+      "Perc_urban"
+    ]
 
     # loop over the municipalites re-scaling the values
     Canton_preds_rescaled <- sapply(
@@ -526,13 +563,15 @@ model_municip_pop <- function(current_LULC_raster, config, params, time_step) {
     ) # close inner loop
 
     # get the projected canton population value for this time point
-    Canton_pop <- Pop_prediction_table[Pop_prediction_table$Canton_num == i, paste(time_step)]
+    Canton_pop <- Pop_prediction_table[
+      Pop_prediction_table$Canton_num == i,
+      paste(time_step)
+    ]
 
     # loop over the rescaled values calculating the estimated population
     Muni_indices <- which(Muni_urban_areas$Canton_num == i)
-    Muni_urban_areas$Pop_est[Muni_indices] <- (
-      Canton_pop * Canton_preds_rescaled
-    )
+    Muni_urban_areas$Pop_est[Muni_indices] <- (Canton_pop *
+      Canton_preds_rescaled)
   } # close loop over cantons
 
   # add estimated population to  table of polygons and then rasterize
@@ -553,12 +592,21 @@ model_municip_pop <- function(current_LULC_raster, config, params, time_step) {
 }
 
 #' E.2- Dynamic predictors: Neighbourhood predictors
-model_neigh_preds <- function(current_LULC_raster, config, period_tag, lulc_rat) {
+model_neigh_preds <- function(
+  current_LULC_raster,
+  config,
+  period_tag,
+  lulc_rat
+) {
   message(" - Neighbourhood predictors")
 
   # load matrices used to create focal layers
   Focal_matrices <-
-    fs::path(config[["preds_tools_dir"]], "neighbourhood_matrices", "all_matrices.rds") |>
+    fs::path(
+      config[["preds_tools_dir"]],
+      "neighbourhood_matrices",
+      "all_matrices.rds"
+    ) |>
     readRDS() |>
     unlist(recursive = FALSE)
 
@@ -569,7 +617,10 @@ model_neigh_preds <- function(current_LULC_raster, config, period_tag, lulc_rat)
 
   # Load details of focal layers required for the model set being utilised
   Required_focals_details <- readRDS(list.files(
-    fs::path(config[["preds_tools_dir"]], "neighbourhood_details_for_dynamic_updating"),
+    fs::path(
+      config[["preds_tools_dir"]],
+      "neighbourhood_details_for_dynamic_updating"
+    ),
     pattern = period_tag,
     full.names = TRUE
   ))
@@ -584,7 +635,10 @@ model_neigh_preds <- function(current_LULC_raster, config, period_tag, lulc_rat)
 
     # get pixel values of active LULC class
     Active_class_value <- unlist(
-      lulc_rat[lulc_rat$Class_abbreviation == Active_class_name, "Aggregated_ID"]
+      lulc_rat[
+        lulc_rat$Class_abbreviation == Active_class_name,
+        "Aggregated_ID"
+      ]
     )
 
     # subset LULC raster by all Active_class_value
@@ -601,13 +655,13 @@ model_neigh_preds <- function(current_LULC_raster, config, period_tag, lulc_rat)
 
     # create file path for saving this layer
     Focal_name <- paste(
-      Active_class_name, "nhood",
+      Active_class_name,
+      "nhood",
       Required_focals_details[i, ]$matrix_id,
       sep = "_"
     )
     Nhood_rasters[[Focal_name]] <- Focal_layer
   }
-
 
   message(" - Neighbourhood predictors: reducing")
   out <-
@@ -643,8 +697,7 @@ normalize_over_cols <- function(dt, cols) {
     prob_totals > 1,
     names(.SD) := purrr::map(.SD, \(x) x / prob_totals),
     .SDcols = cols
-  ][
-    ,
+  ][,
     prob_totals := NULL
   ]
 }
