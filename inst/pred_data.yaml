@@ -12,7 +12,7 @@ aspect:
   author: Your Name
   wfs_url: ~
   download_url: https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001
-  raw_data_dir: terrain
+  raw_dir: terrain
   raw_filename: masked_dem.tif
 elevation:
   clean_name: elevation
@@ -28,7 +28,7 @@ elevation:
   author: Your Name
   wfs_url: ~
   download_url: https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001
-  raw_data_dir: terrain
+  raw_dir: terrain
   raw_filename: masked_dem.tif
 slope:
   clean_name: slope
@@ -44,7 +44,7 @@ slope:
   author: Your Name
   wfs_url: ~
   download_url: https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001
-  raw_data_dir: terrain
+  raw_dir: terrain
   raw_filename: masked_dem.tif
 roughness:
   clean_name: roughness
@@ -60,7 +60,7 @@ roughness:
   author: Your Name
   wfs_url: ~
   download_url: https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001
-  raw_data_dir: terrain
+  raw_dir: terrain
   raw_filename: masked_dem.tif
 TPI:
   clean_name: TPI
@@ -76,7 +76,7 @@ TPI:
   author: Your Name
   wfs_url: ~
   download_url: https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001
-  raw_data_dir: terrain
+  raw_dir: terrain
   raw_filename: masked_dem.tif
 TRI:
   clean_name: TRI
@@ -92,7 +92,7 @@ TRI:
   author: Your Name
   wfs_url: ~
   download_url: https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001
-  raw_data_dir: terrain
+  raw_dir: terrain
   raw_filename: masked_dem.tif
 dist_to_dams:
   clean_name: dist_to_dams
@@ -108,7 +108,7 @@ dist_to_dams:
   author: Your Name
   wfs_url: https://geosnirh.ana.gob.pe/server/services/Público/Presas/MapServer/WFSServer?version=2.0.0&service=WFS&request=GetCapabilities
   download_url: https://geosnirh.ana.gob.pe/Repositorio/Shape/Presas.zip
-  raw_data_dir: hydrological/dams
+  raw_dir: hydrological/dams
   raw_filename: presas.shp
 dist_to_lakes:
   clean_name: dist_to_lakes
@@ -124,7 +124,7 @@ dist_to_lakes:
   author: Your Name
   wfs_url: https://geosnirh.ana.gob.pe/server/services/Público/Lagunas/MapServer/WFSServer?version=2.0.0&service=WFS&request=GetCapabilities
   download_url: https://geosnirh.ana.gob.pe/Repositorio/Shape/Lagunas.zip
-  raw_data_dir: hydrological/lakes
+  raw_dir: hydrological/lakes
   raw_filename: lagunas.shp
 dist_to_rivers:
   clean_name: dist_to_rivers
@@ -140,7 +140,7 @@ dist_to_rivers:
   author: Your Name
   wfs_url: https://geosnirh.ana.gob.pe/server/services/Público/Rios/MapServer/WFSServer?version=2.0.0&service=WFS&request=GetCapabilities
   download_url: https://geosnirh.ana.gob.pe/Repositorio/Shape/Rios.zip
-  raw_data_dir: hydrological/rivers
+  raw_dir: hydrological/rivers
   raw_filename: rios.shp
 dist_to_wells:
   clean_name: dist_to_wells
@@ -156,7 +156,7 @@ dist_to_wells:
   author: Your Name
   wfs_url: https://geosnirh.ana.gob.pe/server/services/Público/Pozos/MapServer/WFSServer?version=2.0.0&service=WFS&request=GetCapabilities
   download_url: https://geosnirh.ana.gob.pe/Repositorio/Shape/Pozos.zip
-  raw_data_dir: hydrological/wells
+  raw_dir: hydrological/wells
   raw_filename: pozos.shp
 dist_to_reservoirs:
   clean_name: dist_to_reservoirs
@@ -172,7 +172,7 @@ dist_to_reservoirs:
   author: Your Name
   wfs_url: https://geosnirh.ana.gob.pe/server/services/Público/Reservorios/MapServer/WFSServer?version=2.0.0&service=WFS&request=GetCapabilities
   download_url: https://geosnirh.ana.gob.pe/Repositorio/Shape/Reservorios.zip
-  raw_data_dir: hydrological/reservoirs
+  raw_dir: hydrological/reservoirs
   raw_filename: reservorios.shp
 low_intensity_agricultural_areas_nhood_n11_1:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
@@ -190,7 +190,7 @@ low_intensity_agricultural_areas_nhood_n11_1:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n11_2:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     11x11 cells; random central value and decay rate version: 2)'
@@ -207,7 +207,7 @@ low_intensity_agricultural_areas_nhood_n11_2:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n11_3:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     11x11 cells; random central value and decay rate version: 3)'
@@ -224,7 +224,7 @@ low_intensity_agricultural_areas_nhood_n11_3:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n11_4:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     11x11 cells; random central value and decay rate version: 4)'
@@ -241,7 +241,7 @@ low_intensity_agricultural_areas_nhood_n11_4:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n11_5:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     11x11 cells; random central value and decay rate version: 5)'
@@ -258,7 +258,7 @@ low_intensity_agricultural_areas_nhood_n11_5:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n9_1:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     9x9 cells; random central value and decay rate version: 1)'
@@ -275,7 +275,7 @@ low_intensity_agricultural_areas_nhood_n9_1:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n9_2:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     9x9 cells; random central value and decay rate version: 2)'
@@ -292,7 +292,7 @@ low_intensity_agricultural_areas_nhood_n9_2:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n9_3:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     9x9 cells; random central value and decay rate version: 3)'
@@ -309,7 +309,7 @@ low_intensity_agricultural_areas_nhood_n9_3:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n9_4:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     9x9 cells; random central value and decay rate version: 4)'
@@ -326,7 +326,7 @@ low_intensity_agricultural_areas_nhood_n9_4:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n9_5:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     9x9 cells; random central value and decay rate version: 5)'
@@ -343,7 +343,7 @@ low_intensity_agricultural_areas_nhood_n9_5:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n7_1:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     7x7 cells; random central value and decay rate version: 1)'
@@ -360,7 +360,7 @@ low_intensity_agricultural_areas_nhood_n7_1:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n7_2:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     7x7 cells; random central value and decay rate version: 2)'
@@ -377,7 +377,7 @@ low_intensity_agricultural_areas_nhood_n7_2:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n7_3:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     7x7 cells; random central value and decay rate version: 3)'
@@ -394,7 +394,7 @@ low_intensity_agricultural_areas_nhood_n7_3:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n7_4:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     7x7 cells; random central value and decay rate version: 4)'
@@ -411,7 +411,7 @@ low_intensity_agricultural_areas_nhood_n7_4:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n7_5:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     7x7 cells; random central value and decay rate version: 5)'
@@ -428,7 +428,7 @@ low_intensity_agricultural_areas_nhood_n7_5:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n5_1:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     5x5 cells; random central value and decay rate version: 1)'
@@ -445,7 +445,7 @@ low_intensity_agricultural_areas_nhood_n5_1:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n5_2:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     5x5 cells; random central value and decay rate version: 2)'
@@ -462,7 +462,7 @@ low_intensity_agricultural_areas_nhood_n5_2:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n5_3:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     5x5 cells; random central value and decay rate version: 3)'
@@ -479,7 +479,7 @@ low_intensity_agricultural_areas_nhood_n5_3:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n5_4:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     5x5 cells; random central value and decay rate version: 4)'
@@ -496,7 +496,7 @@ low_intensity_agricultural_areas_nhood_n5_4:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n5_5:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     5x5 cells; random central value and decay rate version: 5)'
@@ -513,7 +513,7 @@ low_intensity_agricultural_areas_nhood_n5_5:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n3_1:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     3x3 cells; random central value and decay rate version: 1)'
@@ -530,7 +530,7 @@ low_intensity_agricultural_areas_nhood_n3_1:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n3_2:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     3x3 cells; random central value and decay rate version: 2)'
@@ -547,7 +547,7 @@ low_intensity_agricultural_areas_nhood_n3_2:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n3_3:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     3x3 cells; random central value and decay rate version: 3)'
@@ -564,7 +564,7 @@ low_intensity_agricultural_areas_nhood_n3_3:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n3_4:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     3x3 cells; random central value and decay rate version: 4)'
@@ -581,7 +581,7 @@ low_intensity_agricultural_areas_nhood_n3_4:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 low_intensity_agricultural_areas_nhood_n3_5:
   clean_name: 'low_intensity_agricultural_areas Neighbourhood effect matrix (size:
     3x3 cells; random central value and decay rate version: 5)'
@@ -598,7 +598,7 @@ low_intensity_agricultural_areas_nhood_n3_5:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n11_1:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     11x11 cells; random central value and decay rate version: 1)'
@@ -615,7 +615,7 @@ high_intensity_agricultural_areas_nhood_n11_1:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n11_2:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     11x11 cells; random central value and decay rate version: 2)'
@@ -632,7 +632,7 @@ high_intensity_agricultural_areas_nhood_n11_2:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n11_3:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     11x11 cells; random central value and decay rate version: 3)'
@@ -649,7 +649,7 @@ high_intensity_agricultural_areas_nhood_n11_3:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n11_4:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     11x11 cells; random central value and decay rate version: 4)'
@@ -666,7 +666,7 @@ high_intensity_agricultural_areas_nhood_n11_4:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n11_5:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     11x11 cells; random central value and decay rate version: 5)'
@@ -683,7 +683,7 @@ high_intensity_agricultural_areas_nhood_n11_5:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n9_1:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     9x9 cells; random central value and decay rate version: 1)'
@@ -700,7 +700,7 @@ high_intensity_agricultural_areas_nhood_n9_1:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n9_2:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     9x9 cells; random central value and decay rate version: 2)'
@@ -717,7 +717,7 @@ high_intensity_agricultural_areas_nhood_n9_2:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n9_3:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     9x9 cells; random central value and decay rate version: 3)'
@@ -734,7 +734,7 @@ high_intensity_agricultural_areas_nhood_n9_3:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n9_4:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     9x9 cells; random central value and decay rate version: 4)'
@@ -751,7 +751,7 @@ high_intensity_agricultural_areas_nhood_n9_4:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n9_5:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     9x9 cells; random central value and decay rate version: 5)'
@@ -768,7 +768,7 @@ high_intensity_agricultural_areas_nhood_n9_5:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n7_1:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     7x7 cells; random central value and decay rate version: 1)'
@@ -785,7 +785,7 @@ high_intensity_agricultural_areas_nhood_n7_1:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n7_2:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     7x7 cells; random central value and decay rate version: 2)'
@@ -802,7 +802,7 @@ high_intensity_agricultural_areas_nhood_n7_2:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n7_3:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     7x7 cells; random central value and decay rate version: 3)'
@@ -819,7 +819,7 @@ high_intensity_agricultural_areas_nhood_n7_3:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n7_4:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     7x7 cells; random central value and decay rate version: 4)'
@@ -836,7 +836,7 @@ high_intensity_agricultural_areas_nhood_n7_4:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n7_5:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     7x7 cells; random central value and decay rate version: 5)'
@@ -853,7 +853,7 @@ high_intensity_agricultural_areas_nhood_n7_5:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n5_1:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     5x5 cells; random central value and decay rate version: 1)'
@@ -870,7 +870,7 @@ high_intensity_agricultural_areas_nhood_n5_1:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n5_2:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     5x5 cells; random central value and decay rate version: 2)'
@@ -887,7 +887,7 @@ high_intensity_agricultural_areas_nhood_n5_2:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n5_3:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     5x5 cells; random central value and decay rate version: 3)'
@@ -904,7 +904,7 @@ high_intensity_agricultural_areas_nhood_n5_3:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n5_4:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     5x5 cells; random central value and decay rate version: 4)'
@@ -921,7 +921,7 @@ high_intensity_agricultural_areas_nhood_n5_4:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n5_5:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     5x5 cells; random central value and decay rate version: 5)'
@@ -938,7 +938,7 @@ high_intensity_agricultural_areas_nhood_n5_5:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n3_1:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     3x3 cells; random central value and decay rate version: 1)'
@@ -955,7 +955,7 @@ high_intensity_agricultural_areas_nhood_n3_1:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n3_2:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     3x3 cells; random central value and decay rate version: 2)'
@@ -972,7 +972,7 @@ high_intensity_agricultural_areas_nhood_n3_2:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n3_3:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     3x3 cells; random central value and decay rate version: 3)'
@@ -989,7 +989,7 @@ high_intensity_agricultural_areas_nhood_n3_3:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n3_4:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     3x3 cells; random central value and decay rate version: 4)'
@@ -1006,7 +1006,7 @@ high_intensity_agricultural_areas_nhood_n3_4:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 high_intensity_agricultural_areas_nhood_n3_5:
   clean_name: 'high_intensity_agricultural_areas Neighbourhood effect matrix (size:
     3x3 cells; random central value and decay rate version: 5)'
@@ -1023,7 +1023,7 @@ high_intensity_agricultural_areas_nhood_n3_5:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n11_1:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 11x11
     cells; random central value and decay rate version: 1)'
@@ -1040,7 +1040,7 @@ built_up_and_barren_lands_nhood_n11_1:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n11_2:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 11x11
     cells; random central value and decay rate version: 2)'
@@ -1057,7 +1057,7 @@ built_up_and_barren_lands_nhood_n11_2:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n11_3:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 11x11
     cells; random central value and decay rate version: 3)'
@@ -1074,7 +1074,7 @@ built_up_and_barren_lands_nhood_n11_3:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n11_4:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 11x11
     cells; random central value and decay rate version: 4)'
@@ -1091,7 +1091,7 @@ built_up_and_barren_lands_nhood_n11_4:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n11_5:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 11x11
     cells; random central value and decay rate version: 5)'
@@ -1108,7 +1108,7 @@ built_up_and_barren_lands_nhood_n11_5:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n9_1:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 9x9 cells;
     random central value and decay rate version: 1)'
@@ -1125,7 +1125,7 @@ built_up_and_barren_lands_nhood_n9_1:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n9_2:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 9x9 cells;
     random central value and decay rate version: 2)'
@@ -1142,7 +1142,7 @@ built_up_and_barren_lands_nhood_n9_2:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n9_3:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 9x9 cells;
     random central value and decay rate version: 3)'
@@ -1159,7 +1159,7 @@ built_up_and_barren_lands_nhood_n9_3:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n9_4:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 9x9 cells;
     random central value and decay rate version: 4)'
@@ -1176,7 +1176,7 @@ built_up_and_barren_lands_nhood_n9_4:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n9_5:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 9x9 cells;
     random central value and decay rate version: 5)'
@@ -1193,7 +1193,7 @@ built_up_and_barren_lands_nhood_n9_5:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n7_1:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 7x7 cells;
     random central value and decay rate version: 1)'
@@ -1210,7 +1210,7 @@ built_up_and_barren_lands_nhood_n7_1:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n7_2:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 7x7 cells;
     random central value and decay rate version: 2)'
@@ -1227,7 +1227,7 @@ built_up_and_barren_lands_nhood_n7_2:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n7_3:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 7x7 cells;
     random central value and decay rate version: 3)'
@@ -1244,7 +1244,7 @@ built_up_and_barren_lands_nhood_n7_3:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n7_4:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 7x7 cells;
     random central value and decay rate version: 4)'
@@ -1261,7 +1261,7 @@ built_up_and_barren_lands_nhood_n7_4:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n7_5:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 7x7 cells;
     random central value and decay rate version: 5)'
@@ -1278,7 +1278,7 @@ built_up_and_barren_lands_nhood_n7_5:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n5_1:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 5x5 cells;
     random central value and decay rate version: 1)'
@@ -1295,7 +1295,7 @@ built_up_and_barren_lands_nhood_n5_1:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n5_2:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 5x5 cells;
     random central value and decay rate version: 2)'
@@ -1312,7 +1312,7 @@ built_up_and_barren_lands_nhood_n5_2:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n5_3:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 5x5 cells;
     random central value and decay rate version: 3)'
@@ -1329,7 +1329,7 @@ built_up_and_barren_lands_nhood_n5_3:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n5_4:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 5x5 cells;
     random central value and decay rate version: 4)'
@@ -1346,7 +1346,7 @@ built_up_and_barren_lands_nhood_n5_4:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n5_5:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 5x5 cells;
     random central value and decay rate version: 5)'
@@ -1363,7 +1363,7 @@ built_up_and_barren_lands_nhood_n5_5:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n3_1:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 3x3 cells;
     random central value and decay rate version: 1)'
@@ -1380,7 +1380,7 @@ built_up_and_barren_lands_nhood_n3_1:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n3_2:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 3x3 cells;
     random central value and decay rate version: 2)'
@@ -1397,7 +1397,7 @@ built_up_and_barren_lands_nhood_n3_2:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n3_3:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 3x3 cells;
     random central value and decay rate version: 3)'
@@ -1414,7 +1414,7 @@ built_up_and_barren_lands_nhood_n3_3:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n3_4:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 3x3 cells;
     random central value and decay rate version: 4)'
@@ -1431,7 +1431,7 @@ built_up_and_barren_lands_nhood_n3_4:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 built_up_and_barren_lands_nhood_n3_5:
   clean_name: 'built_up_and_barren_lands Neighbourhood effect matrix (size: 3x3 cells;
     random central value and decay rate version: 5)'
@@ -1448,37 +1448,62 @@ built_up_and_barren_lands_nhood_n3_5:
   author: Your Name
   wfs_url: ~
   download_url: ~
-  raw_data_dir: ~
+  raw_dir: ~
 dist_to_primary_roads:
   wfs_url: ~
-  download_url: https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001
-  raw_data_dir: terrain
-  clean_name: dist to primary roads
+  download_url: add download URL here
+  raw_dir: infrastructure/national_road
+  raw_filename: red_vial_nacional_dic18.shp
+  clean_name: distance to primary roads
   pred_category: suitability
   static_or_dynamic: static
   metadata: ~
   scenario_variant: ~
   period: all
-  path: '{{ prepped_terrain_paths.dist_to_primary_roads }}'
-  grouping: terrain
-  description: Distance to primary roads – derived from NASADEM data.
+  path: predictors\prepared\layers\dist_to_primary_roads.tif
+  grouping: infrastructure
+  description: Distance to primary roads – derived from vector data of roads.
+  method: rasterized vector data and performed euclidean distance calculation 
   date: YYYY-MM-DD
   author: Your Name
 dist_to_secondary_roads:
   wfs_url: ~
-  download_url: https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001
-  raw_data_dir: terrain
-  clean_name: dist to secondary roads
+  download_url: add download URL here
+  raw_dir: 
+    - infrastructure/departmental_road
+    - infrastructure/neighbourhood_road
+  raw_filename: 
+    - red_vial_departamental_dic18.shp
+    - red_vial_vecinal_dic18.shp
+  clean_name: distance to secondary roads
   pred_category: suitability
   static_or_dynamic: static
   metadata: ~
   scenario_variant: ~
   period: all
-  path: '{{ prepped_terrain_paths.dist_to_secondary_roads }}'
-  grouping: terrain
-  description: Distance to secondary roads – derived from NASADEM data.
+  path: predictors\prepared\layers\dist_to_secondary_roads.tif
+  grouping: infrastructure
+  description: Distance to secondary roads – derived from vector data of roads.
+  method: combined vector layers, rasterized and performed euclidean distance calculation
   date: YYYY-MM-DD
   author: Your Name
+dist_to_airport:
+  clean_name: distance to airports
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  path: predictors/prepared/layers/dist_to_airports.tif
+  grouping: infrastructure
+  description: Distance to airports – derived from vector data of airports.
+  method: rasterized vector data and performed euclidean distance calculation
+  date: 2022-01-01
+  author: Your Name
+  wfs_url: https://geosdot.servicios.gob.pe/geoserver/geoportal/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=geoportal%3Aaerodromo_2022&maxFeatures=50&outputFormat=SHAPE-ZIP
+  download_url: add download URL here
+  raw_dir: infrastructure/airports
+  raw_filename: aerodromo_2022.shp
 bdod_0-5cm_mean:
   clean_name: bdod 0-5cm mean
   pred_category: suitability
@@ -1493,7 +1518,7 @@ bdod_0-5cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/bulk_density
+  raw_dir: soil/bulk_density
   raw_filename: bdod_0-5cm_mean.tif
 bdod_5-15cm_mean:
   clean_name: bdod 5-15cm mean
@@ -1509,7 +1534,7 @@ bdod_5-15cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/bulk_density
+  raw_dir: soil/bulk_density
   raw_filename: bdod_5-15cm_mean.tif
 bdod_15-30cm_mean:
   clean_name: bdod 15-30cm mean
@@ -1525,7 +1550,7 @@ bdod_15-30cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/bulk_density
+  raw_dir: soil/bulk_density
   raw_filename: bdod_15-30cm_mean.tif
 bdod_30-60cm_mean:
   clean_name: bdod 30-60cm mean
@@ -1541,7 +1566,7 @@ bdod_30-60cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/bulk_density
+  raw_dir: soil/bulk_density
   raw_filename: bdod_30-60cm_mean.tif
 bdod_60-100cm_mean:
   clean_name: bdod 60-100cm mean
@@ -1557,7 +1582,7 @@ bdod_60-100cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/bulk_density
+  raw_dir: soil/bulk_density
   raw_filename: bdod_60-100cm_mean.tif
 bdod_100-200cm_mean:
   clean_name: bdod 100-200cm mean
@@ -1573,7 +1598,7 @@ bdod_100-200cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/bulk_density
+  raw_dir: soil/bulk_density
   raw_filename: bdod_100-200cm_mean.tif
 cec_0-5cm_mean:
   clean_name: cec 0-5cm mean
@@ -1589,7 +1614,7 @@ cec_0-5cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/cation_exchange_capacity
+  raw_dir: soil/cation_exchange_capacity
   raw_filename: cec_0-5cm_mean.tif
 cec_5-15cm_mean:
   clean_name: cec 5-15cm mean
@@ -1605,7 +1630,7 @@ cec_5-15cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/cation_exchange_capacity
+  raw_dir: soil/cation_exchange_capacity
   raw_filename: cec_5-15cm_mean.tif
 cec_15-30cm_mean:
   clean_name: cec 15-30cm mean
@@ -1621,7 +1646,7 @@ cec_15-30cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/cation_exchange_capacity
+  raw_dir: soil/cation_exchange_capacity
   raw_filename: cec_15-30cm_mean.tif
 cec_30-60cm_mean:
   clean_name: cec 30-60cm mean
@@ -1637,7 +1662,7 @@ cec_30-60cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/cation_exchange_capacity
+  raw_dir: soil/cation_exchange_capacity
   raw_filename: cec_30-60cm_mean.tif
 cec_60-100cm_mean:
   clean_name: cec 60-100cm mean
@@ -1653,7 +1678,7 @@ cec_60-100cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/cation_exchange_capacity
+  raw_dir: soil/cation_exchange_capacity
   raw_filename: cec_60-100cm_mean.tif
 cec_100-200cm_mean:
   clean_name: cec 100-200cm mean
@@ -1669,7 +1694,7 @@ cec_100-200cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/cation_exchange_capacity
+  raw_dir: soil/cation_exchange_capacity
   raw_filename: cec_100-200cm_mean.tif
 clay_0-5cm_mean:
   clean_name: clay 0-5cm mean
@@ -1685,7 +1710,7 @@ clay_0-5cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/clay_content
+  raw_dir: soil/clay_content
   raw_filename: clay_0-5cm_mean.tif
 clay_5-15cm_mean:
   clean_name: clay 5-15cm mean
@@ -1701,7 +1726,7 @@ clay_5-15cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/clay_content
+  raw_dir: soil/clay_content
   raw_filename: clay_5-15cm_mean.tif
 clay_15-30cm_mean:
   clean_name: clay 15-30cm mean
@@ -1717,7 +1742,7 @@ clay_15-30cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/clay_content
+  raw_dir: soil/clay_content
   raw_filename: clay_15-30cm_mean.tif
 clay_30-60cm_mean:
   clean_name: clay 30-60cm mean
@@ -1733,7 +1758,7 @@ clay_30-60cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/clay_content
+  raw_dir: soil/clay_content
   raw_filename: clay_30-60cm_mean.tif
 clay_60-100cm_mean:
   clean_name: clay 60-100cm mean
@@ -1749,7 +1774,7 @@ clay_60-100cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/clay_content
+  raw_dir: soil/clay_content
   raw_filename: clay_60-100cm_mean.tif
 clay_100-200cm_mean:
   clean_name: clay 100-200cm mean
@@ -1765,7 +1790,7 @@ clay_100-200cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/clay_content
+  raw_dir: soil/clay_content
   raw_filename: clay_100-200cm_mean.tif
 cfvo_0-5cm_mean:
   clean_name: cfvo 0-5cm mean
@@ -1781,7 +1806,7 @@ cfvo_0-5cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/coarse_fragments_volumetric
+  raw_dir: soil/coarse_fragments_volumetric
   raw_filename: cfvo_0-5cm_mean.tif
 cfvo_5-15cm_mean:
   clean_name: cfvo 5-15cm mean
@@ -1797,7 +1822,7 @@ cfvo_5-15cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/coarse_fragments_volumetric
+  raw_dir: soil/coarse_fragments_volumetric
   raw_filename: cfvo_5-15cm_mean.tif
 cfvo_15-30cm_mean:
   clean_name: cfvo 15-30cm mean
@@ -1813,7 +1838,7 @@ cfvo_15-30cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/coarse_fragments_volumetric
+  raw_dir: soil/coarse_fragments_volumetric
   raw_filename: cfvo_15-30cm_mean.tif
 cfvo_30-60cm_mean:
   clean_name: cfvo 30-60cm mean
@@ -1829,7 +1854,7 @@ cfvo_30-60cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/coarse_fragments_volumetric
+  raw_dir: soil/coarse_fragments_volumetric
   raw_filename: cfvo_30-60cm_mean.tif
 cfvo_60-100cm_mean:
   clean_name: cfvo 60-100cm mean
@@ -1845,7 +1870,7 @@ cfvo_60-100cm_mean:
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/coarse_fragments_volumetric
+  raw_dir: soil/coarse_fragments_volumetric
   raw_filename: cfvo_60-100cm_mean.tif
 cfvo_100-200cm_mean:
   clean_name: cfvo 100-200cm mean
@@ -1857,11 +1882,11 @@ cfvo_100-200cm_mean:
   path: predictors/prepared/layers/soil_cfvo_100-200cm_mean.tif
   grouping: soil
   description: cfvo 100-200cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/coarse_fragments_volumetric
+  raw_dir: soil/coarse_fragments_volumetric
   raw_filename: cfvo_100-200cm_mean.tif
 nitrogen_0-5cm_mean:
   clean_name: nitrogen 0-5cm mean
@@ -1873,11 +1898,11 @@ nitrogen_0-5cm_mean:
   path: predictors/prepared/layers/soil_nitrogen_0-5cm_mean.tif
   grouping: soil
   description: nitrogen 0-5cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/nitrogen
+  raw_dir: soil/nitrogen
   raw_filename: nitrogen_0-5cm_mean.tif
 nitrogen_5-15cm_mean:
   clean_name: nitrogen 5-15cm mean
@@ -1889,11 +1914,11 @@ nitrogen_5-15cm_mean:
   path: predictors/prepared/layers/soil_nitrogen_5-15cm_mean.tif
   grouping: soil
   description: nitrogen 5-15cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/nitrogen
+  raw_dir: soil/nitrogen
   raw_filename: nitrogen_5-15cm_mean.tif
 nitrogen_15-30cm_mean:
   clean_name: nitrogen 15-30cm mean
@@ -1905,11 +1930,11 @@ nitrogen_15-30cm_mean:
   path: predictors/prepared/layers/soil_nitrogen_15-30cm_mean.tif
   grouping: soil
   description: nitrogen 15-30cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/nitrogen
+  raw_dir: soil/nitrogen
   raw_filename: nitrogen_15-30cm_mean.tif
 nitrogen_30-60cm_mean:
   clean_name: nitrogen 30-60cm mean
@@ -1921,11 +1946,11 @@ nitrogen_30-60cm_mean:
   path: predictors/prepared/layers/soil_nitrogen_30-60cm_mean.tif
   grouping: soil
   description: nitrogen 30-60cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/nitrogen
+  raw_dir: soil/nitrogen
   raw_filename: nitrogen_30-60cm_mean.tif
 nitrogen_60-100cm_mean:
   clean_name: nitrogen 60-100cm mean
@@ -1937,11 +1962,11 @@ nitrogen_60-100cm_mean:
   path: predictors/prepared/layers/soil_nitrogen_60-100cm_mean.tif
   grouping: soil
   description: nitrogen 60-100cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/nitrogen
+  raw_dir: soil/nitrogen
   raw_filename: nitrogen_60-100cm_mean.tif
 nitrogen_100-200cm_mean:
   clean_name: nitrogen 100-200cm mean
@@ -1953,11 +1978,11 @@ nitrogen_100-200cm_mean:
   path: predictors/prepared/layers/soil_nitrogen_100-200cm_mean.tif
   grouping: soil
   description: nitrogen 100-200cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/nitrogen
+  raw_dir: soil/nitrogen
   raw_filename: nitrogen_100-200cm_mean.tif
 ocd_0-5cm_mean:
   clean_name: ocd 0-5cm mean
@@ -1969,11 +1994,11 @@ ocd_0-5cm_mean:
   path: predictors/prepared/layers/soil_ocd_0-5cm_mean.tif
   grouping: soil
   description: ocd 0-5cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/organic_carbon_density
+  raw_dir: soil/organic_carbon_density
   raw_filename: ocd_0-5cm_mean.tif
 ocd_5-15cm_mean:
   clean_name: ocd 5-15cm mean
@@ -1985,11 +2010,11 @@ ocd_5-15cm_mean:
   path: predictors/prepared/layers/soil_ocd_5-15cm_mean.tif
   grouping: soil
   description: ocd 5-15cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/organic_carbon_density
+  raw_dir: soil/organic_carbon_density
   raw_filename: ocd_5-15cm_mean.tif
 ocd_15-30cm_mean:
   clean_name: ocd 15-30cm mean
@@ -2001,11 +2026,11 @@ ocd_15-30cm_mean:
   path: predictors/prepared/layers/soil_ocd_15-30cm_mean.tif
   grouping: soil
   description: ocd 15-30cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/organic_carbon_density
+  raw_dir: soil/organic_carbon_density
   raw_filename: ocd_15-30cm_mean.tif
 ocd_30-60cm_mean:
   clean_name: ocd 30-60cm mean
@@ -2017,11 +2042,11 @@ ocd_30-60cm_mean:
   path: predictors/prepared/layers/soil_ocd_30-60cm_mean.tif
   grouping: soil
   description: ocd 30-60cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/organic_carbon_density
+  raw_dir: soil/organic_carbon_density
   raw_filename: ocd_30-60cm_mean.tif
 ocd_60-100cm_mean:
   clean_name: ocd 60-100cm mean
@@ -2033,11 +2058,11 @@ ocd_60-100cm_mean:
   path: predictors/prepared/layers/soil_ocd_60-100cm_mean.tif
   grouping: soil
   description: ocd 60-100cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/organic_carbon_density
+  raw_dir: soil/organic_carbon_density
   raw_filename: ocd_60-100cm_mean.tif
 ocd_100-200cm_mean:
   clean_name: ocd 100-200cm mean
@@ -2049,11 +2074,11 @@ ocd_100-200cm_mean:
   path: predictors/prepared/layers/soil_ocd_100-200cm_mean.tif
   grouping: soil
   description: ocd 100-200cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/organic_carbon_density
+  raw_dir: soil/organic_carbon_density
   raw_filename: ocd_100-200cm_mean.tif
 ocs_0-30cm_mean:
   clean_name: ocs 0-30cm mean
@@ -2065,11 +2090,11 @@ ocs_0-30cm_mean:
   path: predictors/prepared/layers/soil_ocs_0-30cm_mean.tif
   grouping: soil
   description: ocs 0-30cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/organic_carbon_stock
+  raw_dir: soil/organic_carbon_stock
   raw_filename: ocs_0-30cm_mean.tif
 sand_0-5cm_mean:
   clean_name: sand 0-5cm mean
@@ -2081,11 +2106,11 @@ sand_0-5cm_mean:
   path: predictors/prepared/layers/soil_sand_0-5cm_mean.tif
   grouping: soil
   description: sand 0-5cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/sand_content
+  raw_dir: soil/sand_content
   raw_filename: sand_0-5cm_mean.tif
 sand_5-15cm_mean:
   clean_name: sand 5-15cm mean
@@ -2097,11 +2122,11 @@ sand_5-15cm_mean:
   path: predictors/prepared/layers/soil_sand_5-15cm_mean.tif
   grouping: soil
   description: sand 5-15cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/sand_content
+  raw_dir: soil/sand_content
   raw_filename: sand_5-15cm_mean.tif
 sand_15-30cm_mean:
   clean_name: sand 15-30cm mean
@@ -2113,11 +2138,11 @@ sand_15-30cm_mean:
   path: predictors/prepared/layers/soil_sand_15-30cm_mean.tif
   grouping: soil
   description: sand 15-30cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/sand_content
+  raw_dir: soil/sand_content
   raw_filename: sand_15-30cm_mean.tif
 sand_30-60cm_mean:
   clean_name: sand 30-60cm mean
@@ -2129,11 +2154,11 @@ sand_30-60cm_mean:
   path: predictors/prepared/layers/soil_sand_30-60cm_mean.tif
   grouping: soil
   description: sand 30-60cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/sand_content
+  raw_dir: soil/sand_content
   raw_filename: sand_30-60cm_mean.tif
 sand_60-100cm_mean:
   clean_name: sand 60-100cm mean
@@ -2145,11 +2170,11 @@ sand_60-100cm_mean:
   path: predictors/prepared/layers/soil_sand_60-100cm_mean.tif
   grouping: soil
   description: sand 60-100cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/sand_content
+  raw_dir: soil/sand_content
   raw_filename: sand_60-100cm_mean.tif
 sand_100-200cm_mean:
   clean_name: sand 100-200cm mean
@@ -2161,11 +2186,11 @@ sand_100-200cm_mean:
   path: predictors/prepared/layers/soil_sand_100-200cm_mean.tif
   grouping: soil
   description: sand 100-200cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/sand_content
+  raw_dir: soil/sand_content
   raw_filename: sand_100-200cm_mean.tif
 silt_0-5cm_mean:
   clean_name: silt 0-5cm mean
@@ -2177,11 +2202,11 @@ silt_0-5cm_mean:
   path: predictors/prepared/layers/soil_silt_0-5cm_mean.tif
   grouping: soil
   description: silt 0-5cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/silt_content
+  raw_dir: soil/silt_content
   raw_filename: silt_0-5cm_mean.tif
 silt_5-15cm_mean:
   clean_name: silt 5-15cm mean
@@ -2193,11 +2218,11 @@ silt_5-15cm_mean:
   path: predictors/prepared/layers/soil_silt_5-15cm_mean.tif
   grouping: soil
   description: silt 5-15cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/silt_content
+  raw_dir: soil/silt_content
   raw_filename: silt_5-15cm_mean.tif
 silt_15-30cm_mean:
   clean_name: silt 15-30cm mean
@@ -2209,11 +2234,11 @@ silt_15-30cm_mean:
   path: predictors/prepared/layers/soil_silt_15-30cm_mean.tif
   grouping: soil
   description: silt 15-30cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/silt_content
+  raw_dir: soil/silt_content
   raw_filename: silt_15-30cm_mean.tif
 silt_30-60cm_mean:
   clean_name: silt 30-60cm mean
@@ -2225,11 +2250,11 @@ silt_30-60cm_mean:
   path: predictors/prepared/layers/soil_silt_30-60cm_mean.tif
   grouping: soil
   description: silt 30-60cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/silt_content
+  raw_dir: soil/silt_content
   raw_filename: silt_30-60cm_mean.tif
 silt_60-100cm_mean:
   clean_name: silt 60-100cm mean
@@ -2241,11 +2266,11 @@ silt_60-100cm_mean:
   path: predictors/prepared/layers/soil_silt_60-100cm_mean.tif
   grouping: soil
   description: silt 60-100cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/silt_content
+  raw_dir: soil/silt_content
   raw_filename: silt_60-100cm_mean.tif
 silt_100-200cm_mean:
   clean_name: silt 100-200cm mean
@@ -2257,11 +2282,11 @@ silt_100-200cm_mean:
   path: predictors/prepared/layers/soil_silt_100-200cm_mean.tif
   grouping: soil
   description: silt 100-200cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/silt_content
+  raw_dir: soil/silt_content
   raw_filename: silt_100-200cm_mean.tif
 soc_0-5cm_mean:
   clean_name: soc 0-5cm mean
@@ -2273,11 +2298,11 @@ soc_0-5cm_mean:
   path: predictors/prepared/layers/soil_soc_0-5cm_mean.tif
   grouping: soil
   description: soc 0-5cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/soil_organic_carbon_content
+  raw_dir: soil/soil_organic_carbon_content
   raw_filename: soc_0-5cm_mean.tif
 soc_5-15cm_mean:
   clean_name: soc 5-15cm mean
@@ -2289,11 +2314,11 @@ soc_5-15cm_mean:
   path: predictors/prepared/layers/soil_soc_5-15cm_mean.tif
   grouping: soil
   description: soc 5-15cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/soil_organic_carbon_content
+  raw_dir: soil/soil_organic_carbon_content
   raw_filename: soc_5-15cm_mean.tif
 soc_15-30cm_mean:
   clean_name: soc 15-30cm mean
@@ -2305,11 +2330,11 @@ soc_15-30cm_mean:
   path: predictors/prepared/layers/soil_soc_15-30cm_mean.tif
   grouping: soil
   description: soc 15-30cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/soil_organic_carbon_content
+  raw_dir: soil/soil_organic_carbon_content
   raw_filename: soc_15-30cm_mean.tif
 soc_30-60cm_mean:
   clean_name: soc 30-60cm mean
@@ -2321,11 +2346,11 @@ soc_30-60cm_mean:
   path: predictors/prepared/layers/soil_soc_30-60cm_mean.tif
   grouping: soil
   description: soc 30-60cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/soil_organic_carbon_content
+  raw_dir: soil/soil_organic_carbon_content
   raw_filename: soc_30-60cm_mean.tif
 soc_60-100cm_mean:
   clean_name: soc 60-100cm mean
@@ -2337,11 +2362,11 @@ soc_60-100cm_mean:
   path: predictors/prepared/layers/soil_soc_60-100cm_mean.tif
   grouping: soil
   description: soc 60-100cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/soil_organic_carbon_content
+  raw_dir: soil/soil_organic_carbon_content
   raw_filename: soc_60-100cm_mean.tif
 soc_100-200cm_mean:
   clean_name: soc 100-200cm mean
@@ -2353,11 +2378,11 @@ soc_100-200cm_mean:
   path: predictors/prepared/layers/soil_soc_100-200cm_mean.tif
   grouping: soil
   description: soc 100-200cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/soil_organic_carbon_content
+  raw_dir: soil/soil_organic_carbon_content
   raw_filename: soc_100-200cm_mean.tif
 ph_0-5cm_mean:
   clean_name: ph 0-5cm mean
@@ -2369,11 +2394,11 @@ ph_0-5cm_mean:
   path: predictors/prepared/layers/soil_ph_0-5cm_mean.tif
   grouping: soil
   description: ph 0-5cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/soil_ph
+  raw_dir: soil/soil_ph
   raw_filename: ph_0-5cm_mean.tif
 ph_5-15cm_mean:
   clean_name: ph 5-15cm mean
@@ -2385,11 +2410,11 @@ ph_5-15cm_mean:
   path: predictors/prepared/layers/soil_ph_5-15cm_mean.tif
   grouping: soil
   description: ph 5-15cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/soil_ph
+  raw_dir: soil/soil_ph
   raw_filename: ph_5-15cm_mean.tif
 ph_15-30cm_mean:
   clean_name: ph 15-30cm mean
@@ -2401,11 +2426,11 @@ ph_15-30cm_mean:
   path: predictors/prepared/layers/soil_ph_15-30cm_mean.tif
   grouping: soil
   description: ph 15-30cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/soil_ph
+  raw_dir: soil/soil_ph
   raw_filename: ph_15-30cm_mean.tif
 ph_30-60cm_mean:
   clean_name: ph 30-60cm mean
@@ -2417,11 +2442,11 @@ ph_30-60cm_mean:
   path: predictors/prepared/layers/soil_ph_30-60cm_mean.tif
   grouping: soil
   description: ph 30-60cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/soil_ph
+  raw_dir: soil/soil_ph
   raw_filename: ph_30-60cm_mean.tif
 ph_60-100cm_mean:
   clean_name: ph 60-100cm mean
@@ -2433,11 +2458,11 @@ ph_60-100cm_mean:
   path: predictors/prepared/layers/soil_ph_60-100cm_mean.tif
   grouping: soil
   description: ph 60-100cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/soil_ph
+  raw_dir: soil/soil_ph
   raw_filename: ph_60-100cm_mean.tif
 ph_100-200cm_mean:
   clean_name: ph 100-200cm mean
@@ -2449,10 +2474,114 @@ ph_100-200cm_mean:
   path: predictors/prepared/layers/soil_ph_100-200cm_mean.tif
   grouping: soil
   description: ph 100-200cm mean – derived from SoilGrids dataset.
-  date: 20381.0
+  date: 20382.0
   author: Your Name
   wfs_url: ~
   download_url: https://www.soilgrids.org
-  raw_data_dir: soil/soil_ph
+  raw_dir: soil/soil_ph
   raw_filename: ph_100-200cm_mean.tif
+gross_added_value:
+  clean_name: gross added value
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  grouping: socioeconomic
+  description: Layer constructed from the concentration of financial institutions in a square kilometer (km2 ) . This includes bank branches, currency exchange offices, stock markets, lenders, pension fund management, insurance companies, among others. Units = Establishments/km2 Source
+  method: Combined shapefiles, summed GAV values at the district level with the districts shapefile before rasterizing to reference raster
+  date: 2020.0
+  author: Your Name
+  wfs_url: 
+    - https://geosdot.servicios.gob.pe/geoserver/geoportal/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=geoportal%3Adensidad_servicio_financiero&maxFeatures=50&outputFormat=SHAPE-ZIP
+    - https://geosdot.servicios.gob.pe/geoserver/geoportal/wfs?service=WFS&request=GetFeature&outputFormat=SHAPE-ZIP&srsName=epsg:4326&typeName=ccpp150_vab_lima
+    - https://geosdot.servicios.gob.pe/geoserver/geoportal/wfs?service=WFS&request=GetFeature&outputFormat=SHAPE-ZIP&srsName=epsg:4326&typeName=ccpp150_vab_total
+  download_url: null
+  raw_dir: socio_economic/gross_added_value
+  raw_filename:
+    - ccpp150_vab_callao.shp
+    - ccpp150_vab_lima.shp
+    - ccpp150_vab_total.shp
+trav_time_to_dep_cap:
+  clean_name: travel time to nearest departmental capital
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  grouping: socioeconomic
+  description: Layer representing the estimated travel time (minutes), expressed spatially through isochrones, to travel from a location in the territory to the nearest departmental capital. The calculation considers the route that takes the shortest travel time, using the most common means of transportation based on the type of surface involved. The data sources used are primarily entities such as the Ministry of Transport (MTC) and the National Institute of Statistics and Informatics (INEI).
+  method: The raw shapefile containing the isochrones was rasterized to match the reference raster.
+  date: 2020.0
+  author: Your Name
+  wfs_url: null
+  download_url: https://pcmgobperu-my.sharepoint.com/:u:/g/personal/omacavilca_pcm_gob_pe/EVp7ybGUlZFNukc3XFqS3mYBZNxmayTsHhwRPd4kinN94g?e=HZhUah
+  raw_dir: socio_economic/travel_time_to_nearest_departmental_capital
+  raw_filename: tiempo_deplazamiento_capital_cercano.shp
+financial_services_density:
+  clean_name: financial services density
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  grouping: socioeconomic
+  description: Layer constructed from the concentration of financial institutions in a square kilometer (km2 ) . This includes bank branches, currency exchange offices, stock markets, lenders, pension fund management, insurance companies, among others. Units = Establishments/km2 Source
+  method: "The shapefile contains polygons of five classes of increasing number of financial establishments per km2 = 1-7, 7-16, 16-30, 30-50, and more than 50. Combined these into two categories low density (1-30) and high density (30+) dissolving polygons in each class, before calculating distance rasters to each layer, aligning with reference raster."
+  date: 2020.0
+  author: Your Name
+  wfs_url: https://geosdot.servicios.gob.pe/geoserver/geoportal/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=geoportal%3Adensidad_servicio_financiero&maxFeatures=50&outputFormat=SHAPE-ZIP
+  download_url: null
+  raw_dir: socio_economic/financial_services_density
+  raw_filename: densidad_servicio_financiero.shp
+market_density:
+  clean_name: market density
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  grouping: socioeconomic
+  description: Layer constructed from the concentration of markets in a square kilometer (km2 ) . This includes public places with common infrastructure where goods and services are marketed, preferably at retail. It does not include supermarkets or shopping centers. Units = Markets/km2 Source
+  method: "The shapefiles contain polygons of five classes of increasing number of markets per km2: 1-3, 3-7, 7-16, 16-22, and more than 22. Combined these into two categories low density (1-16) and high density (16+) dissolving polygons in each class, before calculating distance rasters to each layer, aligning with reference raster."
+  date: 2020.0
+  author: Your Name
+  wfs_url: https://geosdot.servicios.gob.pe/geoserver/geoportal/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=geoportal%3Adensidad_mercado&maxFeatures=50&outputFormat=SHAPE-ZIP
+  download_url: null
+  raw_dir: socio_economic/market_density
+  raw_filename: densidad_mercado.shp
+pop_growth_density:
+  clean_name: population growth density
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  grouping: socioeconomic
+  description: Layer constructed from the calculation of the annual intercensal population growth rate of populated centers with a population greater than 150 inhabitants. This information comes from the 2007 and 2017 population censuses. To visualize this geographic phenomenon, spatial interpolation techniques were applied to continuously show population growth rates at the population center level.
+  method: "The shapefile contains polygons of eight classes of either decreasing or increasing population growth: >-5, -5 to -2.5%, -2.5 to -0.1%, 0 to 0.5%, 0.5 to 1.5%, 1.5 to 3%, 3 to 6% and >6%. Combined these into four categories: strong decline (> -2.5), low decline (-0.1 to -2.5%), low increase (0 to 3%), and high increase (3%+). Dissolving polygons in each class, before calculating distance rasters to each layer, aligning with reference raster."
+  date: 2020.0
+  author: Your Name
+  wfs_url: https://geosdot.servicios.gob.pe/geoserver/geoportal/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=geoportal%3Adensidad_crecimiento_poblacional&maxFeatures=50&outputFormat=SHAPE-ZIP
+  download_url: null
+  raw_dir: socio_economic/population_growth_density
+  raw_filename: densidad_crecimiento_poblacional.shp
+commercial_density:
+  clean_name: commercial density
+  pred_category: suitability
+  static_or_dynamic: static
+  metadata: ~
+  scenario_variant: ~
+  period: all
+  grouping: socioeconomic
+  description: Layer constructed from the concentration of businesses in a square kilometer (km2 ) . This includes infrastructure intended for the wholesale or retail sale of goods and services, also including vehicle repairs. Includes supermarkets, shopping centers, gas stations, and repair shops. Units = Businesses/km2
+  method: "The shapefile contains polygons of five classes of increasing number of commercial establishments per km2: 29-120, 120-280, 280-560, 560-1100. >1100. Combined these into two categories low density (29-280) and high density (>280) dissolving polygons in each class, before calculating distance rasters to each layer, aligning with reference raster."
+  date: 2020.0
+  author: Your Name
+  wfs_url: https://geosdot.servicios.gob.pe/geoserver/geoportal/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=geoportal%3Adensidad_comercio&maxFeatures=50&outputFormat=SHAPE-ZIP
+  download_url: null
+  raw_dir: socio_economic/commercial_density
+  raw_filename: densidad_comercio.shp
+
+
 

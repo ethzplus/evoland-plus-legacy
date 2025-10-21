@@ -38,12 +38,7 @@ Zenodo currently hosts a single zip file including all the raw data needed for r
 fetch_zenodo_predictors(url = "file:///some/path/evoland-ch-data.zip")
 ```
 
-```{r}
-#' TODO Document where the reference grid comes from.
-#' init_base_grid()
-```
-
-## A- Prepare LULC/region data
+## Prepare LULC data
 
 ```{r}
 lulc_data_prep()
@@ -55,7 +50,26 @@ lulc_data_prep()
 region_prep()
 ```
 
-## B- Prepare suitability and accessibility predictors
+## Prepare ancillary spatial data
+```{r}
+# Set temp directory for terra to another drive
+# because the default is on C: which often has limited space
+terra_temp <- "E:/terra_temp"
+ensure_dir(terra_temp)
+
+terra::terraOptions(
+  memfrac = 0.5, # limit in-memory cache usage
+  tempdir = terra_temp, # directory for temporary files
+  progress = 1,
+  todisk = TRUE
+)
+ancillary_data_prep(
+  refresh_cache = FALSE,
+  terra_temp = terra_temp
+)
+```
+
+## Prepare suitability and accessibility predictors
 
 ```{r}
 calibration_predictor_prep(refresh_cache = FALSE)

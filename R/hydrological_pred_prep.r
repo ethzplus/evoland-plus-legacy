@@ -1,6 +1,7 @@
 hydrological_pred_prep <- function(
   config = get_config(),
-  refresh_cache = FALSE
+  refresh_cache = FALSE,
+  terra_temp = tempdir()
 ) {
   message("Preparing hydrological predictor data...")
 
@@ -20,21 +21,11 @@ hydrological_pred_prep <- function(
     function(x) {
       file.path(
         config[["predictors_raw_dir"]],
-        x$raw_data_dir,
+        x$raw_dir,
         x$raw_filename
       )
     },
     USE.NAMES = TRUE
-  )
-
-  terra_temp <- "E:/terra_temp"
-  ensure_dir(terra_temp)
-
-  terra::terraOptions(
-    memfrac = 0.5, # limit in-memory cache usage
-    tempdir = terra_temp, # directory for temporary files
-    progress = 1,
-    todisk = TRUE
   )
 
   # Loop over hydrological vector files
@@ -104,6 +95,11 @@ hydrological_pred_prep <- function(
       } else {
         paste("Hydrological predictor:", pred_name)
       },
+      method = if (!is.null(entry$method)) {
+        entry$method
+      } else {
+        "Calculated as euclidean distance from hydrological feature."
+      },
       date = Sys.Date(),
       author = "Your Name",
       wfs_url = if (!is.null(entry$wfs_url)) entry$wfs_url else NULL,
@@ -112,8 +108,8 @@ hydrological_pred_prep <- function(
       } else {
         NULL
       },
-      raw_data_dir = if (!is.null(entry$raw_data_dir)) {
-        entry$raw_data_dir
+      raw_dir = if (!is.null(entry$raw_dir)) {
+        entry$raw_dir
       } else {
         "hydrological"
       },

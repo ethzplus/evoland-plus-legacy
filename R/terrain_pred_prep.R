@@ -3,13 +3,12 @@ terrain_pred_prep <- function(config = get_config()) {
 
   # Load existing DEM raster and predictor YAML
   pred_yaml_file <- config[["pred_table_path"]]
-
   pred_table <- yaml::yaml.load_file(pred_yaml_file)
 
   # Load clipped DEM raster
   DEM_raster <- terra::rast(file.path(
     config[["predictors_raw_dir"]],
-    pred_table[["elevation"]][["raw_data_dir"]],
+    pred_table[["elevation"]][["raw_dir"]],
     pred_table[["elevation"]][["raw_filename"]]
   ))
 
@@ -69,11 +68,15 @@ terrain_pred_prep <- function(config = get_config()) {
       path = path,
       grouping = "terrain",
       description = "Derived from NASADEM data",
+      method = paste0(
+        "Calculated using the terra::terrain function from the aligned DEM raster. ",
+        "Slope and aspect are in degrees; TPI, TRI, and roughness are unitless."
+      ),
       date = Sys.Date(),
       author = "Your Name",
       wfs_url = NULL,
       download_url = "https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001",
-      raw_data_dir = "terrain",
+      raw_dir = "terrain",
       raw_filename = "masked_dem.tif"
     )
   }

@@ -825,7 +825,7 @@ create_metadata_from_wfs <- function(
 #' @param author Author name (default NULL)
 #' @param wfs_url URL for WFS access (default NULL)
 #' @param download_url URL for download (default NULL)
-#' @param raw_data_dir Path to raw data directory (default NULL)
+#' @param raw_dir Path to raw data directory (default NULL)
 update_predictor_yaml <- function(
   yaml_file,
   pred_name,
@@ -842,8 +842,9 @@ update_predictor_yaml <- function(
   author = NULL,
   wfs_url = NULL,
   download_url = NULL,
-  raw_data_dir = NULL,
-  raw_filename = NULL
+  raw_dir = NULL,
+  raw_filename = NULL,
+  method = NULL
 ) {
   # Load existing YAML if it exists
   if (file.exists(yaml_file)) {
@@ -864,11 +865,12 @@ update_predictor_yaml <- function(
     path = path,
     grouping = grouping,
     description = description,
+    method = method,
     date = date,
     author = author,
     wfs_url = wfs_url,
     download_url = download_url,
-    raw_data_dir = raw_data_dir,
+    raw_dir = raw_dir,
     raw_filename = raw_filename
   )
 

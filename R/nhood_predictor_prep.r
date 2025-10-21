@@ -349,11 +349,12 @@ nhood_predictor_prep <- function(
       path = row["path"],
       grouping = "neighbourhood",
       description = clean_name, # you can customize description
+      method = "Generated using random decay rate matrices applied to historical LULC data.",
       date = Sys.Date(),
       author = "Your Name",
       wfs_url = NULL,
       download_url = NULL,
-      raw_data_dir = NULL,
+      raw_dir = NULL,
       raw_data_filename = NULL
     )
   })
