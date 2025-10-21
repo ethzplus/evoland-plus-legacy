@@ -116,6 +116,13 @@ get_config <- function(
     regionalization = regionalization,
     inclusion_threshold = inclusion_threshold,
 
+    # ancillary spatial data
+    ancillary_spatial_dir = file.path(
+      data_basepath,
+      "ancillary_spatial_data"
+    ),
+    ancillary_data_table = file.path("inst", "ancillary_data.yaml"),
+
     # Remote data sources and local paths
     rasterized_lulc_dir = file.path(historic_lulc_basepath, "original"),
     aggregated_lulc_dir = file.path(historic_lulc_basepath, "aggregated"),
