@@ -5,33 +5,38 @@
 #'
 #' @author Ben Black
 
-transition_identification <- function(config = get_config()) {
+transition_identification <- function(
+  config = get_config()
+) {
   ### =========================================================================
   ### A- Preparation
   ### =========================================================================
 
   lulc_files <- fs::dir_ls(
-    config[["historic_lulc_basepath"]],
-    glob = "*.grd",
+    config[["aggregated_lulc_dir"]],
+    glob = "*.tif",
     recurse = TRUE
   )
+
   # Extract years from LULC filenames
   lulc_years <- stringr::str_extract(lulc_files, "\\d{4}")
 
   # Read aggregation scheme externally provided
-  agg_scheme <- readxl::read_excel(config[["LULC_aggregation_path"]])
+  scheme <- jsonlite::fromJSON(
+    config[["LULC_aggregation_path"]],
+    simplifyVector = FALSE
+  )
+
+  # remove 'original_classes' from scheme to avoid confusion
+  scheme <- lapply(scheme, function(x) {
+    x$original_classes <- NULL
+    x$nhood_class <- NULL
+    x$colour <- NULL
+    return(x)
+  })
 
   # Prepare LULC classes
-  lulc_classes <- data.frame(label = unique(agg_scheme$Class_abbreviation))
-  lulc_classes$value <- sapply(
-    lulc_classes$label,
-    function(x) {
-      unique(agg_scheme[
-        agg_scheme$Class_abbreviation == x,
-        "Aggregated_ID"
-      ])
-    }
-  )
+  lulc_classes <- do.call(rbind, lapply(scheme, as.data.frame))
 
   # Directory for transition rate tables
   ensure_dir(config[["trans_rates_raw_dir"]])
@@ -53,27 +58,24 @@ transition_identification <- function(config = get_config()) {
   # Merge area tables by LULC class value
   suppressWarnings(
     # suppress warning about col names being repeated
-    lulc_areal_change <- Reduce(function(x, y) merge(x, y, by = "value"), lulc_areas)
+    lulc_areal_change <- Reduce(
+      function(x, y) merge(x, y, by = "value"),
+      lulc_areas
+    )
   )
   names(lulc_areal_change)[2:5] <- names(lulc_areas)
 
   # Add LULC numeric values (Aggregated_ID) to the table
   lulc_areal_change |>
     dplyr::left_join(
-      dplyr::distinct(
-        agg_scheme,
-        value = Class_abbreviation,
-        numeric_value = Aggregated_ID
-      ),
+      lulc_classes,
       by = "value"
     ) |>
-    dplyr::rename(
-      # somewhere along the way, the addition of a RAT must have changed the frequency table
-      LULC_class = value,
-      value = numeric_value
-    ) |>
     write.csv(
-      file.path(config[["trans_rates_raw_dir"]], "lulc_historic_areal_change.csv"),
+      file.path(
+        config[["trans_rates_raw_dir"]],
+        "lulc_historic_areal_change.csv"
+      ),
       row.names = FALSE
     )
 
@@ -112,7 +114,8 @@ transition_identification <- function(config = get_config()) {
     lulc_change_periods[[i]] <- c(lulc_years[i], lulc_years[i + 1])
   }
   names(lulc_change_periods) <- sapply(
-    lulc_change_periods, function(x) paste(x[1], x[2], sep = "_")
+    lulc_change_periods,
+    function(x) paste(x[1], x[2], sep = "_")
   )
 
   # Run function over each period
@@ -134,31 +137,40 @@ transition_identification <- function(config = get_config()) {
 
   # Load single-step net transition tables produced for historic periods
   calibration_singlestep_tables <- lapply(
-    list.files(config[["trans_rates_raw_dir"]], full.names = TRUE, pattern = "singlestep"), read.csv
+    list.files(
+      config[["trans_rates_raw_dir"]],
+      full.names = TRUE,
+      pattern = "singlestep"
+    ),
+    read.csv
   )
   names(calibration_singlestep_tables) <- gsub(
-    "calibration_|_singlestep_trans_table.csv", "",
-    list.files(config[["trans_rates_raw_dir"]], full.names = FALSE, pattern = "singlestep")
+    "calibration_|_singlestep_trans_table.csv",
+    "",
+    list.files(
+      config[["trans_rates_raw_dir"]],
+      full.names = FALSE,
+      pattern = "singlestep"
+    )
   )
 
-  viable_trans_by_period_ss <- lapply(calibration_singlestep_tables, function(x) {
-    x$Initial_class <- sapply(
-      x$From., function(y) lulc_classes[lulc_classes$value == y, "label"]
-    )
-    x$Final_class <- sapply(
-      x$To., function(y) lulc_classes[lulc_classes$value == y, "label"]
-    )
-    x$Trans_name <- paste(x$Initial_class, x$Final_class, sep = "_")
+  viable_trans_by_period_ss <- lapply(
+    calibration_singlestep_tables,
+    function(x) {
+      x$Initial_class <- sapply(
+        x$From.,
+        function(y) lulc_classes[lulc_classes$value == y, "class_name"]
+      )
+      x$Final_class <- sapply(
+        x$To.,
+        function(y) lulc_classes[lulc_classes$value == y, "class_name"]
+      )
+      x$Trans_name <- paste(x$Initial_class, x$Final_class, sep = "-")
 
-    # Subset by inclusion threshold
-    x <- x[x$Rate * 100 >= config[["inclusion_threshold"]], ]
-
-    # Subset by transitions from non-static classes
-    x <- x[x$Initial_class != "Static", ]
-
-    x$Trans_ID <- sprintf("%02d", seq_len(nrow(x)))
-    return(x)
-  })
+      x$Trans_ID <- sprintf("%02d", seq_len(nrow(x)))
+      return(x)
+    }
+  )
 
   # Save viable transitions list
   saveRDS(viable_trans_by_period_ss, config[["viable_transitions_lists"]])
@@ -175,7 +187,8 @@ transition_identification <- function(config = get_config()) {
   trans_tables_bound_ss$Trans_ID <- NULL
   trans_table_time_ss <- tidyr::pivot_wider(
     trans_tables_bound_ss,
-    names_from = "Period", values_from = "Rate"
+    names_from = "Period",
+    values_from = "Rate"
   )
   write.csv(
     trans_table_time_ss,
@@ -191,42 +204,53 @@ transition_identification <- function(config = get_config()) {
   calibration_multistep_tables <- lapply(
     list.files(
       config[["trans_rates_raw_dir"]],
-      full.names = TRUE, pattern = "multistep"
-    ), read.csv
+      full.names = TRUE,
+      pattern = "multistep"
+    ),
+    read.csv
   )
   names(calibration_multistep_tables) <- gsub(
-    "calibration_|_multistep_trans_table.csv", "",
+    "calibration_|_multistep_trans_table.csv",
+    "",
     list.files(
       config[["trans_rates_raw_dir"]],
-      full.names = FALSE, pattern = "multistep"
+      full.names = FALSE,
+      pattern = "multistep"
     )
   )
 
-  viable_trans_by_period_ms <- lapply(calibration_multistep_tables, function(x) {
-    x$Initial_class <- sapply(
-      x$From., function(y) lulc_classes[lulc_classes$value == y, "label"]
-    )
-    x$Final_class <- sapply(
-      x$To., function(y) lulc_classes[lulc_classes$value == y, "label"]
-    )
-    x$Trans_name <- paste(x$Initial_class, x$Final_class, sep = "_")
+  viable_trans_by_period_ms <- lapply(
+    calibration_multistep_tables,
+    function(x) {
+      x$Initial_class <- sapply(
+        x$From.,
+        function(y) lulc_classes[lulc_classes$value == y, "class_name"]
+      )
+      x$Final_class <- sapply(
+        x$To.,
+        function(y) lulc_classes[lulc_classes$value == y, "class_name"]
+      )
+      x$Trans_name <- paste(x$Initial_class, x$Final_class, sep = "-")
 
-    # Remove transitions from static class
-    x <- x[x$Initial_class != "Static", ]
+      # Remove transitions from static class
+      x <- x[x$Initial_class != "Static", ]
 
-    x$Trans_ID <- sprintf("%02d", seq_len(nrow(x)))
-    return(x)
-  })
+      x$Trans_ID <- sprintf("%02d", seq_len(nrow(x)))
+      return(x)
+    }
+  )
 
   # because the same inclusion threshold does not apply to the multi-step rates
   # instead subset by the trans names in the single step equivalent table
   single_step_table <- read.csv(
     file.path(
-      config[["trans_rates_raw_dir"]], "trans_rates_table_calibration_periods_SS.csv"
+      config[["trans_rates_raw_dir"]],
+      "trans_rates_table_calibration_periods_SS.csv"
     )
   )
   trans_names <- single_step_table[
-    !is.na(single_step_table[[length(single_step_table)]]), "Trans_name"
+    !is.na(single_step_table[[length(single_step_table)]]),
+    "Trans_name"
   ] # last calibration column for filtering
 
   viable_trans_by_period_ms <- lapply(viable_trans_by_period_ms, function(x) {
@@ -236,7 +260,12 @@ transition_identification <- function(config = get_config()) {
   # Save multi-step viable transitions individually
   mapply(
     function(trans_table, table_name) {
-      trans_table[, c("Trans_ID", "Trans_name", "Initial_class", "Final_class")] <- NULL
+      trans_table[, c(
+        "Trans_ID",
+        "Trans_name",
+        "Initial_class",
+        "Final_class"
+      )] <- NULL
       readr::write_csv(
         trans_table,
         file = file.path(
@@ -250,16 +279,21 @@ transition_identification <- function(config = get_config()) {
   )
 
   # Merge multi-step transitions over time
-  trans_tables_bound_ms <- data.table::rbindlist(viable_trans_by_period_ms, idcol = "Period")
+  trans_tables_bound_ms <- data.table::rbindlist(
+    viable_trans_by_period_ms,
+    idcol = "Period"
+  )
   trans_tables_bound_ms$Trans_ID <- NULL
   trans_table_time_ms <- tidyr::pivot_wider(
     trans_tables_bound_ms,
-    names_from = "Period", values_from = "Rate"
+    names_from = "Period",
+    values_from = "Rate"
   )
   write.csv(
     trans_table_time_ms,
     file.path(
-      config[["trans_rates_raw_dir"]], "trans_rates_table_calibration_periods_MS.csv"
+      config[["trans_rates_raw_dir"]],
+      "trans_rates_table_calibration_periods_MS.csv"
     )
   )
 }
@@ -267,11 +301,12 @@ transition_identification <- function(config = get_config()) {
 # instantiate function to produce raw, single step and multistep
 # net percentage transition tables and save each to file
 lulcc_periodictransmatrices <- function(
-    raster_combo,
-    raster_stack,
-    period_name,
-    step_length,
-    trans_rates_dir) {
+  raster_combo,
+  raster_stack,
+  period_name,
+  step_length,
+  trans_rates_dir
+) {
   # Extract rasters by year, drop RATs and rename
   r1 <- raster_stack[[grep(raster_combo[1], names(raster_stack))]]
   levels(r1) <- NULL
@@ -289,12 +324,21 @@ lulcc_periodictransmatrices <- function(
 
   # Convert to percentage changes
   sum01 <- apply(trans_rates_for_period, MARGIN = 1, FUN = sum)
-  percchange <- sweep(trans_rates_for_period, MARGIN = 1, STATS = sum01, FUN = "/")
+  percchange <- sweep(
+    trans_rates_for_period,
+    MARGIN = 1,
+    STATS = sum01,
+    FUN = "/"
+  )
   perchange_for_period <- as.data.frame(percchange)
 
   # Convert columns to numeric
-  perchange_for_period$from_lulc <- as.numeric(as.character(perchange_for_period$from_lulc))
-  perchange_for_period$to_lulc <- as.numeric(as.character(perchange_for_period$to_lulc))
+  perchange_for_period$from_lulc <- as.numeric(as.character(
+    perchange_for_period$from_lulc
+  ))
+  perchange_for_period$to_lulc <- as.numeric(as.character(
+    perchange_for_period$to_lulc
+  ))
 
   # Remove persistence and zero rows
   perchange_for_period <- perchange_for_period[
@@ -305,14 +349,19 @@ lulcc_periodictransmatrices <- function(
   ]
 
   # Sort by initial class
-  perchange_for_period <- perchange_for_period[order(perchange_for_period$from_lulc), ]
+  perchange_for_period <- perchange_for_period[
+    order(perchange_for_period$from_lulc),
+  ]
 
   # alter column names to match Dinamica trans tables
   colnames(perchange_for_period) <- c("From*", "To*", "Rate")
   # Save single-step table
   readr::write_csv(
     perchange_for_period,
-    file.path(trans_rates_dir, paste0("calibration_", period_name, "_singlestep_trans_table.csv"))
+    file.path(
+      trans_rates_dir,
+      paste0("calibration_", period_name, "_singlestep_trans_table.csv")
+    )
   )
 
   # Multi-step calculation
@@ -320,12 +369,15 @@ lulcc_periodictransmatrices <- function(
   num_steps <- ceiling(period_length / step_length)
 
   perchange_for_period_multistep <- perchange_for_period
-  perchange_for_period_multistep$Rate <- perchange_for_period_multistep$Rate / num_steps
+  perchange_for_period_multistep$Rate <- perchange_for_period_multistep$Rate /
+    num_steps
 
   # Save multi-step table
   readr::write_csv(
-    perchange_for_period_multistep, file.path(
-      trans_rates_dir, paste0("calibration_", period_name, "_multistep_trans_table.csv")
+    perchange_for_period_multistep,
+    file.path(
+      trans_rates_dir,
+      paste0("calibration_", period_name, "_multistep_trans_table.csv")
     )
   )
 }
