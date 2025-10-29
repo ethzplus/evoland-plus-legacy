@@ -18,6 +18,9 @@ transition_feature_selection <- function(config = get_config()) {
     dplyr::filter(feature_selection_employed) |>
     dplyr::distinct(data_period_name, model_scale)
 
+  # Determine if regionalization is enabled
+  use_regions <- isTRUE(config[["regionalization"]])
+
   # Process each period and scale combination
   results_list <- purrr::map2(
     periods_to_process$data_period_name,
@@ -26,6 +29,7 @@ transition_feature_selection <- function(config = get_config()) {
       perform_feature_selection(
         period = period,
         scale = scale,
+        use_regions = use_regions,
         config = config
       )
     }
@@ -49,10 +53,11 @@ transition_feature_selection <- function(config = get_config()) {
 #'
 #' @param period Data period name
 #' @param scale Model scale
+#' @param use_regions Whether to perform regionalized feature selection
 #' @param config Configuration list
-#' @return Data frame with selected features per transition
+#' @return Data frame with selected features per transition (and region if applicable)
 
-perform_feature_selection <- function(period, scale, config) {
+perform_feature_selection <- function(period, scale, use_regions, config) {
   message(sprintf("Processing period: %s, scale: %s", period, scale))
 
   # Load transition definitions for this period
@@ -79,19 +84,45 @@ perform_feature_selection <- function(period, scale, config) {
     sprintf("%s_%s_predictors.parquet", period, scale)
   )
 
-  # Process each transition
+  # Determine regions to process
+  if (use_regions) {
+    # Read unique regions from the transitions parquet
+    regions <- arrow::read_parquet(
+      transitions_pq_path,
+      col_select = "region"
+    ) |>
+      dplyr::distinct(region) |>
+      dplyr::pull(region)
+
+    message(sprintf(
+      "Regionalization enabled. Processing %d regions",
+      length(regions)
+    ))
+  } else {
+    regions <- NA_character_ # Single "region" representing全域
+  }
+
+  # Process each transition x region combination
   transition_results <- furrr::future_map_dfr(
     transitions_info$transition_name,
     function(trans_name) {
-      process_single_transition(
-        transition_name = trans_name,
-        transitions_pq_path = transitions_pq_path,
-        predictors_pq_path = predictors_pq_path,
-        pred_categories = pred_categories,
-        pred_metadata = pred_metadata,
-        period = period,
-        scale = scale,
-        config = config
+      # For each transition, process all regions
+      purrr::map_dfr(
+        regions,
+        function(region) {
+          process_single_transition(
+            transition_name = trans_name,
+            region = region,
+            use_regions = use_regions,
+            transitions_pq_path = transitions_pq_path,
+            predictors_pq_path = predictors_pq_path,
+            pred_categories = pred_categories,
+            pred_metadata = pred_metadata,
+            period = period,
+            scale = scale,
+            config = config
+          )
+        }
       )
     },
     .options = furrr::furrr_options(seed = TRUE)
@@ -104,6 +135,8 @@ perform_feature_selection <- function(period, scale, config) {
 #' Process feature selection for a single transition
 #'
 #' @param transition_name Name of the transition column
+#' @param region Region identifier (NA if not using regionalization)
+#' @param use_regions Whether regionalization is enabled
 #' @param transitions_pq_path Path to transitions parquet file
 #' @param predictors_pq_path Path to predictors parquet file
 #' @param pred_categories Named vector of predictor categories
@@ -115,6 +148,8 @@ perform_feature_selection <- function(period, scale, config) {
 
 process_single_transition <- function(
   transition_name,
+  region,
+  use_regions,
   transitions_pq_path,
   predictors_pq_path,
   pred_categories,
@@ -124,19 +159,42 @@ process_single_transition <- function(
   config
 ) {
   # Read and filter transition data (only valid observations: 0 or 1)
-  trans_data <- arrow::read_parquet(
-    transitions_pq_path,
-    col_select = c("cell_id", transition_name)
-  ) |>
-    dplyr::filter(!is.na(.data[[transition_name]]))
+  if (use_regions) {
+    trans_data <- arrow::read_parquet(
+      transitions_pq_path,
+      col_select = c("cell_id", "region", transition_name)
+    ) |>
+      dplyr::filter(
+        region == !!region,
+        !is.na(.data[[transition_name]])
+      ) |>
+      dplyr::select(-region)
+
+    message(sprintf("Processing: %s, Region: %s", transition_name, region))
+  } else {
+    trans_data <- arrow::read_parquet(
+      transitions_pq_path,
+      col_select = c("cell_id", transition_name)
+    ) |>
+      dplyr::filter(!is.na(.data[[transition_name]]))
+
+    message(sprintf("Processing: %s (全域)", transition_name))
+  }
 
   # Early exit if insufficient data
   if (nrow(trans_data) < 100 || sum(trans_data[[transition_name]]) < 10) {
-    warning(sprintf("Insufficient data for transition: %s", transition_name))
+    warning(sprintf(
+      "Insufficient data for transition: %s%s",
+      transition_name,
+      if (use_regions) sprintf(", region: %s", region) else ""
+    ))
     return(tibble::tibble(
       period = period,
       scale = scale,
+      region = if (use_regions) region else NA_character_,
       transition = transition_name,
+      n_observations = nrow(trans_data),
+      n_transitions = sum(trans_data[[transition_name]]),
       n_initial_predictors = length(pred_categories),
       n_after_collinearity = 0,
       n_after_grrf = 0,
@@ -146,12 +204,22 @@ process_single_transition <- function(
   }
 
   # Read predictor data and join
-  pred_data <- arrow::read_parquet(
-    predictors_pq_path,
-    col_select = c("cell_id", names(pred_categories))
-  ) |>
-    dplyr::inner_join(trans_data, by = "cell_id") |>
-    dplyr::select(-cell_id)
+  if (use_regions) {
+    pred_data <- arrow::read_parquet(
+      predictors_pq_path,
+      col_select = c("cell_id", "region", names(pred_categories))
+    ) |>
+      dplyr::filter(region == !!region) |>
+      dplyr::inner_join(trans_data, by = "cell_id") |>
+      dplyr::select(-cell_id, -region)
+  } else {
+    pred_data <- arrow::read_parquet(
+      predictors_pq_path,
+      col_select = c("cell_id", names(pred_categories))
+    ) |>
+      dplyr::inner_join(trans_data, by = "cell_id") |>
+      dplyr::select(-cell_id)
+  }
 
   # Extract response and predictors
   trans_result <- pred_data[[transition_name]]
@@ -181,8 +249,9 @@ process_single_transition <- function(
     },
     error = function(e) {
       warning(sprintf(
-        "Collinearity filtering failed for %s: %s",
+        "Collinearity filtering failed for %s%s: %s",
         transition_name,
+        if (use_regions) sprintf(", region: %s", region) else "",
         e$message
       ))
       return(NULL)
@@ -193,7 +262,10 @@ process_single_transition <- function(
     return(tibble::tibble(
       period = period,
       scale = scale,
+      region = if (use_regions) region else NA_character_,
       transition = transition_name,
+      n_observations = nrow(trans_data),
+      n_transitions = sum(trans_data[[transition_name]]),
       n_initial_predictors = ncol(cov_data),
       n_after_collinearity = 0,
       n_after_grrf = 0,
@@ -214,8 +286,9 @@ process_single_transition <- function(
     },
     error = function(e) {
       warning(sprintf(
-        "GRRF filtering failed for %s: %s",
+        "GRRF filtering failed for %s%s: %s",
         transition_name,
+        if (use_regions) sprintf(", region: %s", region) else "",
         e$message
       ))
       return(NULL)
@@ -226,7 +299,10 @@ process_single_transition <- function(
     return(tibble::tibble(
       period = period,
       scale = scale,
+      region = if (use_regions) region else NA_character_,
       transition = transition_name,
+      n_observations = nrow(trans_data),
+      n_transitions = sum(trans_data[[transition_name]]),
       n_initial_predictors = ncol(cov_data),
       n_after_collinearity = ncol(collin_filtered),
       n_after_grrf = 0,
@@ -238,17 +314,24 @@ process_single_transition <- function(
   # Compile results
   selected_vars <- grrf_selected$var
 
-  # Save the filtered dataset for this transition
+  # Save the filtered dataset for this transition (and region if applicable)
   filtered_data <- list(
     transition_result = trans_result,
     cov_data = collin_filtered[, selected_vars, drop = FALSE],
-    selected_predictors = selected_vars
+    selected_predictors = selected_vars,
+    region = if (use_regions) region else NA_character_
   )
+
+  file_suffix <- if (use_regions) {
+    sprintf("%s_%s_region_%s_filtered.rds", transition_name, scale, region)
+  } else {
+    sprintf("%s_%s_filtered.rds", transition_name, scale)
+  }
 
   save_path <- file.path(
     config[["filtered_data_dir"]],
     period,
-    sprintf("%s_%s_filtered.rds", transition_name, scale)
+    file_suffix
   )
   dir.create(dirname(save_path), recursive = TRUE, showWarnings = FALSE)
   saveRDS(filtered_data, save_path)
@@ -262,6 +345,7 @@ process_single_transition <- function(
       period = period,
       scale = scale,
       transition = transition_name,
+      region = if (use_regions) region else NA_character_,
       config = config
     )
   }
@@ -270,7 +354,10 @@ process_single_transition <- function(
   tibble::tibble(
     period = period,
     scale = scale,
+    region = if (use_regions) region else NA_character_,
     transition = transition_name,
+    n_observations = nrow(trans_data),
+    n_transitions = sum(trans_data[[transition_name]]),
     n_initial_predictors = ncol(cov_data),
     n_after_collinearity = ncol(collin_filtered),
     n_after_grrf = length(selected_vars),
@@ -357,6 +444,7 @@ lulcc_filtersel_simple <- function(
 #' @param period Data period
 #' @param scale Model scale
 #' @param transition Transition name
+#' @param region Region identifier (NA if not regionalized)
 #' @param config Configuration list
 
 update_focal_lookup <- function(
@@ -364,6 +452,7 @@ update_focal_lookup <- function(
   period,
   scale,
   transition,
+  region,
   config
 ) {
   lookup_path <- file.path(
@@ -387,15 +476,24 @@ update_focal_lookup <- function(
     ) |>
     dplyr::mutate(
       transition = transition,
-      scale = scale
+      scale = scale,
+      region = region
     )
 
   # Append to period-specific lookup
-  output_path <- file.path(
-    config[["preds_tools_dir"]],
-    "neighbourhood_details_for_dynamic_updating",
-    sprintf("%s_%s_focals_for_updating.rds", period, scale)
-  )
+  if (!is.na(region)) {
+    output_path <- file.path(
+      config[["preds_tools_dir"]],
+      "neighbourhood_details_for_dynamic_updating",
+      sprintf("%s_%s_region_%s_focals_for_updating.rds", period, scale, region)
+    )
+  } else {
+    output_path <- file.path(
+      config[["preds_tools_dir"]],
+      "neighbourhood_details_for_dynamic_updating",
+      sprintf("%s_%s_focals_for_updating.rds", period, scale)
+    )
+  }
 
   if (file.exists(output_path)) {
     existing <- readRDS(output_path)
