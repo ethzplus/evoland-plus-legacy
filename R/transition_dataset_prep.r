@@ -2,7 +2,7 @@
 #'
 #' Script for gathering the layers of LULC (dependent variable) and predictors for each
 #' historic period then separating into viable LULC transitions at the scale of
-#' Switzerland and Bioregions
+#' Peru and regions
 #'
 #' @param config list of configuration parameters
 #'
@@ -30,39 +30,17 @@ transition_dataset_prep <- function(config = get_config()) {
   # The predictor data table is used to identify the file names of variables that
   # are to be included in the stack for each time period
 
-  # load tables as list
-  predictor_tables <- lapply(
-    config[["data_periods"]],
-    function(x) {
-      data.table::data.table(
-        openxlsx::read.xlsx(config[["pred_table_path"]], sheet = x)
-      )
-    }
-  )
-  names(predictor_tables) <- config[["data_periods"]]
+  # Load existing DEM raster and predictor YAML
+  pred_yaml_file <- config[["pred_table_path"]]
+  pred_table <- yaml::yaml.load_file(pred_yaml_file)
 
-  # subsetting to only the necessary columns
-  preds_by_period <- lapply(predictor_tables, function(x) {
-    pred_subset <- x[, c("path", "pred_name")]
-    pred_subset$File_name <- file.path(
-      config[["data_basepath"]],
-      pred_subset$path
-    )
-    pred_subset$path <- NULL
-    names(pred_subset)[names(pred_subset) == "pred_name"] <- "Layer_name"
-    return(pred_subset)
-  })
-
-  # Appending the initial LULC classes (1st year of period) and the outcome LULC (last
-  # year of period) as well regional designation create a list of the file paths of the
-  # historic LULC rasters pattern matching on the .grd$ extension first and then
-  # excluding the accompanying .ovr files with grep
+  # Create data frame of LULC file paths for each period and combine with the regions path
   lulc_raster_paths <- data.frame(matrix(ncol = 2, nrow = 4))
   colnames(lulc_raster_paths) <- c("File_name", "Layer_name")
   lulc_raster_paths["File_name"] <- as.data.frame(
     list.files(
-      config[["historic_lulc_basepath"]],
-      pattern = ".grd$",
+      config[["aggregated_lulc_dir"]],
+      pattern = ".tif$",
       full.names = TRUE
     )
   )
@@ -71,7 +49,7 @@ transition_dataset_prep <- function(config = get_config()) {
   lulc_raster_paths[["Layer_name"]] <-
     lulc_raster_paths[["File_name"]] |>
     stringr::str_extract("(?<=/)[^/]*$") |>
-    stringr::str_remove(".grd$")
+    stringr::str_remove(".tif$")
 
   # Collect file path for regional raster
   region_path <- data.frame(matrix(ncol = 2, nrow = 1))
@@ -81,7 +59,7 @@ transition_dataset_prep <- function(config = get_config()) {
     pattern = ".tif$",
     full.names = TRUE
   )
-  region_path["Layer_name"] <- "Bioregion"
+  region_path["Layer_name"] <- "region"
 
   # Create regexes for LULC periods
   lulc_period_regexes <- lapply(config[["data_periods"]], function(x) {
@@ -103,28 +81,17 @@ transition_dataset_prep <- function(config = get_config()) {
 
   # Combine predictor paths with LULC (and region if needed)
   if (config[["regionalization"]]) {
-    combined_paths_by_period <- lapply(
-      (mapply(rbind, preds_by_period, lulc_paths_by_period, SIMPLIFY = FALSE)),
-      function(x) rbind(x, region_path)
-    )
+    combined_paths_by_period <- lapply(lulc_paths_by_period, function(x) {
+      rbind(x, region_path)
+    })
   } else {
-    combined_paths_by_period <- mapply(
-      rbind,
-      preds_by_period,
-      lulc_paths_by_period,
-      SIMPLIFY = FALSE
-    )
+    combined_paths_by_period <- lulc_paths_by_period
   }
 
   # read in all rasters in the list to check compatibility before stacking
   rasters_by_periods <- purrr::map(combined_paths_by_period, function(x) {
     raster_list <- purrr::map(x$File_name, function(raster_file_name) {
       r <- terra::rast(raster_file_name)
-      if (!terra::global(r, "anynotNA")[[1]]) {
-        warning("Raster ", raster_file_name, " is all NA, discarding")
-        return(NULL) # discard all-NA rasters quietly
-      }
-      r
     })
     names(raster_list) <- x$Layer_name
     purrr::compact(raster_list) # drop NULLs
@@ -146,23 +113,10 @@ transition_dataset_prep <- function(config = get_config()) {
   )
 
   # Create SpatRaster stacks for each time period.
-  ensure_dir(config[["prepped_pred_stacks"]])
   rasterstacks_by_periods <- mapply(
     function(raster_list, period_name) {
       # Combine layers into a single SpatRaster
       raster_stack_for_period <- terra::rast(raster_list)
-
-      # Saving as rds doesn't work for terra objects, but these stacks aren't actually
-      # used anywhere. It's actually a good idea though, because this avoids a memory
-      # bottleneck down the line.
-      # saveRDS(
-      #   raster_stack_for_period,
-      #   file = file.path(
-      #     config[["prepped_pred_stacks"]],
-      #     paste0("pred_stack_", period_name, ".rds")
-      #   )
-      # )
-      raster_stack_for_period
     },
     raster_list = rasters_by_periods,
     period_name = names(rasters_by_periods),
@@ -186,153 +140,182 @@ transition_dataset_prep <- function(config = get_config()) {
     rasterstacks_by_periods = rasterstacks_by_periods
   )
   message("Preparation of transition datasets complete")
-}
 
+  # testing values
+  period <- config[["data_periods"]][3]
 
-process_period_transitions <- function(
-  period,
-  rasterstacks_by_periods,
-  config
-) {
-  # Convert SpatRaster to data.frame including coordinates
-  # Cannot take advantage of sparsity because the distances to roads, lakes, rivers is
-  # computed for the entire domain; all others are about half that
-  # TODO this is slow and a memory hog; can we not avoid this by directly constructing a
-  # table like this?
-  trans_data <-
-    terra::as.data.frame(
-      rasterstacks_by_periods[[paste(period)]],
-      xy = TRUE,
-      na.rm = FALSE
-    ) |>
-    tibble::as_tibble(rownames = "Num_ID") |>
-    # this also drops NAs, not what Ben implemented, but possibly what he intended
-    dplyr::filter(Initial_class != "Static")
-
-  ### =========================================================================
-  ### D. Transition dataset creation
-  ### =========================================================================
-  # Datasets still contain instances of all class-class transitions which is not
-  # useful for modelling because some are not viable. Thus we need to filter out
-  # these transitions to give separate data sets for each initial LULC class to
-  # final LULC class transition but each needs to contain all of the data points
-  # of the other transitions from the same initial class to the other final classes.
-  # Given the total number of class-class transitions this could be a
-  # lengthy process so first we filter out the transitions that are not viable.
-  # This should be a two step process:
-  # 1. Filtering out entries based on Initial LULC classes that do not
-  # undergo transitions (static class)
-  # 2. Use a list of viable transitions to separate out transitions that do not
-  # occur at a sufficient rate.
-  # read in list of viable transition for period
-  # created in script 'Transition_identification'
-  viable_trans_list <- readRDS(config[["viable_transitions_lists"]])[[paste(
-    period
-  )]]
-
-  # loop over viable transitions and add column for each to the data with the values:
-  # 1: If the row is positive for the given transition: If both Initial and Final
-  # classes match that of the transition)
-  # 0 :if the row is negative for this transition: If the initial class matches but
-  # the final class does not);
-  # NA :if the row is Not applicable: neither the initial or final class match that of
-  # the transition)
-  message("Creating transition datasets for period ", period)
-
-  # Load predictor data table
-  predictor_table <-
-    openxlsx::read.xlsx(config[["pred_table_path"]], sheet = period) |>
-    tibble::as_tibble() |>
-    # FIXME? silently filtering here on the presumption that the warning above suffices
-    dplyr::filter(pred_name %in% names(trans_data))
-
-  # seperate transition related columns
-  trans_rel_cols <- trans_data[,
-    c("Num_ID", "Initial_class", "Final_class")
-  ]
-
-  # create empty list for results
-  trans_df <- matrix(
-    NA_integer_,
-    nrow = nrow(trans_rel_cols),
-    ncol = nrow(viable_trans_list)
-  ) |>
-    data.frame() |> # cannot go to tibble directly; it can hold matrix columns
-    tibble::as_tibble()
-
-  colnames(trans_df) <- viable_trans_list[, "Trans_name"]
-
-  # Assign 1/0 for each viable transition
-  for (row_i in seq_len(nrow(viable_trans_list))) {
-    f <- viable_trans_list[row_i, "Initial_class"]
-    t <- viable_trans_list[row_i, "Final_class"]
-    trans_df[
-      which(
-        trans_rel_cols$Initial_class == f &
-          trans_rel_cols$Final_class == t
-      ),
-      row_i
-    ] <- 1L
-    trans_df[
-      which(
-        trans_rel_cols$Initial_class == f &
-          trans_rel_cols$Final_class != t
-      ),
-      row_i
-    ] <- 0L
+  # Check if valid_cell_ids.rds exists
+  valid_ids_path <- file.path(
+    config[["predictors_prepped_dir"]],
+    "parquet_data",
+    "valid_cell_ids.rds"
+  )
+  if (file.exists(valid_ids_path)) {
+    cat("✓ Found existing valid_cell_ids.rds, loading...\n")
+    valid_cell_ids <- readRDS(valid_ids_path)
+    cat(sprintf(
+      "\n✓ Loaded %s valid cells\n\n",
+      format(length(valid_cell_ids), big.mark = ",")
+    ))
+  } else {
+    cat(
+      "✓ No existing valid_cell_ids.rds found, extracting from mask raster...\n"
+    )
+    # Extract valid cell IDs
+    valid_cell_ids <- extract_valid_cells(mask_raster_path, rows_per_block)
+    saveRDS(valid_cell_ids, valid_ids_path)
+    cat(sprintf(
+      "\n✓ Found %s valid cells\n\n",
+      format(length(valid_cell_ids), big.mark = ",")
+    ))
   }
 
-  # Combine each transition column with predictor/info cols
-  binarized_trans_datasets <- lapply(
-    viable_trans_list[, "Trans_name"],
-    function(trans_name) {
-      trans_data_combined <- tidyr::drop_na(dplyr::bind_cols(
-        # the order of these columns is relied upon in lulcc.splitforcovselection
-        trans_dataset = trans_data,
-        trans_df[, trans_name]
-      ))
+  process_period_transitions <- function(
+    period,
+    rasterstacks_by_periods,
+    config,
+    valid_cell_ids,
+    chunk_size = 5e6 # tune this based on your RAM and I/O speed
+  ) {
+    library(terra)
+    library(arrow)
 
-      # TODO check if this is necessary; the tibble being joined should already have this colname
-      names(trans_data_combined)[ncol(trans_data_combined)] <- trans_name
-      trans_data_combined
-    }
-  )
+    message("\n=== Processing transitions for period: ", period, " ===")
 
-  # Rename datasets using period to split LULC classes
-  names(binarized_trans_datasets) <- sapply(
-    seq_len(nrow(viable_trans_list)),
-    function(i) {
-      paste0(
-        viable_trans_list[i, "Initial_class"],
-        "/",
-        viable_trans_list[i, "Final_class"]
+    # Load rasters
+    r_stack <- rasterstacks_by_periods[[paste(period)]]
+    init_r <- r_stack$Initial_class
+    fin_r <- r_stack$Final_class
+
+    regionalization <- isTRUE(config[["regionalization"]])
+    region_r <- if (regionalization) r_stack$region else NULL
+
+    viable_trans_list <- readRDS(config[["viable_transitions_lists"]])[[paste(
+      period
+    )]]
+
+    out_dir <- file.path(config[["trans_pre_pred_filter_dir"]], period)
+    ensure_dir(out_dir)
+
+    n_valid <- length(valid_cell_ids)
+    n_chunks <- ceiling(n_valid / chunk_size)
+    message(
+      "Valid cells: ",
+      format(n_valid, big.mark = ","),
+      " (",
+      n_chunks,
+      " chunks of ",
+      format(chunk_size, big.mark = ","),
+      ")"
+    )
+
+    for (i in seq_len(nrow(viable_trans_list))) {
+      from_class <- viable_trans_list[i, "From."]
+      to_class <- viable_trans_list[i, "To."]
+      trans_name <- viable_trans_list[i, "Trans_name"]
+
+      message("\n→ Transition: ", from_class, " → ", to_class)
+
+      output_path <- file.path(
+        out_dir,
+        paste0(trans_name, "_transition.parquet")
       )
-    }
-  )
+      cat("  Writing to: ", output_path, "\n")
 
-  if (config[["regionalization"]]) {
-    binarized_trans_datasets_regionalized <- unlist(
-      lapply(binarized_trans_datasets, function(x) {
-        split(x, f = x[["Bioregion"]], sep = "/")
-      }),
-      recursive = FALSE
-    )
+      first_chunk <- TRUE
+      writer <- NULL
+      sink <- NULL
 
-    # Reverse order of name components
-    names(binarized_trans_datasets_regionalized) <- sapply(
-      strsplit(names(binarized_trans_datasets_regionalized), "\\."),
-      function(x) {
-        stringr::str_replace_all(paste(x[2], x[1], sep = "."), "/", ".")
+      for (chunk_idx in seq_len(n_chunks)) {
+        cat(sprintf("\r  Processing chunk %d/%d...", chunk_idx, n_chunks))
+        start_idx <- (chunk_idx - 1) * chunk_size + 1
+        end_idx <- min(chunk_idx * chunk_size, n_valid)
+        chunk_ids <- valid_cell_ids[start_idx:end_idx]
+
+        # Read raster values directly by cell ID
+        init_vals <- init_r[chunk_ids]
+        fin_vals <- fin_r[chunk_ids]
+        if (regionalization) {
+          region_vals <- region_r[chunk_ids]
+        }
+
+        # Identify transition type
+        trans_vals <- ifelse(
+          init_vals == from_class & fin_vals == to_class,
+          1L,
+          ifelse(
+            init_vals == from_class & fin_vals != to_class,
+            0L,
+            NA_integer_
+          )
+        )
+        keep <- !is.na(trans_vals)
+        if (!any(keep)) {
+          cat(sprintf(
+            "\r  Chunk %d/%d has no relevant transitions, skipping...",
+            chunk_idx,
+            n_chunks
+          ))
+          next
+        }
+
+        # Build minimal chunk table (no x/y)
+        chunk_df <- data.frame(
+          cell_id = as.integer(chunk_ids[keep]),
+          transition = trans_vals[keep],
+          stringsAsFactors = FALSE
+        )
+        if (regionalization) {
+          chunk_df$region <- as.character(region_vals[keep])
+        }
+
+        # Parquet writing identical to your known-good function
+        if (first_chunk) {
+          tbl <- arrow::Table$create(chunk_df)
+          schema <- tbl$schema
+
+          sink <- arrow::FileOutputStream$create(output_path)
+          writer <- arrow::ParquetFileWriter$create(
+            schema = schema,
+            sink = sink,
+            properties = arrow::ParquetWriterProperties$create(
+              names(schema),
+              compression = "zstd",
+              compression_level = 9
+            )
+          )
+          print("writer created")
+          print(writer)
+          writer$WriteTable(tbl, chunk_size = nrow(chunk_df))
+          first_chunk <- FALSE
+        } else {
+          writer$WriteTable(
+            arrow::Table$create(chunk_df),
+            chunk_size = nrow(chunk_df)
+          )
+        }
+
+        rm(chunk_df, init_vals, fin_vals, trans_vals)
+        gc(verbose = FALSE)
+
+        cat(sprintf(
+          "\r  Chunk %d/%d written (%s rows)",
+          chunk_idx,
+          n_chunks,
+          format(sum(keep), big.mark = ",")
+        ))
       }
-    )
-  }
 
-  names(binarized_trans_datasets) <- stringr::str_replace_all(
-    names(binarized_trans_datasets),
-    "/",
-    "."
-  )
-  rm(trans_df, trans_data, trans_rel_cols)
+      if (!is.null(writer)) {
+        writer$Close()
+        sink$close()
+      }
+
+      message("\n  ✓ Transition parquet written: ", basename(output_path))
+    }
+
+    message("\n=== All transitions for period ", period, " complete. ===\n")
+  }
 
   # Loop over transition datasets splitting each into:
   # the transition result column
