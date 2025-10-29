@@ -57,9 +57,6 @@ create_predictor_parquets <- function(
   static_rasters[["aspect"]] <- NULL
   static_rasters[["slope"]] <- NULL
 
-  # subset to first 5 entries for testing
-  static_rasters <- static_rasters[1:5]
-
   start_time <- Sys.time()
   if (length(static_rasters) > 0) {
     write_static_parquet(
@@ -86,6 +83,18 @@ create_predictor_parquets <- function(
 
   # Reorganize config by grouping into a nested list time_period -> scenario -> variable
   period_structure <- reorganize_by_period(pred_config = pred_config)
+
+  # subset to only 2018
+  period_structure <- period_structure["2018"]
+
+  # subset to a random 5 entries
+  for (period in names(period_structure)) {
+    for (scenario in names(period_structure[[period]])) {
+      vars <- period_structure[[period]][[scenario]]
+      sampled_vars <- sample(names(vars), min(5, length(vars)))
+      period_structure[[period]][[scenario]] <- vars[sampled_vars]
+    }
+  }
 
   # Get vector of time periods
   time_periods <- names(period_structure)
@@ -229,7 +238,7 @@ write_static_parquet <- function(
 
     # Build chunk data frame
     chunk_df <- data.frame(
-      cell_id = as.integer(chunk_cell_ids),
+      cell_id = as.numeric(chunk_cell_ids),
       x = xy[, 1],
       y = xy[, 2],
       stringsAsFactors = FALSE
@@ -283,7 +292,6 @@ write_static_parquet <- function(
   cat("\n✓ Static parquet created successfully with coordinates\n")
 }
 
-
 #' Write dynamic predictors using streaming approach (one scenario at a time)
 #' to minimize memory usage
 #' @param cell_ids Integer vector of valid cell IDs
@@ -296,6 +304,8 @@ write_dynamic_parquet_streaming <- function(
   output_path,
   chunk_size
 ) {
+  library(arrow)
+
   n_cells <- length(cell_ids)
   n_chunks <- ceiling(n_cells / chunk_size)
   scenarios <- names(period_data)
@@ -306,33 +316,19 @@ write_dynamic_parquet_streaming <- function(
     paste(scenarios, collapse = ", ")
   ))
 
-  # Get variable names (assume all scenarios have same variables)
-  var_names <- names(period_data[[scenarios[1]]])
+  first_chunk <- TRUE
+  writer <- NULL
+  sink <- NULL
 
-  # Prepare schema
-  schema_list <- list(
-    cell_id = arrow::int64(),
-    scenario = arrow::utf8()
-  )
-  for (var_name in var_names) {
-    schema_list[[var_name]] <- arrow::float64()
-  }
-  schema <- do.call(arrow::schema, schema_list)
-
-  # Open parquet writer
-  sink <- arrow::FileOutputStream$create(output_path)
-  writer <- arrow::ParquetFileWriter$create(
-    sink,
-    schema,
-    properties = arrow::ParquetWriterProperties$create(
-      compression = "zstd",
-      compression_level = 9
-    )
-  )
-
-  # Process each scenario separately to minimize memory
   for (scenario in scenarios) {
     cat(sprintf("  Scenario: %s\n", scenario))
+
+    var_names <- names(period_data[[scenario]])
+    cat(sprintf(
+      "    %d variables: %s\n",
+      length(var_names),
+      paste(var_names, collapse = ", ")
+    ))
 
     for (chunk_idx in seq_len(n_chunks)) {
       start_idx <- (chunk_idx - 1) * chunk_size + 1
@@ -341,20 +337,45 @@ write_dynamic_parquet_streaming <- function(
 
       cat(sprintf("\r    Chunk %d/%d     ", chunk_idx, n_chunks))
 
-      # Build chunk for this scenario only
+      # Build chunk for this scenario
       chunk_df <- data.frame(
-        cell_id = chunk_cell_ids,
+        cell_id = as.numeric(chunk_cell_ids),
         scenario = scenario,
         stringsAsFactors = FALSE
       )
 
       for (var_name in var_names) {
         r <- terra::rast(period_data[[scenario]][[var_name]])
-        chunk_df[[var_name]] <- r[chunk_cell_ids]
+        vals <- r[chunk_cell_ids]
+        if (is.data.frame(vals) || is.list(vals)) {
+          vals <- vals[[1]]
+        }
+        chunk_df[[var_name]] <- vals
       }
 
-      # Write immediately
-      writer$WriteTable(arrow::Table$create(chunk_df))
+      # Create writer on first chunk (infer schema from data)
+      if (first_chunk) {
+        tbl <- arrow::Table$create(chunk_df)
+        schema <- tbl$schema
+
+        sink <- arrow::FileOutputStream$create(output_path)
+        writer <- ParquetFileWriter$create(
+          schema = schema,
+          sink = sink,
+          properties = ParquetWriterProperties$create(
+            names(schema),
+            compression = "zstd",
+            compression_level = 9
+          )
+        )
+        writer$WriteTable(tbl, chunk_size = nrow(tbl))
+        first_chunk <- FALSE
+      } else {
+        writer$WriteTable(
+          arrow::Table$create(chunk_df),
+          chunk_size = nrow(chunk_df)
+        )
+      }
 
       rm(chunk_df)
       gc(verbose = FALSE)
@@ -370,6 +391,7 @@ write_dynamic_parquet_streaming <- function(
     format(n_cells * length(scenarios), big.mark = ",")
   ))
 }
+
 
 #' Reorganize dynamic config from flat variable list to period->scenario->variable
 #' Uses base_name field to determine the column name in output parquet
@@ -398,7 +420,7 @@ reorganize_by_period <- function(pred_config) {
       as.character(var_config$scenario_variant)
     }
 
-    raster_path <- var_config$path
+    raster_path <- file.path(config[["data_basepath"]], var_config$path)
 
     # Use base_name as the variable name for parquet columns
     # This ensures temp_2030_rcp45 and temp_2030_rcp85 both become 'temperature'
@@ -417,17 +439,6 @@ reorganize_by_period <- function(pred_config) {
     }
     if (is.null(period_structure[[period]][[scenario]])) {
       period_structure[[period]][[scenario]] <- list()
-    }
-
-    # Check for duplicate variable names within same period/scenario
-    if (!is.null(period_structure[[period]][[scenario]][[var_name]])) {
-      stop(sprintf(
-        "Duplicate base_name '%s' found for period '%s' and scenario '%s'. Check YAML entries: %s",
-        var_name,
-        period,
-        scenario,
-        var_key
-      ))
     }
 
     # Add variable path using base_name as key
@@ -465,6 +476,16 @@ extract_static_variables <- function(pred_config) {
           var_name,
           var_key
         ))
+      }
+
+      #if the var has grouping =='soil' then ensure that the name contains '100-200cm' to capture the greatest depth layer only
+      if (
+        !is.null(var_config$grouping) &&
+          var_config$grouping == "soil"
+      ) {
+        if (!grepl("100-200cm", var_name)) {
+          next
+        }
       }
 
       # if there is no path entry then skip
