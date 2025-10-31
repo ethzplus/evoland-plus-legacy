@@ -14,7 +14,7 @@ region <- region_names[1]
 #' @export
 transition_feature_selection <- function(
   config = get_config(),
-  sample_size = 1e5, # Optional: number of rows to sample for testing
+  sample_size = 3e5, # Optional: number of rows to sample for testing
   do_collinearity = TRUE, # Whether to perform collinearity filtering
   do_grrf = TRUE # Whether to perform GRRF feature selection
 ) {
@@ -105,7 +105,7 @@ perform_feature_selection <- function(
   config,
   debug_dir,
   save_debug = TRUE,
-  sample_size = 1e5, # Optional: number of rows to sample for testing
+  sample_size = 3e5, # Optional: number of rows to sample for testing
   do_collinearity = TRUE, # Whether to perform collinearity filtering
   do_grrf = TRUE # Whether to perform GRRF feature selection
 ) {
@@ -260,7 +260,7 @@ perform_feature_selection <- function(
     nrow(transitions_info)
   ))
 
-  transition_results <- furrr::future_map_dfr(
+  transition_results <- purrr::map_dfr(
     transitions_info$Trans_name,
     function(trans_name) {
       purrr::map_dfr(region_names, function(region) {
@@ -281,8 +281,7 @@ perform_feature_selection <- function(
           do_grrf = do_grrf
         )
       })
-    },
-    .options = furrr::furrr_options(seed = TRUE)
+    }
   )
 
   message(sprintf(
@@ -292,220 +291,6 @@ perform_feature_selection <- function(
   ))
   return(transition_results)
 }
-
-
-#' Load transition data for a specific transition and region
-#'
-#' @return Data frame with cell_id and response columns
-load_transition_data <- function(
-  ds_transitions,
-  transition_name,
-  region_value = NULL,
-  use_regions = FALSE
-) {
-  message(sprintf("Loading transition data for: %s", transition_name))
-
-  trans_query <- ds_transitions %>%
-    dplyr::select(cell_id, region, dplyr::all_of(transition_name))
-
-  if (use_regions && !is.null(region_value)) {
-    message(sprintf("  Filtering for region value: %d", region_value))
-    trans_query <- trans_query %>% dplyr::filter(region == region_value)
-  }
-
-  trans_query <- trans_query %>% dplyr::filter(!is.na(.data[[transition_name]]))
-
-  trans_df <- tryCatch(
-    {
-      result <- trans_query %>% dplyr::collect()
-      message(sprintf(
-        "  Loaded %d rows for transition %s",
-        nrow(result),
-        transition_name
-      ))
-      result
-    },
-    error = function(e) {
-      warning(sprintf(
-        "Failed to read transitions for %s: %s",
-        transition_name,
-        e$message
-      ))
-      tibble::tibble(cell_id = integer())
-    }
-  )
-
-  if (nrow(trans_df) == 0) {
-    message(sprintf("  No data found for transition: %s", transition_name))
-    return(tibble::tibble(cell_id = integer(), response = integer()))
-  }
-
-  trans_df %>% dplyr::select(cell_id, response = dplyr::all_of(transition_name))
-}
-
-#' Load predictor data (both static and dynamic) for specific cell IDs
-#'
-#' @return Data frame with cell_id and predictor columns
-load_predictor_data <- function(
-  ds_static,
-  ds_dynamic,
-  cell_ids,
-  predictor_names
-) {
-  message(sprintf("Loading predictors for %d cells", length(cell_ids)))
-  message(sprintf(
-    "  Requesting %d predictor variables",
-    length(predictor_names)
-  ))
-
-  if (length(predictor_names) == 0 || length(cell_ids) == 0) {
-    warning("No predictor names or cell IDs provided")
-    return(tibble::tibble(cell_id = integer()))
-  }
-
-  # --- Load Static Predictors ---
-  static_schema_names <- names(ds_static$schema)
-  static_pred_names <- intersect(predictor_names, static_schema_names)
-  message(sprintf("  Found %d static predictors", length(static_pred_names)))
-
-  static_df <- tibble::tibble(cell_id = integer())
-  if (length(static_pred_names) > 0) {
-    static_df <- tryCatch(
-      {
-        result <- ds_static %>%
-          dplyr::filter(cell_id %in% !!cell_ids) %>%
-          dplyr::select(cell_id, dplyr::all_of(static_pred_names)) %>%
-          dplyr::collect()
-        message(sprintf(
-          "    Loaded %d rows of static predictors",
-          nrow(result)
-        ))
-        result
-      },
-      error = function(e) {
-        warning(sprintf("Failed to read static predictors: %s", e$message))
-        tibble::tibble(cell_id = integer())
-      }
-    )
-  }
-
-  # --- Load Dynamic Predictors ---
-  dynamic_schema_names <- names(ds_dynamic$schema)
-  dynamic_pred_names <- intersect(predictor_names, dynamic_schema_names)
-  message(sprintf("  Found %d dynamic predictors", length(dynamic_pred_names)))
-
-  dynamic_df <- tibble::tibble(cell_id = integer())
-  if (length(dynamic_pred_names) > 0) {
-    dynamic_df <- tryCatch(
-      {
-        result <- ds_dynamic %>%
-          dplyr::filter(cell_id %in% !!cell_ids) %>%
-          dplyr::select(cell_id, dplyr::all_of(dynamic_pred_names)) %>%
-          dplyr::collect()
-        message(sprintf(
-          "    Loaded %d rows of dynamic predictors",
-          nrow(result)
-        ))
-        result
-      },
-      error = function(e) {
-        warning(sprintf("Failed to read dynamic predictors: %s", e$message))
-        tibble::tibble(cell_id = integer())
-      }
-    )
-  }
-
-  # --- Combine Static and Dynamic ---
-  if (nrow(static_df) > 0 && nrow(dynamic_df) > 0) {
-    message("  Combining static and dynamic predictors via full_join")
-    combined_df <- dplyr::full_join(static_df, dynamic_df, by = "cell_id")
-  } else if (nrow(static_df) > 0) {
-    message("  Using only static predictors")
-    combined_df <- static_df
-  } else if (nrow(dynamic_df) > 0) {
-    message("  Using only dynamic predictors")
-    combined_df <- dynamic_df
-  } else {
-    warning("No predictor data loaded from either static or dynamic sources")
-    return(tibble::tibble(cell_id = integer()))
-  }
-
-  message(sprintf(
-    "  Final combined dataset: %d rows, %d columns",
-    nrow(combined_df),
-    ncol(combined_df)
-  ))
-  combined_df
-}
-
-
-#' Validate and prepare data for feature selection
-#'
-#' @return List with status, joined data, and diagnostics
-validate_and_join_data <- function(
-  trans_df,
-  preds_df,
-  min_observations = 100,
-  min_transitions = 10
-) {
-  if (nrow(trans_df) == 0) {
-    return(list(
-      status = "no_transition_data",
-      n_observations = 0,
-      n_transitions = 0,
-      data = NULL
-    ))
-  }
-
-  if (nrow(preds_df) == 0) {
-    return(list(
-      status = "no_predictor_data",
-      n_observations = nrow(trans_df),
-      n_transitions = sum(trans_df$response, na.rm = TRUE),
-      data = NULL
-    ))
-  }
-
-  joined <- dplyr::inner_join(trans_df, preds_df, by = "cell_id")
-
-  if (nrow(joined) == 0) {
-    return(list(
-      status = "no_join_results",
-      n_observations = 0,
-      n_transitions = 0,
-      data = NULL
-    ))
-  }
-
-  n_obs <- nrow(joined)
-  n_trans <- sum(joined$response, na.rm = TRUE)
-
-  if (n_obs < min_observations) {
-    return(list(
-      status = "insufficient_observations",
-      n_observations = n_obs,
-      n_transitions = n_trans,
-      data = NULL
-    ))
-  }
-
-  if (n_trans < min_transitions) {
-    return(list(
-      status = "insufficient_transitions",
-      n_observations = n_obs,
-      n_transitions = n_trans,
-      data = NULL
-    ))
-  }
-
-  list(
-    status = "valid",
-    n_observations = n_obs,
-    n_transitions = n_trans,
-    data = joined
-  )
-}
-
 
 #' Process feature selection for a single transition-region (optimized)
 #' @param transition_name Name of the transition
@@ -762,8 +547,236 @@ process_single_transition <- function(
   )
 }
 
+#' Load transition data from the parquet file for a specific transition and region
+#' @param ds_transitions Arrow dataset for transitions
+#' @param transition_name Name of the transition
+#' @param region_value Numeric region value (if applicable)
+#' @param use_regions Boolean indicating if regionalization is active
+#' @return Data frame with cell_id and response columns
+load_transition_data <- function(
+  ds_transitions,
+  transition_name,
+  region_value = NULL,
+  use_regions = FALSE
+) {
+  message(sprintf("Loading transition data for: %s", transition_name))
 
-#' Simplified collinearity-based filter selection (optimized - returns names only)
+  trans_query <- ds_transitions %>%
+    dplyr::select(cell_id, region, dplyr::all_of(transition_name))
+
+  if (use_regions && !is.null(region_value)) {
+    message(sprintf("  Filtering for region value: %d", region_value))
+    trans_query <- trans_query %>% dplyr::filter(region == region_value)
+  }
+
+  trans_query <- trans_query %>% dplyr::filter(!is.na(.data[[transition_name]]))
+
+  trans_df <- tryCatch(
+    {
+      result <- trans_query %>% dplyr::collect()
+      message(sprintf(
+        "  Loaded %d rows for transition %s",
+        nrow(result),
+        transition_name
+      ))
+      result
+    },
+    error = function(e) {
+      warning(sprintf(
+        "Failed to read transitions for %s: %s",
+        transition_name,
+        e$message
+      ))
+      tibble::tibble(cell_id = integer())
+    }
+  )
+
+  if (nrow(trans_df) == 0) {
+    message(sprintf("  No data found for transition: %s", transition_name))
+    return(tibble::tibble(cell_id = integer(), response = integer()))
+  }
+
+  trans_df %>% dplyr::select(cell_id, response = dplyr::all_of(transition_name))
+}
+
+#' Load predictor data (both static and dynamic) from the parquet file for specific cell IDs
+#' @param ds_static Arrow dataset for static predictors
+#' @param ds_dynamic Arrow dataset for dynamic predictors
+#' @param cell_ids Vector of cell IDs to load
+#' @param predictor_names Vector of predictor variable names to load
+#' @return Data frame with cell_id and predictor columns
+load_predictor_data <- function(
+  ds_static,
+  ds_dynamic,
+  cell_ids,
+  predictor_names
+) {
+  message(sprintf("Loading predictors for %d cells", length(cell_ids)))
+  message(sprintf(
+    "  Requesting %d predictor variables",
+    length(predictor_names)
+  ))
+
+  if (length(predictor_names) == 0 || length(cell_ids) == 0) {
+    warning("No predictor names or cell IDs provided")
+    return(tibble::tibble(cell_id = integer()))
+  }
+
+  # --- Load Static Predictors ---
+  static_schema_names <- names(ds_static$schema)
+  static_pred_names <- intersect(predictor_names, static_schema_names)
+  message(sprintf("  Found %d static predictors", length(static_pred_names)))
+
+  static_df <- tibble::tibble(cell_id = integer())
+  if (length(static_pred_names) > 0) {
+    static_df <- tryCatch(
+      {
+        result <- ds_static %>%
+          dplyr::filter(cell_id %in% !!cell_ids) %>%
+          dplyr::select(cell_id, dplyr::all_of(static_pred_names)) %>%
+          dplyr::collect()
+        message(sprintf(
+          "    Loaded %d rows of static predictors",
+          nrow(result)
+        ))
+        result
+      },
+      error = function(e) {
+        warning(sprintf("Failed to read static predictors: %s", e$message))
+        tibble::tibble(cell_id = integer())
+      }
+    )
+  }
+
+  # --- Load Dynamic Predictors ---
+  dynamic_schema_names <- names(ds_dynamic$schema)
+  dynamic_pred_names <- intersect(predictor_names, dynamic_schema_names)
+  message(sprintf("  Found %d dynamic predictors", length(dynamic_pred_names)))
+
+  dynamic_df <- tibble::tibble(cell_id = integer())
+  if (length(dynamic_pred_names) > 0) {
+    dynamic_df <- tryCatch(
+      {
+        result <- ds_dynamic %>%
+          dplyr::filter(cell_id %in% !!cell_ids) %>%
+          dplyr::select(cell_id, dplyr::all_of(dynamic_pred_names)) %>%
+          dplyr::collect()
+        message(sprintf(
+          "    Loaded %d rows of dynamic predictors",
+          nrow(result)
+        ))
+        result
+      },
+      error = function(e) {
+        warning(sprintf("Failed to read dynamic predictors: %s", e$message))
+        tibble::tibble(cell_id = integer())
+      }
+    )
+  }
+
+  # --- Combine Static and Dynamic ---
+  if (nrow(static_df) > 0 && nrow(dynamic_df) > 0) {
+    message("  Combining static and dynamic predictors via full_join")
+    combined_df <- dplyr::full_join(static_df, dynamic_df, by = "cell_id")
+  } else if (nrow(static_df) > 0) {
+    message("  Using only static predictors")
+    combined_df <- static_df
+  } else if (nrow(dynamic_df) > 0) {
+    message("  Using only dynamic predictors")
+    combined_df <- dynamic_df
+  } else {
+    warning("No predictor data loaded from either static or dynamic sources")
+    return(tibble::tibble(cell_id = integer()))
+  }
+
+  message(sprintf(
+    "  Final combined dataset: %d rows, %d columns",
+    nrow(combined_df),
+    ncol(combined_df)
+  ))
+  combined_df
+}
+
+
+#' Validate and prepare data for feature selection
+#' @param trans_df Data frame with transition data (cell_id, response)
+#' @param preds_df Data frame with predictor data (cell_id, predictors)
+#' @param min_observations Minimum number of observations required
+#' @param min_transitions Minimum number of transition events required
+#' @return List with status, joined data, and diagnostics
+validate_and_join_data <- function(
+  trans_df,
+  preds_df,
+  min_observations = 100,
+  min_transitions = 10
+) {
+  if (nrow(trans_df) == 0) {
+    return(list(
+      status = "no_transition_data",
+      n_observations = 0,
+      n_transitions = 0,
+      data = NULL
+    ))
+  }
+
+  if (nrow(preds_df) == 0) {
+    return(list(
+      status = "no_predictor_data",
+      n_observations = nrow(trans_df),
+      n_transitions = sum(trans_df$response, na.rm = TRUE),
+      data = NULL
+    ))
+  }
+
+  joined <- dplyr::inner_join(trans_df, preds_df, by = "cell_id")
+
+  if (nrow(joined) == 0) {
+    return(list(
+      status = "no_join_results",
+      n_observations = 0,
+      n_transitions = 0,
+      data = NULL
+    ))
+  }
+
+  n_obs <- nrow(joined)
+  n_trans <- sum(joined$response, na.rm = TRUE)
+
+  if (n_obs < min_observations) {
+    return(list(
+      status = "insufficient_observations",
+      n_observations = n_obs,
+      n_transitions = n_trans,
+      data = NULL
+    ))
+  }
+
+  if (n_trans < min_transitions) {
+    return(list(
+      status = "insufficient_transitions",
+      n_observations = n_obs,
+      n_transitions = n_trans,
+      data = NULL
+    ))
+  }
+
+  list(
+    status = "valid",
+    n_observations = n_obs,
+    n_transitions = n_trans,
+    data = joined
+  )
+}
+
+
+#' Wrapper function that performs collinearity-based filter selection for predictors in specific categories
+#' @param joined Full joined data frame
+#' @param predictor_cols Column names of predictors to filter
+#' @param response_vec Response vector (binary 0/1)
+#' @param categories Named vector (base_name of predictors) of predictor categories
+#' @param weights Weight vector
+#' @param corcut Correlation cutoff threshold
+#' @return Character vector of selected predictor names after category-wise collinearity filtering
 category_wise_collin_filter <- function(
   joined,
   predictor_cols,
@@ -1032,8 +1045,7 @@ create_summary_row <- function(
   if (save_debug) {
     debug_path <- file.path(
       debug_dir,
-      "debug_fs",
-      sprintf("debug_fs_%s_%s.rds", transition_name, region)
+      sprintf("fs_summary_%s_%s.rds", transition_name, region)
     )
     saveRDS(
       summary,
