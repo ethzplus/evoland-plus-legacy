@@ -12,7 +12,7 @@ create_predictor_parquets <- function(
   mask_raster_path = config[["ref_grid_path"]],
   output_dir = file.path(config[["predictors_prepped_dir"]], "parquet_data"),
   rows_per_block = 1000,
-  chunk_size = 5e6
+  chunk_size = 2e6
 ) {
   pred_yaml_file <- config[["pred_table_path"]]
   pred_config <- yaml::yaml.load_file(pred_yaml_file)
@@ -85,16 +85,16 @@ create_predictor_parquets <- function(
   period_structure <- reorganize_by_period(pred_config = pred_config)
 
   # subset to only 2018
-  period_structure <- period_structure["2018"]
+  period_structure <- period_structure["2018_2022"]
 
-  # subset to a random 5 entries
-  for (period in names(period_structure)) {
-    for (scenario in names(period_structure[[period]])) {
-      vars <- period_structure[[period]][[scenario]]
-      sampled_vars <- sample(names(vars), min(5, length(vars)))
-      period_structure[[period]][[scenario]] <- vars[sampled_vars]
-    }
-  }
+  # # subset to a random 5 entries
+  # for (period in names(period_structure)) {
+  #   for (scenario in names(period_structure[[period]])) {
+  #     vars <- period_structure[[period]][[scenario]]
+  #     sampled_vars <- sample(names(vars), min(5, length(vars)))
+  #     period_structure[[period]][[scenario]] <- vars[sampled_vars]
+  #   }
+  # }
 
   # Get vector of time periods
   time_periods <- names(period_structure)
@@ -233,14 +233,9 @@ write_static_parquet <- function(
       format(length(chunk_cell_ids), big.mark = ",")
     ))
 
-    # Compute coordinates for these cell IDs
-    xy <- terra::xyFromCell(ref_rast, chunk_cell_ids)
-
     # Build chunk data frame
     chunk_df <- data.frame(
       cell_id = as.numeric(chunk_cell_ids),
-      x = xy[, 1],
-      y = xy[, 2],
       stringsAsFactors = FALSE
     )
 
@@ -281,7 +276,7 @@ write_static_parquet <- function(
       )
     }
 
-    rm(chunk_df, xy)
+    rm(chunk_df)
     gc(verbose = FALSE)
   }
 
