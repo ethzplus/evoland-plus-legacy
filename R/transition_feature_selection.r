@@ -3,9 +3,11 @@
 #' @author: Ben Black (adapted)
 
 # testing parameters
-period <- periods_to_process[3]
-transition_name <- transitions_info$Trans_name[1]
-region <- region_names[1]
+period <- "2018_2022"
+transition_name <- "forested_areas-high_intensity_agricultural_areas"
+region <- "andes"
+# transition_name <- transitions_info$Trans_name[1]
+# region <- region_names[1]
 
 #' Main orchestrator function for transition feature selection across all periods
 #'
@@ -14,6 +16,10 @@ region <- region_names[1]
 #' @export
 transition_feature_selection <- function(
   config = get_config(),
+  use_regions = isTRUE(config[["regionalization"]]),
+  refresh_cache = TRUE,
+  save_debug = TRUE,
+  debug_dir = file.path(config[["feature_selection_dir"]], "debug_fs"),
   sample_size = 3e5, # Optional: number of rows to sample for testing
   do_collinearity = TRUE, # Whether to perform collinearity filtering
   do_grrf = TRUE # Whether to perform GRRF feature selection
@@ -26,7 +32,7 @@ transition_feature_selection <- function(
   future::plan(future::multisession)
 
   periods_to_process <- config[["data_periods"]]
-  use_regions <- isTRUE(config[["regionalization"]])
+  periods_to_process <- periods_to_process[3]
 
   message(sprintf(
     "Processing %d periods",
@@ -38,22 +44,22 @@ transition_feature_selection <- function(
   ))
 
   # create a debug directory for intermediate results
-  debug_dir <- file.path(config[["feature_selection_dir"]], "debug_fs")
   ensure_dir(debug_dir)
 
   # Process each period (sequential to avoid memory issues with large datasets)
   results_list <- purrr::map(
-    periods_to_process$data_period_name,
+    periods_to_process,
     function(period) {
       perform_feature_selection(
         period = period,
         use_regions = use_regions,
         config = config,
         debug_dir = debug_dir,
-        save_debug = TRUE,
+        save_debug = save_debug,
         sample_size = sample_size,
         do_collinearity = do_collinearity,
-        do_grrf = do_grrf
+        do_grrf = do_grrf,
+        refresh_cache = refresh_cache
       )
     }
   )
@@ -87,7 +93,6 @@ transition_feature_selection <- function(
   return(final_summary)
 }
 
-
 #' Perform feature selection for a single period
 #'
 #' @param period Period name (e.g., "2018_2022")
@@ -104,8 +109,9 @@ perform_feature_selection <- function(
   use_regions,
   config,
   debug_dir,
+  refresh_cache = FALSE,
   save_debug = TRUE,
-  sample_size = 3e5, # Optional: number of rows to sample for testing
+  sample_size = 1e5, # Optional: number of rows to sample for testing
   do_collinearity = TRUE, # Whether to perform collinearity filtering
   do_grrf = TRUE # Whether to perform GRRF feature selection
 ) {
@@ -115,6 +121,7 @@ perform_feature_selection <- function(
 
   # --- Load metadata ---
   transitions_info <- readRDS(config[["viable_transitions_lists"]])[[period]]
+
   lulc_schema <- jsonlite::fromJSON(
     config[["LULC_aggregation_path"]],
     simplifyVector = FALSE
@@ -152,10 +159,10 @@ perform_feature_selection <- function(
   pred_table <- c(static_preds, period_preds)
 
   # Extract names by group type
-  get_preds <- function(tbl, grouping) {
+  get_preds <- function(tbl, group) {
     purrr::map_chr(
       tbl,
-      ~ if (.x$grouping == grouping) .x$base_name else NA_character_
+      ~ if (.x$grouping == group) .x$base_name else NA_character_
     ) |>
       purrr::discard(is.na)
   }
@@ -170,6 +177,7 @@ perform_feature_selection <- function(
   nhood_groups <- purrr::map(nhood_lulcs, function(lulc) {
     purrr::keep(nhood_preds, ~ stringr::str_detect(.x, lulc))
   })
+  names(nhood_groups) <- nhood_lulcs
 
   # Remove empty groups
   nhood_groups <- purrr::discard(nhood_groups, ~ length(.x) == 0)
@@ -181,7 +189,7 @@ perform_feature_selection <- function(
     ~ {
       if (
         .x$pred_category == "suitability" &&
-          !.x$grouping %in% c("soil", "neighbourhood")
+          !.x$grouping %in% c("neighbourhood")
       ) {
         .x$base_name
       } else {
@@ -194,8 +202,8 @@ perform_feature_selection <- function(
   # Build final vector
   pred_categories <- c(
     setNames(rep("suitability", length(suitability_preds)), suitability_preds),
-    unlist(imap(soil_groups, ~ setNames(rep(.y, length(.x)), .x))),
-    unlist(imap(nhood_groups, ~ setNames(rep(.y, length(.x)), .x)))
+    #unlist(imap(soil_groups, ~ setNames(rep(.y, length(.x)), .x))),
+    flatten_chr(imap(nhood_groups, ~ setNames(rep(.y, length(.x)), .x)))
   )
 
   message(sprintf("Loaded %d viable transitions", nrow(transitions_info)))
@@ -266,6 +274,7 @@ perform_feature_selection <- function(
       purrr::map_dfr(region_names, function(region) {
         process_single_transition(
           transition_name = trans_name,
+          refresh_cache = refresh_cache,
           region = region,
           use_regions = use_regions,
           ds_transitions = ds_transitions,
@@ -292,6 +301,7 @@ perform_feature_selection <- function(
   return(transition_results)
 }
 
+
 #' Process feature selection for a single transition-region (optimized)
 #' @param transition_name Name of the transition
 #' @param region Region name (if applicable)
@@ -304,6 +314,7 @@ perform_feature_selection <- function(
 #' @param config Configuration list
 #' @param debug_dir Directory for debug outputs
 #' @param save_debug Boolean indicating if debug outputs should be saved
+#' @param refresh_cache Boolean indicating if cached results should be recalculated
 #' @return Data frame with feature selection summary for the transition-region
 process_single_transition <- function(
   transition_name,
@@ -317,10 +328,35 @@ process_single_transition <- function(
   config,
   debug_dir,
   save_debug = TRUE,
-  sample_size = 3e5, # <-- new: default sample size = 100k
-  do_collinearity = TRUE, # <-- new: toggle collinearity filtering
-  do_grrf = TRUE # <-- new: toggle GRRF filtering
+  sample_size = 3e5,
+  do_collinearity = TRUE,
+  do_grrf = TRUE,
+  refresh_cache = FALSE
 ) {
+  # --- STEP 0: Check for cached results ---
+  debug_path <- file.path(
+    debug_dir,
+    sprintf("fs_summary_%s_%s.rds", transition_name, region)
+  )
+
+  if (!refresh_cache && file.exists(debug_path)) {
+    message(sprintf(
+      "Loading cached results for %s | Region: %s",
+      transition_name,
+      if (use_regions) region else "National"
+    ))
+    cached_summary <- readRDS(debug_path)
+    return(cached_summary)
+  }
+
+  if (refresh_cache && file.exists(debug_path)) {
+    message(sprintf(
+      "Cache found but refresh_cache = TRUE; recalculating %s | Region: %s",
+      transition_name,
+      if (use_regions) region else "National"
+    ))
+  }
+
   message(sprintf(
     "\n========================================\nStarting: %s | Region: %s\n========================================",
     transition_name,
@@ -356,6 +392,7 @@ process_single_transition <- function(
       length(pred_categories),
       status = "no_transition_data",
       debug_dir = debug_dir,
+      debug_path = debug_path,
       save_debug = save_debug
     ))
   }
@@ -393,11 +430,14 @@ process_single_transition <- function(
   }
 
   # --- STEP 3: Load Predictor Data ---
+  message("[DEBUG] pred_categories length: ", length(names(pred_categories)))
   preds_df <- load_predictor_data(
     ds_static,
     ds_dynamic,
     unique(trans_df$cell_id),
-    names(pred_categories)
+    names(pred_categories),
+    region_value,
+    scenario = "baseline"
   )
 
   # --- STEP 4: Validate and Join Data ---
@@ -418,6 +458,7 @@ process_single_transition <- function(
       length(names(pred_categories)),
       status = validated$status,
       debug_dir = debug_dir,
+      debug_path = debug_path,
       save_debug = save_debug
     ))
   }
@@ -478,6 +519,7 @@ process_single_transition <- function(
         n_after_collinearity = 0,
         status = "collinearity_filtering_failed",
         debug_dir = debug_dir,
+        debug_path = debug_path,
         save_debug = save_debug
       ))
     }
@@ -516,6 +558,7 @@ process_single_transition <- function(
         n_after_grrf = 0,
         status = "grrf_failed",
         debug_dir = debug_dir,
+        debug_path = debug_path,
         save_debug = save_debug
       ))
     }
@@ -543,7 +586,14 @@ process_single_transition <- function(
     paste(focal_preds, collapse = "; "),
     status = "success",
     debug_dir = debug_dir,
-    save_debug = save_debug
+    debug_path = debug_path,
+    save_debug = save_debug,
+    selected_predictors_collinearity = if (do_collinearity) {
+      collin_selected_names
+    } else {
+      NULL
+    },
+    selected_predictors_grrf = if (do_grrf) grrf_selected_names else NULL
   )
 }
 
@@ -604,97 +654,64 @@ load_transition_data <- function(
 #' @param ds_dynamic Arrow dataset for dynamic predictors
 #' @param cell_ids Vector of cell IDs to load
 #' @param predictor_names Vector of predictor variable names to load
+#' @param region_value Numeric region value (if applicable)
+#' @param scenario Scenario name (if applicable)
 #' @return Data frame with cell_id and predictor columns
 load_predictor_data <- function(
   ds_static,
-  ds_dynamic,
+  ds_dynamic_period,
   cell_ids,
-  predictor_names
+  predictor_names,
+  region_value = NULL, # NEW: Pass region for partition pruning
+  scenario = NULL # NEW: Pass scenario for partition pruning
 ) {
   message(sprintf("Loading predictors for %d cells", length(cell_ids)))
-  message(sprintf(
-    "  Requesting %d predictor variables",
-    length(predictor_names)
-  ))
 
-  if (length(predictor_names) == 0 || length(cell_ids) == 0) {
-    warning("No predictor names or cell IDs provided")
-    return(tibble::tibble(cell_id = integer()))
+  static_names <- intersect(predictor_names, names(ds_static$schema))
+  dynamic_names <- intersect(predictor_names, names(ds_dynamic_period$schema))
+
+  # Build queries with partition filters FIRST (critical for performance!)
+  static_query <- ds_static %>%
+    dplyr::select(cell_id, dplyr::all_of(static_names))
+
+  dynamic_query <- ds_dynamic_period %>%
+    dplyr::select(cell_id, dplyr::all_of(dynamic_names))
+
+  # Apply partition filters BEFORE cell_id filter
+  if (!is.null(region_value)) {
+    static_query <- static_query %>% dplyr::filter(region == region_value)
+    dynamic_query <- dynamic_query %>% dplyr::filter(region == region_value)
   }
 
-  # --- Load Static Predictors ---
-  static_schema_names <- names(ds_static$schema)
-  static_pred_names <- intersect(predictor_names, static_schema_names)
-  message(sprintf("  Found %d static predictors", length(static_pred_names)))
-
-  static_df <- tibble::tibble(cell_id = integer())
-  if (length(static_pred_names) > 0) {
-    static_df <- tryCatch(
-      {
-        result <- ds_static %>%
-          dplyr::filter(cell_id %in% !!cell_ids) %>%
-          dplyr::select(cell_id, dplyr::all_of(static_pred_names)) %>%
-          dplyr::collect()
-        message(sprintf(
-          "    Loaded %d rows of static predictors",
-          nrow(result)
-        ))
-        result
-      },
-      error = function(e) {
-        warning(sprintf("Failed to read static predictors: %s", e$message))
-        tibble::tibble(cell_id = integer())
-      }
-    )
+  if (!is.null(scenario)) {
+    dynamic_query <- dynamic_query %>% dplyr::filter(scenario == scenario)
   }
 
-  # --- Load Dynamic Predictors ---
-  dynamic_schema_names <- names(ds_dynamic$schema)
-  dynamic_pred_names <- intersect(predictor_names, dynamic_schema_names)
-  message(sprintf("  Found %d dynamic predictors", length(dynamic_pred_names)))
+  # Now filter by cell_ids (much smaller dataset after partition pruning)
+  static_query <- static_query %>% dplyr::filter(cell_id %in% !!cell_ids)
+  dynamic_query <- dynamic_query %>% dplyr::filter(cell_id %in% !!cell_ids)
 
-  dynamic_df <- tibble::tibble(cell_id = integer())
-  if (length(dynamic_pred_names) > 0) {
-    dynamic_df <- tryCatch(
-      {
-        result <- ds_dynamic %>%
-          dplyr::filter(cell_id %in% !!cell_ids) %>%
-          dplyr::select(cell_id, dplyr::all_of(dynamic_pred_names)) %>%
-          dplyr::collect()
-        message(sprintf(
-          "    Loaded %d rows of dynamic predictors",
-          nrow(result)
-        ))
-        result
-      },
-      error = function(e) {
-        warning(sprintf("Failed to read dynamic predictors: %s", e$message))
-        tibble::tibble(cell_id = integer())
-      }
-    )
-  }
-
-  # --- Combine Static and Dynamic ---
-  if (nrow(static_df) > 0 && nrow(dynamic_df) > 0) {
-    message("  Combining static and dynamic predictors via full_join")
-    combined_df <- dplyr::full_join(static_df, dynamic_df, by = "cell_id")
-  } else if (nrow(static_df) > 0) {
-    message("  Using only static predictors")
-    combined_df <- static_df
-  } else if (nrow(dynamic_df) > 0) {
-    message("  Using only dynamic predictors")
-    combined_df <- dynamic_df
+  # Collect
+  static_df <- if (length(static_names) > 0) {
+    static_query %>% dplyr::collect()
   } else {
-    warning("No predictor data loaded from either static or dynamic sources")
-    return(tibble::tibble(cell_id = integer()))
+    tibble::tibble(cell_id = integer())
   }
 
-  message(sprintf(
-    "  Final combined dataset: %d rows, %d columns",
-    nrow(combined_df),
-    ncol(combined_df)
-  ))
-  combined_df
+  dynamic_df <- if (length(dynamic_names) > 0) {
+    dynamic_query %>% dplyr::collect()
+  } else {
+    tibble::tibble(cell_id = integer())
+  }
+
+  # Join in memory
+  if (nrow(static_df) > 0 && nrow(dynamic_df) > 0) {
+    dplyr::inner_join(static_df, dynamic_df, by = "cell_id")
+  } else if (nrow(static_df) > 0) {
+    static_df
+  } else {
+    dynamic_df
+  }
 }
 
 
@@ -788,19 +805,50 @@ category_wise_collin_filter <- function(
   # Split predictor names by category
   pred_by_category <- split(predictor_cols, categories[predictor_cols])
 
+  message(sprintf(
+    "Processing %d categories for collinearity filtering",
+    length(pred_by_category)
+  ))
+
   # Apply collinearity filtering to each category
-  selected_by_category <- lapply(pred_by_category, function(pred_names) {
-    collin_filter(
+  # Process sequentially to avoid memory buildup
+  selected_by_category <- vector("list", length(pred_by_category))
+
+  for (i in seq_along(pred_by_category)) {
+    cat_name <- names(pred_by_category)[i]
+    pred_names <- pred_by_category[[i]]
+
+    message(sprintf(
+      "  Category %d/%d: %s (%d predictors)",
+      i,
+      length(pred_by_category),
+      cat_name,
+      length(pred_names)
+    ))
+
+    selected_by_category[[i]] <- collin_filter(
       joined = joined,
       predictor_cols = pred_names,
       response_vec = response_vec,
       weights = weights,
       corcut = corcut
     )
-  })
+
+    # Force garbage collection after each category
+    if (i %% 3 == 0) {
+      # Every 3 categories
+      gc(verbose = FALSE)
+    }
+  }
 
   # Combine all selected predictor names
-  unlist(selected_by_category, use.names = FALSE)
+  result <- unlist(selected_by_category, use.names = FALSE)
+
+  # Clean up
+  rm(pred_by_category, selected_by_category)
+  gc(verbose = FALSE)
+
+  return(result)
 }
 
 
@@ -834,7 +882,6 @@ collin_filter <- function(
       # Remove rows with NA values in predictor
       na_idx <- is.na(x)
       if (all(na_idx)) {
-        # If all values are NA, return worst possible p-value
         return(1.0)
       }
 
@@ -858,10 +905,14 @@ collin_filter <- function(
 
           # Return minimum p-value for linear and quadratic terms
           coef_summary <- summary(mdl)$coefficients
-          min(coef_summary[2:3, 4])
+          result <- min(coef_summary[2:3, 4])
+
+          # Clean up GLM object (can be large)
+          rm(mdl, coef_summary)
+
+          return(result)
         },
         error = function(e) {
-          # If GLM fails, return worst p-value
           1.0
         }
       )
@@ -880,11 +931,22 @@ collin_filter <- function(
   # Rank predictors by p-value (ascending)
   ranked_names <- names(sort(pvals[valid_preds]))
 
-  # Compute correlation matrix for ranked predictors
+  # Clean up
+  rm(pvals, valid_preds)
+  gc(verbose = FALSE)
+
+  # MEMORY OPTIMIZATION: Compute correlation matrix only for ranked predictors
+  # Extract only the columns we need (avoid copying entire joined dataframe)
+  pred_subset <- joined[, ranked_names, drop = FALSE]
+
   cor_mat <- abs(cor(
-    joined[, ranked_names, drop = FALSE],
+    pred_subset,
     use = "pairwise.complete.obs"
   ))
+
+  # Clean up subset immediately
+  rm(pred_subset)
+  gc(verbose = FALSE)
 
   # Iteratively remove correlated predictors
   selected <- character(0)
@@ -912,7 +974,11 @@ collin_filter <- function(
       }
 
       remaining_names <- remaining_names[-1][keep_idx]
-      cor_mat <- cor_mat[remaining_names, remaining_names, drop = FALSE]
+
+      # MEMORY OPTIMIZATION: Subset correlation matrix to avoid keeping unused rows/cols
+      if (length(remaining_names) > 0) {
+        cor_mat <- cor_mat[remaining_names, remaining_names, drop = FALSE]
+      }
 
       # Check if remaining predictors are all below threshold
       if (
@@ -925,7 +991,11 @@ collin_filter <- function(
     }
   }
 
-  selected
+  # Clean up
+  rm(cor_mat, ranked_names)
+  gc(verbose = FALSE)
+
+  return(selected)
 }
 
 #' Guided Regularized Random Forest feature selection (optimized - returns names only)
@@ -943,9 +1013,14 @@ grrff_filter <- function(
   weight_vector,
   gamma
 ) {
-  # Extract predictor data as matrix (more efficient for RF)
+  # MEMORY OPTIMIZATION: Extract only needed columns, convert to data.frame once
+  # Avoid keeping reference to full 'joined' object
   cov_mat <- as.data.frame(joined[, predictor_cols, drop = FALSE])
   response_fac <- as.factor(response_vec)
+
+  # Clean up references
+  rm(response_vec)
+  gc(verbose = FALSE)
 
   # Check for and handle missing values
   na_rows <- rowSums(is.na(cov_mat)) > 0
@@ -958,27 +1033,45 @@ grrff_filter <- function(
     cov_mat <- cov_mat[!na_rows, , drop = FALSE]
     response_fac <- response_fac[!na_rows]
 
+    # Clean up
+    rm(na_rows)
+    gc(verbose = FALSE)
+
     # Check if we have enough data left
     if (nrow(cov_mat) < 100) {
       warning("Insufficient complete cases for GRRF after removing NAs")
+      rm(cov_mat, response_fac)
+      gc(verbose = FALSE)
       return(character(0))
     }
   }
 
   # Check for zero-variance predictors (after NA removal)
   zero_var <- vapply(cov_mat, function(x) length(unique(x)) <= 1, logical(1))
+
   if (any(zero_var)) {
     message(sprintf("  Removing %d zero-variance predictors", sum(zero_var)))
     cov_mat <- cov_mat[, !zero_var, drop = FALSE]
     predictor_cols <- predictor_cols[!zero_var]
 
+    rm(zero_var)
+    gc(verbose = FALSE)
+
     if (ncol(cov_mat) == 0) {
       warning(
         "No predictors with variance after removing zero-variance columns"
       )
+      rm(cov_mat, response_fac)
+      gc(verbose = FALSE)
       return(character(0))
     }
   }
+
+  message(sprintf(
+    "  Running initial RF with %d predictors and %d observations",
+    ncol(cov_mat),
+    nrow(cov_mat)
+  ))
 
   # Run non-regularized RF to get importance scores
   rf <- RRF::RRF(cov_mat, response_fac, flagReg = 0)
@@ -990,6 +1083,12 @@ grrff_filter <- function(
   # Calculate penalty coefficients
   coef_reg <- (1 - gamma) + gamma * imp_norm
 
+  # MEMORY OPTIMIZATION: Clean up initial RF object (can be very large)
+  rm(rf, imp_raw)
+  gc(verbose = FALSE)
+
+  message("  Running guided regularized RF")
+
   # Run guided regularized RF
   mdl_rf <- RRF::RRF(
     cov_mat,
@@ -999,12 +1098,22 @@ grrff_filter <- function(
     flagReg = 1
   )
 
+  # MEMORY OPTIMIZATION: Clean up data immediately after RF
+  rm(cov_mat, response_fac, coef_reg, imp_norm)
+  gc(verbose = FALSE)
+
   # Extract predictors with positive importance
   rf_imp <- mdl_rf$importance[, "MeanDecreaseGini"]
   selected_names <- names(rf_imp[rf_imp > 0])
 
   # Return names sorted by importance (descending)
-  selected_names[order(rf_imp[selected_names], decreasing = TRUE)]
+  result <- selected_names[order(rf_imp[selected_names], decreasing = TRUE)]
+
+  # MEMORY OPTIMIZATION: Clean up RF model object
+  rm(mdl_rf, rf_imp, selected_names)
+  gc(verbose = FALSE)
+
+  return(result)
 }
 
 
@@ -1026,8 +1135,15 @@ create_summary_row <- function(
   focal_predictors = NA_character_,
   status,
   save_debug,
-  debug_dir
+  debug_dir,
+  debug_path = NULL,
+  selected_predictors_collinearity = NULL,
+  selected_predictors_grrf = NULL
 ) {
+  # Determine whether to include both sets
+  both_used <- !is.null(selected_predictors_collinearity) &&
+    !is.null(selected_predictors_grrf)
+
   summary <- tibble::tibble(
     period = period,
     region = if (is.null(region) || is.na(region)) NA_character_ else region,
@@ -1039,22 +1155,40 @@ create_summary_row <- function(
     n_after_grrf = n_after_grrf,
     selected_predictors = selected_predictors,
     focal_predictors = focal_predictors,
-    status = status
+    status = status,
+    selected_predictors_collinearity = if (both_used) {
+      paste(selected_predictors_collinearity, collapse = "; ")
+    } else {
+      NA_character_
+    },
+    selected_predictors_grrf = if (both_used) {
+      paste(selected_predictors_grrf, collapse = "; ")
+    } else {
+      NA_character_
+    }
   )
 
   if (save_debug) {
-    debug_path <- file.path(
-      debug_dir,
-      sprintf("fs_summary_%s_%s.rds", transition_name, region)
-    )
+    # Use provided debug_path if available, otherwise construct it
+    if (is.null(debug_path)) {
+      debug_path <- file.path(
+        debug_dir,
+        sprintf("fs_summary_%s_%s.rds", transition_name, region)
+      )
+    }
+
+    # Ensure directory exists
+    dir.create(dirname(debug_path), recursive = TRUE, showWarnings = FALSE)
+
     saveRDS(
       summary,
       file = debug_path
     )
+    message(sprintf("Saved summary to: %s", debug_path))
   }
+
   return(summary)
 }
-
 
 #' Update focal layer lookup
 update_focal_lookup <- function(
@@ -1103,3 +1237,10 @@ update_focal_lookup <- function(
   saveRDS(focal_subset, output_path)
   invisible(NULL)
 }
+
+# transition_feature_selection(
+#   config = get_config(),
+#   sample_size = 3e5, # Optional: number of rows to sample for testing
+#   do_collinearity = TRUE, # Whether to perform collinearity filtering
+#   do_grrf = TRUE
+# ) # Whether to perform GRRF feature selection
