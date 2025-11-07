@@ -1,6 +1,6 @@
 #' transition_dataset_creation
 #'
-#' Script for gathering the layers of LULC (dependent variable)  for each
+#' Script for gathering the layers of LULC (dependent variable) for each
 #' historic period then separating into viable LULC transitions at the scale of
 #' Peru and regions
 #'
@@ -50,16 +50,6 @@ transition_dataset_prep <- function(config = get_config()) {
     stringr::str_extract("(?<=/)[^/]*$") |>
     stringr::str_remove(".tif$")
 
-  # Collect file path for regional raster
-  region_path <- data.frame(matrix(ncol = 2, nrow = 1))
-  colnames(region_path) <- c("File_name", "Layer_name")
-  region_path["File_name"] <- list.files(
-    config[["reg_dir"]],
-    pattern = "regions.tif$",
-    full.names = TRUE
-  )
-  region_path["Layer_name"] <- "region"
-
   # Create regexes for LULC periods
   lulc_period_regexes <- lapply(config[["data_periods"]], function(x) {
     stringr::str_replace(x, pattern = "_", "|")
@@ -78,14 +68,8 @@ transition_dataset_prep <- function(config = get_config()) {
     return(x)
   })
 
-  # Combine predictor paths with LULC (and region if needed)
-  if (config[["regionalization"]]) {
-    combined_paths_by_period <- lapply(lulc_paths_by_period, function(x) {
-      rbind(x, region_path)
-    })
-  } else {
-    combined_paths_by_period <- lulc_paths_by_period
-  }
+  # NOTE: We no longer add region_path here since we'll use pre-extracted regions
+  combined_paths_by_period <- lulc_paths_by_period
 
   # read in all rasters in the list to check compatibility before stacking
   rasters_by_periods <- purrr::map(combined_paths_by_period, function(x) {
@@ -125,37 +109,35 @@ transition_dataset_prep <- function(config = get_config()) {
   rm(rasters_by_periods)
 
   ### =========================================================================
-  ### C.1- Data extraction
+  ### C.1- Load valid cell data (SAME SOURCE AS PREDICTORS)
   ### =========================================================================
 
-  # To speed up the extract identify the IDs of only valid cells (i.e. cells where ref_grid is not NA)
-  # Check if valid_cell_ids.rds exists (prepared in predictors prep step)
+  # Use the SAME cached valid cell data as the predictor script
   valid_ids_path <- file.path(
     config[["predictors_prepped_dir"]],
     "parquet_data",
-    "valid_cell_ids.rds"
+    "valid_cell_ids_regions.rds"
   )
+
   if (file.exists(valid_ids_path)) {
-    cat("✓ Found existing valid_cell_ids.rds, loading...\n")
-    valid_cell_ids <- readRDS(valid_ids_path)
+    cat("✓ Found existing valid_cell_ids_regions.rds, loading...\n")
+    valid_cell_data <- readRDS(valid_ids_path)
     cat(sprintf(
-      "\n✓ Loaded %s valid cells\n\n",
-      format(length(valid_cell_ids), big.mark = ",")
+      "\n✓ Loaded %s valid cells across %d regions\n\n",
+      format(nrow(valid_cell_data), big.mark = ","),
+      length(unique(valid_cell_data$region))
     ))
   } else {
-    cat(
-      "✓ No existing valid_cell_ids.rds found, extracting from mask raster...\n"
+    stop(
+      "✗ valid_cell_ids_regions.rds not found at: ",
+      valid_ids_path,
+      "\n",
+      "  Please run create_predictor_parquets() first to generate this file."
     )
-    # Extract valid cell IDs
-    valid_cell_ids <- extract_valid_cells(mask_raster_path, rows_per_block)
-    saveRDS(valid_cell_ids, valid_ids_path)
-    cat(sprintf(
-      "\n✓ Found %s valid cells\n\n",
-      format(length(valid_cell_ids), big.mark = ",")
-    ))
   }
 
   periods <- config[["data_periods"]]
+  # Subset to specific period if needed (remove this line to process all)
   periods <- periods[3]
 
   # Apply function to prepare parquet files for each period
@@ -165,26 +147,26 @@ transition_dataset_prep <- function(config = get_config()) {
     process_period_transitions,
     config = config,
     rasterstacks_by_periods = rasterstacks_by_periods,
-    valid_cell_ids = valid_cell_ids
+    valid_cell_data = valid_cell_data
   )
   message("Preparation of transition datasets complete")
 }
 
-#' Efficiently process transitions for one period and write a single compact parquet
-#' (one row per cell, one column per transition)
+#' Efficiently process transitions for one period and write partitioned parquets by region
+#' (one row per cell, one column per transition, partitioned by region)
 #'
 #' @param period Character period label (e.g. "2020_2030")
 #' @param rasterstacks_by_periods Named list of terra rasters for each period
 #' @param config Named list of configuration parameters
-#' @param valid_cell_ids Integer vector of valid cell IDs (pre-filtered mask)
+#' @param valid_cell_data Data frame with cell_id and region columns
 #' @param chunk_size Number of cells to process per chunk (default 1e6)
 #'
-#' @return NULL (writes parquet file)
+#' @return NULL (writes partitioned parquet files)
 process_period_transitions <- function(
   period,
   rasterstacks_by_periods,
   config,
-  valid_cell_ids,
+  valid_cell_data,
   chunk_size = 1e6
 ) {
   library(terra)
@@ -198,7 +180,6 @@ process_period_transitions <- function(
   fin_r <- r_stack$Final_class
 
   regionalization <- isTRUE(config[["regionalization"]])
-  region_r <- if (regionalization) r_stack$region else NULL
 
   viable_trans_list <- readRDS(config[["viable_transitions_lists"]])[[paste(
     period
@@ -210,13 +191,10 @@ process_period_transitions <- function(
   if (!dir.exists(out_dir)) {
     dir.create(out_dir, recursive = TRUE)
   }
-  output_path <- file.path(
-    out_dir,
-    paste0("transitions_", period, ".parquet")
-  )
 
-  n_valid <- length(valid_cell_ids)
+  n_valid <- nrow(valid_cell_data)
   n_chunks <- ceiling(n_valid / chunk_size)
+  regions <- sort(unique(valid_cell_data$region))
 
   message(
     "Valid cells: ",
@@ -227,34 +205,29 @@ process_period_transitions <- function(
     format(chunk_size, big.mark = ","),
     ")"
   )
-  message("→ Writing to: ", output_path)
+  message("Regions: ", paste(regions, collapse = ", "))
+  message("→ Writing to: ", out_dir)
 
-  first_chunk <- TRUE
-  writer <- NULL
-  sink <- NULL
+  # Initialize writer storage (region -> writer)
+  writers <- list()
+  sinks <- list()
+  schema <- NULL
 
   # ---- Chunk processing ----
   for (chunk_idx in seq_len(n_chunks)) {
     start_idx <- (chunk_idx - 1) * chunk_size + 1
     end_idx <- min(chunk_idx * chunk_size, n_valid)
-    chunk_ids <- valid_cell_ids[start_idx:end_idx]
+    chunk_rows <- valid_cell_data[start_idx:end_idx, , drop = FALSE]
 
     cat(sprintf("\r  Processing chunk %d/%d...", chunk_idx, n_chunks))
 
-    # Extract raster values
+    # Extract raster values using pre-identified cell IDs
+    chunk_ids <- chunk_rows$cell_id
     init_vals <- init_r[chunk_ids]
     fin_vals <- fin_r[chunk_ids]
 
-    if (regionalization) {
-      region_vals <- region_r[chunk_ids]
-      # Flatten if terra returns a data.frame or list
-      if (is.data.frame(region_vals) || is.list(region_vals)) {
-        region_vals <- unlist(region_vals, use.names = FALSE)
-      }
-      region_vals <- as.integer(region_vals)
-    } else {
-      region_vals <- rep(NA_integer_, length(chunk_ids))
-    }
+    # Use pre-extracted region values from valid_cell_data
+    region_vals <- chunk_rows$region
 
     # ---- Build transition columns ----
     trans_mat <- matrix(
@@ -282,371 +255,174 @@ process_period_transitions <- function(
     # ---- Assemble chunk ----
     chunk_df <- data.frame(
       cell_id = as.numeric(chunk_ids),
-      region = if (regionalization) as.integer(region_vals) else NA_integer_
+      region = as.integer(region_vals),
+      stringsAsFactors = FALSE
     )
     chunk_df <- cbind(chunk_df, as.data.frame(trans_mat))
 
-    # ---- Write parquet (streaming) ----
-    if (first_chunk) {
-      tbl <- arrow::Table$create(chunk_df)
-      schema <- tbl$schema
+    # ---- Split by region and write to partitions ----
+    for (region in unique(chunk_df$region)) {
+      region_chunk <- chunk_df[chunk_df$region == region, , drop = FALSE]
 
-      sink <- arrow::FileOutputStream$create(output_path)
-      writer <- arrow::ParquetFileWriter$create(
-        schema = schema,
-        sink = sink,
-        properties = arrow::ParquetWriterProperties$create(
-          names(schema),
-          compression = "zstd",
-          compression_level = 9
+      # Create writer for this region on first encounter
+      if (is.null(writers[[as.character(region)]])) {
+        # Create schema from first chunk
+        if (is.null(schema)) {
+          tbl <- arrow::Table$create(region_chunk)
+          schema <- tbl$schema
+        }
+
+        # Create partition directory
+        region_dir <- file.path(out_dir, sprintf("region=%d", region))
+        ensure_dir(region_dir)
+
+        # Create output file path
+        region_file <- file.path(
+          region_dir,
+          paste0("transitions_", period, ".parquet")
         )
+
+        # Create writer
+        sinks[[as.character(region)]] <- arrow::FileOutputStream$create(
+          region_file
+        )
+        writers[[as.character(region)]] <- arrow::ParquetFileWriter$create(
+          schema = schema,
+          sink = sinks[[as.character(region)]],
+          properties = arrow::ParquetWriterProperties$create(
+            names(schema),
+            compression = "zstd",
+            compression_level = 9
+          )
+        )
+      }
+
+      # Write region chunk to appropriate partition
+      writers[[as.character(region)]]$WriteTable(
+        arrow::Table$create(region_chunk),
+        chunk_size = nrow(region_chunk)
       )
-      writer$WriteTable(tbl, chunk_size = nrow(tbl))
-      first_chunk <- FALSE
-    } else {
-      writer$WriteTable(
-        arrow::Table$create(chunk_df),
-        chunk_size = nrow(chunk_df)
-      )
+
+      rm(region_chunk)
     }
 
-    rm(chunk_df, trans_mat, init_vals, fin_vals, region_vals)
+    rm(chunk_df, trans_mat, init_vals, fin_vals)
     gc(verbose = FALSE)
-
-    cat(sprintf(
-      "\n  ✓ Chunk %d/%d written (%s rows)",
-      chunk_idx,
-      n_chunks,
-      format(length(chunk_ids), big.mark = ",")
-    ))
   }
 
-  # ---- Close writer ----
-  if (!is.null(writer)) {
-    writer$Close()
-    sink$close()
-    message("\n✓ Parquet writing complete.")
+  cat("\n")
+
+  # ---- Close writers ----
+  cat("  Closing writers...\n")
+  for (region in names(writers)) {
+    writers[[region]]$Close()
+    sinks[[region]]$close()
   }
 
-  message("\n✓ Transition parquet written: ", basename(output_path))
+  message("✓ Transition parquet writing complete.")
+  message(sprintf("  Location: %s", out_dir))
+  message(sprintf("  Partitions: %d regions", length(regions)))
   message("=== Completed all transitions for period ", period, " ===\n")
 
-  message("performing sanity check on written file...")
-  parquet_check <- sanity_check_transitions(
-    transitions_pq_path = output_path,
+  # ---- Sanity check ----
+  message("Performing sanity check on written files...")
+  parquet_check <- sanity_check_transitions_partitioned(
+    transitions_dir = out_dir,
     regions_json_path = if (regionalization) {
       file.path(config[["reg_dir"]], "regions.json")
     } else {
       NULL
     }
   )
+
   # save results
   sanity_output_path <- file.path(
     out_dir,
     paste0("check_transitions_", period, ".csv")
   )
   readr::write_csv(parquet_check, sanity_output_path)
+  message("✓ Sanity check complete\n")
 }
 
-#' Sanity Check Transitions Parquet File (Memory Efficient)
-#'
-#' Summarizes the number of 1's (transitions) for each transition column
-#' by region WITHOUT loading the entire dataset into memory
-#'
-#' @param transitions_pq_path Path to the transitions parquet file
-#' @param regions_json_path Path to regions.json file (optional, for region labels)
-#' @return Data frame with counts of transitions by transition_name and region
-#' @export
 
-library(arrow)
-library(dplyr)
-library(tidyr)
-library(jsonlite)
-library(purrr)
-
-sanity_check_transitions <- function(
-  transitions_pq_path,
+#' Sanity check for partitioned transition parquet files
+#'
+#' @param transitions_dir Directory containing partitioned transition files
+#' @param regions_json_path Optional path to regions.json file
+#' @return Data frame with sanity check results
+sanity_check_transitions_partitioned <- function(
+  transitions_dir,
   regions_json_path = NULL
 ) {
-  message("========================================")
-  message("Transitions Parquet Sanity Check")
-  message("========================================\n")
+  library(arrow)
 
-  # Check file exists
-  if (!file.exists(transitions_pq_path)) {
-    stop(sprintf("File not found: %s", transitions_pq_path))
-  }
+  # Open the partitioned dataset
+  ds <- arrow::open_dataset(
+    transitions_dir,
+    partitioning = arrow::hive_partition(region = arrow::int32())
+  )
 
-  message(sprintf("Reading: %s\n", transitions_pq_path))
+  # Collect basic statistics
+  results <- list()
 
-  # Open dataset
-  ds <- arrow::open_dataset(transitions_pq_path)
+  # Count total rows
+  results$total_rows <- ds |>
+    dplyr::count() |>
+    dplyr::collect() |>
+    dplyr::pull(n)
 
-  # Get all column names (excluding cell_id and region)
-  all_cols <- names(ds$schema)
-  transition_cols <- setdiff(all_cols, c("cell_id", "region"))
+  # Count rows per region
+  results$rows_per_region <- ds |>
+    dplyr::group_by(region) |>
+    dplyr::count() |>
+    dplyr::collect()
 
-  message(sprintf("Found %d transition columns:", length(transition_cols)))
-  message(paste(transition_cols, collapse = ", "))
-  message("")
+  # Check for duplicate cell_ids within regions
+  duplicates <- ds |>
+    dplyr::group_by(region, cell_id) |>
+    dplyr::count() |>
+    dplyr::filter(n > 1) |>
+    dplyr::collect()
 
-  # Check if region column exists
-  has_regions <- "region" %in% all_cols
+  results$has_duplicates <- nrow(duplicates) > 0
+  results$n_duplicates <- nrow(duplicates)
 
-  if (!has_regions) {
-    message("No 'region' column found - summarizing nationally\n")
+  # Get transition column names (exclude cell_id and region)
+  schema_names <- names(ds$schema)
+  trans_cols <- setdiff(schema_names, c("cell_id", "region"))
 
-    # Process each transition column without loading full data
-    summary_list <- purrr::map(transition_cols, function(col) {
-      message(sprintf("Processing: %s", col))
+  results$n_transition_cols <- length(trans_cols)
 
-      # Count each value using Arrow aggregation
-      counts <- ds %>%
-        select(!!sym(col)) %>%
-        group_by(!!sym(col)) %>%
-        summarise(count = n()) %>%
-        collect()
+  # Check for NAs in transition columns
+  na_counts <- ds |>
+    dplyr::select(dplyr::all_of(trans_cols)) |>
+    dplyr::summarise(dplyr::across(dplyr::everything(), ~ sum(is.na(.)))) |>
+    dplyr::collect()
 
-      # Extract counts
-      n_ones <- counts %>% filter(!!sym(col) == 1) %>% pull(count)
-      n_zeros <- counts %>% filter(!!sym(col) == 0) %>% pull(count)
-      n_na <- counts %>% filter(is.na(!!sym(col))) %>% pull(count)
+  results$na_summary <- data.frame(
+    transition = names(na_counts),
+    n_na = as.numeric(na_counts[1, ]),
+    stringsAsFactors = FALSE
+  )
 
-      # Handle cases where values don't exist
-      if (length(n_ones) == 0) {
-        n_ones <- 0
-      }
-      if (length(n_zeros) == 0) {
-        n_zeros <- 0
-      }
-      if (length(n_na) == 0) {
-        n_na <- 0
-      }
-
-      tibble::tibble(
-        transition_name = col,
-        region = NA_integer_,
-        region_label = "National",
-        n_ones = n_ones,
-        n_zeros = n_zeros,
-        n_na = n_na,
-        total_rows = sum(counts$count)
-      )
-    })
-
-    summary_df <- bind_rows(summary_list)
-  } else {
-    message("'region' column found - summarizing by region\n")
-
-    # Load region labels if provided
-    region_labels <- NULL
-    if (!is.null(regions_json_path) && file.exists(regions_json_path)) {
-      regions_info <- jsonlite::fromJSON(regions_json_path)
-      region_labels <- setNames(regions_info$label, regions_info$value)
-      message(sprintf(
-        "Loaded region labels for %d regions\n",
-        length(region_labels)
-      ))
-    }
-
-    # Get unique regions (small query)
-    unique_regions <- ds %>%
-      select(region) %>%
-      distinct() %>%
-      collect() %>%
-      pull(region) %>%
-      sort()
-
-    has_zero_region <- ds %>%
-      select(region) %>%
-      filter(region == 0) %>%
-      head(1) %>%
-      collect() %>%
-      nrow() >
-      0
-
-    print(has_zero_region)
-
-    message(sprintf(
-      "Found %d unique regions: %s\n",
-      length(unique_regions),
-      paste(unique_regions, collapse = ", ")
-    ))
-
-    # Process each region x transition combination
-    summary_list <- list()
-    counter <- 0
-    total_combos <- length(unique_regions) * length(transition_cols)
-
-    for (reg in unique_regions) {
-      region_label <- if (!is.null(region_labels)) {
-        region_labels[as.character(reg)]
-      } else {
-        paste0("Region_", reg)
-      }
-
-      message(sprintf("\nProcessing region %d (%s)...", reg, region_label))
-
-      # Process each transition for this region
-      region_summaries <- purrr::map(transition_cols, function(col) {
-        counter <<- counter + 1
-        if (counter %% 10 == 0) {
-          message(sprintf(
-            "  Progress: %d/%d (%.1f%%)",
-            counter,
-            total_combos,
-            100 * counter / total_combos
-          ))
-        }
-
-        # Count values for this transition in this region using Arrow
-        counts <- ds %>%
-          filter(region == reg) %>%
-          select(!!sym(col)) %>%
-          group_by(!!sym(col)) %>%
-          summarise(count = n()) %>%
-          collect()
-
-        # Extract counts
-        n_ones <- counts %>% filter(!!sym(col) == 1) %>% pull(count)
-        n_zeros <- counts %>% filter(!!sym(col) == 0) %>% pull(count)
-        n_na <- counts %>% filter(is.na(!!sym(col))) %>% pull(count)
-
-        # Handle cases where values don't exist
-        if (length(n_ones) == 0) {
-          n_ones <- 0
-        }
-        if (length(n_zeros) == 0) {
-          n_zeros <- 0
-        }
-        if (length(n_na) == 0) {
-          n_na <- 0
-        }
-
-        tibble::tibble(
-          transition_name = col,
-          region = reg,
-          region_label = region_label,
-          n_ones = n_ones,
-          n_zeros = n_zeros,
-          n_na = n_na,
-          total_rows = sum(counts$count)
-        )
-      })
-
-      summary_list[[as.character(reg)]] <- bind_rows(region_summaries)
-    }
-
-    summary_df <- bind_rows(summary_list)
-  }
-
-  # Add percentage columns
-  summary_df <- summary_df %>%
-    mutate(
-      percent_ones = round(100 * n_ones / (n_ones + n_zeros), 2),
-      percent_na = round(100 * n_na / total_rows, 2)
-    )
-
-  # Print summary
-  message("\n========================================")
-  message("SUMMARY")
-  message("========================================\n")
-
-  if (has_regions) {
-    # Summary by region
-    region_totals <- summary_df %>%
-      group_by(region, region_label) %>%
-      summarise(
-        n_transitions = n(),
-        total_ones = sum(n_ones),
-        mean_ones = round(mean(n_ones), 1),
-        max_ones = max(n_ones),
-        min_ones = min(n_ones),
-        .groups = "drop"
-      )
-
-    message("--- Summary by Region ---")
-    print(region_totals)
-
-    message("\n--- Top 10 Transition-Region Combinations by Count ---")
-    top_combos <- summary_df %>%
-      arrange(desc(n_ones)) %>%
-      head(10) %>%
-      select(transition_name, region_label, n_ones, percent_ones)
-    print(top_combos)
-
-    # Summary by transition (across all regions)
-    message("\n--- Summary by Transition (all regions combined) ---")
-    transition_totals <- summary_df %>%
-      group_by(transition_name) %>%
-      summarise(
-        total_ones = sum(n_ones),
-        mean_ones_per_region = round(mean(n_ones), 1),
-        max_ones_in_region = max(n_ones),
-        n_regions_with_data = sum(n_ones > 0),
-        .groups = "drop"
-      ) %>%
-      arrange(desc(total_ones))
-    print(head(transition_totals, 10))
-  } else {
-    # Summary national
-    message("--- Transitions Summary (National) ---")
-    print(
-      summary_df %>%
-        select(transition_name, n_ones, n_zeros, n_na, percent_ones) %>%
-        arrange(desc(n_ones))
-    )
-  }
-
-  # Check for any transitions with zero 1's
-  zero_transitions <- summary_df %>%
-    filter(n_ones == 0)
-
-  if (nrow(zero_transitions) > 0) {
-    message(
-      "\n⚠️  WARNING: Found ",
-      nrow(zero_transitions),
-      " transition-region combinations with ZERO 1's:"
-    )
-    print(
-      zero_transitions %>%
-        select(transition_name, region_label, n_ones, n_zeros, n_na) %>%
-        head(20)
-    )
-    if (nrow(zero_transitions) > 20) {
-      message(sprintf("  ... and %d more", nrow(zero_transitions) - 20))
-    }
-  }
-
-  # Check for transitions with all NAs
-  all_na_transitions <- summary_df %>%
-    filter(n_na == total_rows)
-
-  if (nrow(all_na_transitions) > 0) {
-    message(
-      "\n⚠️  WARNING: Found ",
-      nrow(all_na_transitions),
-      " transition-region combinations with ALL NAs:"
-    )
-    print(all_na_transitions %>% select(transition_name, region_label, n_na))
-  }
-
-  # Overall statistics
-  message("\n--- Overall Statistics ---")
-  message(sprintf("Total transition-region combinations: %d", nrow(summary_df)))
-  message(sprintf(
-    "Combinations with data (n_ones > 0): %d (%.1f%%)",
-    sum(summary_df$n_ones > 0),
-    100 * sum(summary_df$n_ones > 0) / nrow(summary_df)
-  ))
-  message(sprintf(
-    "Total transitions (1's) across all: %s",
-    format(sum(summary_df$n_ones), big.mark = ",")
-  ))
-
-  message("\n========================================")
-  message("Sanity check complete!")
-  message("========================================\n")
+  # Create summary data frame
+  summary_df <- data.frame(
+    metric = c(
+      "Total rows",
+      "Number of regions",
+      "Has duplicates",
+      "Number of duplicates",
+      "Number of transitions"
+    ),
+    value = c(
+      results$total_rows,
+      nrow(results$rows_per_region),
+      results$has_duplicates,
+      results$n_duplicates,
+      results$n_transition_cols
+    ),
+    stringsAsFactors = FALSE
+  )
 
   return(summary_df)
 }
