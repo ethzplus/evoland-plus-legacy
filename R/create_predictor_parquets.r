@@ -277,7 +277,7 @@ write_static_parquet_streaming_partitioned <- function(
       region = as.integer(chunk_rows$region),
       stringsAsFactors = FALSE
     )
-
+    browser()
     # Add static variables
     for (var_name in names(static_rasters)) {
       r <- terra::rast(static_rasters[[var_name]])
