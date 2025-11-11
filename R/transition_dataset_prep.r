@@ -8,7 +8,16 @@
 #' @author Ben Black
 #' @export
 
-transition_dataset_prep <- function(config = get_config()) {
+transition_dataset_prep <- function(
+  config = get_config(),
+  refresh_cache = FALSE,
+  mask_raster_path = list.files(
+    config[["reg_dir"]],
+    pattern = "regions.tif$",
+    full.names = TRUE
+  ),
+  rows_per_block = 1000
+) {
   ### =========================================================================
   ### A- Preparation
   ### =========================================================================
@@ -113,27 +122,38 @@ transition_dataset_prep <- function(config = get_config()) {
   ### =========================================================================
 
   # Use the SAME cached valid cell data as the predictor script
-  valid_ids_path <- file.path(
-    config[["predictors_prepped_dir"]],
-    "parquet_data",
-    "valid_cell_ids_regions.rds"
+  valid_ids_parquet <- file.path(
+    config[["data_basepath"]],
+    "spatial_reference_grid",
+    "valid_cell_ids_regions.parquet"
   )
 
-  if (file.exists(valid_ids_path)) {
-    cat("✓ Found existing valid_cell_ids_regions.rds, loading...\n")
-    valid_cell_data <- readRDS(valid_ids_path)
+  if (file.exists(valid_ids_parquet) && !refresh_cache) {
+    cat("✓ Found existing valid_cell_ids.parquet, using...\n")
+    valid_cell_data <- valid_ids_parquet # Store path, not data
+
+    # Get summary stats without loading into memory
+    ds <- arrow::open_dataset(valid_cell_data)
+    n_cells <- ds %>% count() %>% collect() %>% pull(n)
+    n_regions <- ds %>% distinct(region) %>% count() %>% collect() %>% pull(n)
+
     cat(sprintf(
-      "\n✓ Loaded %s valid cells across %d regions\n\n",
-      format(nrow(valid_cell_data), big.mark = ","),
-      length(unique(valid_cell_data$region))
+      "\n✓ Found %s valid cells across %d regions\n\n",
+      format(n_cells, big.mark = ","),
+      n_regions
     ))
   } else {
-    stop(
-      "✗ valid_cell_ids_regions.rds not found at: ",
-      valid_ids_path,
-      "\n",
-      "  Please run create_predictor_parquets() first to generate this file."
+    cat("✓ Extracting valid cells with region values from mask raster...\n")
+    valid_cell_data <- extract_valid_cells_with_region(
+      mask_raster_path,
+      rows_per_block,
+      output_path = valid_ids_parquet,
+      keep_in_memory = FALSE # Keep on disk to save memory
     )
+    cat(sprintf(
+      "\n✓ Results saved to: %s\n\n",
+      basename(valid_cell_data)
+    ))
   }
 
   periods <- config[["data_periods"]]
