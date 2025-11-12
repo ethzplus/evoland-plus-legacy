@@ -3,9 +3,9 @@
 #' @author: Ben Black (adapted)
 
 # testing parameters
-#period <- "2018_2022"
-#transition_name <- "forested_areas-high_intensity_agricultural_areas"
-#region <- regions$label[3]
+# period <- "2018_2022"
+# transition_name <- "forested_areas-natural_grasslands_and_shrublands"
+# region <- regions$label[3]
 
 # list and read all RDS file sin debug_dir
 # fs_results <- list.files(
@@ -48,16 +48,12 @@ transition_feature_selection <- function(
   refresh_cache = FALSE,
   save_debug = TRUE,
   debug_dir = file.path(config[["feature_selection_dir"]]),
-  sample_size = 2e6, # Optional: number of rows to sample for testing
   do_collinearity = TRUE, # Whether to perform collinearity filtering
   do_grrf = TRUE # Whether to perform GRRF feature selection
 ) {
   message("\n========================================")
   message("Starting Feature Selection Pipeline")
   message("========================================\n")
-
-  # Plan parallel execution (multisession is cross-platform)
-  future::plan(future::multisession)
 
   periods_to_process <- config[["data_periods"]]
   periods_to_process <- periods_to_process[3]
@@ -84,11 +80,9 @@ transition_feature_selection <- function(
         config = config,
         debug_dir = debug_dir,
         save_debug = save_debug,
-        sample_size = sample_size,
         do_collinearity = do_collinearity,
         do_grrf = do_grrf,
-        refresh_cache = refresh_cache,
-        profile_single = FALSE
+        refresh_cache = refresh_cache
       )
     }
   )
@@ -129,12 +123,8 @@ transition_feature_selection <- function(
 #' @param config Configuration list
 #' @param debug_dir Directory for debug outputs
 #' @param save_debug Boolean indicating if debug outputs should be saved
-#' @param sample_size Optional number of rows to sample for testing
 #' @param do_collinearity Whether to perform collinearity filtering
 #' @param do_grrf Whether to perform GRRF feature selection
-#' @param profile_single Whether to profile a single transition (for testing)
-#' @param profile_transition Name of specific transition to profile (if profile_single=TRUE)
-#' @param profile_output Path where profiling HTML report should be saved
 #' @return Data frame with feature selection results for all transitions in period
 perform_feature_selection <- function(
   period,
@@ -143,12 +133,8 @@ perform_feature_selection <- function(
   debug_dir,
   refresh_cache = FALSE,
   save_debug = TRUE,
-  sample_size = 3e5, # Optional: number of rows to sample for testing
   do_collinearity = TRUE, # Whether to perform collinearity filtering
-  do_grrf = TRUE, # Whether to perform GRRF feature selection
-  profile_single = FALSE, # NEW: Enable profiling mode
-  profile_transition = NULL, # NEW: Specific transition to profile
-  profile_output = "profile_output.html" # NEW: Output file for profile
+  do_grrf = TRUE # Whether to perform GRRF feature selection
 ) {
   message("\n########################################")
   message(sprintf("# PERIOD: %s", period))
@@ -204,6 +190,7 @@ perform_feature_selection <- function(
 
   soil_preds <- get_preds(pred_table, "soil")
   nhood_preds <- get_preds(pred_table, "neighbourhood")
+  climate_preds <- get_preds(pred_table, "climatic")
 
   # Soil groups: group by prefix before "_"
   soil_groups <- split(soil_preds, stringr::str_extract(soil_preds, "^[^_]+"))
@@ -224,7 +211,7 @@ perform_feature_selection <- function(
     ~ {
       if (
         .x$pred_category == "suitability" &&
-          !.x$grouping %in% c("neighbourhood")
+          !.x$grouping %in% c("neighbourhood", "climatic")
       ) {
         .x$base_name
       } else {
@@ -237,14 +224,15 @@ perform_feature_selection <- function(
   # Build final vector
   pred_categories <- c(
     setNames(rep("suitability", length(suitability_preds)), suitability_preds),
+    setNames(rep("climatic", length(climate_preds)), climate_preds),
     #unlist(imap(soil_groups, ~ setNames(rep(.y, length(.x)), .x))),
     purrr::imap(nhood_groups, ~ setNames(rep(.y, length(.x)), .x)) %>%
       purrr::reduce(c)
   )
 
-  message(sprintf("Loaded %d viable transitions", nrow(transitions_info)))
+  message(sprintf("%d viable transitions", nrow(transitions_info)))
   message(sprintf(
-    "Loaded %d predictors for this period\n",
+    "Identified %d predictors for this period\n",
     length(pred_categories)
   ))
 
@@ -277,20 +265,20 @@ perform_feature_selection <- function(
   ds_transitions <- arrow::open_dataset(
     transitions_pq_path,
     partitioning = arrow::hive_partition(
-      region = int32()
+      region = arrow::int32()
     )
   )
   ds_static <- arrow::open_dataset(
     static_preds_pq_path,
     partitioning = arrow::hive_partition(
-      region = int32()
+      region = arrow::int32()
     )
   )
   ds_dynamic <- arrow::open_dataset(
     dynamic_preds_pq_path,
     partitioning = arrow::hive_partition(
-      scenario = utf8(),
-      region = int32()
+      scenario = arrow::utf8(),
+      region = arrow::int32()
     )
   )
 
@@ -313,88 +301,25 @@ perform_feature_selection <- function(
     message("Processing national extent (no regionalization)\n")
   }
 
-  # ============================================================================
-  # PROFILING MODE: Profile a single transition
-  # ============================================================================
-  if (profile_single) {
-    if (!requireNamespace("profvis", quietly = TRUE)) {
-      stop(
-        "profvis package is required for profiling. Install with: install.packages('profvis')"
-      )
-    }
-
-    # Determine which transition to profile
-    if (is.null(profile_transition)) {
-      profile_transition <- transitions_info$Trans_name[1]
-      message(sprintf(
-        "\nNo transition specified for profiling. Using first transition: %s",
-        profile_transition
-      ))
-    } else {
-      if (!profile_transition %in% transitions_info$Trans_name) {
-        stop(sprintf(
-          "Transition '%s' not found in transitions_info. Available: %s",
-          profile_transition,
-          paste(head(transitions_info$Trans_name, 5), collapse = ", ")
-        ))
-      }
-    }
-
-    # Use first region for profiling
-    profile_region <- region_names[1]
-
-    message("\n========================================")
-    message("PROFILING MODE ENABLED")
-    message("========================================")
-    message(sprintf("Transition: %s", profile_transition))
-    message(sprintf("Region: %s", profile_region))
-    message(sprintf("Output: %s", profile_output))
-    message("========================================\n")
-
-    # Run profiling
-    prof_result <- profvis::profvis({
-      process_single_transition(
-        transition_name = profile_transition,
-        refresh_cache = refresh_cache,
-        region = profile_region,
-        use_regions = use_regions,
-        ds_transitions = ds_transitions,
-        ds_static = ds_static,
-        ds_dynamic = ds_dynamic,
-        pred_categories = pred_categories,
-        period = period,
-        config = config,
-        debug_dir = debug_dir,
-        save_debug = save_debug,
-        sample_size = sample_size,
-        do_collinearity = do_collinearity,
-        do_grrf = do_grrf
-      )
-    })
-
-    # Save profiling results
-    htmlwidgets::saveWidget(prof_result, profile_output)
-    message(sprintf(
-      "\n✓ Profiling complete! Report saved to: %s",
-      profile_output
-    ))
-    message(
-      "Open this file in a web browser to view the interactive profile.\n"
-    )
-
-    # Also return the result for inspection
-    return(prof_result)
-  }
-
-  # ============================================================================
-  # NORMAL MODE: Process all transitions
-  # ============================================================================
   message(sprintf(
-    "Starting parallel processing of %d transitions...\n",
+    "Starting processing of %d transitions...\n",
     nrow(transitions_info)
   ))
 
-  transition_results <- purrr::map_dfr(
+  # --- Parallel processing of transitions ---
+
+  # Determine number of cores from SLURM or fallback
+  n_cores <- as.integer(Sys.getenv("SLURM_CPUS_PER_TASK", "4"))
+  message(sprintf(
+    "Using up to %d parallel workers for transition processing",
+    n_cores
+  ))
+
+  # Use furrr for parallel map
+  future::plan(future::multisession, workers = n_cores)
+
+  # Parallel over transitions × regions
+  transition_results <- furrr::future_map_dfr(
     transitions_info$Trans_name,
     function(trans_name) {
       purrr::map_dfr(region_names, function(region) {
@@ -411,13 +336,16 @@ perform_feature_selection <- function(
           config = config,
           debug_dir = debug_dir,
           save_debug = save_debug,
-          sample_size = sample_size,
           do_collinearity = do_collinearity,
           do_grrf = do_grrf
         )
       })
-    }
+    },
+    .options = furrr::furrr_options(seed = TRUE)
   )
+
+  # Return to sequential plan after this period
+  future::plan(future::sequential)
 
   message(sprintf(
     "\nPeriod %s complete: %d transition-region combinations processed",
@@ -454,7 +382,6 @@ process_single_transition <- function(
   config,
   debug_dir,
   save_debug = TRUE,
-  sample_size = 3e5,
   do_collinearity = TRUE,
   do_grrf = TRUE,
   refresh_cache = FALSE
@@ -522,38 +449,49 @@ process_single_transition <- function(
       save_debug = save_debug
     ))
   }
+  # STEP 2: Non-random downsampling to 1.5x majority-to-minority ratio
+  message("Applying non-random downsampling (majority = 1.5 × minority)")
 
-  # STEP 2: Stratified sampling (sample transition rows only; reduces predictor reads)
-  if (nrow(trans_df) > sample_size) {
-    message(sprintf("Stratified sampling -> %d rows", sample_size))
-    prop_table <- prop.table(table(trans_df$response))
-    n1 <- round(
-      sample_size * ifelse("1" %in% names(prop_table), prop_table["1"], 0)
-    )
-    n0 <- sample_size - n1
+  # Count each class
+  n1 <- sum(trans_df$response == 1)
+  n0 <- sum(trans_df$response == 0)
 
-    set.seed(123)
+  if (n1 == 0 | n0 == 0) {
+    warning("One class is empty — skipping downsampling.")
+  } else if (n0 > (1.5 * n1)) {
+    # Majority is 0 — keep all 1s, thin out 0s to 1.5 × n1
     idx1 <- which(trans_df$response == 1)
     idx0 <- which(trans_df$response == 0)
 
-    s1 <- if (length(idx1) > n1) sample(idx1, n1) else idx1
-    s0 <- if (length(idx0) > n0) sample(idx0, n0) else idx0
+    target_majority <- ceiling(1.5 * n1)
 
-    trans_df <- trans_df[c(s1, s0), , drop = FALSE]
+    # Sort majority by stable spatial ID (or coordinate proxy)
+    ord <- order(trans_df$cell_id[idx0])
+    idx0_sorted <- idx0[ord]
+
+    # Evenly spaced thinning to preserve coverage
+    spacing <- ceiling(length(idx0_sorted) / target_majority)
+    keep_0 <- idx0_sorted[seq(1, length(idx0_sorted), by = spacing)]
+
+    # Combine and subset
+    keep_idx <- c(idx1, keep_0)
+    trans_df <- trans_df[keep_idx, , drop = FALSE]
+
     message(sprintf(
-      "Sampled %d rows (1s=%d, 0s=%d)",
+      "Downsampled -> %d rows (1s=%d, 0s=%d, ratio=%.2f)",
       nrow(trans_df),
       sum(trans_df$response == 1),
-      sum(trans_df$response == 0)
+      sum(trans_df$response == 0),
+      sum(trans_df$response == 0) / sum(trans_df$response == 1)
     ))
   } else {
-    message("Dataset <= sample_size — using full transition set")
+    message("Majority already ≤ 1.5× minority — no downsampling applied.")
   }
 
   # index by cell_id
   trans_df <- trans_df %>%
-    arrange(cell_id) %>%
-    distinct(cell_id, .keep_all = TRUE)
+    dplyr::arrange(cell_id) %>%
+    dplyr::distinct(cell_id, .keep_all = TRUE)
 
   # Build cell_id-aligned response and weight tables
   class_counts <- table(trans_df$response)
@@ -807,9 +745,9 @@ category_wise_collin_filter_batched <- function(
       next
     }
 
-    joined <- pred_df %>% inner_join(response_df, by = "cell_id")
+    joined <- pred_df %>% dplyr::inner_join(response_df, by = "cell_id")
     if (!is.null(weights_df)) {
-      joined <- joined %>% left_join(weights_df, by = "cell_id")
+      joined <- joined %>% dplyr::left_join(weights_df, by = "cell_id")
     }
 
     if (nrow(joined) == 0) {
@@ -891,7 +829,7 @@ collin_filter <- function(
   stopifnot("cell_id" %in% names(joined))
   stopifnot(response_col %in% names(joined))
 
-  pred_names <- intersect(pred_names, names(joined))
+  pred_names <- dplyr::intersect(pred_names, names(joined))
   if (length(pred_names) == 0) {
     return(list(
       selected = character(0),
@@ -899,7 +837,7 @@ collin_filter <- function(
     ))
   }
 
-  joined <- joined %>% filter(!is.na(.data[[response_col]]))
+  joined <- joined %>% dplyr::filter(!is.na(.data[[response_col]]))
   joined$weight <- if (!is.null(weight_col) && weight_col %in% names(joined)) {
     joined[[weight_col]]
   } else {
@@ -964,7 +902,7 @@ collin_filter <- function(
 
   # Correlation filter
   m <- suppressWarnings(abs(cor(
-    joined %>% select(all_of(ok_sorted)),
+    joined %>% dplyr::select(all_of(ok_sorted)),
     use = "pairwise.complete.obs"
   )))
   m[is.na(m)] <- 0
@@ -1006,20 +944,20 @@ load_transition_data <- function(
     ifelse(is.null(region_value), "ALL", region_value)
   ))
 
-  q <- ds %>% select(cell_id, region, all_of(transition_name))
+  q <- ds %>% dplyr::select(cell_id, region, all_of(transition_name))
 
   if (use_regions && !is.null(region_value)) {
-    q <- q %>% filter(region == !!region_value)
+    q <- q %>% dplyr::filter(region == !!region_value)
   }
 
   out <- tryCatch(
     {
       q %>%
-        filter(!is.na(.data[[transition_name]])) %>%
-        collect() %>%
-        select(cell_id, response = all_of(transition_name), region) %>%
-        distinct(cell_id, .keep_all = TRUE) %>%
-        arrange(cell_id)
+        dplyr::filter(!is.na(.data[[transition_name]])) %>%
+        dplyr::collect() %>%
+        dplyr::select(cell_id, response = all_of(transition_name), region) %>%
+        dplyr::distinct(cell_id, .keep_all = TRUE) %>%
+        dplyr::arrange(cell_id)
     },
     error = function(e) {
       warning(paste(
@@ -1028,7 +966,7 @@ load_transition_data <- function(
         "|",
         e$message
       ))
-      tibble(cell_id = integer(), response = integer())
+      tibble::tibble(cell_id = integer(), response = integer())
     }
   )
 
@@ -1064,44 +1002,45 @@ load_predictor_data <- function(
   static_cols <- intersect(preds, names(ds_static$schema))
   dyn_cols <- intersect(preds, names(ds_dynamic$schema))
 
-  q_static <- ds_static %>% select(cell_id, region, all_of(static_cols))
-  q_dyn <- ds_dynamic %>% select(cell_id, region, scenario, all_of(dyn_cols))
+  q_static <- ds_static %>% dplyr::select(cell_id, region, all_of(static_cols))
+  q_dyn <- ds_dynamic %>%
+    dplyr::select(cell_id, region, scenario, all_of(dyn_cols))
 
   if (!is.null(region_value)) {
-    q_static <- q_static %>% filter(region == !!region_value)
-    q_dyn <- q_dyn %>% filter(region == !!region_value)
+    q_static <- q_static %>% dplyr::filter(region == !!region_value)
+    q_dyn <- q_dyn %>% dplyr::filter(region == !!region_value)
   }
   if (!is.null(scenario)) {
-    q_dyn <- q_dyn %>% filter(.data$scenario == !!scenario)
+    q_dyn <- q_dyn %>% dplyr::filter(.data$scenario == !!scenario)
   }
 
-  q_static <- q_static %>% filter(cell_id %in% !!cell_ids)
-  q_dyn <- q_dyn %>% filter(cell_id %in% !!cell_ids)
+  q_static <- q_static %>% dplyr::filter(cell_id %in% !!cell_ids)
+  q_dyn <- q_dyn %>% dplyr::filter(cell_id %in% !!cell_ids)
 
   static_df <- if (length(static_cols) > 0) {
     q_static %>%
-      collect() %>%
-      select(-region) %>%
-      distinct(cell_id, .keep_all = TRUE) %>%
-      arrange(cell_id)
+      dplyr::collect() %>%
+      dplyr::select(-region) %>%
+      dplyr::distinct(cell_id, .keep_all = TRUE) %>%
+      dplyr::arrange(cell_id)
   } else {
-    tibble(cell_id = integer())
+    tibble::tibble(cell_id = integer())
   }
 
   dyn_df <- if (length(dyn_cols) > 0) {
     q_dyn %>%
-      collect() %>%
-      select(-region, -scenario) %>%
-      distinct(cell_id, .keep_all = TRUE) %>%
-      arrange(cell_id)
+      dplyr::collect() %>%
+      dplyr::select(-region, -scenario) %>%
+      dplyr::distinct(cell_id, .keep_all = TRUE) %>%
+      dplyr::arrange(cell_id)
   } else {
-    tibble(cell_id = integer())
+    tibble::tibble(cell_id = integer())
   }
 
   joined <- dplyr::full_join(static_df, dyn_df, by = "cell_id")
   keep <- c("cell_id", intersect(preds, names(joined)))
 
-  df <- joined %>% select(all_of(keep)) %>% arrange(cell_id)
+  df <- joined %>% dplyr::select(all_of(keep)) %>% dplyr::arrange(cell_id)
 
   # Enforce numeric predictors
   for (nm in setdiff(names(df), "cell_id")) {
@@ -1251,7 +1190,6 @@ grrff_filter <- function(
 
   return(result)
 }
-
 
 # ============================================================================
 # HELPER FUNCTIONS
@@ -1531,14 +1469,3 @@ find_error_pattern <- function(debug_dir, pattern) {
 
 # check fs results for debugging
 #out <- read_debug_info(file.path(config[["feature_selection_dir"]], "debug_fs"))
-
-transition_feature_selection(
-  config = get_config(),
-  use_regions = isTRUE(config[["regionalization"]]),
-  refresh_cache = FALSE,
-  save_debug = TRUE,
-  debug_dir = file.path(config[["feature_selection_dir"]], "debug_fs"),
-  sample_size = 2e6, # Optional: number of rows to sample for testing
-  do_collinearity = TRUE, # Whether to perform collinearity filtering
-  do_grrf = TRUE # Whether to perform GRRF feature selection
-)
