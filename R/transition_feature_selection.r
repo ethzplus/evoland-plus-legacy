@@ -3,11 +3,39 @@
 #' @author: Ben Black (adapted)
 
 # testing parameters
-period <- "2018_2022"
-transition_name <- "forested_areas-high_intensity_agricultural_areas"
-region <- "andes"
-# transition_name <- transitions_info$Trans_name[1]
-# region <- region_names[1]
+#period <- "2018_2022"
+#transition_name <- "forested_areas-high_intensity_agricultural_areas"
+#region <- regions$label[3]
+
+# list and read all RDS file sin debug_dir
+# fs_results <- list.files(
+#   path = file.path(config[["feature_selection_dir"]], "debug_fs"),
+#   pattern = ".rds$",
+#   full.names = TRUE
+# ) %>%
+#   lapply(readRDS) %>%
+#   dplyr::bind_rows()
+
+# # identify those with status != "success"
+# failed_fs <- fs_results %>%
+#   dplyr::filter(status != "success")
+
+# # remove the rds files for these
+# for (i in seq_len(nrow(failed_fs))) {
+#   fs_file <- file.path(
+#     config[["feature_selection_dir"]],
+#     "debug_fs",
+#     sprintf(
+#       "fs_summary_%s_%s.rds",
+#       failed_fs$transition[i],
+#       failed_fs$region[i]
+#     )
+#   )
+#   if (file.exists(fs_file)) {
+#     file.remove(fs_file)
+#     message(sprintf("Removed failed FS file: %s", fs_file))
+#   }
+# }
 
 #' Main orchestrator function for transition feature selection across all periods
 #'
@@ -17,10 +45,10 @@ region <- "andes"
 transition_feature_selection <- function(
   config = get_config(),
   use_regions = isTRUE(config[["regionalization"]]),
-  refresh_cache = TRUE,
+  refresh_cache = FALSE,
   save_debug = TRUE,
-  debug_dir = file.path(config[["feature_selection_dir"]], "debug_fs"),
-  sample_size = 3e5, # Optional: number of rows to sample for testing
+  debug_dir = file.path(config[["feature_selection_dir"]]),
+  sample_size = 2e6, # Optional: number of rows to sample for testing
   do_collinearity = TRUE, # Whether to perform collinearity filtering
   do_grrf = TRUE # Whether to perform GRRF feature selection
 ) {
@@ -59,7 +87,8 @@ transition_feature_selection <- function(
         sample_size = sample_size,
         do_collinearity = do_collinearity,
         do_grrf = do_grrf,
-        refresh_cache = refresh_cache
+        refresh_cache = refresh_cache,
+        profile_single = FALSE
       )
     }
   )
@@ -103,6 +132,9 @@ transition_feature_selection <- function(
 #' @param sample_size Optional number of rows to sample for testing
 #' @param do_collinearity Whether to perform collinearity filtering
 #' @param do_grrf Whether to perform GRRF feature selection
+#' @param profile_single Whether to profile a single transition (for testing)
+#' @param profile_transition Name of specific transition to profile (if profile_single=TRUE)
+#' @param profile_output Path where profiling HTML report should be saved
 #' @return Data frame with feature selection results for all transitions in period
 perform_feature_selection <- function(
   period,
@@ -111,9 +143,12 @@ perform_feature_selection <- function(
   debug_dir,
   refresh_cache = FALSE,
   save_debug = TRUE,
-  sample_size = 1e5, # Optional: number of rows to sample for testing
+  sample_size = 3e5, # Optional: number of rows to sample for testing
   do_collinearity = TRUE, # Whether to perform collinearity filtering
-  do_grrf = TRUE # Whether to perform GRRF feature selection
+  do_grrf = TRUE, # Whether to perform GRRF feature selection
+  profile_single = FALSE, # NEW: Enable profiling mode
+  profile_transition = NULL, # NEW: Specific transition to profile
+  profile_output = "profile_output.html" # NEW: Output file for profile
 ) {
   message("\n########################################")
   message(sprintf("# PERIOD: %s", period))
@@ -203,7 +238,8 @@ perform_feature_selection <- function(
   pred_categories <- c(
     setNames(rep("suitability", length(suitability_preds)), suitability_preds),
     #unlist(imap(soil_groups, ~ setNames(rep(.y, length(.x)), .x))),
-    flatten_chr(imap(nhood_groups, ~ setNames(rep(.y, length(.x)), .x)))
+    purrr::imap(nhood_groups, ~ setNames(rep(.y, length(.x)), .x)) %>%
+      purrr::reduce(c)
   )
 
   message(sprintf("Loaded %d viable transitions", nrow(transitions_info)))
@@ -215,20 +251,18 @@ perform_feature_selection <- function(
   # --- Set up file paths ---
   transitions_pq_path <- file.path(
     config[["trans_pre_pred_filter_dir"]],
-    period,
-    sprintf("transitions_%s.parquet", period)
+    period
   )
   static_preds_pq_path <- file.path(
     config[["predictors_prepped_dir"]],
     "parquet_data",
-    "static",
-    "predictors_static.parquet"
+    "static"
   )
   dynamic_preds_pq_path <- file.path(
     config[["predictors_prepped_dir"]],
     "parquet_data",
     "dynamic",
-    sprintf("period_%s.parquet", period)
+    period
   )
 
   # Verify files exist
@@ -240,9 +274,26 @@ perform_feature_selection <- function(
 
   # Open arrow datasets (lazy)
   message("Opening Arrow datasets...")
-  ds_transitions <- arrow::open_dataset(transitions_pq_path)
-  ds_static <- arrow::open_dataset(static_preds_pq_path)
-  ds_dynamic <- arrow::open_dataset(dynamic_preds_pq_path)
+  ds_transitions <- arrow::open_dataset(
+    transitions_pq_path,
+    partitioning = arrow::hive_partition(
+      region = int32()
+    )
+  )
+  ds_static <- arrow::open_dataset(
+    static_preds_pq_path,
+    partitioning = arrow::hive_partition(
+      region = int32()
+    )
+  )
+  ds_dynamic <- arrow::open_dataset(
+    dynamic_preds_pq_path,
+    partitioning = arrow::hive_partition(
+      scenario = utf8(),
+      region = int32()
+    )
+  )
+
   message("  Arrow datasets opened successfully\n")
 
   # --- Set up regions ---
@@ -262,7 +313,82 @@ perform_feature_selection <- function(
     message("Processing national extent (no regionalization)\n")
   }
 
-  # --- Process all transitions in parallel ---
+  # ============================================================================
+  # PROFILING MODE: Profile a single transition
+  # ============================================================================
+  if (profile_single) {
+    if (!requireNamespace("profvis", quietly = TRUE)) {
+      stop(
+        "profvis package is required for profiling. Install with: install.packages('profvis')"
+      )
+    }
+
+    # Determine which transition to profile
+    if (is.null(profile_transition)) {
+      profile_transition <- transitions_info$Trans_name[1]
+      message(sprintf(
+        "\nNo transition specified for profiling. Using first transition: %s",
+        profile_transition
+      ))
+    } else {
+      if (!profile_transition %in% transitions_info$Trans_name) {
+        stop(sprintf(
+          "Transition '%s' not found in transitions_info. Available: %s",
+          profile_transition,
+          paste(head(transitions_info$Trans_name, 5), collapse = ", ")
+        ))
+      }
+    }
+
+    # Use first region for profiling
+    profile_region <- region_names[1]
+
+    message("\n========================================")
+    message("PROFILING MODE ENABLED")
+    message("========================================")
+    message(sprintf("Transition: %s", profile_transition))
+    message(sprintf("Region: %s", profile_region))
+    message(sprintf("Output: %s", profile_output))
+    message("========================================\n")
+
+    # Run profiling
+    prof_result <- profvis::profvis({
+      process_single_transition(
+        transition_name = profile_transition,
+        refresh_cache = refresh_cache,
+        region = profile_region,
+        use_regions = use_regions,
+        ds_transitions = ds_transitions,
+        ds_static = ds_static,
+        ds_dynamic = ds_dynamic,
+        pred_categories = pred_categories,
+        period = period,
+        config = config,
+        debug_dir = debug_dir,
+        save_debug = save_debug,
+        sample_size = sample_size,
+        do_collinearity = do_collinearity,
+        do_grrf = do_grrf
+      )
+    })
+
+    # Save profiling results
+    htmlwidgets::saveWidget(prof_result, profile_output)
+    message(sprintf(
+      "\n✓ Profiling complete! Report saved to: %s",
+      profile_output
+    ))
+    message(
+      "Open this file in a web browser to view the interactive profile.\n"
+    )
+
+    # Also return the result for inspection
+    return(prof_result)
+  }
+
+  # ============================================================================
+  # NORMAL MODE: Process all transitions
+  # ============================================================================
   message(sprintf(
     "Starting parallel processing of %d transitions...\n",
     nrow(transitions_info)
@@ -302,7 +428,7 @@ perform_feature_selection <- function(
 }
 
 
-#' Process feature selection for a single transition-region (optimized)
+#' Process feature selection for a single transition-region (optimized with batch loading)
 #' @param transition_name Name of the transition
 #' @param region Region name (if applicable)
 #' @param use_regions Boolean indicating if regionalization is active
@@ -333,7 +459,6 @@ process_single_transition <- function(
   do_grrf = TRUE,
   refresh_cache = FALSE
 ) {
-  # --- STEP 0: Check for cached results ---
   debug_path <- file.path(
     debug_dir,
     sprintf("fs_summary_%s_%s.rds", transition_name, region)
@@ -341,29 +466,28 @@ process_single_transition <- function(
 
   if (!refresh_cache && file.exists(debug_path)) {
     message(sprintf(
-      "Loading cached results for %s | Region: %s",
+      "Loading cached results for %s | %s",
       transition_name,
       if (use_regions) region else "National"
     ))
-    cached_summary <- readRDS(debug_path)
-    return(cached_summary)
+    return(readRDS(debug_path))
   }
 
   if (refresh_cache && file.exists(debug_path)) {
     message(sprintf(
-      "Cache found but refresh_cache = TRUE; recalculating %s | Region: %s",
+      "Cache exists but refresh=TRUE. Recomputing %s | %s",
       transition_name,
-      if (use_regions) region else "National"
+      region
     ))
   }
 
   message(sprintf(
-    "\n========================================\nStarting: %s | Region: %s\n========================================",
+    "\n===== %s | Region: %s =====",
     transition_name,
     if (use_regions) region else "National"
   ))
 
-  # Resolve region value if using regionalization
+  # Resolve region_value if requested
   region_value <- NULL
   if (use_regions) {
     regions <- jsonlite::fromJSON(file.path(
@@ -371,12 +495,14 @@ process_single_transition <- function(
       "regions.json"
     ))
     region_value <- as.integer(regions$value[match(region, regions$label)])
-    stopifnot(length(region_value) == 1, !is.na(region_value))
+    if (is.na(region_value) || length(region_value) != 1) {
+      stop(sprintf("Invalid region mapping for region '%s'", region))
+    }
   }
 
-  # --- STEP 1: Load Transition Data ---
+  # STEP 1: Load transition table (cell_id, response)
   trans_df <- load_transition_data(
-    ds_transitions,
+    ds = ds_transitions,
     transition_name,
     region_value,
     use_regions
@@ -397,205 +523,470 @@ process_single_transition <- function(
     ))
   }
 
-  # --- STEP 2: Stratified Sampling (before predictor loading) ---
+  # STEP 2: Stratified sampling (sample transition rows only; reduces predictor reads)
   if (nrow(trans_df) > sample_size) {
-    message(sprintf(
-      "Performing stratified sampling to %d rows (preserving class balance)",
-      sample_size
-    ))
-
+    message(sprintf("Stratified sampling -> %d rows", sample_size))
     prop_table <- prop.table(table(trans_df$response))
-    n_1 <- round(
+    n1 <- round(
       sample_size * ifelse("1" %in% names(prop_table), prop_table["1"], 0)
     )
-    n_0 <- sample_size - n_1
+    n0 <- sample_size - n1
 
     set.seed(123)
-    idx_1 <- which(trans_df$response == 1)
-    idx_0 <- which(trans_df$response == 0)
+    idx1 <- which(trans_df$response == 1)
+    idx0 <- which(trans_df$response == 0)
 
-    samp_1 <- if (length(idx_1) > n_1) sample(idx_1, n_1) else idx_1
-    samp_0 <- if (length(idx_0) > n_0) sample(idx_0, n_0) else idx_0
+    s1 <- if (length(idx1) > n1) sample(idx1, n1) else idx1
+    s0 <- if (length(idx0) > n0) sample(idx0, n0) else idx0
 
-    trans_df <- trans_df[c(samp_1, samp_0), , drop = FALSE]
-
+    trans_df <- trans_df[c(s1, s0), , drop = FALSE]
     message(sprintf(
-      "Sampled %d rows: %d transitions (1s), %d non-transitions (0s)",
+      "Sampled %d rows (1s=%d, 0s=%d)",
       nrow(trans_df),
       sum(trans_df$response == 1),
       sum(trans_df$response == 0)
     ))
   } else {
-    message("Dataset smaller than sample size — using full data")
+    message("Dataset <= sample_size — using full transition set")
   }
 
-  # --- STEP 3: Load Predictor Data ---
-  message("[DEBUG] pred_categories length: ", length(names(pred_categories)))
-  preds_df <- load_predictor_data(
-    ds_static,
-    ds_dynamic,
-    unique(trans_df$cell_id),
-    names(pred_categories),
-    region_value,
-    scenario = "baseline"
-  )
+  # index by cell_id
+  trans_df <- trans_df %>%
+    arrange(cell_id) %>%
+    distinct(cell_id, .keep_all = TRUE)
 
-  # --- STEP 4: Validate and Join Data ---
-  validated <- validate_and_join_data(
-    trans_df,
-    preds_df,
-    min_observations = 100,
-    min_transitions = 10
-  )
+  # Build cell_id-aligned response and weight tables
+  class_counts <- table(trans_df$response)
+  weights <- setNames(max(class_counts) / class_counts, names(class_counts))
+  weight_vec <- weights[as.character(trans_df$response)]
+  weights_df <- tibble::tibble(cell_id = trans_df$cell_id, weight = weight_vec)
 
-  if (validated$status != "valid") {
+  # Basic validation
+  n_trans <- sum(trans_df$response == 1)
+  if (nrow(trans_df) < 100 || n_trans < 10) {
     return(create_summary_row(
       period,
       region,
       transition_name,
-      validated$n_observations,
-      validated$n_transitions,
-      length(names(pred_categories)),
-      status = validated$status,
+      nrow(trans_df),
+      n_trans,
+      length(pred_categories),
+      status = if (nrow(trans_df) < 100) {
+        "insufficient_observations"
+      } else {
+        "insufficient_transitions"
+      },
       debug_dir = debug_dir,
       debug_path = debug_path,
       save_debug = save_debug
     ))
   }
 
-  joined <- validated$data
-
-  # remove transition dataframes to free up memory
-  rm(trans_df)
-  rm(preds_df)
-  gc()
-
-  # Extract response and predictors (no unnecessary copies)
-  response_vec <- joined$response
-  predictor_cols <- setdiff(names(joined), c("cell_id", "response", "region"))
-
   message(sprintf(
-    "Data validation successful: %d observations, %d transitions, %d predictors",
-    validated$n_observations,
-    validated$n_transitions,
-    length(predictor_cols)
+    "Data ready: %d obs | %d transitions | %d candidate predictors",
+    nrow(trans_df),
+    n_trans,
+    length(pred_categories)
   ))
 
-  # --- STEP 5: Compute Class Weights ---
-  class_counts <- table(response_vec)
-  weights <- setNames(max(class_counts) / class_counts, names(class_counts))
-  weight_vec <- weights[as.character(response_vec)]
-
-  # --- STEP 6: Feature Selection Pipeline (controlled by arguments) ---
-  collin_selected_names <- predictor_cols
-
-  # -- (a) Collinearity filtering --
+  # STEP 3: Category-wise collinearity filtering (batched)
+  collin_selected <- names(pred_categories)
   if (do_collinearity) {
-    collin_selected_names <- tryCatch(
-      {
-        category_wise_collin_filter(
-          joined = joined,
-          predictor_cols = predictor_cols,
-          response_vec = response_vec,
-          categories = pred_categories[predictor_cols],
-          weights = weight_vec,
-          corcut = 0.7
-        )
-      },
+    message("Running category-wise collinearity filtering (batched)...")
+
+    collin_result <- tryCatch(
+      category_wise_collin_filter_batched(
+        ds_static = ds_static,
+        ds_dynamic = ds_dynamic,
+        predictor_names = names(pred_categories),
+        categories = pred_categories,
+        response_df = trans_df,
+        weights_df = weights_df,
+        region_value = region_value,
+        scenario = "baseline",
+        corcut = 0.7
+      ),
       error = function(e) {
-        warning(sprintf("Collinearity filtering failed: %s", e$message))
-        character(0)
+        warning(sprintf("Collinearity filtering exception: %s", e$message))
+        list(selected = character(0), error_log = list(all = e$message))
       }
     )
 
-    if (length(collin_selected_names) == 0) {
+    # collin_result is a list(selected=..., category_results=..., error_log=...)
+    collin_selected <- if (
+      is.list(collin_result) && "selected" %in% names(collin_result)
+    ) {
+      collin_result$selected
+    } else {
+      character(0)
+    }
+
+    if (length(collin_selected) == 0) {
+      details <- if (
+        is.list(collin_result) && "error_log" %in% names(collin_result)
+      ) {
+        paste(unlist(collin_result$error_log), collapse = "; ")
+      } else {
+        "no predictors selected"
+      }
+      message("  FAILED: No predictors passed collinearity stage")
+      message(sprintf("  Details: %s", details))
       return(create_summary_row(
         period,
         region,
         transition_name,
-        validated$n_observations,
-        validated$n_transitions,
-        length(predictor_cols),
+        nrow(trans_df),
+        n_trans,
+        length(pred_categories),
         n_after_collinearity = 0,
         status = "collinearity_filtering_failed",
+        error_details = details,
         debug_dir = debug_dir,
         debug_path = debug_path,
         save_debug = save_debug
       ))
     }
+
+    message(sprintf(
+      "Selected %d predictors after collinearity",
+      length(collin_selected)
+    ))
   } else {
     message("Skipping collinearity filtering (do_collinearity = FALSE)")
   }
 
-  # -- (b) GRRF filtering --
-  grrf_selected_names <- collin_selected_names
+  # STEP 4: GRRF selection
+  grrf_selected <- collin_selected
+  grrf_error <- NULL
+
   if (do_grrf) {
-    grrf_selected_names <- tryCatch(
-      {
-        grrff_filter(
-          joined = joined,
-          predictor_cols = collin_selected_names,
-          response_vec = response_vec,
-          weight_vector = weights,
-          gamma = 0.5
-        )
-      },
-      error = function(e) {
-        warning(sprintf("GRRF selection failed: %s", e$message))
-        character(0)
-      }
+    message(sprintf(
+      "Preparing %d predictors for GRRF",
+      length(collin_selected)
+    ))
+
+    preds_df <- load_predictor_data(
+      ds_static = ds_static,
+      ds_dynamic = ds_dynamic,
+      cell_ids = trans_df$cell_id,
+      preds = collin_selected,
+      region_value = region_value,
+      scenario = "baseline"
     )
 
-    if (length(grrf_selected_names) == 0) {
-      return(create_summary_row(
-        period,
-        region,
-        transition_name,
-        validated$n_observations,
-        validated$n_transitions,
-        length(predictor_cols),
-        length(collin_selected_names),
-        n_after_grrf = 0,
-        status = "grrf_failed",
-        debug_dir = debug_dir,
-        debug_path = debug_path,
-        save_debug = save_debug
-      ))
+    # Join predictors to response
+    joined <- dplyr::inner_join(preds_df, trans_df, by = "cell_id")
+
+    # Ensure binary numeric response
+    joined$response <- as.numeric(joined$response)
+    if (!all(joined$response %in% c(0, 1))) {
+      stop("Response column contains non-binary values after join")
     }
-  } else {
-    message("Skipping GRRF filtering (do_grrf = FALSE)")
+
+    if (nrow(joined) == 0) {
+      warning("Zero rows remain after join. Likely misalignment.")
+      grrf_selected <- character(0)
+    } else {
+      # Call GRRF with tryCatch
+      grrf_selected <- tryCatch(
+        grrff_filter(
+          joined = joined,
+          predictor_cols = collin_selected,
+          response_vec = joined$response,
+          gamma = 0.5
+        ),
+        error = function(e) {
+          grrf_error <<- e$message
+          warning(sprintf("GRRF selection failed: %s", e$message))
+          character(0)
+        }
+      )
+    }
+
+    if (length(grrf_selected) == 0) {
+      warning(sprintf("GRRF failed for %s | %s", transition_name, region))
+    } else {
+      message(sprintf("GRRF selected %d predictors", length(grrf_selected)))
+    }
   }
 
-  # --- STEP 7: Update Focal Lookup ---
-  focal_preds <- grep("nhood", grrf_selected_names, value = TRUE)
+  # STEP 5: Update focal predictors
+  focal_preds <- grep("nhood", grrf_selected, value = TRUE)
   if (length(focal_preds) > 0) {
-    update_focal_lookup(focal_preds, period, transition_name, region, config)
+    tryCatch(
+      update_focal_lookup(focal_preds, period, transition_name, region, config),
+      error = function(e) {
+        warning(sprintf("update_focal_lookup warning: %s", e$message))
+      }
+    )
   }
 
-  # --- STEP 8: Create summary ---
-  create_summary_row(
+  # STEP 6: Create summary row and save debug
+  summary_row <- create_summary_row(
     period,
     region,
     transition_name,
-    validated$n_observations,
-    validated$n_transitions,
-    length(predictor_cols),
-    length(collin_selected_names),
-    length(grrf_selected_names),
-    paste(grrf_selected_names, collapse = "; "),
-    paste(focal_preds, collapse = "; "),
-    status = "success",
+    nrow(trans_df),
+    n_trans,
+    length(pred_categories),
+    n_after_collinearity = length(collin_selected),
+    n_after_grrf = length(grrf_selected),
+    selected_predictors = paste(grrf_selected, collapse = "; "),
+    focal_predictors = paste(focal_preds, collapse = "; "),
+    status = ifelse(length(grrf_selected) > 0, "success", "grrf_failed"),
+    error_details = grrf_error,
     debug_dir = debug_dir,
     debug_path = debug_path,
-    save_debug = save_debug,
-    selected_predictors_collinearity = if (do_collinearity) {
-      collin_selected_names
-    } else {
-      NULL
-    },
-    selected_predictors_grrf = if (do_grrf) grrf_selected_names else NULL
+    save_debug = TRUE, # Always save to include collin-selected predictors
+    selected_predictors_collinearity = paste(collin_selected, collapse = "; "),
+    selected_predictors_grrf = paste(grrf_selected, collapse = "; ")
+  )
+
+  if (save_debug) {
+    tryCatch(saveRDS(summary_row, debug_path), error = function(e) {
+      warning(sprintf("Failed to save debug RDS: %s", e$message))
+    })
+  }
+
+  summary_row
+}
+
+
+#' Category-wise collinearity filtering with batched predictor loading
+#' @param ds_static Arrow dataset for static predictors
+#' @param ds_dynamic Arrow dataset for dynamic predictors
+#' @param predictor_names Vector of all predictor names
+#' @param categories Named vector of predictor categories
+#' @param response_vec Response vector
+#' @param weights Weight vector
+#' @param region_value Region value for filtering
+#' @param scenario Scenario name
+#' @param corcut Correlation cutoff threshold
+#' @return Character vector of selected predictor names with diagnostic attributes
+category_wise_collin_filter_batched <- function(
+  ds_static,
+  ds_dynamic,
+  predictor_names,
+  categories,
+  response_df,
+  weights_df = NULL,
+  region_value = NULL,
+  scenario = NULL,
+  corcut = 0.7
+) {
+  predictor_map <- split(predictor_names, categories[predictor_names])
+  all_selected <- c()
+  cat_res <- list()
+  errors <- list()
+
+  for (cat in names(predictor_map)) {
+    preds <- predictor_map[[cat]]
+    message(sprintf("[CAT] %s | %d predictors", cat, length(preds)))
+
+    if (length(preds) == 0) {
+      cat_res[[cat]] <- list(n_input = 0, n_selected = 0, error = "no_preds")
+      next
+    }
+
+    pred_df <- load_predictor_data(
+      ds_static = ds_static,
+      ds_dynamic = ds_dynamic,
+      cell_ids = response_df$cell_id,
+      preds = preds,
+      region_value = region_value,
+      scenario = scenario
+    )
+
+    if (nrow(pred_df) == 0) {
+      errors[[cat]] <- "no_pred_rows"
+      cat_res[[cat]] <- list(
+        n_input = length(preds),
+        n_selected = 0,
+        error = "empty_pred_df"
+      )
+      next
+    }
+
+    joined <- pred_df %>% inner_join(response_df, by = "cell_id")
+    if (!is.null(weights_df)) {
+      joined <- joined %>% left_join(weights_df, by = "cell_id")
+    }
+
+    if (nrow(joined) == 0) {
+      errors[[cat]] <- "join_zero"
+      cat_res[[cat]] <- list(
+        n_input = length(preds),
+        n_selected = 0,
+        error = "zero_after_join"
+      )
+      next
+    }
+
+    pred_cols <- intersect(preds, names(joined))
+    if (length(pred_cols) == 0) {
+      errors[[cat]] <- "no_pred_cols"
+      cat_res[[cat]] <- list(
+        n_input = length(preds),
+        n_selected = 0,
+        error = "no_columns"
+      )
+      next
+    }
+
+    # Call collin_filter with tryCatch for error handling
+    res <- tryCatch(
+      collin_filter(
+        joined,
+        pred_cols,
+        response_col = "response",
+        weight_col = "weight",
+        corcut = corcut
+      ),
+      error = function(e) {
+        list(selected = character(0), diagnostics = list(error = e$message))
+      }
+    )
+
+    # extract selected predictors
+    sel <- res$selected
+    if (length(sel) > 0) {
+      all_selected <- c(all_selected, sel)
+    }
+
+    # add category results along with diagnostics
+    cat_res[[cat]] <- list(
+      n_input = length(preds),
+      n_selected = length(sel),
+      error = res$diagnostics$error %||% NULL
+    )
+    if (length(sel) == 0) {
+      errors[[cat]] <- res$diagnostics$error %||% "no_selection"
+    }
+  }
+
+  # return results from accross categories, within categories and errors
+  list(
+    selected = unique(all_selected),
+    category_results = cat_res,
+    error_log = errors
   )
 }
+
+
+#' Filter covariates based on collinearity (binary outcome)
+#'
+#' @param joined Data frame with predictors and response
+#' @param pred_names Column names of predictors to filter
+#' @param response_vec Response vector (binary 0/1)
+#' @param weights Weight vector
+#' @param corcut Correlation cutoff threshold
+#' @return Character vector of selected predictor names (never a list)
+collin_filter <- function(
+  joined,
+  pred_names,
+  response_col = "response",
+  weight_col = NULL,
+  corcut = 0.7
+) {
+  stopifnot("cell_id" %in% names(joined))
+  stopifnot(response_col %in% names(joined))
+
+  pred_names <- intersect(pred_names, names(joined))
+  if (length(pred_names) == 0) {
+    return(list(
+      selected = character(0),
+      diagnostics = list(error = "no_predictors")
+    ))
+  }
+
+  joined <- joined %>% filter(!is.na(.data[[response_col]]))
+  joined$weight <- if (!is.null(weight_col) && weight_col %in% names(joined)) {
+    joined[[weight_col]]
+  } else {
+    1
+  }
+
+  failed <- c()
+  reasons <- c()
+  pvs <- setNames(rep(1, length(pred_names)), pred_names)
+
+  for (p in pred_names) {
+    x <- joined[[p]]
+    keep <- !is.na(x) & !is.na(joined[[response_col]])
+    x <- x[keep]
+    y <- joined[[response_col]][keep]
+    w <- joined$weight[keep]
+
+    if (length(unique(x)) < 3) {
+      failed <- c(failed, p)
+      reasons <- c(reasons, "low_var")
+      next
+    }
+    if (length(x) < 10) {
+      failed <- c(failed, p)
+      reasons <- c(reasons, "too_few_obs")
+      next
+    }
+
+    fit <- tryCatch(
+      glm(
+        y ~ if (length(unique(x)) > 5) poly(x, 2, raw = TRUE) else x,
+        family = binomial(),
+        weights = w
+      ),
+      error = function(e) e
+    )
+
+    if (inherits(fit, "error")) {
+      failed <- c(failed, p)
+      reasons <- c(reasons, "glm_fail")
+      next
+    }
+
+    sm <- summary(fit)$coefficients
+    pv <- max(sm[-1, 4], na.rm = TRUE)
+    pvs[p] <- pv
+  }
+
+  ok <- names(pvs[pvs < 1.0])
+  if (length(ok) == 0) {
+    return(list(
+      selected = character(0),
+      diagnostics = list(
+        failed = failed,
+        reason = reasons,
+        error = "all_glm_failed"
+      )
+    ))
+  }
+
+  ok_sorted <- names(sort(pvs[ok]))
+
+  # Correlation filter
+  m <- suppressWarnings(abs(cor(
+    joined %>% select(all_of(ok_sorted)),
+    use = "pairwise.complete.obs"
+  )))
+  m[is.na(m)] <- 0
+
+  sel <- c()
+  rem <- ok_sorted
+  while (length(rem) > 0) {
+    cur <- rem[1]
+    sel <- c(sel, cur)
+    if (length(rem) == 1) {
+      break
+    }
+    cors <- m[cur, rem[-1]]
+    rem <- rem[-1][cors <= corcut]
+  }
+
+  list(
+    selected = sel,
+    diagnostics = list(failed = failed, reason = reasons, pvals = pvs)
+  )
+}
+
 
 #' Load transition data from the parquet file for a specific transition and region
 #' @param ds_transitions Arrow dataset for transitions
@@ -604,513 +995,258 @@ process_single_transition <- function(
 #' @param use_regions Boolean indicating if regionalization is active
 #' @return Data frame with cell_id and response columns
 load_transition_data <- function(
-  ds_transitions,
+  ds,
   transition_name,
   region_value = NULL,
   use_regions = FALSE
 ) {
-  message(sprintf("Loading transition data for: %s", transition_name))
+  message(sprintf(
+    "[TRANS] Loading %s | region=%s",
+    transition_name,
+    ifelse(is.null(region_value), "ALL", region_value)
+  ))
 
-  trans_query <- ds_transitions %>%
-    dplyr::select(cell_id, region, dplyr::all_of(transition_name))
+  q <- ds %>% select(cell_id, region, all_of(transition_name))
 
   if (use_regions && !is.null(region_value)) {
-    message(sprintf("  Filtering for region value: %d", region_value))
-    trans_query <- trans_query %>% dplyr::filter(region == region_value)
+    q <- q %>% filter(region == !!region_value)
   }
 
-  trans_query <- trans_query %>% dplyr::filter(!is.na(.data[[transition_name]]))
-
-  trans_df <- tryCatch(
+  out <- tryCatch(
     {
-      result <- trans_query %>% dplyr::collect()
-      message(sprintf(
-        "  Loaded %d rows for transition %s",
-        nrow(result),
-        transition_name
-      ))
-      result
+      q %>%
+        filter(!is.na(.data[[transition_name]])) %>%
+        collect() %>%
+        select(cell_id, response = all_of(transition_name), region) %>%
+        distinct(cell_id, .keep_all = TRUE) %>%
+        arrange(cell_id)
     },
     error = function(e) {
-      warning(sprintf(
-        "Failed to read transitions for %s: %s",
+      warning(paste(
+        "Failed to load transition:",
         transition_name,
+        "|",
         e$message
       ))
-      tibble::tibble(cell_id = integer())
+      tibble(cell_id = integer(), response = integer())
     }
   )
 
-  if (nrow(trans_df) == 0) {
-    message(sprintf("  No data found for transition: %s", transition_name))
-    return(tibble::tibble(cell_id = integer(), response = integer()))
+  if (nrow(out) == 0) {
+    warning(sprintf("[TRANS] ZERO ROWS for %s", transition_name))
   }
 
-  trans_df %>% dplyr::select(cell_id, response = dplyr::all_of(transition_name))
+  out
 }
+
 
 #' Load predictor data (both static and dynamic) from the parquet file for specific cell IDs
 #' @param ds_static Arrow dataset for static predictors
-#' @param ds_dynamic Arrow dataset for dynamic predictors
+#' @param ds_dynamic_period Arrow dataset for dynamic predictors
 #' @param cell_ids Vector of cell IDs to load
-#' @param predictor_names Vector of predictor variable names to load
+#' @param preds Vector of predictor variable names to load
 #' @param region_value Numeric region value (if applicable)
 #' @param scenario Scenario name (if applicable)
 #' @return Data frame with cell_id and predictor columns
 load_predictor_data <- function(
   ds_static,
-  ds_dynamic_period,
+  ds_dynamic,
   cell_ids,
-  predictor_names,
-  region_value = NULL, # NEW: Pass region for partition pruning
-  scenario = NULL # NEW: Pass scenario for partition pruning
+  preds,
+  region_value = NULL,
+  scenario = NULL
 ) {
-  message(sprintf("Loading predictors for %d cells", length(cell_ids)))
+  preds <- unique(as.character(preds))
+  if (length(preds) == 0) {
+    return(tibble(cell_id = integer()))
+  }
 
-  static_names <- intersect(predictor_names, names(ds_static$schema))
-  dynamic_names <- intersect(predictor_names, names(ds_dynamic_period$schema))
+  static_cols <- intersect(preds, names(ds_static$schema))
+  dyn_cols <- intersect(preds, names(ds_dynamic$schema))
 
-  # Build queries with partition filters FIRST (critical for performance!)
-  static_query <- ds_static %>%
-    dplyr::select(cell_id, dplyr::all_of(static_names))
+  q_static <- ds_static %>% select(cell_id, region, all_of(static_cols))
+  q_dyn <- ds_dynamic %>% select(cell_id, region, scenario, all_of(dyn_cols))
 
-  dynamic_query <- ds_dynamic_period %>%
-    dplyr::select(cell_id, dplyr::all_of(dynamic_names))
-
-  # Apply partition filters BEFORE cell_id filter
   if (!is.null(region_value)) {
-    static_query <- static_query %>% dplyr::filter(region == region_value)
-    dynamic_query <- dynamic_query %>% dplyr::filter(region == region_value)
+    q_static <- q_static %>% filter(region == !!region_value)
+    q_dyn <- q_dyn %>% filter(region == !!region_value)
   }
-
   if (!is.null(scenario)) {
-    dynamic_query <- dynamic_query %>% dplyr::filter(scenario == scenario)
+    q_dyn <- q_dyn %>% filter(.data$scenario == !!scenario)
   }
 
-  # Now filter by cell_ids (much smaller dataset after partition pruning)
-  static_query <- static_query %>% dplyr::filter(cell_id %in% !!cell_ids)
-  dynamic_query <- dynamic_query %>% dplyr::filter(cell_id %in% !!cell_ids)
+  q_static <- q_static %>% filter(cell_id %in% !!cell_ids)
+  q_dyn <- q_dyn %>% filter(cell_id %in% !!cell_ids)
 
-  # Collect
-  static_df <- if (length(static_names) > 0) {
-    static_query %>% dplyr::collect()
+  static_df <- if (length(static_cols) > 0) {
+    q_static %>%
+      collect() %>%
+      select(-region) %>%
+      distinct(cell_id, .keep_all = TRUE) %>%
+      arrange(cell_id)
   } else {
-    tibble::tibble(cell_id = integer())
+    tibble(cell_id = integer())
   }
 
-  dynamic_df <- if (length(dynamic_names) > 0) {
-    dynamic_query %>% dplyr::collect()
+  dyn_df <- if (length(dyn_cols) > 0) {
+    q_dyn %>%
+      collect() %>%
+      select(-region, -scenario) %>%
+      distinct(cell_id, .keep_all = TRUE) %>%
+      arrange(cell_id)
   } else {
-    tibble::tibble(cell_id = integer())
+    tibble(cell_id = integer())
   }
 
-  # Join in memory
-  if (nrow(static_df) > 0 && nrow(dynamic_df) > 0) {
-    dplyr::inner_join(static_df, dynamic_df, by = "cell_id")
-  } else if (nrow(static_df) > 0) {
-    static_df
-  } else {
-    dynamic_df
-  }
-}
+  joined <- dplyr::full_join(static_df, dyn_df, by = "cell_id")
+  keep <- c("cell_id", intersect(preds, names(joined)))
 
+  df <- joined %>% select(all_of(keep)) %>% arrange(cell_id)
 
-#' Validate and prepare data for feature selection
-#' @param trans_df Data frame with transition data (cell_id, response)
-#' @param preds_df Data frame with predictor data (cell_id, predictors)
-#' @param min_observations Minimum number of observations required
-#' @param min_transitions Minimum number of transition events required
-#' @return List with status, joined data, and diagnostics
-validate_and_join_data <- function(
-  trans_df,
-  preds_df,
-  min_observations = 100,
-  min_transitions = 10
-) {
-  if (nrow(trans_df) == 0) {
-    return(list(
-      status = "no_transition_data",
-      n_observations = 0,
-      n_transitions = 0,
-      data = NULL
-    ))
-  }
-
-  if (nrow(preds_df) == 0) {
-    return(list(
-      status = "no_predictor_data",
-      n_observations = nrow(trans_df),
-      n_transitions = sum(trans_df$response, na.rm = TRUE),
-      data = NULL
-    ))
-  }
-
-  joined <- dplyr::inner_join(trans_df, preds_df, by = "cell_id")
-
-  if (nrow(joined) == 0) {
-    return(list(
-      status = "no_join_results",
-      n_observations = 0,
-      n_transitions = 0,
-      data = NULL
-    ))
-  }
-
-  n_obs <- nrow(joined)
-  n_trans <- sum(joined$response, na.rm = TRUE)
-
-  if (n_obs < min_observations) {
-    return(list(
-      status = "insufficient_observations",
-      n_observations = n_obs,
-      n_transitions = n_trans,
-      data = NULL
-    ))
-  }
-
-  if (n_trans < min_transitions) {
-    return(list(
-      status = "insufficient_transitions",
-      n_observations = n_obs,
-      n_transitions = n_trans,
-      data = NULL
-    ))
-  }
-
-  list(
-    status = "valid",
-    n_observations = n_obs,
-    n_transitions = n_trans,
-    data = joined
-  )
-}
-
-
-#' Wrapper function that performs collinearity-based filter selection for predictors in specific categories
-#' @param joined Full joined data frame
-#' @param predictor_cols Column names of predictors to filter
-#' @param response_vec Response vector (binary 0/1)
-#' @param categories Named vector (base_name of predictors) of predictor categories
-#' @param weights Weight vector
-#' @param corcut Correlation cutoff threshold
-#' @return Character vector of selected predictor names after category-wise collinearity filtering
-category_wise_collin_filter <- function(
-  joined,
-  predictor_cols,
-  response_vec,
-  categories,
-  weights,
-  corcut = 0.7
-) {
-  # Split predictor names by category
-  pred_by_category <- split(predictor_cols, categories[predictor_cols])
-
-  message(sprintf(
-    "Processing %d categories for collinearity filtering",
-    length(pred_by_category)
-  ))
-
-  # Apply collinearity filtering to each category
-  # Process sequentially to avoid memory buildup
-  selected_by_category <- vector("list", length(pred_by_category))
-
-  for (i in seq_along(pred_by_category)) {
-    cat_name <- names(pred_by_category)[i]
-    pred_names <- pred_by_category[[i]]
-
-    message(sprintf(
-      "  Category %d/%d: %s (%d predictors)",
-      i,
-      length(pred_by_category),
-      cat_name,
-      length(pred_names)
-    ))
-
-    selected_by_category[[i]] <- collin_filter(
-      joined = joined,
-      predictor_cols = pred_names,
-      response_vec = response_vec,
-      weights = weights,
-      corcut = corcut
-    )
-
-    # Force garbage collection after each category
-    if (i %% 3 == 0) {
-      # Every 3 categories
-      gc(verbose = FALSE)
-    }
-  }
-
-  # Combine all selected predictor names
-  result <- unlist(selected_by_category, use.names = FALSE)
-
-  # Clean up
-  rm(pred_by_category, selected_by_category)
-  gc(verbose = FALSE)
-
-  return(result)
-}
-
-
-#' Filter covariates for LULCC models (optimized - binary only, returns names)
-#'
-#' @param joined Full joined data frame
-#' @param predictor_cols Column names of predictors to filter
-#' @param response_vec Response vector (binary 0/1)
-#' @param weights Weight vector
-#' @param corcut Correlation cutoff threshold
-#' @return Character vector of selected predictor names
-collin_filter <- function(
-  joined,
-  predictor_cols,
-  response_vec,
-  weights,
-  corcut = 0
-) {
-  # If only one predictor, return it
-  if (length(predictor_cols) == 1) {
-    return(predictor_cols)
-  }
-
-  # Compute ranking scores (using GLM method - optimized)
-  # Pre-allocate and vectorize where possible
-  pvals <- vapply(
-    predictor_cols,
-    function(pred_name) {
-      x <- joined[[pred_name]]
-
-      # Remove rows with NA values in predictor
-      na_idx <- is.na(x)
-      if (all(na_idx)) {
-        return(1.0)
-      }
-
-      x_clean <- x[!na_idx]
-      y_clean <- response_vec[!na_idx]
-      w_clean <- weights[!na_idx]
-
-      # Check if we have enough data and variation
-      if (length(unique(x_clean)) < 3 || length(x_clean) < 10) {
-        return(1.0)
-      }
-
-      # Fit GLM with quadratic term
-      tryCatch(
-        {
-          mdl <- glm(
-            y_clean ~ poly(x_clean, degree = 2, simple = TRUE),
-            family = binomial(link = "logit"),
-            weights = w_clean
-          )
-
-          # Return minimum p-value for linear and quadratic terms
-          coef_summary <- summary(mdl)$coefficients
-          result <- min(coef_summary[2:3, 4])
-
-          # Clean up GLM object (can be large)
-          rm(mdl, coef_summary)
-
-          return(result)
-        },
-        error = function(e) {
-          1.0
-        }
-      )
-    },
-    numeric(1)
-  )
-
-  # Remove predictors that failed (p-value = 1.0 for all)
-  valid_preds <- names(pvals[pvals < 1.0])
-
-  if (length(valid_preds) == 0) {
-    warning("No valid predictors after GLM fitting")
-    return(character(0))
-  }
-
-  # Rank predictors by p-value (ascending)
-  ranked_names <- names(sort(pvals[valid_preds]))
-
-  # Clean up
-  rm(pvals, valid_preds)
-  gc(verbose = FALSE)
-
-  # MEMORY OPTIMIZATION: Compute correlation matrix only for ranked predictors
-  # Extract only the columns we need (avoid copying entire joined dataframe)
-  pred_subset <- joined[, ranked_names, drop = FALSE]
-
-  cor_mat <- abs(cor(
-    pred_subset,
-    use = "pairwise.complete.obs"
-  ))
-
-  # Clean up subset immediately
-  rm(pred_subset)
-  gc(verbose = FALSE)
-
-  # Iteratively remove correlated predictors
-  selected <- character(0)
-
-  if (all(cor_mat[cor_mat != 1] < corcut, na.rm = TRUE)) {
-    selected <- ranked_names
-  } else {
-    remaining_names <- ranked_names
-
-    while (length(remaining_names) > 0) {
-      # Take first (best ranked) predictor
-      current_pred <- remaining_names[1]
-      selected <- c(selected, current_pred)
-
-      if (length(remaining_names) == 1) {
-        break
-      }
-
-      # Find predictors not highly correlated with current predictor
-      current_cors <- cor_mat[current_pred, remaining_names[-1]]
-      keep_idx <- which(current_cors <= corcut)
-
-      if (length(keep_idx) == 0) {
-        break
-      }
-
-      remaining_names <- remaining_names[-1][keep_idx]
-
-      # MEMORY OPTIMIZATION: Subset correlation matrix to avoid keeping unused rows/cols
-      if (length(remaining_names) > 0) {
-        cor_mat <- cor_mat[remaining_names, remaining_names, drop = FALSE]
-      }
-
-      # Check if remaining predictors are all below threshold
-      if (
-        length(remaining_names) > 1 &&
-          all(cor_mat[cor_mat != 1] < corcut, na.rm = TRUE)
-      ) {
-        selected <- c(selected, remaining_names)
-        break
+  # Enforce numeric predictors
+  for (nm in setdiff(names(df), "cell_id")) {
+    if (!is.numeric(df[[nm]])) {
+      tmp <- suppressWarnings(as.numeric(df[[nm]]))
+      if (all(is.na(tmp) == is.na(df[[nm]]))) {
+        df[[nm]] <- tmp
+        warning(sprintf("[PRED] Coerced '%s' to numeric", nm))
+      } else {
+        stop(sprintf("[PRED] Column '%s' cannot be coerced to numeric", nm))
       }
     }
   }
 
-  # Clean up
-  rm(cor_mat, ranked_names)
-  gc(verbose = FALSE)
-
-  return(selected)
+  df
 }
+
 
 #' Guided Regularized Random Forest feature selection (optimized - returns names only)
 #'
-#' @param joined Full joined data frame
+#' @param joined Full joined data frame (cell_id + response + predictors)
 #' @param predictor_cols Column names of predictors to use
 #' @param response_vec Response vector (binary 0/1)
-#' @param weight_vector Class weights
 #' @param gamma Importance coefficient (0-1)
 #' @return Character vector of selected predictor names
 grrff_filter <- function(
   joined,
   predictor_cols,
   response_vec,
-  weight_vector,
-  gamma
+  gamma = 0.5
 ) {
-  # MEMORY OPTIMIZATION: Extract only needed columns, convert to data.frame once
-  # Avoid keeping reference to full 'joined' object
+  # Extract only the needed predictors
   cov_mat <- as.data.frame(joined[, predictor_cols, drop = FALSE])
-  response_fac <- as.factor(response_vec)
+  response_fac <- droplevels(as.factor(response_vec))
 
-  # Clean up references
   rm(response_vec)
   gc(verbose = FALSE)
 
-  # Check for and handle missing values
+  # Remove rows with NAs
   na_rows <- rowSums(is.na(cov_mat)) > 0
-
   if (any(na_rows)) {
-    message(sprintf(
-      "  Removing %d rows with missing values for GRRF",
-      sum(na_rows)
-    ))
+    message(sprintf("  Removing %d rows with missing values", sum(na_rows)))
     cov_mat <- cov_mat[!na_rows, , drop = FALSE]
     response_fac <- response_fac[!na_rows]
-
-    # Clean up
     rm(na_rows)
     gc(verbose = FALSE)
 
-    # Check if we have enough data left
     if (nrow(cov_mat) < 100) {
-      warning("Insufficient complete cases for GRRF after removing NAs")
+      warning("Insufficient complete cases after removing NAs")
       rm(cov_mat, response_fac)
       gc(verbose = FALSE)
       return(character(0))
     }
   }
 
-  # Check for zero-variance predictors (after NA removal)
+  # Remove zero-variance predictors
   zero_var <- vapply(cov_mat, function(x) length(unique(x)) <= 1, logical(1))
-
   if (any(zero_var)) {
     message(sprintf("  Removing %d zero-variance predictors", sum(zero_var)))
     cov_mat <- cov_mat[, !zero_var, drop = FALSE]
     predictor_cols <- predictor_cols[!zero_var]
-
     rm(zero_var)
     gc(verbose = FALSE)
 
     if (ncol(cov_mat) == 0) {
-      warning(
-        "No predictors with variance after removing zero-variance columns"
-      )
+      warning("No predictors left after removing zero-variance columns")
       rm(cov_mat, response_fac)
       gc(verbose = FALSE)
       return(character(0))
     }
   }
 
+  # Compute class-level weights for GRRF
+  class_counts <- table(response_fac)
+  classwt <- setNames(max(class_counts) / class_counts, names(class_counts))
+
+  # Adaptive mtry
+  n_pred <- ncol(cov_mat)
+  mtry_val <- min(max(floor(sqrt(n_pred)), 1), n_pred)
+
+  # Initial RF to get variable importance
   message(sprintf(
     "  Running initial RF with %d predictors and %d observations",
-    ncol(cov_mat),
+    n_pred,
     nrow(cov_mat)
   ))
 
-  # Run non-regularized RF to get importance scores
-  rf <- RRF::RRF(cov_mat, response_fac, flagReg = 0)
+  rf <- RRF::RRF(
+    x = cov_mat,
+    y = response_fac,
+    flagReg = 0,
+    ntree = 100,
+    mtry = mtry_val,
+    nodesize = 10,
+    keep.forest = FALSE,
+    keep.inbag = FALSE
+  )
 
-  # Normalize importance scores
   imp_raw <- rf$importance[, "MeanDecreaseGini"]
   imp_norm <- imp_raw / max(imp_raw)
 
-  # Calculate penalty coefficients
   coef_reg <- (1 - gamma) + gamma * imp_norm
 
-  # MEMORY OPTIMIZATION: Clean up initial RF object (can be very large)
   rm(rf, imp_raw)
   gc(verbose = FALSE)
 
+  # Guided Regularized RF
   message("  Running guided regularized RF")
 
-  # Run guided regularized RF
-  mdl_rf <- RRF::RRF(
-    cov_mat,
-    response_fac,
-    classwt = weight_vector,
-    coefReg = coef_reg,
-    flagReg = 1
+  mdl_rf <- tryCatch(
+    {
+      RRF::RRF(
+        x = cov_mat,
+        y = response_fac,
+        classwt = classwt,
+        coefReg = coef_reg,
+        flagReg = 1,
+        ntree = 150,
+        mtry = mtry_val,
+        nodesize = 10,
+        keep.forest = FALSE,
+        keep.inbag = FALSE
+      )
+    },
+    error = function(e) {
+      warning(sprintf("GRRF failed: %s", e$message))
+      return(NULL)
+    }
   )
 
-  # MEMORY OPTIMIZATION: Clean up data immediately after RF
-  rm(cov_mat, response_fac, coef_reg, imp_norm)
-  gc(verbose = FALSE)
+  if (is.null(mdl_rf)) {
+    rm(cov_mat, response_fac, coef_reg, imp_norm)
+    gc(verbose = FALSE)
+    return(character(0))
+  }
 
   # Extract predictors with positive importance
   rf_imp <- mdl_rf$importance[, "MeanDecreaseGini"]
   selected_names <- names(rf_imp[rf_imp > 0])
 
-  # Return names sorted by importance (descending)
+  # Sort by importance descending
   result <- selected_names[order(rf_imp[selected_names], decreasing = TRUE)]
 
-  # MEMORY OPTIMIZATION: Clean up RF model object
-  rm(mdl_rf, rf_imp, selected_names)
+  # Clean up memory
+  rm(mdl_rf, rf_imp, selected_names, cov_mat, response_fac, coef_reg, imp_norm)
   gc(verbose = FALSE)
 
   return(result)
@@ -1129,65 +1265,66 @@ create_summary_row <- function(
   n_observations,
   n_transitions,
   n_initial_predictors,
-  n_after_collinearity = 0,
-  n_after_grrf = 0,
-  selected_predictors = NA_character_,
-  focal_predictors = NA_character_,
-  status,
-  save_debug,
-  debug_dir,
+  n_after_collinearity = NA,
+  n_after_grrf = NA,
+  selected_predictors = "",
+  focal_predictors = "",
+  status = "success",
+  error_details = NA_character_,
+  debug_dir = NULL,
   debug_path = NULL,
+  save_debug = TRUE,
   selected_predictors_collinearity = NULL,
   selected_predictors_grrf = NULL
 ) {
-  # Determine whether to include both sets
-  both_used <- !is.null(selected_predictors_collinearity) &&
-    !is.null(selected_predictors_grrf)
-
-  summary <- tibble::tibble(
+  summary_row <- tibble::tibble(
     period = period,
-    region = if (is.null(region) || is.na(region)) NA_character_ else region,
+    region = region,
     transition = transition_name,
     n_observations = n_observations,
     n_transitions = n_transitions,
     n_initial_predictors = n_initial_predictors,
     n_after_collinearity = n_after_collinearity,
     n_after_grrf = n_after_grrf,
+    selected_predictors_collinearity = if (
+      is.null(selected_predictors_collinearity)
+    ) {
+      NA_character_
+    } else {
+      selected_predictors_collinearity
+    },
+    selected_predictors_grrf = if (is.null(selected_predictors_grrf)) {
+      NA_character_
+    } else {
+      selected_predictors_grrf
+    },
     selected_predictors = selected_predictors,
     focal_predictors = focal_predictors,
     status = status,
-    selected_predictors_collinearity = if (both_used) {
-      paste(selected_predictors_collinearity, collapse = "; ")
-    } else {
+    error_details = if (is.null(error_details) || length(error_details) == 0) {
       NA_character_
-    },
-    selected_predictors_grrf = if (both_used) {
-      paste(selected_predictors_grrf, collapse = "; ")
     } else {
-      NA_character_
+      error_details
     }
   )
 
-  if (save_debug) {
-    # Use provided debug_path if available, otherwise construct it
-    if (is.null(debug_path)) {
-      debug_path <- file.path(
-        debug_dir,
-        sprintf("fs_summary_%s_%s.rds", transition_name, region)
-      )
+  if (save_debug && !is.null(debug_path)) {
+    # Ensure directory exists
+    debug_dir_actual <- dirname(debug_path)
+    if (!dir.exists(debug_dir_actual)) {
+      dir.create(debug_dir_actual, recursive = TRUE, showWarnings = FALSE)
     }
 
-    # Ensure directory exists
-    dir.create(dirname(debug_path), recursive = TRUE, showWarnings = FALSE)
-
-    saveRDS(
-      summary,
-      file = debug_path
+    debug_data <- list(
+      summary = summary_row,
+      timestamp = Sys.time()
     )
-    message(sprintf("Saved summary to: %s", debug_path))
+
+    saveRDS(debug_data, debug_path)
+    message(sprintf("  Debug info saved to: %s", basename(debug_path)))
   }
 
-  return(summary)
+  return(summary_row)
 }
 
 #' Update focal layer lookup
@@ -1215,19 +1352,11 @@ update_focal_lookup <- function(
     dplyr::filter(grepl(paste(focal_preds, collapse = "|"), layer_name)) %>%
     dplyr::mutate(transition = transition, region = region)
 
-  output_path <- if (!is.na(region)) {
-    file.path(
-      config[["preds_tools_dir"]],
-      "neighbourhood_details_for_dynamic_updating",
-      sprintf("%s_region_%s_focals_for_updating.rds", period, region)
-    )
-  } else {
-    file.path(
-      config[["preds_tools_dir"]],
-      "neighbourhood_details_for_dynamic_updating",
-      sprintf("%s_focals_for_updating.rds", period)
-    )
-  }
+  output_path <- file.path(
+    config[["preds_tools_dir"]],
+    "neighbourhood_details_for_dynamic_updating",
+    sprintf("%s_focals_for_updating.rds", period)
+  )
 
   if (file.exists(output_path)) {
     existing <- readRDS(output_path)
@@ -1238,9 +1367,178 @@ update_focal_lookup <- function(
   invisible(NULL)
 }
 
-# transition_feature_selection(
-#   config = get_config(),
-#   sample_size = 3e5, # Optional: number of rows to sample for testing
-#   do_collinearity = TRUE, # Whether to perform collinearity filtering
-#   do_grrf = TRUE
-# ) # Whether to perform GRRF feature selection
+
+#' Helper function to read and display debug information from RDS files
+#' @param debug_dir Directory containing debug RDS files
+#' @param transition_name Optional: specific transition to inspect
+#' @param region Optional: specific region to inspect
+#' @return Data frame with debug information or prints detailed info
+read_debug_info <- function(debug_dir, transition_name = NULL, region = NULL) {
+  if (!dir.exists(debug_dir)) {
+    stop(sprintf("Debug directory does not exist: %s", debug_dir))
+  }
+
+  # List all RDS files
+  rds_files <- list.files(debug_dir, pattern = "\\.rds$", full.names = TRUE)
+
+  if (length(rds_files) == 0) {
+    message("No RDS debug files found in directory")
+    return(NULL)
+  }
+
+  # If specific transition/region requested, filter files
+  if (!is.null(transition_name) && !is.null(region)) {
+    target_file <- file.path(
+      debug_dir,
+      sprintf("fs_summary_%s_%s.rds", transition_name, region)
+    )
+    if (file.exists(target_file)) {
+      debug_data <- readRDS(target_file)
+
+      cat("\n========================================\n")
+      cat(sprintf("Transition: %s | Region: %s\n", transition_name, region))
+      cat("========================================\n\n")
+
+      print(debug_data$summary)
+
+      cat("\n--- Collinearity Selected Predictors ---\n")
+      if (!is.null(debug_data$selected_predictors_collinearity)) {
+        cat(sprintf(
+          "Count: %d\n",
+          length(debug_data$selected_predictors_collinearity)
+        ))
+        cat(paste(debug_data$selected_predictors_collinearity, collapse = ", "))
+      } else {
+        cat("None")
+      }
+
+      cat("\n\n--- GRRF Selected Predictors ---\n")
+      if (!is.null(debug_data$selected_predictors_grrf)) {
+        cat(sprintf("Count: %d\n", length(debug_data$selected_predictors_grrf)))
+        cat(paste(debug_data$selected_predictors_grrf, collapse = ", "))
+      } else {
+        cat("None")
+      }
+
+      cat("\n\n--- Timestamp ---\n")
+      cat(as.character(debug_data$timestamp))
+      cat("\n\n")
+
+      return(invisible(debug_data))
+    } else {
+      stop(sprintf("File not found: %s", target_file))
+    }
+  }
+
+  # Otherwise, read all and create summary
+  all_summaries <- lapply(rds_files, function(f) {
+    tryCatch(
+      {
+        debug_data <- readRDS(f)
+        debug_data$summary
+      },
+      error = function(e) {
+        warning(sprintf("Failed to read %s: %s", basename(f), e$message))
+        NULL
+      }
+    )
+  })
+
+  # Remove NULLs
+  all_summaries <- Filter(Negate(is.null), all_summaries)
+
+  if (length(all_summaries) == 0) {
+    message("No valid debug summaries could be read")
+    return(NULL)
+  }
+
+  # Combine into data frame
+  combined_df <- dplyr::bind_rows(all_summaries)
+
+  # Print summary statistics
+  cat("\n========================================\n")
+  cat("DEBUG SUMMARY STATISTICS\n")
+  cat("========================================\n\n")
+
+  cat(sprintf("Total transitions: %d\n", nrow(combined_df)))
+  cat(sprintf("Unique periods: %d\n", length(unique(combined_df$period))))
+  cat(sprintf("Unique regions: %d\n", length(unique(combined_df$region))))
+
+  cat("\nStatus breakdown:\n")
+  print(table(combined_df$status))
+
+  # Show transitions with errors
+  failed <- combined_df[combined_df$status != "success", ]
+  if (nrow(failed) > 0) {
+    cat(sprintf("\n%d transitions failed:\n", nrow(failed)))
+    cat("----------------------------------------\n")
+    for (i in seq_len(min(10, nrow(failed)))) {
+      cat(sprintf(
+        "%s | %s | Status: %s\n  Error: %s\n",
+        failed$transition[i],
+        failed$region[i],
+        failed$status[i],
+        if (!is.na(failed$error_details[i])) {
+          failed$error_details[i]
+        } else {
+          "No details"
+        }
+      ))
+    }
+    if (nrow(failed) > 10) {
+      cat(sprintf("... and %d more\n", nrow(failed) - 10))
+    }
+  }
+
+  cat("\n")
+  return(combined_df)
+}
+
+
+#' Helper function to find transitions with specific error patterns
+#' @param debug_dir Directory containing debug RDS files
+#' @param pattern Regex pattern to search for in error_details
+#' @return Data frame with matching transitions
+find_error_pattern <- function(debug_dir, pattern) {
+  all_data <- read_debug_info(debug_dir)
+
+  if (is.null(all_data)) {
+    return(NULL)
+  }
+
+  # Filter for rows with error_details matching pattern
+  matches <- all_data[
+    !is.na(all_data$error_details) &
+      grepl(pattern, all_data$error_details, ignore.case = TRUE),
+  ]
+
+  if (nrow(matches) == 0) {
+    message(sprintf("No transitions found matching pattern: %s", pattern))
+    return(NULL)
+  }
+
+  cat(sprintf(
+    "\nFound %d transitions matching '%s':\n",
+    nrow(matches),
+    pattern
+  ))
+  cat("========================================\n\n")
+
+  print(matches[, c("transition", "region", "status", "error_details")])
+
+  return(matches)
+}
+
+# check fs results for debugging
+#out <- read_debug_info(file.path(config[["feature_selection_dir"]], "debug_fs"))
+
+transition_feature_selection(
+  config = get_config(),
+  use_regions = isTRUE(config[["regionalization"]]),
+  refresh_cache = FALSE,
+  save_debug = TRUE,
+  debug_dir = file.path(config[["feature_selection_dir"]], "debug_fs"),
+  sample_size = 2e6, # Optional: number of rows to sample for testing
+  do_collinearity = TRUE, # Whether to perform collinearity filtering
+  do_grrf = TRUE # Whether to perform GRRF feature selection
+)
