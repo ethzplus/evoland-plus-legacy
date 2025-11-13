@@ -107,25 +107,25 @@ echo
 # ----------------------------
 # 7) Check for required R scripts
 # ----------------------------
-if [ ! -f "setup.R" ]; then
-    echo "✗ ERROR: setup.R not found in $(pwd)"
+if [ ! -f "setup.r" ]; then
+    echo "✗ ERROR: setup.r not found in $(pwd)"
     exit 1
 fi
 
-if [ ! -f "transition_feature_selection.R" ]; then
-    echo "✗ ERROR: transition_feature_selection.R not found in $(pwd)"
+if [ ! -f "transition_feature_selection.r" ]; then
+    echo "✗ ERROR: transition_feature_selection.r not found in $(pwd)"
     exit 1
 fi
 
 echo "✓ Required scripts found:"
-echo "  - setup.R"
-echo "  - transition_transition_feature_selection.R"
+echo "  - setup.r"
+echo "  - transition_transition_feature_selection.r"
 echo
 
 # ----------------------------
 # 8) Create R execution script
 # ----------------------------
-cat > run_pipeline_${SLURM_JOB_ID}.R << 'EOF'
+cat > run_pipeline_${SLURM_JOB_ID}.r << 'EOF'
 #!/usr/bin/env Rscript
 
 # Capture start time
@@ -135,23 +135,45 @@ cat("\n========================================\n")
 cat("Starting Feature Selection Pipeline\n")
 cat("========================================\n\n")
 
+# load packages
+  library(dplyr)
+  library(stringr)
+  library(parallel)
+  library(foreach)
+  library(doParallel)
+  library(RRF)
+  library(yaml)
+  library(jsonlite)
+  library(arrow)
+
+
 # Source setup script
-cat("Sourcing setup.R...\n")
+cat("Sourcing setup.r...\n")
 tryCatch({
-  source("setup.R")
-  cat("✓ setup.R sourced successfully.\n\n")
+  source("setup.r")
+  cat("✓ setup.r sourced successfully.\n\n")
 }, error = function(e) {
-  cat(sprintf("✗ ERROR sourcing setup.R: %s\n", e$message))
+  cat(sprintf("✗ ERROR sourcing setup.r: %s\n", e$message))
+  quit(status = 1)
+})
+
+# Source utils.r
+cat("Sourcing utils.r...\n")
+tryCatch({
+  source("utils.r")
+  cat("✓ utils.r sourced successfully.\n\n")
+}, error = function(e) {
+  cat(sprintf("✗ ERROR sourcing utils.r: %s\n", e$message))
   quit(status = 1)
 })
 
 # Source feature selection functions
-cat("Sourcing transition_feature_selection.R...\n")
+cat("Sourcing transition_feature_selection.r...\n")
 tryCatch({
-  source("transition_feature_selection.R")
-  cat("✓ transition_feature_selection.R sourced successfully.\n\n")
+  source("transition_feature_selection.r")
+  cat("✓ transition_feature_selection.r sourced successfully.\n\n")
 }, error = function(e) {
-  cat(sprintf("✗ ERROR sourcing transition_feature_selection.R: %s\n", e$message))
+  cat(sprintf("✗ ERROR sourcing transition_feature_selection.r: %s\n", e$message))
   quit(status = 1)
 })
 
@@ -230,7 +252,7 @@ echo "Executing feature selection pipeline..."
 echo "================================================================"
 echo
 
-Rscript --vanilla run_pipeline_${SLURM_JOB_ID}.R
+Rscript --vanilla run_pipeline_${SLURM_JOB_ID}.r
 
 # Capture exit status
 EXIT_STATUS=$?
@@ -238,7 +260,7 @@ EXIT_STATUS=$?
 # ----------------------------
 # 10) Cleanup
 # ----------------------------
-rm -f run_pipeline_${SLURM_JOB_ID}.R
+rm -f run_pipeline_${SLURM_JOB_ID}.r
 
 # Report completion
 echo
