@@ -142,10 +142,18 @@ perform_feature_selection <- function(
 
   # --- Load metadata ---
   transitions_info <- readRDS(config[["viable_transitions_lists"]])[[period]]
+  message(sprintf(
+    "Loaded %d viable transitions for period %s",
+    nrow(transitions_info),
+    period
+  ))
 
   lulc_schema <- jsonlite::fromJSON(
     config[["LULC_aggregation_path"]],
     simplifyVector = FALSE
+  )
+  message(
+    "Loaded LULC schema"
   )
 
   # get the values of class_name where nhood_class == FALSE
@@ -160,6 +168,7 @@ perform_feature_selection <- function(
 
   # Load predictor table
   pred_table_raw <- yaml::yaml.load_file(config[["pred_table_path"]])
+  message("Loaded predictor table")
 
   # remove all entries without a path
   pred_table_raw <- pred_table_raw[sapply(pred_table_raw, function(x) {
@@ -260,30 +269,6 @@ perform_feature_selection <- function(
     file.exists(dynamic_preds_pq_path)
   )
 
-  # Open arrow datasets (lazy)
-  message("Opening Arrow datasets...")
-  ds_transitions <- arrow::open_dataset(
-    transitions_pq_path,
-    partitioning = arrow::hive_partition(
-      region = arrow::int32()
-    )
-  )
-  ds_static <- arrow::open_dataset(
-    static_preds_pq_path,
-    partitioning = arrow::hive_partition(
-      region = arrow::int32()
-    )
-  )
-  ds_dynamic <- arrow::open_dataset(
-    dynamic_preds_pq_path,
-    partitioning = arrow::hive_partition(
-      scenario = arrow::utf8(),
-      region = arrow::int32()
-    )
-  )
-
-  message("  Arrow datasets opened successfully\n")
-
   # --- Set up regions ---
   if (use_regions) {
     regions <- jsonlite::fromJSON(file.path(
@@ -316,12 +301,42 @@ perform_feature_selection <- function(
   ))
 
   # Use furrr for parallel map
-  future::plan(future::multisession, workers = n_cores)
+  future::plan(future::multisession, workers = 8)
+  options(future.rng.onMisuse = "ignore")
+  message("Beginning parallel processing of transitions...")
 
   # Parallel over transitions × regions
   transition_results <- furrr::future_map_dfr(
     transitions_info$Trans_name,
     function(trans_name) {
+      log_file <- initialize_worker_log(
+        file.path(debug_dir, "worker_logs"),
+        trans_name
+      )
+
+      log_msg("Opening Arrow datasets...", log_file)
+      ds_transitions <- arrow::open_dataset(
+        transitions_pq_path,
+        partitioning = arrow::hive_partition(
+          region = arrow::int32()
+        )
+      )
+      ds_static <- arrow::open_dataset(
+        static_preds_pq_path,
+        partitioning = arrow::hive_partition(
+          region = arrow::int32()
+        )
+      )
+      ds_dynamic <- arrow::open_dataset(
+        dynamic_preds_pq_path,
+        partitioning = arrow::hive_partition(
+          scenario = arrow::utf8(),
+          region = arrow::int32()
+        )
+      )
+
+      log_msg("  Arrow datasets opened successfully\n", log_file)
+
       purrr::map_dfr(region_names, function(region) {
         process_single_transition(
           transition_name = trans_name,
@@ -337,9 +352,11 @@ perform_feature_selection <- function(
           debug_dir = debug_dir,
           save_debug = save_debug,
           do_collinearity = do_collinearity,
-          do_grrf = do_grrf
+          do_grrf = do_grrf,
+          log_file = log_file
         )
       })
+      print(showConnections(all = TRUE))
     },
     .options = furrr::furrr_options(seed = TRUE)
   )
@@ -384,7 +401,8 @@ process_single_transition <- function(
   save_debug = TRUE,
   do_collinearity = TRUE,
   do_grrf = TRUE,
-  refresh_cache = FALSE
+  refresh_cache = FALSE,
+  log_file = NULL
 ) {
   debug_path <- file.path(
     debug_dir,
@@ -392,27 +410,36 @@ process_single_transition <- function(
   )
 
   if (!refresh_cache && file.exists(debug_path)) {
-    message(sprintf(
-      "Loading cached results for %s | %s",
-      transition_name,
-      if (use_regions) region else "National"
-    ))
+    log_msg(
+      sprintf(
+        "Loading cached results for %s | %s",
+        transition_name,
+        if (use_regions) region else "National"
+      ),
+      log_file
+    )
     return(readRDS(debug_path))
   }
 
   if (refresh_cache && file.exists(debug_path)) {
-    message(sprintf(
-      "Cache exists but refresh=TRUE. Recomputing %s | %s",
-      transition_name,
-      region
-    ))
+    log_msg(
+      sprintf(
+        "Cache exists but refresh=TRUE. Recomputing %s | %s",
+        transition_name,
+        region
+      ),
+      log_file
+    )
   }
 
-  message(sprintf(
-    "\n===== %s | Region: %s =====",
-    transition_name,
-    if (use_regions) region else "National"
-  ))
+  log_msg(
+    sprintf(
+      "\n===== %s | Region: %s =====",
+      transition_name,
+      if (use_regions) region else "National"
+    ),
+    log_file
+  )
 
   # Resolve region_value if requested
   region_value <- NULL
@@ -432,7 +459,8 @@ process_single_transition <- function(
     ds = ds_transitions,
     transition_name,
     region_value,
-    use_regions
+    use_regions,
+    log_file = log_file
   )
 
   if (nrow(trans_df) == 0) {
@@ -450,14 +478,17 @@ process_single_transition <- function(
     ))
   }
   # STEP 2: Non-random downsampling to 1.5x majority-to-minority ratio
-  message("Applying non-random downsampling (majority = 1.5 × minority)")
+  log_msg(
+    "Applying non-random downsampling (majority = 1.5 × minority)",
+    log_file
+  )
 
   # Count each class
   n1 <- sum(trans_df$response == 1)
   n0 <- sum(trans_df$response == 0)
 
   if (n1 == 0 | n0 == 0) {
-    warning("One class is empty — skipping downsampling.")
+    log_msg("One class is empty — skipping downsampling.", log_file)
   } else if (n0 > (1.5 * n1)) {
     # Majority is 0 — keep all 1s, thin out 0s to 1.5 × n1
     idx1 <- which(trans_df$response == 1)
@@ -477,15 +508,21 @@ process_single_transition <- function(
     keep_idx <- c(idx1, keep_0)
     trans_df <- trans_df[keep_idx, , drop = FALSE]
 
-    message(sprintf(
-      "Downsampled -> %d rows (1s=%d, 0s=%d, ratio=%.2f)",
-      nrow(trans_df),
-      sum(trans_df$response == 1),
-      sum(trans_df$response == 0),
-      sum(trans_df$response == 0) / sum(trans_df$response == 1)
-    ))
+    log_msg(
+      sprintf(
+        "Downsampled -> %d rows (1s=%d, 0s=%d, ratio=%.2f)",
+        nrow(trans_df),
+        sum(trans_df$response == 1),
+        sum(trans_df$response == 0),
+        sum(trans_df$response == 0) / sum(trans_df$response == 1)
+      ),
+      log_file
+    )
   } else {
-    message("Majority already ≤ 1.5× minority — no downsampling applied.")
+    log_msg(
+      "Majority already ≤ 1.5× minority — no downsampling applied.",
+      log_file
+    )
   }
 
   # index by cell_id
@@ -520,17 +557,23 @@ process_single_transition <- function(
     ))
   }
 
-  message(sprintf(
-    "Data ready: %d obs | %d transitions | %d candidate predictors",
-    nrow(trans_df),
-    n_trans,
-    length(pred_categories)
-  ))
+  log_msg(
+    sprintf(
+      "Data ready: %d obs | %d transitions | %d candidate predictors",
+      nrow(trans_df),
+      n_trans,
+      length(pred_categories)
+    ),
+    log_file
+  )
 
   # STEP 3: Category-wise collinearity filtering (batched)
   collin_selected <- names(pred_categories)
   if (do_collinearity) {
-    message("Running category-wise collinearity filtering (batched)...")
+    log_msg(
+      "Running category-wise collinearity filtering (batched)...",
+      log_file
+    )
 
     collin_result <- tryCatch(
       category_wise_collin_filter_batched(
@@ -542,10 +585,14 @@ process_single_transition <- function(
         weights_df = weights_df,
         region_value = region_value,
         scenario = "baseline",
-        corcut = 0.7
+        corcut = 0.7,
+        log_file = log_file
       ),
       error = function(e) {
-        warning(sprintf("Collinearity filtering exception: %s", e$message))
+        log_msg(
+          sprintf("Collinearity filtering exception: %s", e$message),
+          log_file
+        )
         list(selected = character(0), error_log = list(all = e$message))
       }
     )
@@ -567,8 +614,8 @@ process_single_transition <- function(
       } else {
         "no predictors selected"
       }
-      message("  FAILED: No predictors passed collinearity stage")
-      message(sprintf("  Details: %s", details))
+      log_msg("  FAILED: No predictors passed collinearity stage", log_file)
+      log_msg(sprintf("  Details: %s", details), log_file)
       return(create_summary_row(
         period,
         region,
@@ -585,12 +632,18 @@ process_single_transition <- function(
       ))
     }
 
-    message(sprintf(
-      "Selected %d predictors after collinearity",
-      length(collin_selected)
-    ))
+    log_msg(
+      sprintf(
+        "Selected %d predictors after collinearity",
+        length(collin_selected)
+      ),
+      log_file
+    )
   } else {
-    message("Skipping collinearity filtering (do_collinearity = FALSE)")
+    log_msg(
+      "Skipping collinearity filtering (do_collinearity = FALSE)",
+      log_file
+    )
   }
 
   # STEP 4: GRRF selection
@@ -598,10 +651,13 @@ process_single_transition <- function(
   grrf_error <- NULL
 
   if (do_grrf) {
-    message(sprintf(
-      "Preparing %d predictors for GRRF",
-      length(collin_selected)
-    ))
+    log_msg(
+      sprintf(
+        "Preparing %d predictors for GRRF",
+        length(collin_selected)
+      ),
+      log_file
+    )
 
     preds_df <- load_predictor_data(
       ds_static = ds_static,
@@ -609,7 +665,8 @@ process_single_transition <- function(
       cell_ids = trans_df$cell_id,
       preds = collin_selected,
       region_value = region_value,
-      scenario = "baseline"
+      scenario = "baseline",
+      log_file = log_file
     )
 
     # Join predictors to response
@@ -622,7 +679,7 @@ process_single_transition <- function(
     }
 
     if (nrow(joined) == 0) {
-      warning("Zero rows remain after join. Likely misalignment.")
+      log_msg("Zero rows remain after join. Likely misalignment.", log_file)
       grrf_selected <- character(0)
     } else {
       # Call GRRF with tryCatch
@@ -631,20 +688,27 @@ process_single_transition <- function(
           joined = joined,
           predictor_cols = collin_selected,
           response_vec = joined$response,
-          gamma = 0.5
+          gamma = 0.5,
+          log_file = log_file
         ),
         error = function(e) {
           grrf_error <<- e$message
-          warning(sprintf("GRRF selection failed: %s", e$message))
+          log_msg(sprintf("GRRF selection failed: %s", e$message), log_file)
           character(0)
         }
       )
     }
 
     if (length(grrf_selected) == 0) {
-      warning(sprintf("GRRF failed for %s | %s", transition_name, region))
+      log_msg(
+        sprintf("GRRF failed for %s | %s", transition_name, region),
+        log_file
+      )
     } else {
-      message(sprintf("GRRF selected %d predictors", length(grrf_selected)))
+      log_msg(
+        sprintf("GRRF selected %d predictors", length(grrf_selected)),
+        log_file
+      )
     }
   }
 
@@ -652,9 +716,16 @@ process_single_transition <- function(
   focal_preds <- grep("nhood", grrf_selected, value = TRUE)
   if (length(focal_preds) > 0) {
     tryCatch(
-      update_focal_lookup(focal_preds, period, transition_name, region, config),
+      update_focal_lookup(
+        focal_preds,
+        period,
+        transition_name,
+        region,
+        config,
+        log_file
+      ),
       error = function(e) {
-        warning(sprintf("update_focal_lookup warning: %s", e$message))
+        log_msg(sprintf("update_focal_lookup warning: %s", e$message), log_file)
       }
     )
   }
@@ -682,7 +753,7 @@ process_single_transition <- function(
 
   if (save_debug) {
     tryCatch(saveRDS(summary_row, debug_path), error = function(e) {
-      warning(sprintf("Failed to save debug RDS: %s", e$message))
+      log_msg(sprintf("Failed to save debug RDS: %s", e$message), log_file)
     })
   }
 
@@ -710,7 +781,8 @@ category_wise_collin_filter_batched <- function(
   weights_df = NULL,
   region_value = NULL,
   scenario = NULL,
-  corcut = 0.7
+  corcut = 0.7,
+  log_file = NULL
 ) {
   predictor_map <- split(predictor_names, categories[predictor_names])
   all_selected <- c()
@@ -719,7 +791,7 @@ category_wise_collin_filter_batched <- function(
 
   for (cat in names(predictor_map)) {
     preds <- predictor_map[[cat]]
-    message(sprintf("[CAT] %s | %d predictors", cat, length(preds)))
+    log_msg(sprintf("[CAT] %s | %d predictors", cat, length(preds)), log_file)
 
     if (length(preds) == 0) {
       cat_res[[cat]] <- list(n_input = 0, n_selected = 0, error = "no_preds")
@@ -732,7 +804,8 @@ category_wise_collin_filter_batched <- function(
       cell_ids = response_df$cell_id,
       preds = preds,
       region_value = region_value,
-      scenario = scenario
+      scenario = scenario,
+      log_file = log_file
     )
 
     if (nrow(pred_df) == 0) {
@@ -778,7 +851,8 @@ category_wise_collin_filter_batched <- function(
         pred_cols,
         response_col = "response",
         weight_col = "weight",
-        corcut = corcut
+        corcut = corcut,
+        log_file = log_file
       ),
       error = function(e) {
         list(selected = character(0), diagnostics = list(error = e$message))
@@ -824,7 +898,8 @@ collin_filter <- function(
   pred_names,
   response_col = "response",
   weight_col = NULL,
-  corcut = 0.7
+  corcut = 0.7,
+  log_file = NULL
 ) {
   stopifnot("cell_id" %in% names(joined))
   stopifnot(response_col %in% names(joined))
@@ -936,19 +1011,25 @@ load_transition_data <- function(
   ds,
   transition_name,
   region_value = NULL,
-  use_regions = FALSE
+  use_regions = FALSE,
+  log_file = NULL
 ) {
-  message(sprintf(
-    "[TRANS] Loading %s | region=%s",
-    transition_name,
-    ifelse(is.null(region_value), "ALL", region_value)
-  ))
+  log_msg(
+    sprintf(
+      "[TRANS] Loading %s | region=%s",
+      transition_name,
+      ifelse(is.null(region_value), "ALL", region_value)
+    ),
+    log_file
+  )
 
   q <- ds %>% dplyr::select(cell_id, region, all_of(transition_name))
+  log_msg("  Query constructed", log_file)
 
   if (use_regions && !is.null(region_value)) {
     q <- q %>% dplyr::filter(region == !!region_value)
   }
+  log_msg("  Region filter applied", log_file)
 
   out <- tryCatch(
     {
@@ -960,18 +1041,21 @@ load_transition_data <- function(
         dplyr::arrange(cell_id)
     },
     error = function(e) {
-      warning(paste(
-        "Failed to load transition:",
-        transition_name,
-        "|",
-        e$message
-      ))
+      log_msg(
+        paste(
+          "Failed to load transition:",
+          transition_name,
+          "|",
+          e$message
+        ),
+        log_file
+      )
       tibble::tibble(cell_id = integer(), response = integer())
     }
   )
 
   if (nrow(out) == 0) {
-    warning(sprintf("[TRANS] ZERO ROWS for %s", transition_name))
+    log_msg(sprintf("[TRANS] ZERO ROWS for %s", transition_name), log_file)
   }
 
   out
@@ -992,7 +1076,8 @@ load_predictor_data <- function(
   cell_ids,
   preds,
   region_value = NULL,
-  scenario = NULL
+  scenario = NULL,
+  log_file = NULL
 ) {
   preds <- unique(as.character(preds))
   if (length(preds) == 0) {
@@ -1048,7 +1133,7 @@ load_predictor_data <- function(
       tmp <- suppressWarnings(as.numeric(df[[nm]]))
       if (all(is.na(tmp) == is.na(df[[nm]]))) {
         df[[nm]] <- tmp
-        warning(sprintf("[PRED] Coerced '%s' to numeric", nm))
+        log_msg(sprintf("[PRED] Coerced '%s' to numeric", nm), log_file)
       } else {
         stop(sprintf("[PRED] Column '%s' cannot be coerced to numeric", nm))
       }
@@ -1070,7 +1155,8 @@ grrff_filter <- function(
   joined,
   predictor_cols,
   response_vec,
-  gamma = 0.5
+  gamma = 0.5,
+  log_file = NULL
 ) {
   # Extract only the needed predictors
   cov_mat <- as.data.frame(joined[, predictor_cols, drop = FALSE])
@@ -1082,14 +1168,17 @@ grrff_filter <- function(
   # Remove rows with NAs
   na_rows <- rowSums(is.na(cov_mat)) > 0
   if (any(na_rows)) {
-    message(sprintf("  Removing %d rows with missing values", sum(na_rows)))
+    log_msg(
+      sprintf("  Removing %d rows with missing values", sum(na_rows)),
+      log_file
+    )
     cov_mat <- cov_mat[!na_rows, , drop = FALSE]
     response_fac <- response_fac[!na_rows]
     rm(na_rows)
     gc(verbose = FALSE)
 
     if (nrow(cov_mat) < 100) {
-      warning("Insufficient complete cases after removing NAs")
+      log_msg("Insufficient complete cases after removing NAs", log_file)
       rm(cov_mat, response_fac)
       gc(verbose = FALSE)
       return(character(0))
@@ -1099,14 +1188,20 @@ grrff_filter <- function(
   # Remove zero-variance predictors
   zero_var <- vapply(cov_mat, function(x) length(unique(x)) <= 1, logical(1))
   if (any(zero_var)) {
-    message(sprintf("  Removing %d zero-variance predictors", sum(zero_var)))
+    log_msg(
+      sprintf("  Removing %d zero-variance predictors", sum(zero_var)),
+      log_file
+    )
     cov_mat <- cov_mat[, !zero_var, drop = FALSE]
     predictor_cols <- predictor_cols[!zero_var]
     rm(zero_var)
     gc(verbose = FALSE)
 
     if (ncol(cov_mat) == 0) {
-      warning("No predictors left after removing zero-variance columns")
+      log_msg(
+        "No predictors left after removing zero-variance columns",
+        log_file
+      )
       rm(cov_mat, response_fac)
       gc(verbose = FALSE)
       return(character(0))
@@ -1122,11 +1217,14 @@ grrff_filter <- function(
   mtry_val <- min(max(floor(sqrt(n_pred)), 1), n_pred)
 
   # Initial RF to get variable importance
-  message(sprintf(
-    "  Running initial RF with %d predictors and %d observations",
-    n_pred,
-    nrow(cov_mat)
-  ))
+  log_msg(
+    sprintf(
+      "  Running initial RF with %d predictors and %d observations",
+      n_pred,
+      nrow(cov_mat)
+    ),
+    log_file
+  )
 
   rf <- RRF::RRF(
     x = cov_mat,
@@ -1148,7 +1246,7 @@ grrff_filter <- function(
   gc(verbose = FALSE)
 
   # Guided Regularized RF
-  message("  Running guided regularized RF")
+  log_msg("  Running guided regularized RF", log_file)
 
   mdl_rf <- tryCatch(
     {
@@ -1166,7 +1264,7 @@ grrff_filter <- function(
       )
     },
     error = function(e) {
-      warning(sprintf("GRRF failed: %s", e$message))
+      log_msg(sprintf("GRRF failed: %s", e$message), log_file)
       return(NULL)
     }
   )
@@ -1213,7 +1311,8 @@ create_summary_row <- function(
   debug_path = NULL,
   save_debug = TRUE,
   selected_predictors_collinearity = NULL,
-  selected_predictors_grrf = NULL
+  selected_predictors_grrf = NULL,
+  log_file = NULL
 ) {
   summary_row <- tibble::tibble(
     period = period,
@@ -1259,7 +1358,10 @@ create_summary_row <- function(
     )
 
     saveRDS(debug_data, debug_path)
-    message(sprintf("  Debug info saved to: %s", basename(debug_path)))
+    log_msg(
+      sprintf("  Debug info saved to: %s", basename(debug_path)),
+      log_file
+    )
   }
 
   return(summary_row)
@@ -1271,7 +1373,8 @@ update_focal_lookup <- function(
   period,
   transition,
   region,
-  config
+  config,
+  log_file = NULL
 ) {
   lookup_path <- file.path(
     config[["preds_tools_dir"]],
@@ -1280,7 +1383,7 @@ update_focal_lookup <- function(
   )
 
   if (!file.exists(lookup_path)) {
-    warning("Focal layer lookup file not found")
+    log_msg("Focal layer lookup file not found", log_file)
     return(invisible(NULL))
   }
 
@@ -1376,7 +1479,10 @@ read_debug_info <- function(debug_dir, transition_name = NULL, region = NULL) {
         debug_data$summary
       },
       error = function(e) {
-        warning(sprintf("Failed to read %s: %s", basename(f), e$message))
+        log_msg(
+          sprintf("Failed to read %s: %s", basename(f), e$message),
+          log_file
+        )
         NULL
       }
     )
@@ -1467,5 +1573,24 @@ find_error_pattern <- function(debug_dir, pattern) {
   return(matches)
 }
 
-# check fs results for debugging
-#out <- read_debug_info(file.path(config[["feature_selection_dir"]], "debug_fs"))
+# Use cat() + append=TRUE to avoid persistent connections (future-safe)
+log_msg <- function(msg, log_file = NULL, also_console = TRUE) {
+  timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+  line <- paste0(timestamp, " | ", msg, "\n")
+  if (!is.null(log_file)) {
+    dir.create(dirname(log_file), recursive = TRUE, showWarnings = FALSE)
+    cat(line, file = log_file, append = TRUE)
+  }
+  if (also_console) cat(line)
+}
+
+# Initialize per-worker log file
+initialize_worker_log <- function(log_dir, trans_name) {
+  dir.create(log_dir, recursive = TRUE, showWarnings = FALSE)
+  log_file <- file.path(
+    log_dir,
+    sprintf("worker_%s_%s.log", Sys.getpid(), trans_name)
+  )
+  log_msg(sprintf("Initialized log file for %s", trans_name), log_file)
+  return(log_file)
+}
