@@ -2,41 +2,6 @@
 #'
 #' @author: Ben Black (adapted)
 
-# testing parameters
-# period <- "2018_2022"
-# transition_name <- "forested_areas-natural_grasslands_and_shrublands"
-# region <- regions$label[3]
-
-# list and read all RDS file sin debug_dir
-# fs_results <- list.files(
-#   path = file.path(config[["feature_selection_dir"]], "debug_fs"),
-#   pattern = ".rds$",
-#   full.names = TRUE
-# ) %>%
-#   lapply(readRDS) %>%
-#   dplyr::bind_rows()
-
-# # identify those with status != "success"
-# failed_fs <- fs_results %>%
-#   dplyr::filter(status != "success")
-
-# # remove the rds files for these
-# for (i in seq_len(nrow(failed_fs))) {
-#   fs_file <- file.path(
-#     config[["feature_selection_dir"]],
-#     "debug_fs",
-#     sprintf(
-#       "fs_summary_%s_%s.rds",
-#       failed_fs$transition[i],
-#       failed_fs$region[i]
-#     )
-#   )
-#   if (file.exists(fs_file)) {
-#     file.remove(fs_file)
-#     message(sprintf("Removed failed FS file: %s", fs_file))
-#   }
-# }
-
 #' Main orchestrator function for transition feature selection across all periods
 #'
 #' @param config Configuration list
@@ -47,7 +12,7 @@ transition_feature_selection <- function(
   use_regions = isTRUE(config[["regionalization"]]),
   refresh_cache = FALSE,
   save_debug = TRUE,
-  debug_dir = file.path(config[["feature_selection_dir"]]),
+  fs_dir = file.path(config[["feature_selection_dir"]]),
   do_collinearity = TRUE, # Whether to perform collinearity filtering
   do_grrf = TRUE # Whether to perform GRRF feature selection
 ) {
@@ -68,17 +33,18 @@ transition_feature_selection <- function(
   ))
 
   # create a debug directory for intermediate results
-  ensure_dir(debug_dir)
+  ensure_dir(fs_dir)
 
   # Process each period (sequential to avoid memory issues with large datasets)
-  results_list <- purrr::map(
+  purrr::map(
     periods_to_process,
     function(period) {
+      # Call feature selection for this period
       perform_feature_selection(
         period = period,
         use_regions = use_regions,
         config = config,
-        debug_dir = debug_dir,
+        fs_dir = fs_dir,
         save_debug = save_debug,
         do_collinearity = do_collinearity,
         do_grrf = do_grrf,
@@ -87,28 +53,9 @@ transition_feature_selection <- function(
     }
   )
 
-  # Combine all period results
-  final_summary <- dplyr::bind_rows(results_list)
-
-  # Save results
-  output_path <- file.path(
-    config[["feature_selection_dir"]],
-    "feature_selection_summary.csv"
-  )
-  dir.create(
-    config[["feature_selection_dir"]],
-    recursive = TRUE,
-    showWarnings = FALSE
-  )
-  readr::write_csv(final_summary, output_path)
-
   message("\n========================================")
   message("Feature Selection Complete")
   message("========================================")
-  message(sprintf("Total transitions processed: %d", nrow(final_summary)))
-  message(sprintf("Successful: %d", sum(final_summary$status == "success")))
-  message(sprintf("Failed: %d", sum(final_summary$status != "success")))
-  message(sprintf("Results saved to: %s\n", output_path))
 
   # Reset parallel plan
   future::plan(sequential)
@@ -121,16 +68,16 @@ transition_feature_selection <- function(
 #' @param period Period name (e.g., "2018_2022")
 #' @param use_regions Boolean indicating if regionalization is active
 #' @param config Configuration list
-#' @param debug_dir Directory for debug outputs
+#' @param fs_dir Directory for debug outputs
 #' @param save_debug Boolean indicating if debug outputs should be saved
 #' @param do_collinearity Whether to perform collinearity filtering
 #' @param do_grrf Whether to perform GRRF feature selection
-#' @return Data frame with feature selection results for all transitions in period
+#' @return NULL (results saved to disk)
 perform_feature_selection <- function(
   period,
   use_regions,
   config,
-  debug_dir,
+  fs_dir,
   refresh_cache = FALSE,
   save_debug = TRUE,
   do_collinearity = TRUE, # Whether to perform collinearity filtering
@@ -139,6 +86,10 @@ perform_feature_selection <- function(
   message("\n########################################")
   message(sprintf("# PERIOD: %s", period))
   message("########################################\n")
+
+  # Create period-specific directory
+  period_dir <- file.path(fs_dir, period)
+  ensure_dir(period_dir)
 
   # --- Load metadata ---
   transitions_info <- readRDS(config[["viable_transitions_lists"]])[[period]]
@@ -293,6 +244,15 @@ perform_feature_selection <- function(
 
   # --- Parallel processing of transitions ---
 
+  task_grid <- tidyr::expand_grid(
+    transition = transitions_info$Trans_name,
+    region = region_names
+  )
+  message(sprintf(
+    "Total transition-region tasks to process: %d",
+    nrow(task_grid)
+  ))
+
   # Determine number of cores from SLURM or fallback
   n_cores <- as.integer(Sys.getenv("SLURM_CPUS_PER_TASK", "4"))
   message(sprintf(
@@ -301,31 +261,30 @@ perform_feature_selection <- function(
   ))
 
   # Use furrr for parallel map
-  future::plan(future::multisession, workers = 8)
+  future::plan(multicore, workers = n_cores)
+
   options(future.rng.onMisuse = "ignore")
   message("Beginning parallel processing of transitions...")
 
   # Parallel over transitions × regions
-  transition_results <- furrr::future_map_dfr(
-    transitions_info$Trans_name,
-    function(trans_name) {
+  furrr::future_map_dfr(
+    seq_len(nrow(task_grid)),
+    function(i) {
+      row <- task_grid[i, ]
+
       log_file <- initialize_worker_log(
         file.path(debug_dir, "worker_logs"),
-        trans_name
+        paste0(row$transition, "_", row$region)
       )
 
-      log_msg("Opening Arrow datasets...", log_file)
+      # Open datasets inside worker (safe, parallel-friendly)
       ds_transitions <- arrow::open_dataset(
         transitions_pq_path,
-        partitioning = arrow::hive_partition(
-          region = arrow::int32()
-        )
+        partitioning = arrow::hive_partition(region = arrow::int32())
       )
       ds_static <- arrow::open_dataset(
         static_preds_pq_path,
-        partitioning = arrow::hive_partition(
-          region = arrow::int32()
-        )
+        partitioning = arrow::hive_partition(region = arrow::int32())
       )
       ds_dynamic <- arrow::open_dataset(
         dynamic_preds_pq_path,
@@ -335,28 +294,23 @@ perform_feature_selection <- function(
         )
       )
 
-      log_msg("  Arrow datasets opened successfully\n", log_file)
-
-      purrr::map_dfr(region_names, function(region) {
-        process_single_transition(
-          transition_name = trans_name,
-          refresh_cache = refresh_cache,
-          region = region,
-          use_regions = use_regions,
-          ds_transitions = ds_transitions,
-          ds_static = ds_static,
-          ds_dynamic = ds_dynamic,
-          pred_categories = pred_categories,
-          period = period,
-          config = config,
-          debug_dir = debug_dir,
-          save_debug = save_debug,
-          do_collinearity = do_collinearity,
-          do_grrf = do_grrf,
-          log_file = log_file
-        )
-      })
-      print(showConnections(all = TRUE))
+      process_single_transition(
+        transition_name = row$transition,
+        region = row$region,
+        use_regions = use_regions,
+        ds_transitions = ds_transitions,
+        ds_static = ds_static,
+        ds_dynamic = ds_dynamic,
+        pred_categories = pred_categories,
+        period = period,
+        config = config,
+        debug_dir = debug_dir,
+        save_debug = save_debug,
+        do_collinearity = do_collinearity,
+        do_grrf = do_grrf,
+        refresh_cache = refresh_cache,
+        log_file = log_file
+      )
     },
     .options = furrr::furrr_options(seed = TRUE)
   )
@@ -364,12 +318,79 @@ perform_feature_selection <- function(
   # Return to sequential plan after this period
   future::plan(future::sequential)
 
-  message(sprintf(
-    "\nPeriod %s complete: %d transition-region combinations processed",
-    period,
-    nrow(transition_results)
+  # list all rds files in period_dir
+  period_fs_files <- list.files(
+    path = period_dir,
+    pattern = ".rds$",
+    full.names = TRUE
+  )
+
+  # Read and combine all period results
+  period_summary <- dplyr::bind_rows(purrr::map_dfr(
+    period_fs_files,
+    function(fs_file) {
+      fs_sum <- readRDS(fs_file)
+      # if fs_sum is just a df then return it, but if it is a list then return the object fs_sum$summary
+      if (is.data.frame(fs_sum)) {
+        return(fs_sum)
+      } else if (is.list(fs_sum) && "summary" %in% names(fs_sum)) {
+        return(fs_sum$summary)
+      } else {
+        stop(sprintf("Invalid feature selection result format in %s", fs_file))
+      }
+    }
   ))
-  return(transition_results)
+
+  # seperate any entries where status does not equal success
+  failed_transitions <- period_summary %>%
+    dplyr::filter(status != "success")
+
+  if (nrow(failed_transitions) > 0) {
+    message(sprintf(
+      "\n%d transitions failed during feature selection:",
+      nrow(failed_transitions)
+    ))
+    print(
+      failed_transitions %>%
+        dplyr::select(
+          period,
+          region,
+          transition,
+          status,
+          error_details
+        )
+    )
+    # save failed transitions to a separate rds file
+    failed_output_path <- file.path(
+      fs_dir,
+      sprintf("feature_selection_failed_%s.rds", period)
+    )
+    saveRDS(failed_transitions, failed_output_path)
+  }
+
+  # for successful transitions add extra details from transitions_info, dropping unnecessary columns
+  successful_transitions <- period_summary %>%
+    dplyr::filter(status == "success") %>%
+    dplyr::left_join(
+      transitions_info,
+      by = c("transition" = "Trans_name")
+    ) %>%
+    dplyr::select(-c(error_details, Rate, status))
+
+  # Save results
+  success_output_path <- file.path(
+    fs_dir,
+    sprintf(
+      "transition_feature_selection_summary_%s.rds",
+      period
+    )
+  )
+  saveRDS(successful_transitions, success_output_path)
+  message(sprintf(
+    "\nFeature selection summary for period %s saved to:\n  %s",
+    period,
+    success_output_path
+  ))
 }
 
 
@@ -383,10 +404,10 @@ perform_feature_selection <- function(
 #' @param pred_categories Named vector of predictor categories
 #' @param period Period name
 #' @param config Configuration list
-#' @param debug_dir Directory for debug outputs
+#' @param period_dir Directory for debug outputs
 #' @param save_debug Boolean indicating if debug outputs should be saved
 #' @param refresh_cache Boolean indicating if cached results should be recalculated
-#' @return Data frame with feature selection summary for the transition-region
+#' @return NULL (results saved to disk)
 process_single_transition <- function(
   transition_name,
   region,
@@ -397,7 +418,7 @@ process_single_transition <- function(
   pred_categories,
   period,
   config,
-  debug_dir,
+  period_dir,
   save_debug = TRUE,
   do_collinearity = TRUE,
   do_grrf = TRUE,
@@ -405,7 +426,7 @@ process_single_transition <- function(
   log_file = NULL
 ) {
   debug_path <- file.path(
-    debug_dir,
+    period_dir,
     sprintf("fs_summary_%s_%s.rds", transition_name, region)
   )
 
@@ -472,7 +493,7 @@ process_single_transition <- function(
       0,
       length(pred_categories),
       status = "no_transition_data",
-      debug_dir = debug_dir,
+      period_dir = period_dir,
       debug_path = debug_path,
       save_debug = save_debug
     ))
@@ -551,7 +572,7 @@ process_single_transition <- function(
       } else {
         "insufficient_transitions"
       },
-      debug_dir = debug_dir,
+      period_dir = period_dir,
       debug_path = debug_path,
       save_debug = save_debug
     ))
@@ -626,7 +647,7 @@ process_single_transition <- function(
         n_after_collinearity = 0,
         status = "collinearity_filtering_failed",
         error_details = details,
-        debug_dir = debug_dir,
+        period_dir = period_dir,
         debug_path = debug_path,
         save_debug = save_debug
       ))
@@ -744,7 +765,7 @@ process_single_transition <- function(
     focal_predictors = paste(focal_preds, collapse = "; "),
     status = ifelse(length(grrf_selected) > 0, "success", "grrf_failed"),
     error_details = grrf_error,
-    debug_dir = debug_dir,
+    period_dir = period_dir,
     debug_path = debug_path,
     save_debug = TRUE, # Always save to include collin-selected predictors
     selected_predictors_collinearity = paste(collin_selected, collapse = "; "),
@@ -756,8 +777,6 @@ process_single_transition <- function(
       log_msg(sprintf("Failed to save debug RDS: %s", e$message), log_file)
     })
   }
-
-  summary_row
 }
 
 
@@ -1307,7 +1326,7 @@ create_summary_row <- function(
   focal_predictors = "",
   status = "success",
   error_details = NA_character_,
-  debug_dir = NULL,
+  period_dir = NULL,
   debug_path = NULL,
   save_debug = TRUE,
   selected_predictors_collinearity = NULL,
@@ -1347,9 +1366,9 @@ create_summary_row <- function(
 
   if (save_debug && !is.null(debug_path)) {
     # Ensure directory exists
-    debug_dir_actual <- dirname(debug_path)
-    if (!dir.exists(debug_dir_actual)) {
-      dir.create(debug_dir_actual, recursive = TRUE, showWarnings = FALSE)
+    period_dir_actual <- dirname(debug_path)
+    if (!dir.exists(period_dir_actual)) {
+      dir.create(period_dir_actual, recursive = TRUE, showWarnings = FALSE)
     }
 
     debug_data <- list(
@@ -1406,191 +1425,4 @@ update_focal_lookup <- function(
 
   saveRDS(focal_subset, output_path)
   invisible(NULL)
-}
-
-
-#' Helper function to read and display debug information from RDS files
-#' @param debug_dir Directory containing debug RDS files
-#' @param transition_name Optional: specific transition to inspect
-#' @param region Optional: specific region to inspect
-#' @return Data frame with debug information or prints detailed info
-read_debug_info <- function(debug_dir, transition_name = NULL, region = NULL) {
-  if (!dir.exists(debug_dir)) {
-    stop(sprintf("Debug directory does not exist: %s", debug_dir))
-  }
-
-  # List all RDS files
-  rds_files <- list.files(debug_dir, pattern = "\\.rds$", full.names = TRUE)
-
-  if (length(rds_files) == 0) {
-    message("No RDS debug files found in directory")
-    return(NULL)
-  }
-
-  # If specific transition/region requested, filter files
-  if (!is.null(transition_name) && !is.null(region)) {
-    target_file <- file.path(
-      debug_dir,
-      sprintf("fs_summary_%s_%s.rds", transition_name, region)
-    )
-    if (file.exists(target_file)) {
-      debug_data <- readRDS(target_file)
-
-      cat("\n========================================\n")
-      cat(sprintf("Transition: %s | Region: %s\n", transition_name, region))
-      cat("========================================\n\n")
-
-      print(debug_data$summary)
-
-      cat("\n--- Collinearity Selected Predictors ---\n")
-      if (!is.null(debug_data$selected_predictors_collinearity)) {
-        cat(sprintf(
-          "Count: %d\n",
-          length(debug_data$selected_predictors_collinearity)
-        ))
-        cat(paste(debug_data$selected_predictors_collinearity, collapse = ", "))
-      } else {
-        cat("None")
-      }
-
-      cat("\n\n--- GRRF Selected Predictors ---\n")
-      if (!is.null(debug_data$selected_predictors_grrf)) {
-        cat(sprintf("Count: %d\n", length(debug_data$selected_predictors_grrf)))
-        cat(paste(debug_data$selected_predictors_grrf, collapse = ", "))
-      } else {
-        cat("None")
-      }
-
-      cat("\n\n--- Timestamp ---\n")
-      cat(as.character(debug_data$timestamp))
-      cat("\n\n")
-
-      return(invisible(debug_data))
-    } else {
-      stop(sprintf("File not found: %s", target_file))
-    }
-  }
-
-  # Otherwise, read all and create summary
-  all_summaries <- lapply(rds_files, function(f) {
-    tryCatch(
-      {
-        debug_data <- readRDS(f)
-        debug_data$summary
-      },
-      error = function(e) {
-        log_msg(
-          sprintf("Failed to read %s: %s", basename(f), e$message),
-          log_file
-        )
-        NULL
-      }
-    )
-  })
-
-  # Remove NULLs
-  all_summaries <- Filter(Negate(is.null), all_summaries)
-
-  if (length(all_summaries) == 0) {
-    message("No valid debug summaries could be read")
-    return(NULL)
-  }
-
-  # Combine into data frame
-  combined_df <- dplyr::bind_rows(all_summaries)
-
-  # Print summary statistics
-  cat("\n========================================\n")
-  cat("DEBUG SUMMARY STATISTICS\n")
-  cat("========================================\n\n")
-
-  cat(sprintf("Total transitions: %d\n", nrow(combined_df)))
-  cat(sprintf("Unique periods: %d\n", length(unique(combined_df$period))))
-  cat(sprintf("Unique regions: %d\n", length(unique(combined_df$region))))
-
-  cat("\nStatus breakdown:\n")
-  print(table(combined_df$status))
-
-  # Show transitions with errors
-  failed <- combined_df[combined_df$status != "success", ]
-  if (nrow(failed) > 0) {
-    cat(sprintf("\n%d transitions failed:\n", nrow(failed)))
-    cat("----------------------------------------\n")
-    for (i in seq_len(min(10, nrow(failed)))) {
-      cat(sprintf(
-        "%s | %s | Status: %s\n  Error: %s\n",
-        failed$transition[i],
-        failed$region[i],
-        failed$status[i],
-        if (!is.na(failed$error_details[i])) {
-          failed$error_details[i]
-        } else {
-          "No details"
-        }
-      ))
-    }
-    if (nrow(failed) > 10) {
-      cat(sprintf("... and %d more\n", nrow(failed) - 10))
-    }
-  }
-
-  cat("\n")
-  return(combined_df)
-}
-
-
-#' Helper function to find transitions with specific error patterns
-#' @param debug_dir Directory containing debug RDS files
-#' @param pattern Regex pattern to search for in error_details
-#' @return Data frame with matching transitions
-find_error_pattern <- function(debug_dir, pattern) {
-  all_data <- read_debug_info(debug_dir)
-
-  if (is.null(all_data)) {
-    return(NULL)
-  }
-
-  # Filter for rows with error_details matching pattern
-  matches <- all_data[
-    !is.na(all_data$error_details) &
-      grepl(pattern, all_data$error_details, ignore.case = TRUE),
-  ]
-
-  if (nrow(matches) == 0) {
-    message(sprintf("No transitions found matching pattern: %s", pattern))
-    return(NULL)
-  }
-
-  cat(sprintf(
-    "\nFound %d transitions matching '%s':\n",
-    nrow(matches),
-    pattern
-  ))
-  cat("========================================\n\n")
-
-  print(matches[, c("transition", "region", "status", "error_details")])
-
-  return(matches)
-}
-
-# Use cat() + append=TRUE to avoid persistent connections (future-safe)
-log_msg <- function(msg, log_file = NULL, also_console = TRUE) {
-  timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
-  line <- paste0(timestamp, " | ", msg, "\n")
-  if (!is.null(log_file)) {
-    dir.create(dirname(log_file), recursive = TRUE, showWarnings = FALSE)
-    cat(line, file = log_file, append = TRUE)
-  }
-  if (also_console) cat(line)
-}
-
-# Initialize per-worker log file
-initialize_worker_log <- function(log_dir, trans_name) {
-  dir.create(log_dir, recursive = TRUE, showWarnings = FALSE)
-  log_file <- file.path(
-    log_dir,
-    sprintf("worker_%s_%s.log", Sys.getpid(), trans_name)
-  )
-  log_msg(sprintf("Initialized log file for %s", trans_name), log_file)
-  return(log_file)
 }
