@@ -278,6 +278,14 @@ nhood_predictor_prep <- function(
 
   # E - Updating predictor table with layer names- updated xl. ####
 
+  Focal_details <- readRDS(
+    file.path(
+      config[["preds_tools_dir"]],
+      "neighbourhood_details_for_dynamic_updating",
+      "focal_layer_lookup.rds"
+    )
+  )
+
   # Add additional columns to Focal details
   Focal_details$pred_name <- paste0(
     Focal_details$active_lulc,
@@ -341,7 +349,7 @@ nhood_predictor_prep <- function(
       yaml_file = config[["pred_table_path"]],
       pred_name = row["pred_name"],
       clean_name = clean_name,
-      pred_category = "Neighbourhood",
+      pred_category = "=neighbourhood",
       static_or_dynamic = "dynamic",
       metadata = NULL,
       scenario_variant = row["scenario_variant"],
@@ -352,10 +360,9 @@ nhood_predictor_prep <- function(
       method = "Generated using random decay rate matrices applied to historical LULC data.",
       date = Sys.Date(),
       author = "Your Name",
-      wfs_url = NULL,
-      download_url = NULL,
+      sources = NULL,
       raw_dir = NULL,
-      raw_data_filename = NULL
+      raw_filename = NULL
     )
   })
   message("Updated predictor YAML with neighbourhood layers \n")

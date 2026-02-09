@@ -26,6 +26,7 @@ terrain_pred_prep <- function(config = get_config()) {
   terrain_measures <- c("slope", "aspect", "TPI", "TRI", "roughness")
   terrain_paths <- file.path(
     config[["prepped_lyr_path"]],
+    "terrain",
     paste0(terrain_measures, ".tif")
   )
 
@@ -42,6 +43,7 @@ terrain_pred_prep <- function(config = get_config()) {
   all_measures <- c("elevation", terrain_measures)
   all_paths <- file.path(
     config[["prepped_lyr_path"]],
+    "terrain",
     paste0(all_measures, ".tif")
   )
 
@@ -74,8 +76,7 @@ terrain_pred_prep <- function(config = get_config()) {
       ),
       date = Sys.Date(),
       author = "Your Name",
-      wfs_url = NULL,
-      download_url = "https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001",
+      sources = "https://www.earthdata.nasa.gov/data/catalog/lpcloud-nasadem-hgt-001",
       raw_dir = "terrain",
       raw_filename = "masked_dem.tif"
     )

@@ -261,19 +261,19 @@ perform_feature_selection <- function(
   ))
 
   # Use furrr for parallel map
-  future::plan(multicore, workers = n_cores)
+  future::plan(multisession, workers = n_cores)
 
   options(future.rng.onMisuse = "ignore")
   message("Beginning parallel processing of transitions...")
 
-  # Parallel over transitions × regions
+  # Parallel over transitions regions
   furrr::future_map_dfr(
     seq_len(nrow(task_grid)),
     function(i) {
       row <- task_grid[i, ]
 
       log_file <- initialize_worker_log(
-        file.path(debug_dir, "worker_logs"),
+        file.path(period_dir, "worker_logs"),
         paste0(row$transition, "_", row$region)
       )
 
@@ -304,7 +304,7 @@ perform_feature_selection <- function(
         pred_categories = pred_categories,
         period = period,
         config = config,
-        debug_dir = debug_dir,
+        period_dir = period_dir,
         save_debug = save_debug,
         do_collinearity = do_collinearity,
         do_grrf = do_grrf,

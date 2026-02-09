@@ -5,6 +5,7 @@
 #' @param output_dir Output directory for parquet files
 #' @param rows_per_block Number of raster rows to read per block
 #' @param chunk_size Number of cells to process per write operation
+#' @param verify_alignment If TRUE, verify predictor alignment with mask (recommended for first run)
 #' @return List with valid cell IDs, number of cells, and time periods
 create_predictor_parquets <- function(
   config = get_config(),
@@ -16,7 +17,8 @@ create_predictor_parquets <- function(
   ),
   output_dir = file.path(config[["predictors_prepped_dir"]], "parquet_data"),
   rows_per_block = 1000,
-  chunk_size = 2e6
+  chunk_size = 2e6,
+  verify_alignment = FALSE
 ) {
   pred_yaml_file <- config[["pred_table_path"]]
   pred_config <- yaml::yaml.load_file(pred_yaml_file)
@@ -29,27 +31,47 @@ create_predictor_parquets <- function(
   message("Step 1: Extracting valid cell IDs with region mapping\n")
 
   # Check if valid_cell_ids.rds exists
-  valid_ids_path <- file.path(output_dir, "valid_cell_ids_regions.rds")
-  if (file.exists(valid_ids_path) && !refresh_cache) {
-    cat("✓ Found existing valid_cell_ids.rds, loading...\n")
-    valid_cell_data <- readRDS(valid_ids_path)
+  valid_ids_parquet <- file.path(
+    config[["data_basepath"]],
+    "spatial_reference_grid",
+    "valid_cell_ids_regions.parquet"
+  )
+
+  if (file.exists(valid_ids_parquet) && !refresh_cache) {
+    cat("✓ Found existing valid_cell_ids.parquet, using...\n")
+    valid_cell_data <- valid_ids_parquet # Store path, not data
+
+    # Get summary stats without loading into memory
+    ds <- arrow::open_dataset(valid_cell_data)
+    n_cells <- ds %>% dplyr::count() %>% dplyr::collect() %>% dplyr::pull(n)
+    n_regions <- ds %>%
+      dplyr::distinct(region) %>%
+      dplyr::count() %>%
+      dplyr::collect() %>%
+      dplyr::pull(n)
+
     cat(sprintf(
-      "\n✓ Loaded %s valid cells\n\n",
-      format(nrow(valid_cell_data), big.mark = ",")
+      "\n✓ Found %s valid cells across %d regions\n\n",
+      format(n_cells, big.mark = ","),
+      n_regions
     ))
   } else {
     cat("✓ Extracting valid cells with region values from mask raster...\n")
     valid_cell_data <- extract_valid_cells_with_region(
       mask_raster_path,
-      rows_per_block
+      rows_per_block,
+      output_path = valid_ids_parquet,
+      keep_in_memory = FALSE # Keep on disk to save memory
     )
-    saveRDS(valid_cell_data, valid_ids_path)
     cat(sprintf(
-      "\n✓ Found %s valid cells across %d regions\n\n",
-      format(nrow(valid_cell_data), big.mark = ","),
-      length(unique(valid_cell_data$region))
+      "\n✓ Results saved to: %s\n\n",
+      basename(valid_cell_data)
     ))
   }
+
+  # Verify mask alignment is internally consistent
+  cat("Verifying mask cell ID consistency...\n")
+  verify_mask_cell_ids(mask_raster_path, valid_cell_data)
 
   # Process static variables (PARTITIONED BY REGION)
   cat("Step 2: Processing static predictors (partitioned by region)\n")
@@ -66,8 +88,10 @@ create_predictor_parquets <- function(
     write_static_parquet_streaming_partitioned(
       cell_data = valid_cell_data,
       static_rasters = static_rasters,
+      mask_raster_path = mask_raster_path,
       output_dir = file.path(output_dir, "static"),
-      chunk_size = chunk_size
+      chunk_size = chunk_size,
+      verify_alignment = verify_alignment
     )
   } else {
     cat("\nNo static variables found\n")
@@ -104,8 +128,10 @@ create_predictor_parquets <- function(
     write_dynamic_parquet_streaming_partitioned(
       cell_data = valid_cell_data,
       period_data = period_structure[[period]],
+      mask_raster_path = mask_raster_path,
       output_dir = output_subdir,
-      chunk_size = chunk_size
+      chunk_size = chunk_size,
+      verify_alignment = verify_alignment
     )
 
     cat("\n")
@@ -119,7 +145,7 @@ create_predictor_parquets <- function(
 
   message("\nStep 5: Computing NA counts for each dataset\n")
   # checking for NAs across datasets
-  ds_static <- open_dataset(file.path(output_dir, "static"))
+  ds_static <- arrow::open_dataset(file.path(output_dir, "static"))
   na_static <- compute_na_counts_streaming(ds_static, "Static predictors")
 
   # save
@@ -130,7 +156,7 @@ create_predictor_parquets <- function(
 
   # loop over periods
   for (period in time_periods) {
-    ds_dynamic <- open_dataset(
+    ds_dynamic <- arrow::open_dataset(
       file.path(
         config[["predictors_prepped_dir"]],
         "parquet_data",
@@ -154,88 +180,266 @@ create_predictor_parquets <- function(
 
   message("\nAll steps completed successfully.\n")
 
+  # Prepare return value
+  if (is.character(valid_cell_data)) {
+    # It's a parquet path
+    ds <- arrow::open_dataset(valid_cell_data)
+    n_cells_final <- ds %>%
+      dplyr::count() %>%
+      dplyr::collect() %>%
+      dplyr::pull(n)
+  } else {
+    # It's a data frame
+    n_cells_final <- nrow(valid_cell_data)
+  }
+
   return(invisible(list(
     valid_cell_data = valid_cell_data,
-    n_cells = nrow(valid_cell_data),
+    n_cells = n_cells_final,
     time_periods = time_periods
   )))
 }
 
 
-#' Extract valid (non-NA) cell IDs from mask raster WITH region values
-#' @param mask_raster_path Path to mask raster (should contain region values)
-#' @param rows_per_block Number of raster rows to read per block
-#' @return Data frame with cell_id and region columns
-extract_valid_cells_with_region <- function(
+#' Verify mask cell IDs are consistent
+#'
+#' @param mask_raster_path Path to mask raster
+#' @param cell_data Either data frame or path to parquet file with cell_id and region columns
+#' @param sample_size Number of cells to verify (default: 10000)
+verify_mask_cell_ids <- function(
   mask_raster_path,
-  rows_per_block
+  cell_data,
+  sample_size = 10000
 ) {
   mask <- terra::rast(mask_raster_path)
-  n_rows <- terra::nrow(mask)
-  n_cols <- terra::ncol(mask)
 
-  terra::readStart(mask)
+  # Handle both data frame and parquet path inputs
+  if (is.character(cell_data)) {
+    # It's a path to parquet file
+    ds <- arrow::open_dataset(cell_data)
+    n_cells <- ds %>% dplyr::count() %>% dplyr::collect() %>% dplyr::pull(n)
 
-  cell_id_list <- list()
-  region_list <- list()
-
-  n_blocks <- ceiling(n_rows / rows_per_block)
-
-  for (block_idx in seq_len(n_blocks)) {
-    start_row <- (block_idx - 1) * rows_per_block + 1
-    n_rows_in_block <- min(rows_per_block, n_rows - start_row + 1)
+    # Sample cells to verify
+    n_verify <- min(sample_size, n_cells)
 
     cat(sprintf(
-      "\rProcessing rows %d-%d (block %d/%d)     ",
-      start_row,
-      start_row + n_rows_in_block - 1,
-      block_idx,
-      n_blocks
+      "  Verifying %s sampled cell IDs...\n",
+      format(n_verify, big.mark = ",")
     ))
 
-    mask_vals <- terra::readValues(
-      mask,
-      row = start_row,
-      nrows = n_rows_in_block
-    )
+    # Sample from the dataset
+    sample_data <- ds %>%
+      dplyr::slice_sample(n = n_verify) %>%
+      dplyr::collect()
+  } else {
+    # It's a data frame
+    n_cells <- nrow(cell_data)
+    n_verify <- min(sample_size, n_cells)
 
-    start_cell <- (start_row - 1) * n_cols + 1
-    end_cell <- start_cell + length(mask_vals) - 1
-    block_cell_ids <- start_cell:end_cell
+    cat(sprintf(
+      "  Verifying %s sampled cell IDs...\n",
+      format(n_verify, big.mark = ",")
+    ))
 
-    non_na <- !is.na(mask_vals)
-
-    cell_id_list[[block_idx]] <- block_cell_ids[non_na]
-    region_list[[block_idx]] <- mask_vals[non_na]
+    verify_idx <- sample(n_cells, n_verify)
+    sample_data <- cell_data[verify_idx, ]
   }
 
-  cat("\n")
-  terra::readStop(mask)
+  mismatches <- 0
+  for (i in seq_len(nrow(sample_data))) {
+    cell_id <- sample_data$cell_id[i]
+    expected_region <- sample_data$region[i]
 
-  valid_cell_data <- data.frame(
-    cell_id = unlist(cell_id_list),
-    region = as.integer(unlist(region_list))
-  )
+    # Extract using cell ID
+    actual_region <- mask[cell_id][1, 1]
 
-  return(valid_cell_data)
+    if (
+      !isTRUE(all.equal(as.numeric(expected_region), as.numeric(actual_region)))
+    ) {
+      mismatches <- mismatches + 1
+      if (mismatches <= 5) {
+        # Show first 5 mismatches
+        warning(sprintf(
+          "Cell ID mismatch at cell_id=%d: expected region %d, got %s",
+          cell_id,
+          expected_region,
+          actual_region
+        ))
+      }
+    }
+  }
+
+  if (mismatches > 0) {
+    stop(sprintf(
+      "Found %d/%d cell ID mismatches! Mask cell IDs are not consistent.",
+      mismatches,
+      n_verify
+    ))
+  }
+
+  cat(sprintf(
+    "  ✓ All %s sampled cells verified successfully\n\n",
+    format(n_verify, big.mark = ",")
+  ))
+}
+
+
+#' Verify predictor raster alignment with mask
+#'
+#' @param predictor_path Path to predictor raster
+#' @param mask_raster_path Path to mask raster
+#' @param cell_data Either data frame or path to parquet file with cell_id, row, col columns
+#' @param sample_size Number of cells to verify
+#' @return TRUE if aligned, stops with error if not
+verify_predictor_alignment <- function(
+  predictor_path,
+  mask_raster_path,
+  cell_data,
+  sample_size = 1000
+) {
+  mask <- terra::rast(mask_raster_path)
+  pred <- terra::rast(predictor_path)
+
+  # Check basic raster properties
+  if (!terra::compareGeom(mask, pred, stopOnError = FALSE)) {
+    # Get detailed comparison
+    mask_ext <- terra::ext(mask)
+    pred_ext <- terra::ext(pred)
+    mask_res <- terra::res(mask)
+    pred_res <- terra::res(pred)
+    mask_crs <- terra::crs(mask)
+    pred_crs <- terra::crs(pred)
+
+    error_msg <- sprintf(
+      "\n  Raster geometry mismatch for: %s\n  Mask: extent=%s, res=%s, crs=%s\n  Pred: extent=%s, res=%s, crs=%s",
+      basename(predictor_path),
+      paste(as.vector(mask_ext), collapse = ","),
+      paste(mask_res, collapse = ","),
+      mask_crs,
+      paste(as.vector(pred_ext), collapse = ","),
+      paste(pred_res, collapse = ","),
+      pred_crs
+    )
+    stop(error_msg)
+  }
+
+  # Handle both data frame and parquet path inputs
+  if (is.character(cell_data)) {
+    # It's a path to parquet file
+    ds <- arrow::open_dataset(cell_data)
+    n_cells <- ds %>% dplyr::count() %>% dplyr::collect() %>% dplyr::pull(n)
+    n_verify <- min(sample_size, n_cells)
+
+    # Memory-efficient sampling: take random row_idx values first
+    # then filter to just those rows
+    set.seed(123) # For reproducibility
+    sample_indices <- sort(sample(n_cells, n_verify))
+
+    # Split into chunks to avoid loading too much at once
+    chunk_size <- 100
+    n_chunks <- ceiling(n_verify / chunk_size)
+
+    sample_data_list <- list()
+    for (i in seq_len(n_chunks)) {
+      start_idx <- (i - 1) * chunk_size + 1
+      end_idx <- min(i * chunk_size, n_verify)
+      chunk_indices <- sample_indices[start_idx:end_idx]
+
+      chunk <- ds %>%
+        dplyr::filter(row_idx %in% chunk_indices) %>%
+        dplyr::select(cell_id, region) %>%
+        dplyr::collect()
+
+      sample_data_list[[i]] <- chunk
+    }
+
+    sample_data <- dplyr::bind_rows(sample_data_list)
+  } else {
+    # It's a data frame
+    n_cells <- nrow(cell_data)
+    n_verify <- min(sample_size, n_cells)
+    verify_idx <- sample(n_cells, n_verify)
+    sample_data <- cell_data[verify_idx, c("cell_id", "region")]
+  }
+
+  # Extract from both using the SAME cell IDs
+  mask_vals <- mask[sample_data$cell_id]
+  pred_vals <- pred[sample_data$cell_id]
+
+  # Check that mask values match what we expect (should all be valid regions)
+  mask_expected <- sample_data$region
+
+  mismatches <- 0
+  for (i in seq_len(nrow(sample_data))) {
+    if (
+      !is.na(mask_vals[i, 1]) &&
+        !isTRUE(all.equal(
+          as.numeric(mask_vals[i, 1]),
+          as.numeric(mask_expected[i])
+        ))
+    ) {
+      mismatches <- mismatches + 1
+      if (mismatches <= 3) {
+        warning(sprintf(
+          "  Cell alignment issue at cell_id=%d: mask returned %s, expected %d",
+          sample_data$cell_id[i],
+          mask_vals[i, 1],
+          mask_expected[i]
+        ))
+      }
+    }
+  }
+
+  if (mismatches > 0) {
+    stop(sprintf(
+      "Found %d/%d cell alignment mismatches for %s!",
+      mismatches,
+      n_verify,
+      basename(predictor_path)
+    ))
+  }
+
+  return(TRUE)
 }
 
 
 #' Write static predictors with streaming and partitioning by region
-#' @param cell_data Data frame with cell_id and region columns
+#' @param cell_data Either data frame or path to parquet file with cell_id, row, col, and region columns
 #' @param static_rasters Named list of static raster file paths
+#' @param mask_raster_path Path to mask raster for verification
 #' @param output_dir Output directory for partitioned dataset
 #' @param chunk_size Number of cells to process per write operation
+#' @param verify_alignment If TRUE, verify each predictor's alignment
 #' @return NULL
 write_static_parquet_streaming_partitioned <- function(
   cell_data,
   static_rasters,
+  mask_raster_path,
   output_dir,
-  chunk_size
+  chunk_size,
+  verify_alignment = TRUE
 ) {
   library(arrow)
 
-  n_cells <- nrow(cell_data)
+  # Handle both data frame and parquet path inputs
+  if (is.character(cell_data)) {
+    # It's a path to parquet file - open as dataset
+    cell_ds <- arrow::open_dataset(cell_data)
+    n_cells <- cell_ds %>%
+      dplyr::count() %>%
+      dplyr::collect() %>%
+      dplyr::pull(n)
+    regions <- cell_ds %>%
+      dplyr::distinct(region) %>%
+      dplyr::collect() %>%
+      dplyr::pull(region) %>%
+      sort()
+  } else {
+    # It's a data frame
+    n_cells <- nrow(cell_data)
+    regions <- sort(unique(cell_data$region))
+  }
+
   n_chunks <- ceiling(n_cells / chunk_size)
 
   cat(sprintf(
@@ -244,14 +448,27 @@ write_static_parquet_streaming_partitioned <- function(
     n_chunks
   ))
 
-  # Get unique regions and create writers for each
-  regions <- sort(unique(cell_data$region))
-
   cat(sprintf(
     "  Found %d regions: %s\n",
     length(regions),
     paste(regions, collapse = ", ")
   ))
+
+  # Verify alignment of each predictor (sample of cells)
+  if (verify_alignment) {
+    cat("\n  Verifying predictor alignment with mask...\n")
+    for (var_name in names(static_rasters)) {
+      cat(sprintf("    Checking: %s...", var_name))
+      verify_predictor_alignment(
+        static_rasters[[var_name]],
+        mask_raster_path,
+        cell_data,
+        sample_size = 1000
+      )
+      cat(" ✓\n")
+    }
+    cat("  All predictors verified!\n\n")
+  }
 
   # Initialize writer storage
   writers <- list()
@@ -262,14 +479,23 @@ write_static_parquet_streaming_partitioned <- function(
   for (chunk_idx in seq_len(n_chunks)) {
     start_idx <- (chunk_idx - 1) * chunk_size + 1
     end_idx <- min(chunk_idx * chunk_size, n_cells)
-    chunk_rows <- cell_data[start_idx:end_idx, , drop = FALSE]
 
     cat(sprintf(
       "\r  Chunk %d/%d (%s cells)     ",
       chunk_idx,
       n_chunks,
-      format(nrow(chunk_rows), big.mark = ",")
+      format(end_idx - start_idx + 1, big.mark = ",")
     ))
+
+    # Get chunk rows
+    if (is.character(cell_data)) {
+      # Use row_idx for efficient filtering in Arrow
+      chunk_rows <- cell_ds %>%
+        dplyr::filter(row_idx >= start_idx & row_idx <= end_idx) %>%
+        dplyr::collect()
+    } else {
+      chunk_rows <- cell_data[start_idx:end_idx, , drop = FALSE]
+    }
 
     # Build chunk data frame with region
     chunk_df <- data.frame(
@@ -277,10 +503,12 @@ write_static_parquet_streaming_partitioned <- function(
       region = as.integer(chunk_rows$region),
       stringsAsFactors = FALSE
     )
-    browser()
-    # Add static variables
+
+    # Add static variables using consistent cell IDs
     for (var_name in names(static_rasters)) {
       r <- terra::rast(static_rasters[[var_name]])
+
+      # Use cell IDs directly - they're guaranteed to be from terra's system
       vals <- r[chunk_rows$cell_id]
 
       if (is.data.frame(vals) || is.list(vals)) {
@@ -333,7 +561,7 @@ write_static_parquet_streaming_partitioned <- function(
       rm(region_chunk)
     }
 
-    rm(chunk_df)
+    rm(chunk_df, chunk_rows)
     gc(verbose = FALSE)
   }
 
@@ -352,22 +580,43 @@ write_static_parquet_streaming_partitioned <- function(
 
 
 #' Write dynamic predictors with streaming and partitioning by scenario and region
-#' @param cell_data Data frame with cell_id and region columns
+#' @param cell_data Either data frame or path to parquet file with cell_id, row, col, and region columns
 #' @param period_data Named list of scenarios, each containing named list of variable raster paths
+#' @param mask_raster_path Path to mask raster for verification
 #' @param output_dir Output directory for partitioned dataset
 #' @param chunk_size Number of cells to process per write operation
+#' @param verify_alignment If TRUE, verify each predictor's alignment
 write_dynamic_parquet_streaming_partitioned <- function(
   cell_data,
   period_data,
+  mask_raster_path,
   output_dir,
-  chunk_size
+  chunk_size,
+  verify_alignment = TRUE
 ) {
   library(arrow)
 
-  n_cells <- nrow(cell_data)
+  # Handle both data frame and parquet path inputs
+  if (is.character(cell_data)) {
+    # It's a path to parquet file - open as dataset
+    cell_ds <- arrow::open_dataset(cell_data)
+    n_cells <- cell_ds %>%
+      dplyr::count() %>%
+      dplyr::collect() %>%
+      dplyr::pull(n)
+    regions <- cell_ds %>%
+      dplyr::distinct(region) %>%
+      dplyr::collect() %>%
+      dplyr::pull(region) %>%
+      sort()
+  } else {
+    # It's a data frame
+    n_cells <- nrow(cell_data)
+    regions <- sort(unique(cell_data$region))
+  }
+
   n_chunks <- ceiling(n_cells / chunk_size)
   scenarios <- names(period_data)
-  regions <- sort(unique(cell_data$region))
 
   cat(sprintf(
     "  %d scenarios: %s\n",
@@ -379,6 +628,23 @@ write_dynamic_parquet_streaming_partitioned <- function(
     length(regions),
     paste(regions, collapse = ", ")
   ))
+
+  # Verify alignment for first scenario (assume all scenarios have same alignment)
+  if (verify_alignment && length(scenarios) > 0) {
+    cat("\n  Verifying predictor alignment with mask (first scenario)...\n")
+    first_scenario <- scenarios[1]
+    for (var_name in names(period_data[[first_scenario]])) {
+      cat(sprintf("    Checking: %s...", var_name))
+      verify_predictor_alignment(
+        period_data[[first_scenario]][[var_name]],
+        mask_raster_path,
+        cell_data,
+        sample_size = 1000
+      )
+      cat(" ✓\n")
+    }
+    cat("  All predictors verified!\n\n")
+  }
 
   # Initialize writer storage (scenario -> region -> writer)
   writers <- list()
@@ -398,9 +664,18 @@ write_dynamic_parquet_streaming_partitioned <- function(
     for (chunk_idx in seq_len(n_chunks)) {
       start_idx <- (chunk_idx - 1) * chunk_size + 1
       end_idx <- min(chunk_idx * chunk_size, n_cells)
-      chunk_rows <- cell_data[start_idx:end_idx, , drop = FALSE]
 
       cat(sprintf("\r    Chunk %d/%d     ", chunk_idx, n_chunks))
+
+      # Get chunk rows
+      if (is.character(cell_data)) {
+        # Use row_idx for efficient filtering in Arrow
+        chunk_rows <- cell_ds %>%
+          dplyr::filter(row_idx >= start_idx & row_idx <= end_idx) %>%
+          dplyr::collect()
+      } else {
+        chunk_rows <- cell_data[start_idx:end_idx, , drop = FALSE]
+      }
 
       # Build chunk for this scenario
       chunk_df <- data.frame(
@@ -410,9 +685,13 @@ write_dynamic_parquet_streaming_partitioned <- function(
         stringsAsFactors = FALSE
       )
 
+      # Add dynamic variables using consistent cell IDs
       for (var_name in var_names) {
         r <- terra::rast(period_data[[scenario]][[var_name]])
+
+        # Use cell IDs directly
         vals <- r[chunk_rows$cell_id]
+
         if (is.data.frame(vals) || is.list(vals)) {
           vals <- vals[[1]]
         }
@@ -443,7 +722,7 @@ write_dynamic_parquet_streaming_partitioned <- function(
           ensure_dir(region_dir)
 
           # Create output file path
-          partition_file <- file.path(region_dir, "data.parquet")
+          partition_file <- file.path(region_dir, "dynamic_predictors.parquet")
 
           # Create writer
           sinks[[writer_key]] <- arrow::FileOutputStream$create(partition_file)
@@ -467,7 +746,7 @@ write_dynamic_parquet_streaming_partitioned <- function(
         rm(region_chunk)
       }
 
-      rm(chunk_df)
+      rm(chunk_df, chunk_rows)
       gc(verbose = FALSE)
     }
     cat("\n")
@@ -687,21 +966,21 @@ compute_na_counts_streaming <- function(
 
   # Optionally restrict to a subset (e.g. from collinearity results)
   if (!is.null(sample_cols)) {
-    all_cols <- intersect(all_cols, sample_cols)
+    all_cols <- dplyr::intersect(all_cols, sample_cols)
   }
 
-  results <- map_dfr(all_cols, function(colname) {
+  results <- purrr::map_dfr(all_cols, function(colname) {
     message(sprintf("  -> Checking column: %s", colname))
 
     # Summarise missing values for this column
     na_summary <- ds %>%
-      summarise(
-        na_count = sum(is.na(!!sym(colname))),
+      dplyr::summarise(
+        na_count = sum(is.na(!!rlang::sym(colname))),
         total_rows = n()
       ) %>%
-      collect()
+      dplyr::collect()
 
-    tibble(
+    tibble::tibble(
       column = colname,
       na_count = na_summary$na_count,
       total_rows = na_summary$total_rows,
@@ -710,5 +989,5 @@ compute_na_counts_streaming <- function(
   })
 
   message("[INFO] NA counting complete.")
-  results %>% arrange(desc(na_proportion))
+  results %>% dplyr::arrange(desc(na_proportion))
 }

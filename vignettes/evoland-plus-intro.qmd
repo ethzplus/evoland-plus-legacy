@@ -75,13 +75,19 @@ ancillary_data_prep(
 calibration_predictor_prep(refresh_cache = FALSE)
 ```
 
-## C- Identify LULC transitions and create transition datasets
+
+## Prepare parquet files of predictor data
+```{r}
+create_predictor_parquets(refresh_cache = FALSE)
+```
+
+## Identify LULC transitions
 
 ```{r}
 transition_identification()
 ```
 
-## D- Create transition datasets
+## D- Create transition parquet dataset
 
 ```{r}
 transition_dataset_prep()
@@ -90,7 +96,15 @@ transition_dataset_prep()
 ## E- Predictor variable selection on LULCC transition datasets
 
 ```{r}
-transition_feature_selection()
+transition_feature_selection(
+  config = get_config(),
+  use_regions = isTRUE(config[["regionalization"]]),
+  refresh_cache = FALSE,
+  save_debug = TRUE,
+  debug_dir = file.path(config[["feature_selection_dir"]]),
+  do_collinearity = TRUE, # Whether to perform collinearity filtering
+  do_grrf = TRUE # Whether to perform GRRF feature selection
+)
 ```
 
 ## F- Statistical modelling of LULCC transition datasets

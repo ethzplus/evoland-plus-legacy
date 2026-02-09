@@ -12,9 +12,6 @@ calibration_predictor_prep <- function(
   refresh_cache = FALSE,
   ignore_excel = FALSE
 ) {
-  temp_dir <- "E:/terra_temp"
-  ensure_dir(temp_dir)
-
   # Set temp directory for terra to another drive
   # because the default is on C: which often has limited space
   terra_temp <- "E:/terra_temp"

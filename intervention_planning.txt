@@ -12,3 +12,5 @@ Use layers of environmental degradation as a mask for areas to encourage ecologi
 
 6. Forest concessions, sustainable use areas, agroforestry concession: X:\NASCENT-Peru\03_data\predictors\raw\forests
 
+7. Use population density layer to change the category of certains areas under different scenarios i.e. areas of low growth/decline in the past could be switched to areas of growth in the future by increasing urban area there i.e. (nature as culture people move back to the countryside))
+

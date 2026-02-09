@@ -19,7 +19,7 @@
 
 get_config <- function(
   scenario_names = c("BAU", "EI-NAT", "EI-CUL", "EI-SOC", "GR-EX"),
-  step_length = 5L,
+  step_length = 4L,
   data_periods = c("2010_2014", "2014_2018", "2018_2022"),
   regionalization = TRUE,
   inclusion_threshold = 0.5
@@ -33,6 +33,7 @@ get_config <- function(
   predictors_dir <- file.path(data_basepath, "predictors")
   predictors_prepped_dir <- file.path(predictors_dir, "prepared")
   predictors_raw_dir <- file.path(predictors_dir, "raw")
+  predictors_intermediate_dir <- file.path(predictors_dir, "intermediate")
   allocation_pars_dir <- file.path(data_basepath, "allocation_parameters")
   preds_tools_dir <- file.path(predictors_dir, "tools")
   results_dir <- file.path(data_basepath, "results")
@@ -45,7 +46,7 @@ get_config <- function(
 
     # Tools files
     LULC_aggregation_path = file.path(tools_dir, "lulc_schema.json"), # LULC class aggregation table
-    model_specs_path = file.path(tools_dir, "model_specs.csv"), # model specifications table
+    model_specs_path = file.path(tools_dir, "model_specs.yaml"), # model specifications table
     param_grid_path = file.path(tools_dir, "param-grid.xlsx"), # model hyper parameter grids
     pred_table_path = file.path("inst", "pred_data.yaml"),
     # FIXME why are the next two repeated?
@@ -76,22 +77,22 @@ get_config <- function(
     simulation_param_dir = file.path(allocation_pars_dir, "simulation"),
     trans_rate_table_dir = file.path(
       data_basepath,
-      "transition_tables",
-      "prepared_trans_tables"
+      "transition_rates",
+      "prepared_trans_rates"
     ),
     trans_rates_raw_dir = file.path(
       data_basepath,
-      "transition_tables",
-      "raw_trans_tables"
+      "transition_rates",
+      "raw_trans_rates"
     ),
     trans_rate_extrapol_dir = file.path(
       data_basepath,
-      "transition_tables",
+      "transition_rates",
       "extrapolations"
     ),
     best_trans_area_tables = file.path(
       data_basepath,
-      "transition_tables",
+      "transition_rates",
       "best_area_tables.rds"
     ),
     trans_pre_pred_filter_dir = file.path(
@@ -133,6 +134,8 @@ get_config <- function(
     # Predictor directories
     glacial_change_path = file.path(data_basepath, "glacial_change"),
     predictors_raw_dir = predictors_raw_dir,
+    predictors_intermediate_dir = predictors_intermediate_dir,
+    predictors_prepped_dir = predictors_prepped_dir,
     ch_geoms_path = file.path(predictors_raw_dir, "ch_geoms"),
     raw_pop_dir = file.path(predictors_raw_dir, "socio_economic", "population"),
     raw_employment_dir = file.path(
@@ -148,22 +151,18 @@ get_config <- function(
       "employment"
     ),
     prepped_pred_stacks = file.path(predictors_prepped_dir, "stacks"),
+    pred_db_path = file.path(
+      predictors_prepped_dir,
+      "predictor_database.duckdb"
+    ),
 
     # System configuration
     reference_crs = "epsg:2056",
 
     # Models directories
-    grrf_dir = file.path(
+    feature_selection_dir = file.path(
       results_dir,
-      "model_tuning",
-      "predictor_selection",
-      "grrf_embedded_selection"
-    ),
-    collinearity_dir = file.path(
-      results_dir,
-      "model_tuning",
-      "predictor_selection",
-      "grrf_embedded_selection"
+      "feature_selection"
     ),
     transition_model_dir = file.path(data_basepath, "transition_models"),
     transition_model_eval_dir = file.path(

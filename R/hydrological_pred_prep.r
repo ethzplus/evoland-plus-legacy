@@ -28,6 +28,23 @@ hydrological_pred_prep <- function(
     USE.NAMES = TRUE
   )
 
+  # Given that these shapefiles have a large number of complex geometries
+  # and that the extent and resolution of the reference grid is large,
+  # calculating distance based rasters from them on a desktop computer is likely not feasible.
+
+  # Instead the layers were calculated on a high-performance computing cluster using
+  # a custom R script (R/dist_calc_hpc.r) that uses GDAL utilities.
+  # This workflow can be reproduced by users with access to similar HPC resources.
+  # First create the required environment using the script (scripts/setup_dist_calc_env.sh)
+  # which uses envs/dist_calc_env.yml to create a conda environment with the required dependencies.
+  # Then run the sbatch script (scripts/run_dist_calc.sbatch) to submit the job to the cluster.
+  # Note that you will need to manually move the required shapefiles to the cluster and adjust paths in the scripts accordingly
+  # and manually move the resulting rasters back to the appropriate directory in your local data structure.
+
+  # This chunk provides a function to create the distance rasters locally using R and terra,
+  # but it is commented out by default due to the computational demands described above.
+  # the remaining code updates the predictor YAML with the paths to the pre-calculated rasters.
+
   # Loop over hydrological vector files
   for (i in seq_along(hydro_vect_paths)) {
     vect_path <- hydro_vect_paths[i]
@@ -35,17 +52,21 @@ hydrological_pred_prep <- function(
     message(paste("Processing", pred_name))
 
     out_name <- paste0(pred_name, ".tif")
-    out_path <- file.path(config[["prepped_lyr_path"]], out_name)
+    out_path <- file.path(
+      config[["prepped_lyr_path"]],
+      "hydrological",
+      out_name
+    )
 
-    # Skip if already exists and refresh_cache is FALSE
-    if (file.exists(out_path) & !refresh_cache) {
-      message(paste("File", out_name, "already exists. Skipping..."))
-      next
-    } else {
-      message(paste("Saving to", out_path))
-    }
+    # # Skip if already exists and refresh_cache is FALSE
+    # if (file.exists(out_path) & !refresh_cache) {
+    #   message(paste("File", out_name, "already exists. Skipping..."))
+    #   next
+    # } else {
+    #   message(paste("Saving to", out_path))
+    # }
 
-    # start_time <- Sys.time()
+    # # apply distance_from_shapefile function
     # distance_from_shapefile(
     #   shapefile = vect_path,
     #   ref = config[["ref_grid_path"]],
@@ -59,7 +80,7 @@ hydrological_pred_prep <- function(
     #   rasterize_background = NA,
     #   rasterize_all_touched = TRUE
     # )
-    # end_time <- Sys.time()
+
     # message(paste(
     #   "Processed",
     #   out_name,
@@ -102,9 +123,8 @@ hydrological_pred_prep <- function(
       },
       date = Sys.Date(),
       author = "Your Name",
-      wfs_url = if (!is.null(entry$wfs_url)) entry$wfs_url else NULL,
-      download_url = if (!is.null(entry$download_url)) {
-        entry$download_url
+      sources = if (!is.null(entry$sources)) {
+        entry$sources
       } else {
         NULL
       },

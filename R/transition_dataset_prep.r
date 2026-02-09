@@ -16,7 +16,8 @@ transition_dataset_prep <- function(
     pattern = "regions.tif$",
     full.names = TRUE
   ),
-  rows_per_block = 1000
+  rows_per_block = 1000,
+  verify_alignment = FALSE
 ) {
   ### =========================================================================
   ### A- Preparation
@@ -32,7 +33,7 @@ transition_dataset_prep <- function(
   )
 
   ### =========================================================================
-  ### B- Load data and filter for each time period
+  ### B- Load data and dplyr::filter for each time period
   ### =========================================================================
 
   # The predictor data table is used to identify the file names of variables that
@@ -65,7 +66,7 @@ transition_dataset_prep <- function(
   })
   names(lulc_period_regexes) <- config[["data_periods"]]
 
-  # Filter LULC files by period
+  # filter LULC files by period
   lulc_paths_by_period <- lapply(lulc_period_regexes, function(x) {
     dplyr::filter(lulc_raster_paths, grepl(x, File_name))
   })
@@ -134,8 +135,12 @@ transition_dataset_prep <- function(
 
     # Get summary stats without loading into memory
     ds <- arrow::open_dataset(valid_cell_data)
-    n_cells <- ds %>% count() %>% collect() %>% pull(n)
-    n_regions <- ds %>% distinct(region) %>% count() %>% collect() %>% pull(n)
+    n_cells <- ds %>% dplyr::count() %>% dplyr::collect() %>% dplyr::pull(n)
+    n_regions <- ds %>%
+      dplyr::distinct(region) %>%
+      dplyr::count() %>%
+      dplyr::collect() %>%
+      dplyr::pull(n)
 
     cat(sprintf(
       "\n✓ Found %s valid cells across %d regions\n\n",
@@ -143,18 +148,16 @@ transition_dataset_prep <- function(
       n_regions
     ))
   } else {
-    cat("✓ Extracting valid cells with region values from mask raster...\n")
-    valid_cell_data <- extract_valid_cells_with_region(
-      mask_raster_path,
-      rows_per_block,
-      output_path = valid_ids_parquet,
-      keep_in_memory = FALSE # Keep on disk to save memory
+    stop(
+      "Valid cell IDs parquet not found at: ",
+      valid_ids_parquet,
+      "\nPlease run create_predictor_parquets() first to generate this file."
     )
-    cat(sprintf(
-      "\n✓ Results saved to: %s\n\n",
-      basename(valid_cell_data)
-    ))
   }
+
+  # Verify mask alignment is internally consistent
+  cat("Verifying mask cell ID consistency...\n")
+  verify_mask_cell_ids_transitions(mask_raster_path, valid_cell_data)
 
   periods <- config[["data_periods"]]
   # Subset to specific period if needed (remove this line to process all)
@@ -167,10 +170,231 @@ transition_dataset_prep <- function(
     process_period_transitions,
     config = config,
     rasterstacks_by_periods = rasterstacks_by_periods,
-    valid_cell_data = valid_cell_data
+    valid_cell_data = valid_cell_data,
+    mask_raster_path = mask_raster_path,
+    verify_alignment = verify_alignment
   )
   message("Preparation of transition datasets complete")
 }
+
+
+#' Verify mask cell IDs are consistent (for transitions)
+#'
+#' @param mask_raster_path Path to mask raster
+#' @param cell_data Either data frame or path to parquet file with cell_id and region columns
+#' @param sample_size Number of cells to verify (default: 10000)
+verify_mask_cell_ids_transitions <- function(
+  mask_raster_path,
+  cell_data,
+  sample_size = 10000
+) {
+  mask <- terra::rast(mask_raster_path)
+
+  # Handle both data frame and parquet path inputs
+  if (is.character(cell_data)) {
+    # It's a path to parquet file
+    ds <- arrow::open_dataset(cell_data)
+    n_cells <- ds %>% dplyr::count() %>% dplyr::collect() %>% dplyr::pull(n)
+
+    # Sample cells to verify
+    n_verify <- min(sample_size, n_cells)
+
+    cat(sprintf(
+      "  Verifying %s sampled cell IDs...\n",
+      format(n_verify, big.mark = ",")
+    ))
+
+    # Memory-efficient sampling: take random row_idx values first
+    set.seed(123) # For reproducibility
+    sample_indices <- sort(sample(n_cells, n_verify))
+
+    # Split into chunks to avoid loading too much at once
+    chunk_size <- 1000
+    n_chunks <- ceiling(n_verify / chunk_size)
+
+    sample_data_list <- list()
+    for (i in seq_len(n_chunks)) {
+      start_idx <- (i - 1) * chunk_size + 1
+      end_idx <- min(i * chunk_size, n_verify)
+      chunk_indices <- sample_indices[start_idx:end_idx]
+
+      chunk <- ds %>%
+        dplyr::filter(row_idx %in% chunk_indices) %>%
+        dplyr::select(cell_id, region) %>%
+        dplyr::collect()
+
+      sample_data_list[[i]] <- chunk
+    }
+
+    sample_data <- dplyr::bind_rows(sample_data_list)
+  } else {
+    # It's a data frame
+    n_cells <- nrow(cell_data)
+    n_verify <- min(sample_size, n_cells)
+
+    cat(sprintf(
+      "  Verifying %s sampled cell IDs...\n",
+      format(n_verify, big.mark = ",")
+    ))
+
+    verify_idx <- sample(n_cells, n_verify)
+    sample_data <- cell_data[verify_idx, ]
+  }
+
+  mismatches <- 0
+  for (i in seq_len(nrow(sample_data))) {
+    cell_id <- sample_data$cell_id[i]
+    expected_region <- sample_data$region[i]
+
+    # Extract using cell ID
+    actual_region <- mask[cell_id][1, 1]
+
+    if (
+      !isTRUE(all.equal(as.numeric(expected_region), as.numeric(actual_region)))
+    ) {
+      mismatches <- mismatches + 1
+      if (mismatches <= 5) {
+        # Show first 5 mismatches
+        warning(sprintf(
+          "Cell ID mismatch at cell_id=%d: expected region %d, got %s",
+          cell_id,
+          expected_region,
+          actual_region
+        ))
+      }
+    }
+  }
+
+  if (mismatches > 0) {
+    stop(sprintf(
+      "Found %d/%d cell ID mismatches! Mask cell IDs are not consistent.",
+      mismatches,
+      n_verify
+    ))
+  }
+
+  cat(sprintf(
+    "  ✓ All %s sampled cells verified successfully\n\n",
+    format(n_verify, big.mark = ",")
+  ))
+}
+
+
+#' Verify LULC raster alignment with mask
+#'
+#' @param lulc_raster Path to LULC raster (initial or final)
+#' @param mask_raster_path Path to mask raster
+#' @param cell_data Either data frame or path to parquet file
+#' @param sample_size Number of cells to verify
+#' @return TRUE if aligned, stops with error if not
+verify_lulc_alignment <- function(
+  lulc_raster,
+  mask_raster_path,
+  cell_data,
+  sample_size = 1000
+) {
+  mask <- terra::rast(mask_raster_path)
+  lulc <- lulc_raster # Already a SpatRaster object
+
+  # Check basic raster properties
+  if (!terra::compareGeom(mask, lulc, stopOnError = FALSE)) {
+    # Get detailed comparison
+    mask_ext <- terra::ext(mask)
+    lulc_ext <- terra::ext(lulc)
+    mask_res <- terra::res(mask)
+    lulc_res <- terra::res(lulc)
+    mask_crs <- terra::crs(mask)
+    lulc_crs <- terra::crs(lulc)
+
+    error_msg <- sprintf(
+      "\n  Raster geometry mismatch for LULC\n  Mask: extent=%s, res=%s, crs=%s\n  LULC: extent=%s, res=%s, crs=%s",
+      paste(as.vector(mask_ext), collapse = ","),
+      paste(mask_res, collapse = ","),
+      mask_crs,
+      paste(as.vector(lulc_ext), collapse = ","),
+      paste(lulc_res, collapse = ","),
+      lulc_crs
+    )
+    stop(error_msg)
+  }
+
+  # Handle both data frame and parquet path inputs
+  if (is.character(cell_data)) {
+    # It's a path to parquet file
+    ds <- arrow::open_dataset(cell_data)
+    n_cells <- ds %>% dplyr::count() %>% dplyr::collect() %>% dplyr::pull(n)
+    n_verify <- min(sample_size, n_cells)
+
+    # Memory-efficient sampling: take random row_idx values first
+    set.seed(123) # For reproducibility
+    sample_indices <- sort(sample(n_cells, n_verify))
+
+    # Split into chunks to avoid loading too much at once
+    chunk_size <- 100
+    n_chunks <- ceiling(n_verify / chunk_size)
+
+    sample_data_list <- list()
+    for (i in seq_len(n_chunks)) {
+      start_idx <- (i - 1) * chunk_size + 1
+      end_idx <- min(i * chunk_size, n_verify)
+      chunk_indices <- sample_indices[start_idx:end_idx]
+
+      chunk <- ds %>%
+        dplyr::filter(row_idx %in% chunk_indices) %>%
+        dplyr::select(cell_id, region) %>%
+        dplyr::collect()
+
+      sample_data_list[[i]] <- chunk
+    }
+
+    sample_data <- dplyr::bind_rows(sample_data_list)
+  } else {
+    # It's a data frame
+    n_cells <- nrow(cell_data)
+    n_verify <- min(sample_size, n_cells)
+    verify_idx <- sample(n_cells, n_verify)
+    sample_data <- cell_data[verify_idx, c("cell_id", "region")]
+  }
+
+  # Extract from both using the SAME cell IDs
+  mask_vals <- mask[sample_data$cell_id]
+  lulc_vals <- lulc[sample_data$cell_id]
+
+  # Check that mask values match what we expect (should all be valid regions)
+  mask_expected <- sample_data$region
+
+  mismatches <- 0
+  for (i in seq_len(nrow(sample_data))) {
+    if (
+      !is.na(mask_vals[i, 1]) &&
+        !isTRUE(all.equal(
+          as.numeric(mask_vals[i, 1]),
+          as.numeric(mask_expected[i])
+        ))
+    ) {
+      mismatches <- mismatches + 1
+      if (mismatches <= 3) {
+        warning(sprintf(
+          "  Cell alignment issue at cell_id=%d: mask returned %s, expected %d",
+          sample_data$cell_id[i],
+          mask_vals[i, 1],
+          mask_expected[i]
+        ))
+      }
+    }
+  }
+
+  if (mismatches > 0) {
+    stop(sprintf(
+      "Found %d/%d cell alignment mismatches for LULC raster!",
+      mismatches,
+      n_verify
+    ))
+  }
+
+  return(TRUE)
+}
+
 
 #' Efficiently process transitions for one period and write partitioned parquets by region
 #' (one row per cell, one column per transition, partitioned by region)
@@ -178,7 +402,9 @@ transition_dataset_prep <- function(
 #' @param period Character period label (e.g. "2020_2030")
 #' @param rasterstacks_by_periods Named list of terra rasters for each period
 #' @param config Named list of configuration parameters
-#' @param valid_cell_data Data frame with cell_id and region columns
+#' @param valid_cell_data Either data frame or path to parquet with cell_id and region columns
+#' @param mask_raster_path Path to mask raster for verification
+#' @param verify_alignment If TRUE, verify LULC raster alignment
 #' @param chunk_size Number of cells to process per chunk (default 1e6)
 #'
 #' @return NULL (writes partitioned parquet files)
@@ -187,6 +413,8 @@ process_period_transitions <- function(
   rasterstacks_by_periods,
   config,
   valid_cell_data,
+  mask_raster_path,
+  verify_alignment = FALSE,
   chunk_size = 1e6
 ) {
   library(terra)
@@ -198,6 +426,29 @@ process_period_transitions <- function(
   r_stack <- rasterstacks_by_periods[[paste(period)]]
   init_r <- r_stack$Initial_class
   fin_r <- r_stack$Final_class
+
+  # ---- Verify alignment ----
+  if (verify_alignment) {
+    cat("\n  Verifying LULC raster alignment with mask...\n")
+    cat("    Checking Initial LULC...")
+    verify_lulc_alignment(
+      init_r,
+      mask_raster_path,
+      valid_cell_data,
+      sample_size = 1000
+    )
+    cat(" ✓\n")
+
+    cat("    Checking Final LULC...")
+    verify_lulc_alignment(
+      fin_r,
+      mask_raster_path,
+      valid_cell_data,
+      sample_size = 1000
+    )
+    cat(" ✓\n")
+    cat("  All LULC rasters verified!\n\n")
+  }
 
   regionalization <- isTRUE(config[["regionalization"]])
 
@@ -212,9 +463,26 @@ process_period_transitions <- function(
     dir.create(out_dir, recursive = TRUE)
   }
 
-  n_valid <- nrow(valid_cell_data)
+  # Handle both data frame and parquet path inputs
+  if (is.character(valid_cell_data)) {
+    # It's a path to parquet file - open as dataset
+    cell_ds <- arrow::open_dataset(valid_cell_data)
+    n_valid <- cell_ds %>%
+      dplyr::count() %>%
+      dplyr::collect() %>%
+      dplyr::pull(n)
+    regions <- cell_ds %>%
+      dplyr::distinct(region) %>%
+      dplyr::collect() %>%
+      dplyr::pull(region) %>%
+      sort()
+  } else {
+    # It's a data frame
+    n_valid <- nrow(valid_cell_data)
+    regions <- sort(unique(valid_cell_data$region))
+  }
+
   n_chunks <- ceiling(n_valid / chunk_size)
-  regions <- sort(unique(valid_cell_data$region))
 
   message(
     "Valid cells: ",
@@ -226,6 +494,7 @@ process_period_transitions <- function(
     ")"
   )
   message("Regions: ", paste(regions, collapse = ", "))
+  message("Transitions: ", nrow(viable_trans_list))
   message("→ Writing to: ", out_dir)
 
   # Initialize writer storage (region -> writer)
@@ -237,14 +506,36 @@ process_period_transitions <- function(
   for (chunk_idx in seq_len(n_chunks)) {
     start_idx <- (chunk_idx - 1) * chunk_size + 1
     end_idx <- min(chunk_idx * chunk_size, n_valid)
-    chunk_rows <- valid_cell_data[start_idx:end_idx, , drop = FALSE]
 
-    cat(sprintf("\r  Processing chunk %d/%d...", chunk_idx, n_chunks))
+    cat(sprintf(
+      "\r  Processing chunk %d/%d (%s cells)...     ",
+      chunk_idx,
+      n_chunks,
+      format(end_idx - start_idx + 1, big.mark = ",")
+    ))
+
+    # Get chunk rows
+    if (is.character(valid_cell_data)) {
+      # Use row_idx for efficient dplyr::filtering in Arrow
+      chunk_rows <- cell_ds %>%
+        dplyr::filter(row_idx >= start_idx & row_idx <= end_idx) %>%
+        dplyr::collect()
+    } else {
+      chunk_rows <- valid_cell_data[start_idx:end_idx, , drop = FALSE]
+    }
 
     # Extract raster values using pre-identified cell IDs
     chunk_ids <- chunk_rows$cell_id
     init_vals <- init_r[chunk_ids]
     fin_vals <- fin_r[chunk_ids]
+
+    # Handle data frame vs vector returns from terra
+    if (is.data.frame(init_vals) || is.list(init_vals)) {
+      init_vals <- init_vals[[1]]
+    }
+    if (is.data.frame(fin_vals) || is.list(fin_vals)) {
+      fin_vals <- fin_vals[[1]]
+    }
 
     # Use pre-extracted region values from valid_cell_data
     region_vals <- chunk_rows$region
@@ -326,7 +617,7 @@ process_period_transitions <- function(
       rm(region_chunk)
     }
 
-    rm(chunk_df, trans_mat, init_vals, fin_vals)
+    rm(chunk_df, trans_mat, init_vals, fin_vals, chunk_rows)
     gc(verbose = FALSE)
   }
 
@@ -413,11 +704,22 @@ sanity_check_transitions_partitioned <- function(
 
   results$n_transition_cols <- length(trans_cols)
 
-  # Check for NAs in transition columns
-  na_counts <- ds |>
-    dplyr::select(dplyr::all_of(trans_cols)) |>
-    dplyr::summarise(dplyr::across(dplyr::everything(), ~ sum(is.na(.)))) |>
-    dplyr::collect()
+  # Check for NAs in transition columns (sample to avoid memory issues)
+  # For large datasets, we'll sample 1 million rows
+  total_rows <- results$total_rows
+  if (total_rows > 1e6) {
+    cat("  Sampling 1M rows for NA check (dataset is large)...\n")
+    na_counts <- ds |>
+      dplyr::select(dplyr::all_of(trans_cols)) |>
+      head(1e6) |>
+      dplyr::summarise(dplyr::across(dplyr::everything(), ~ sum(is.na(.)))) |>
+      dplyr::collect()
+  } else {
+    na_counts <- ds |>
+      dplyr::select(dplyr::all_of(trans_cols)) |>
+      dplyr::summarise(dplyr::across(dplyr::everything(), ~ sum(is.na(.)))) |>
+      dplyr::collect()
+  }
 
   results$na_summary <- data.frame(
     transition = names(na_counts),

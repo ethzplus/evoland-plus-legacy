@@ -142,9 +142,6 @@ perform_transition_modelling <- function(
     )
   )
 
-  # get names of unique transitions to model
-  transition_names <- unique(fs_summary$transition)
-
   # Parquet file paths
   transitions_pq_path <- file.path(
     config[["trans_pre_pred_filter_dir"]],
@@ -186,11 +183,6 @@ perform_transition_modelling <- function(
     message("Processing national extent (no regionalization)\n")
   }
 
-  message(sprintf(
-    "Starting processing of %d transitions...\n",
-    length(transition_names)
-  ))
-
   # --- Parallel processing of transitions ---
 
   # Determine number of cores from SLURM or fallback
@@ -201,32 +193,50 @@ perform_transition_modelling <- function(
   ))
 
   # Use furrr for parallel map
-  future::plan(future::multisession, workers = n_cores)
+  future::plan(multicore, workers = n_cores)
   options(future.rng.onMisuse = "ignore")
-  message("Beginning parallel processing of transitions...")
 
-  # Parallel over transitions × regions
+  # Build vector of row indices to iterate over
+  task_ids <- seq_len(nrow(fs_summary))
+
+  message(sprintf(
+    "Starting parallel processing of %d transitions...\n",
+    length(task_ids)
+  ))
+
+  # Parallel over region × transition combinations from fs_summary
   transitions_model_results <- furrr::future_map_dfr(
-    transition_names,
-    function(trans_name) {
+    task_ids,
+    function(i) {
+      # Extract the row (this row defines ONE task)
+      task <- fs_summary[i, ]
+      trans_name <- task$transition
+      region <- task$region
+
+      # Create worker-specific log file
       log_file <- initialize_worker_log(
         file.path(debug_dir),
-        trans_name
+        paste0(trans_name, "_", region)
       )
 
+      log_msg(
+        sprintf("Starting task: transition=%s region=%s", trans_name, region),
+        log_file
+      )
+
+      # --- Each worker opens its own datasets ---
       log_msg("Opening Arrow datasets...", log_file)
+
       ds_transitions <- arrow::open_dataset(
         transitions_pq_path,
-        partitioning = arrow::hive_partition(
-          region = arrow::int32()
-        )
+        partitioning = arrow::hive_partition(region = arrow::int32())
       )
+
       ds_static <- arrow::open_dataset(
         static_preds_pq_path,
-        partitioning = arrow::hive_partition(
-          region = arrow::int32()
-        )
+        partitioning = arrow::hive_partition(region = arrow::int32())
       )
+
       ds_dynamic <- arrow::open_dataset(
         dynamic_preds_pq_path,
         partitioning = arrow::hive_partition(
@@ -235,52 +245,28 @@ perform_transition_modelling <- function(
         )
       )
 
-      log_msg("  Arrow datasets opened successfully\n", log_file)
+      log_msg("Arrow datasets opened successfully\n", log_file)
 
-      purrr::map_dfr(region_names, function(region) {
-        # if there is no entry for this transition x region combo in fs_summary,
-        # skip modelling
-        if (
-          nrow(
-            fs_summary %>%
-              dplyr::filter(
-                transition == trans_name,
-                region == ifelse(is.null(region), "National extent", region)
-              )
-          ) ==
-            0
-        ) {
-          log_msg(
-            sprintf(
-              "Skipping transition %s for region %s - no feature selection results found\n",
-              trans_name,
-              ifelse(is.null(region), "National extent", region)
-            ),
-            log_file
-          )
-          return(NULL)
-        }
-
-        # model single transition
-        model_single_transition(
-          trans_name = trans_name,
-          refresh_cache = refresh_cache,
-          region = region,
-          use_regions = use_regions,
-          ds_transitions = ds_transitions,
-          ds_static = ds_static,
-          ds_dynamic = ds_dynamic,
-          period = period,
-          config = config,
-          model_dir = model_dir,
-          eval_dir = eval_dir,
-          log_file = log_file,
-          fs_summary = fs_summary
-        )
-      })
+      # --- Run the actual model ---
+      model_single_transition(
+        trans_name = trans_name,
+        refresh_cache = refresh_cache,
+        region = region,
+        use_regions = use_regions,
+        ds_transitions = ds_transitions,
+        ds_static = ds_static,
+        ds_dynamic = ds_dynamic,
+        period = period,
+        config = config,
+        model_dir = model_dir,
+        eval_dir = eval_dir,
+        log_file = log_file,
+        fs_summary = fs_summary
+      )
     },
     .options = furrr::furrr_options(seed = TRUE)
   )
+
   future::plan(future::sequential) # Reset to sequential
   return(transitions_model_results)
 }

@@ -30,7 +30,13 @@
 #' If there's only one covariate in the input data, the function returns it unchanged.
 #' @author Antoine Adde (main) edited by Ben Black
 
-lulcc.covfilter <- function(cov_data, trans_result, method, weights, corcut = 0) {
+lulcc_covfilter <- function(
+  cov_data,
+  trans_result,
+  method,
+  weights,
+  corcut = 0
+) {
   # If only one covariate in the candidate set, don't do anything
   if (ncol(cov_data) == 1) {
     cov_data.filter <- cov_data
@@ -41,14 +47,16 @@ lulcc.covfilter <- function(cov_data, trans_result, method, weights, corcut = 0)
   covdata <- cbind(cov_data, trans_result = factor(trans_result))
 
   # Rank candidate covariates using selected method
-  if (as.numeric(length(unique(trans_result))) <= 2) { # approach for binary datasets
+  if (as.numeric(length(unique(trans_result))) <= 2) {
+    # approach for binary datasets
     if (method == "IQR") {
       covranked <- data.frame(
         iqr = sort(
           sapply(
             subset(
               covdata[covdata$trans_result == 1, ],
-              select = -c(trans_result), IQR
+              select = -c(trans_result),
+              IQR
             )
           )
         )
@@ -63,12 +71,16 @@ lulcc.covfilter <- function(cov_data, trans_result, method, weights, corcut = 0)
               subset(
                 covdata[covdata$trans_result == 1, ],
                 select = -c(trans_result)
-              ), IQR
-            ) / sapply(
-              subset(covdata[covdata$trans_result == 1, ],
-                select = -c(trans_result)
-              ), median
-            )
+              ),
+              IQR
+            ) /
+              sapply(
+                subset(
+                  covdata[covdata$trans_result == 1, ],
+                  select = -c(trans_result)
+                ),
+                median
+              )
           )
         )
       )
@@ -83,7 +95,8 @@ lulcc.covfilter <- function(cov_data, trans_result, method, weights, corcut = 0)
               as.matrix(
                 subset(covdata, select = -c(trans_result))
               ),
-              method = "pearson", use = "complete.obs"
+              method = "pearson",
+              use = "complete.obs"
             )
           )
         )
@@ -95,11 +108,11 @@ lulcc.covfilter <- function(cov_data, trans_result, method, weights, corcut = 0)
       covranked <- data.frame(
         cor = abs(
           t(
-            cor(trans_result,
-              as.matrix(subset(covdata,
-                select = -c(trans_result)
-              )),
-              method = "spearman", use = "complete.obs"
+            cor(
+              trans_result,
+              as.matrix(subset(covdata, select = -c(trans_result))),
+              method = "spearman",
+              use = "complete.obs"
             )
           )
         )
@@ -110,7 +123,9 @@ lulcc.covfilter <- function(cov_data, trans_result, method, weights, corcut = 0)
     if (method == "WIL") {
       res <- sort(
         apply(
-          subset(covdata, select = -c(trans_result)), 2, function(x) {
+          subset(covdata, select = -c(trans_result)),
+          2,
+          function(x) {
             wilcox.test(x ~ covdata$trans_result)$p.value
           }
         )
@@ -121,13 +136,16 @@ lulcc.covfilter <- function(cov_data, trans_result, method, weights, corcut = 0)
     if (method == "GLM") {
       res <- sort(
         apply(
-          cov_data, 2, function(x) {
+          cov_data,
+          2,
+          function(x) {
             # TODO this loop is very hot and needs to be optimized if kept
             min(
               summary(
                 glm(
                   trans_result ~ poly(x, degree = 2, simple = TRUE),
-                  family = "binomial", weights = weights
+                  family = "binomial",
+                  weights = weights
                 )
               )$coefficients[2:3, 4]
             ) # This is subsetting too the p value of the intercept and the covariate
@@ -145,31 +163,39 @@ lulcc.covfilter <- function(cov_data, trans_result, method, weights, corcut = 0)
               subset(
                 covdata[covdata$trans_result == 1, ],
                 select = -c(trans_result)
-              ), mad
-            ) / sapply(
-              subset(
-                covdata[covdata$trans_result == 1, ],
-                select = -c(trans_result)
-              ), median
-            )
+              ),
+              mad
+            ) /
+              sapply(
+                subset(
+                  covdata[covdata$trans_result == 1, ],
+                  select = -c(trans_result)
+                ),
+                median
+              )
           )
         )
       )
     }
   }
 
-  if (length(unique(trans_result)) > 2) { # This is for Multiclass datasets
+  if (length(unique(trans_result)) > 2) {
+    # This is for Multiclass datasets
 
     res <- sort(
       apply(
         subset(
           covdata,
           select = -c(trans_result)
-        ), 2, function(x) { # loop over covariates
+        ),
+        2,
+        function(x) {
+          # loop over covariates
 
           # set baseline category of dependent variable for multinomial model
           baseline_trans_ID <- tail(
-            unique(covdata$trans_result), 1
+            unique(covdata$trans_result),
+            1
           ) # identify last unique transition ID
           trans_result_RL <- relevel(
             covdata$trans_result,
@@ -179,9 +205,9 @@ lulcc.covfilter <- function(cov_data, trans_result, method, weights, corcut = 0)
           # run multinomial model
           mn_model <- multinom(trans_result_RL ~ poly(x, 2))
 
-
           # calculate z value
-          z <- summary(mn_model)$coefficients / summary(mn_model)$standard.errors
+          z <- summary(mn_model)$coefficients /
+            summary(mn_model)$standard.errors
 
           # calculate p value
           # p values for cov and it's polynomial across all values of dependent variables

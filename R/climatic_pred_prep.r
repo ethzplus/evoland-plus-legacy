@@ -91,7 +91,7 @@ climatic_pred_prep <- function(
     clean_name <- names(climatic_var_list)[var]
 
     # match to ssp using vectorized grep
-    scenario_variant <- ssps[grep(paste(ssps, collapse = "|"), pred_name)]
+    scenario_variant <- ssps[sapply(ssps, function(x) grepl(x, pred_name))]
     if (length(scenario_variant) == 0) {
       scenario_variant <- NULL
     }
@@ -103,15 +103,7 @@ climatic_pred_prep <- function(
     )
 
     # extract four digit numerical period from filename
-    period_match <- regmatches(
-      pred_name,
-      regexpr("[0-9]{4}_[0-9]{4}", pred_name)
-    )
-    if (length(period_match) > 0) {
-      period <- period_match
-    } else {
-      period <- "all"
-    }
+    period <- regmatches(pred_name, regexpr("\\d{4}", pred_name))
 
     # update YAML
     update_predictor_yaml(
@@ -124,7 +116,7 @@ climatic_pred_prep <- function(
       metadata = "Karger, D.N., Schmatz, D., Detttling, D., Zimmermann, N.E. (2020) High resolution monthly precipitation and temperature timeseries for the period 2006-2100. Scientific Data. https://doi.org/10.1038/s41597-020-00587-y",
       scenario_variant = scenario_variant,
       period = period,
-      path = out_path |>
+      path = outpath |>
         fs::path_rel(config[["data_basepath"]]),
       grouping = "climatic",
       description = paste0(

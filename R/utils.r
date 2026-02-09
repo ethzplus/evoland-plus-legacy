@@ -15,18 +15,80 @@ ensure_dir <- function(dir) {
 .datatable.aware <- TRUE
 
 #' @describeIn util Write a raster with memory and compression options
-write_raster <- function(r, filename, ...) {
+write_raster <- function(
+  r,
+  filename,
+  overwrite = TRUE,
+  sample_size = 1000,
+  ...
+) {
+  stopifnot(inherits(r, "SpatRaster"))
+
+  # ---- 1. Quick check: sample a small number of values ----
+  vals <- terra::spatSample(
+    r,
+    size = sample_size,
+    method = "random",
+    values = TRUE,
+    na.rm = TRUE
+  )
+
+  # Quick and coarse integer check
+  is_int_like <- all(abs(vals - round(vals)) < 1e-6)
+
+  # ---- 2. Determine datatype from approximate range ----
+  vals <- terra::minmax(r)
+  rmin <- vals[1, ]
+  rmax <- vals[2, ]
+
+  if (is_int_like) {
+    if (rmin >= 0 && rmax <= 255) {
+      dtype <- "INT1U"
+      naflag <- 255
+    } else if (rmin >= -128 && rmax <= 127) {
+      dtype <- "INT1S"
+      naflag <- -128
+    } else if (rmin >= 0 && rmax <= 65535) {
+      dtype <- "INT2U"
+      naflag <- 65535
+    } else if (rmin >= -32768 && rmax <= 32767) {
+      dtype <- "INT2S"
+      naflag <- -32768
+    } else {
+      dtype <- "INT4S"
+      naflag <- -2^31
+    }
+  } else {
+    dtype <- "FLT4S" # good enough for most environmental rasters
+    naflag <- NA
+  }
+
+  # ---- 3. Efficient compression settings ----
+  gdal_opts <- c("COMPRESS=LZW", "ZLEVEL=9", "TILED=YES")
+  gdal_opts <- c(
+    gdal_opts,
+    if (grepl("^FLT", dtype)) "PREDICTOR=3" else "PREDICTOR=2"
+  )
+
+  # ---- 4. Write to disk ----
   terra::writeRaster(
     r,
     filename = filename,
-    overwrite = TRUE,
+    overwrite = overwrite,
     wopt = list(
-      datatype = "INT2S",
-      NAflag = -32768,
-      gdal = c("COMPRESS=LZW", "ZLEVEL=9")
+      datatype = dtype,
+      NAflag = naflag,
+      gdal = gdal_opts
     ),
     ...
   )
+
+  message(sprintf(
+    "✅ Saved '%s' [%s, %s]",
+    filename,
+    dtype,
+    paste(gdal_opts, collapse = ", ")
+  ))
 }
 
 
@@ -721,90 +783,6 @@ distance_from_shapefile <- function(
   return(distance_raster)
 }
 
-#' @describeIn util Create metadata and citation files from a WFS endpoint
-#' Create metadata + citation files from a WFS endpoint
-#'
-#' @param dataset_name Custom name you assign to this dataset (e.g. "Peru_Cuencas")
-#' @param wfs_url URL of the WFS GetCapabilities document or service endpoint
-#' @param download_url URL to static downloadable data (ZIP, GPKG, etc.)
-#' @param output_dir Directory to save JSON and .bib files
-#'
-#' @return A list with paths to the created files
-create_metadata_from_wfs <- function(
-  dataset_name,
-  wfs_url,
-  download_url,
-  output_dir = "."
-) {
-  message("Connecting to WFS service: ", wfs_url)
-
-  # Connect to the WFS (explicitly calling from ows4R)
-  wfs <- ows4R::WFSClient$new(
-    url = wfs_url,
-    serviceVersion = "2.0.0"
-  )
-
-  # List available feature types
-  feature_types <- wfs$listFeatureTypes()
-
-  # Extract metadata for each feature type
-  meta_list <- lapply(feature_types, function(ft) {
-    list(
-      wfs_layer_name = ft$getName(),
-      title = ft$getTitle(),
-      abstract = ft$getAbstract(),
-      default_crs = ft$getDefaultCRS(),
-      bbox = ft$getBoundingBox(),
-      output_formats = ft$getOutputFormats()
-    )
-  })
-
-  # Combine dataset-level metadata
-  metadata <- list(
-    dataset_name = dataset_name,
-    wfs_service_url = wfs_url,
-    download_url = download_url,
-    number_of_layers = length(meta_list),
-    layers = meta_list,
-    retrieved_on = Sys.time()
-  )
-
-  # Create output directory if missing
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-  }
-
-  # --- Write JSON metadata file (explicit jsonlite call) ---
-  json_path <- file.path(output_dir, paste0(dataset_name, "_metadata.json"))
-  jsonlite::write_json(
-    metadata,
-    json_path,
-    pretty = TRUE,
-    auto_unbox = TRUE
-  )
-
-  # --- Create BibTeX citation (explicit bibtex call) ---
-  bib_entry <- bibtex::bibentry(
-    bibtype = "Misc",
-    title = dataset_name,
-    author = "Autoridad Nacional del Agua (ANA)",
-    year = format(Sys.Date(), "%Y"),
-    url = download_url,
-    note = paste0("WFS metadata source: ", wfs_url)
-  )
-
-  bib_path <- file.path(output_dir, paste0(dataset_name, ".bib"))
-  bibtex::write.bib(bib_entry, file = bib_path)
-
-  # --- Output messages ---
-  message("✅ Created metadata and citation files:")
-  message(" - JSON: ", json_path)
-  message(" - BibTeX: ", bib_path)
-
-  invisible(list(json = json_path, bib = bib_path))
-}
-
-
 #' @describeIn util Update predictor YAML file with new entry
 #' Add or update a predictor entry in a YAML file
 #'
@@ -819,6 +797,7 @@ create_metadata_from_wfs <- function(
 #' @param scenario_variant Scenario variant (default NULL)
 #' @param period Period coverage (default NULL)
 #' @param path File path or template path (default NULL)
+#' @param intermediate_path Optional intermediate path (default NULL)
 #' @param grouping Grouping category (default NULL)
 #' @param description Description of the predictor (default NULL)
 #' @param date Date string (default NULL)
@@ -829,6 +808,7 @@ create_metadata_from_wfs <- function(
 update_predictor_yaml <- function(
   yaml_file,
   pred_name,
+  base_name = NULL,
   clean_name = NULL,
   pred_category = NULL,
   static_or_dynamic = NULL,
@@ -836,12 +816,12 @@ update_predictor_yaml <- function(
   scenario_variant = NULL,
   period = NULL,
   path = NULL,
+  intermediate_path = NULL,
   grouping = NULL,
   description = NULL,
   date = NULL,
   author = NULL,
-  wfs_url = NULL,
-  download_url = NULL,
+  sources = NULL,
   raw_dir = NULL,
   raw_filename = NULL,
   method = NULL
@@ -856,6 +836,7 @@ update_predictor_yaml <- function(
 
   # Build entry
   entry <- list(
+    base_name = base_name,
     clean_name = clean_name,
     pred_category = pred_category,
     static_or_dynamic = static_or_dynamic,
@@ -863,13 +844,13 @@ update_predictor_yaml <- function(
     scenario_variant = scenario_variant,
     period = period,
     path = path,
+    intermediate_path = intermediate_path,
     grouping = grouping,
     description = description,
     method = method,
     date = date,
     author = author,
-    wfs_url = wfs_url,
-    download_url = download_url,
+    sources = sources,
     raw_dir = raw_dir,
     raw_filename = raw_filename
   )
@@ -881,4 +862,176 @@ update_predictor_yaml <- function(
   writeLines(yaml::as.yaml(yaml_content), con = yaml_file)
 
   message("YAML updated successfully: ", yaml_file)
+}
+
+
+#' Load transition data from the parquet file for a specific transition and region
+#' @param ds_transitions Arrow dataset for transitions
+#' @param transition_name Name of the transition
+#' @param region_value Numeric region value (if applicable)
+#' @param use_regions Boolean indicating if regionalization is active
+#' @return Data frame with cell_id and response columns
+load_transition_data <- function(
+  ds,
+  transition_name,
+  region_value = NULL,
+  use_regions = FALSE,
+  log_file = NULL
+) {
+  log_msg(
+    sprintf(
+      "[TRANS] Loading %s | region=%s",
+      transition_name,
+      ifelse(is.null(region_value), "ALL", region_value)
+    ),
+    log_file
+  )
+
+  q <- ds %>% dplyr::select(cell_id, region, all_of(transition_name))
+  log_msg("  Query constructed", log_file)
+
+  if (use_regions && !is.null(region_value)) {
+    q <- q %>% dplyr::filter(region == !!region_value)
+  }
+  log_msg("  Region filter applied", log_file)
+
+  out <- tryCatch(
+    {
+      q %>%
+        dplyr::filter(!is.na(.data[[transition_name]])) %>%
+        dplyr::collect() %>%
+        dplyr::select(cell_id, response = all_of(transition_name), region) %>%
+        dplyr::distinct(cell_id, .keep_all = TRUE) %>%
+        dplyr::arrange(cell_id)
+    },
+    error = function(e) {
+      log_msg(
+        paste(
+          "Failed to load transition:",
+          transition_name,
+          "|",
+          e$message
+        ),
+        log_file
+      )
+      tibble::tibble(cell_id = integer(), response = integer())
+    }
+  )
+
+  if (nrow(out) == 0) {
+    log_msg(sprintf("[TRANS] ZERO ROWS for %s", transition_name), log_file)
+  }
+
+  out
+}
+
+
+#' Load predictor data (both static and dynamic) from the parquet file for specific cell IDs
+#' @param ds_static Arrow dataset for static predictors
+#' @param ds_dynamic_period Arrow dataset for dynamic predictors
+#' @param cell_ids Vector of cell IDs to load
+#' @param preds Vector of predictor variable names to load
+#' @param region_value Numeric region value (if applicable)
+#' @param scenario Scenario name (if applicable)
+#' @return Data frame with cell_id and predictor columns
+load_predictor_data <- function(
+  ds_static,
+  ds_dynamic,
+  cell_ids,
+  preds,
+  region_value = NULL,
+  scenario = NULL,
+  log_file = NULL
+) {
+  preds <- unique(as.character(preds))
+  if (length(preds) == 0) {
+    return(tibble(cell_id = integer()))
+  }
+
+  static_cols <- intersect(preds, names(ds_static$schema))
+  dyn_cols <- intersect(preds, names(ds_dynamic$schema))
+
+  q_static <- ds_static %>% dplyr::select(cell_id, region, all_of(static_cols))
+  q_dyn <- ds_dynamic %>%
+    dplyr::select(cell_id, region, scenario, all_of(dyn_cols))
+
+  if (!is.null(region_value)) {
+    q_static <- q_static %>% dplyr::filter(region == !!region_value)
+    q_dyn <- q_dyn %>% dplyr::filter(region == !!region_value)
+  }
+  if (!is.null(scenario)) {
+    q_dyn <- q_dyn %>% dplyr::filter(.data$scenario == !!scenario)
+  }
+
+  q_static <- q_static %>% dplyr::filter(cell_id %in% !!cell_ids)
+  q_dyn <- q_dyn %>% dplyr::filter(cell_id %in% !!cell_ids)
+
+  static_df <- if (length(static_cols) > 0) {
+    q_static %>%
+      dplyr::collect() %>%
+      dplyr::select(-region) %>%
+      dplyr::distinct(cell_id, .keep_all = TRUE) %>%
+      dplyr::arrange(cell_id)
+  } else {
+    tibble::tibble(cell_id = integer())
+  }
+
+  dyn_df <- if (length(dyn_cols) > 0) {
+    q_dyn %>%
+      dplyr::collect() %>%
+      dplyr::select(-region, -scenario) %>%
+      dplyr::distinct(cell_id, .keep_all = TRUE) %>%
+      dplyr::arrange(cell_id)
+  } else {
+    tibble::tibble(cell_id = integer())
+  }
+
+  joined <- dplyr::full_join(static_df, dyn_df, by = "cell_id")
+  keep <- c("cell_id", intersect(preds, names(joined)))
+
+  df <- joined %>% dplyr::select(all_of(keep)) %>% dplyr::arrange(cell_id)
+
+  # Enforce numeric predictors
+  for (nm in setdiff(names(df), "cell_id")) {
+    if (!is.numeric(df[[nm]])) {
+      tmp <- suppressWarnings(as.numeric(df[[nm]]))
+      if (all(is.na(tmp) == is.na(df[[nm]]))) {
+        df[[nm]] <- tmp
+        log_msg(sprintf("[PRED] Coerced '%s' to numeric", nm), log_file)
+      } else {
+        stop(sprintf("[PRED] Column '%s' cannot be coerced to numeric", nm))
+      }
+    }
+  }
+
+  df
+}
+
+#' Logging helper function
+#' @param msg Message to log
+#' @param log_file Optional log file path
+#' @param also_console Boolean indicating if message should also be printed to console
+#' @return NULL
+log_msg <- function(msg, log_file = NULL, also_console = TRUE) {
+  timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+  line <- paste0(timestamp, " | ", msg, "\n")
+  if (!is.null(log_file)) {
+    dir.create(dirname(log_file), recursive = TRUE, showWarnings = FALSE)
+    cat(line, file = log_file, append = TRUE)
+  }
+  if (also_console) cat(line)
+}
+
+#' Initialize per-worker log file
+#' @param log_dir Directory to store log files
+#' @param trans_name Name of the transition
+#' @return Path to the initialized log file
+initialize_worker_log <- function(log_dir, trans_name) {
+  dir.create(log_dir, recursive = TRUE, showWarnings = FALSE)
+  log_file <- file.path(
+    log_dir,
+    sprintf("worker_%s_%s.log", Sys.getpid(), trans_name)
+  )
+  log_msg(sprintf("Initialized log file for %s", trans_name), log_file)
+  return(log_file)
 }

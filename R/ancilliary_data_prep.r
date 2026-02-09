@@ -5,7 +5,7 @@
 #'
 ancillary_data_prep <- function(
   config = get_config(),
-  refresh_cache = FALSE,
+  refresh_cache = TRUE,
   terra_temp = tempdir()
 ) {
   # ensure a prepared ancillary data directory exists
@@ -14,9 +14,6 @@ ancillary_data_prep <- function(
   # load the yaml file listing the ancillary data
   ancillary_yaml_path <- config[["ancillary_data_table"]]
   ancillary_table <- yaml::yaml.load_file(ancillary_yaml_path)
-
-  # subset to first entry for testing
-  ancillary_table <- ancillary_table[1]
 
   # loop over each ancillary data entry
   for (entry_name in names(ancillary_table)) {
@@ -50,7 +47,8 @@ ancillary_data_prep <- function(
     }
 
     # add the prepped_path to the entry for future reference
-    entry$path <- prepped_path
+    entry$path <- prepped_path |>
+      fs::path_rel(config[["data_basepath"]])
 
     # skip if already exists and not refreshing
     if (file.exists(prepped_path) & !refresh_cache) {
@@ -75,9 +73,11 @@ ancillary_data_prep <- function(
       raw_vect <- terra::vect(raw_path)
       # reproject if needed
       if (!terra::crs(raw_vect) == terra::crs(ref_raster)) {
+        message("Reprojecting vector to match reference raster CRS.")
         raw_vect <- terra::project(raw_vect, terra::crs(ref_raster))
       }
       # crop to ref extent
+      message("Cropping vector to match reference raster extent.")
       cropped_vect <- terra::crop(raw_vect, ref_raster)
       # save the cropped vect
       terra::writeVector(
@@ -92,7 +92,7 @@ ancillary_data_prep <- function(
     ancillary_table[[entry_name]] <- entry
   }
 
-  # save the updated ancillary yaml table
+  # replace the entries in the existing yaml file if they exist if not add them
   yaml::write_yaml(ancillary_table, ancillary_yaml_path)
 
   message("Ancilliary data preparation complete.")
