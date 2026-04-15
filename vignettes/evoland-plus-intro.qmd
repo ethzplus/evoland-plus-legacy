@@ -44,6 +44,7 @@ library(evoland)
 
 Zenodo currently hosts a single zip file including all the raw data needed for reproducing some [Valpar.CH](https://valpar.ch/) specific models.
 The download is approximately 31 GB and may take some time depending on your connection speed.
+`fetch_zenodo_predictors` will automatically download and extract all files, but you can also pass a local file path if you would rather download from your browser.
 
 ```{r}
 fetch_zenodo_predictors()
