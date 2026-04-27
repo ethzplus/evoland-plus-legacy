@@ -1,7 +1,7 @@
 #' Get predictor data from Zenodo
 #'
 #' This fetches predictor data from a very specifically structured Zenodo repo, namely
-#' like <https://doi.org/10.5281/zenodo.8263509>
+#' like <https://doi.org/10.5281/zenodo.19481151>
 #'
 #' @param url The url of the zip to fetch
 #' @param target_dir The dir in which to depose the data
@@ -9,14 +9,12 @@
 #' @export
 
 fetch_zenodo_predictors <- function(
-    url = "https://zenodo.org/records/8263509/files/LULCC_CH_dat.zip",
+    url = "https://zenodo.org/records/19481151/files/evoland-ch-data.zip",
     target_dir = fs::path(Sys.getenv("EVOLAND_DATA_BASEPATH", unset = "data-raw"))) {
-  # WONTFIX currently, the raw data resides at the zenodo record, which will stay about
-  # as persistent as a DOI based lookup. We need to make assumptions about the data
-  # structure anyways, so let's stick with this.
-  # WONTFIX no2 the zip file is corrupted on zenodo, so you need to locally fix it using
-  # zip -FF infile.zip --out outfile.zip
-  # FIXME in #18 by reuploading
+  # WONTFIX this used to be a DOI based lookup, but since a DOI is roughly as
+  # persistent as a Zenodo reference, we're just pointing to Zenodo directly.
+  # We need to make assumptions about the data structure anyways, so let's
+  # stick with this.
 
   tmpfile <- tempfile()
   curl::curl_download(
